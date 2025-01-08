@@ -1,4 +1,4 @@
-using Coin;
+using CoinPr;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>

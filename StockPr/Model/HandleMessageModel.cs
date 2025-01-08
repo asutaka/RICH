@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 
-namespace Stock.Model
+namespace StockPr.Model
 {
     public class HandleMessageModel
     {

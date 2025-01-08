@@ -1,12 +1,10 @@
-using Stock.Service;
-
-namespace Stock
+namespace CoinPr
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
 
-        public Worker(ILogger<Worker> logger, ITeleService teleService)
+        public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
         }

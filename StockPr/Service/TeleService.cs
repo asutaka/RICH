@@ -2,7 +2,7 @@
 using Telegram.Bot.Types;
 using Telegram.Bot;
 
-namespace Stock.Service
+namespace StockPr.Service
 {
     public interface ITeleService
     {
@@ -29,7 +29,7 @@ namespace Stock.Service
                 if (string.IsNullOrWhiteSpace(msg.Text)
                || type != UpdateType.Message) return;
 
-                var lRes = await _messageService.HandleMessage(msg.Text);
+                var lRes = await _messageService.ReceivedMessage(msg);
                 if (lRes?.Any() ?? false)
                 {
                     foreach (var item in lRes)

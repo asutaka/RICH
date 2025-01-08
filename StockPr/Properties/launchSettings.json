@@ -1,6 +1,6 @@
 ﻿{
   "profiles": {
-    "Stock": {
+    "StockPr": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "environmentVariables": {
