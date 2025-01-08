@@ -20,8 +20,8 @@ namespace StockPr.Service
         {
             try
             {
-                //var url = "http://127.0.0.1:7801";//Local
-                var url = "https://export.highcharts.com";
+                var url = "http://127.0.0.1:7801";//Local
+                //var url = "https://export.highcharts.com";
                 var client = _client.CreateClient();
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(10);

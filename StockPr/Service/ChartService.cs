@@ -47,6 +47,8 @@ namespace StockPr.Service
                 var lStream = new List<Stream>();
                 var streamDoanhThu = await Chart_DoanhThu_LoiNhuan(lFinancial.Select(x => new BaseFinancialDTO { d = x.d, rv = x.rv, pf = x.pf }).ToList(), input);
                 lStream.Add(streamDoanhThu);
+
+                lRes = lStream.Select(x => InputFile.FromStream(x)).ToList();
             }
             catch (Exception ex)
             {
