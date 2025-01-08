@@ -2,7 +2,6 @@
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
-using System.Net;
 using Telegram.Bot.Types;
 
 namespace StockPr.Service

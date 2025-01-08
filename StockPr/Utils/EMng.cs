@@ -210,6 +210,23 @@ namespace StockPr.Utils
         [Display(Name = "GDP ngân hàng - bảo hiểm")]
         QUY_GDP_NganHangBaoHiem = 69,
     }
+
+    public enum ESource
+    {
+        DSC = 1,
+        VNDirect = 2,
+        MigrateAsset = 3,
+        Agribank = 4,
+        SSI = 5,
+        BSC = 6,
+        MBS = 7,
+        PSI = 8,
+        CafeF = 9,
+        VCBS = 10,
+        FPTS = 11,
+        VCI = 12,
+        KBS = 13
+    }
     #endregion
     #region Response
     #endregion

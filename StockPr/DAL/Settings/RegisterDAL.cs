@@ -10,6 +10,7 @@
             services.AddSingleton<IConfigDataRepo, ConfigDataRepo>();
             services.AddSingleton<IThongKeRepo, ThongKeRepo>();
             services.AddSingleton<IThongKeQuyRepo, ThongKeQuyRepo>();
+            services.AddSingleton<IConfigBaoCaoPhanTichRepo, ConfigBaoCaoPhanTichRepo>();
         }
     }
 }

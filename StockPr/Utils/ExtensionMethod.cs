@@ -1,4 +1,5 @@
 ﻿using StockPr.DAL.Entity;
+using System.Globalization;
 
 namespace StockPr.Utils
 {
@@ -46,6 +47,20 @@ namespace StockPr.Utils
             return $"{month.To2Digit()}/{year - 2000}";
         }
 
+        public static DateTime ToDateTime(this string val, string format)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(val))
+                    return DateTime.MinValue;
+                DateTime dt = DateTime.ParseExact(val, format, CultureInfo.InvariantCulture);
+                return dt;
+            }
+            catch
+            {
+                return DateTime.MinValue;
+            }
+        }
         public static string To2Digit(this int val)
         {
             if (val > 9)
