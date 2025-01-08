@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using StockPr.Model.BCPT;
 using StockPr.Utils;
+using System.Net;
 using System.Text;
 
 namespace StockPr.Service
@@ -23,6 +24,11 @@ namespace StockPr.Service
         Task<List<BCPT_Crawl_Data>> FPTS_GetPost(bool isIndustry);
         Task<List<BCPT_Crawl_Data>> KBS_GetPost(bool isIndustry);
         Task<List<BCPT_Crawl_Data>> CafeF_GetPost();
+
+        Task<List<Pig333_Clean>> Pig333_GetPigPrice();
+        Task<List<TradingEconomics_Data>> Tradingeconimic_Commodities();
+        Task<MacroMicro_Key> MacroMicro_WCI(string key);
+        Task<List<Metal_Detail>> Metal_GetYellowPhotpho();
     }
     public class APIService : IAPIService
     {
@@ -59,6 +65,7 @@ namespace StockPr.Service
             return null;
         }
 
+        #region Báo cáo phân tích
         public async Task<List<DSC_Data>> DSC_GetPost()
         {
             var url = $"https://www.dsc.com.vn/_next/data/_yb_7FS7Rg1u71yUzTxPK/bao-cao-phan-tich/tat-ca-bao-cao.json?slug=tat-ca-bao-cao";
@@ -685,6 +692,263 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.CafeF_GetPost|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        #endregion
+
+        public async Task<List<Pig333_Clean>> Pig333_GetPigPrice()
+        {
+            try
+            {
+                var client = _client.CreateClient();
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://www.pig333.com/markets_and_prices/?accio=cotitzacions");
+                request.Headers.Add("user-agent", "zzz");
+                var content = new StringContent("moneda=VND&unitats=kg&mercats=166", null, "application/x-www-form-urlencoded");
+                request.Content = content;
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var responseMessageStr = await response.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Pig333_Main>(responseMessageStr);
+                responseModel.resultat = responseModel.resultat.Where(x => x.Contains("economia.data.addRow")).ToList();
+                responseModel.resultat = responseModel.resultat.Select(x => x.Replace("economia.data.addRow([new Date(", "").Replace("]", "").Replace(")", "")).ToList();
+
+                var lRes = new List<Pig333_Clean>();
+                foreach (var item in responseModel.resultat)
+                {
+                    try
+                    {
+                        var strSplit = item.Split(',');
+                        var i0 = int.Parse(strSplit[0].Trim());
+                        var i1 = int.Parse(strSplit[1].Trim());
+                        var i2 = int.Parse(strSplit[2].Trim());
+                        var isDecimal = decimal.TryParse(strSplit[3].Trim(), out var i3);
+                        if (!isDecimal)
+                            continue;
+                        lRes.Add(new Pig333_Clean
+                        {
+                            Date = new DateTime(i0, i1 + 1, i2),
+                            Value = i3
+                        });
+                    }
+                    catch { }
+                }
+                lRes = lRes.OrderBy(x => x.Date).ToList();
+
+                return lRes;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Pig333_GetPigPrice|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<List<TradingEconomics_Data>> Tradingeconimic_Commodities()
+        {
+            try
+            {
+                var lCode = new List<string>
+                {
+                    EPrice.Crude_Oil.GetDisplayName(),//Dầu thô
+                    EPrice.Natural_gas.GetDisplayName(),//Khí thiên nhiên
+                    EPrice.Coal.GetDisplayName(),//Than
+                    EPrice.Gold.GetDisplayName(),//Vàng--
+                    EPrice.Steel.GetDisplayName(),//Thép
+                    EPrice.HRC_Steel.GetDisplayName(),//Thép HRC
+                    EPrice.Rubber.GetDisplayName(), //Cao su
+                    EPrice.Coffee.GetDisplayName(), //Cà phê
+                    EPrice.Rice.GetDisplayName(), //Gạo
+                    EPrice.Sugar.GetDisplayName(), //Đường
+                    EPrice.Urea.GetDisplayName(), //U rê
+                    EPrice.polyvinyl.GetDisplayName(), //Ống nhựa PVC--
+                    EPrice.Nickel.GetDisplayName(), //Niken
+                    EPrice.milk.GetDisplayName(),//Sữa
+                    EPrice.kraftpulp.GetDisplayName()//Bột giấy
+                };
+
+                var lResult = new List<TradingEconomics_Data>();
+
+                //LV1
+                var link = string.Empty;
+                var url = $"https://tradingeconomics.com/commodities";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                requestMessage.Method = HttpMethod.Get;
+                var responseMessage = await client.SendAsync(requestMessage);
+
+                //var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var html = await responseMessage.Content.ReadAsStringAsync();
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var tableNodes = doc.DocumentNode.SelectNodes("//table");
+                foreach (var item in tableNodes)
+                {
+                    var tbody = item.ChildNodes["tbody"];
+                    foreach (var row in tbody.ChildNodes.Where(r => r.Name == "tr"))
+                    {
+                        var model = new TradingEconomics_Data();
+                        var columnsArray = row.ChildNodes.Where(c => c.Name == "td").ToArray();
+                        for (int i = 0; i < columnsArray.Length; i++)
+                        {
+                            if (i == 0)
+                            {
+                                model.Code = columnsArray[i].InnerText.Trim().Split("\r")[0].Trim();
+                            }
+                            else if (i == 4)
+                            {
+                                var isFloat = decimal.TryParse(columnsArray[i].InnerText.Replace("%", "").Trim(), out var val);
+                                if (isFloat)
+                                {
+                                    model.Weekly = val;
+                                }
+                            }
+                            else if (i == 5)
+                            {
+                                var isFloat = decimal.TryParse(columnsArray[i].InnerText.Replace("%", "").Trim(), out var val);
+                                if (isFloat)
+                                {
+                                    model.Monthly = val;
+                                }
+                            }
+                            else if (i == 6)
+                            {
+                                var isFloat = decimal.TryParse(columnsArray[i].InnerText.Replace("%", "").Trim(), out var val);
+                                if (isFloat)
+                                {
+                                    model.YTD = val;
+                                }
+                            }
+                            else if (i == 7)
+                            {
+                                var isFloat = decimal.TryParse(columnsArray[i].InnerText.Replace("%", "").Trim(), out var val);
+                                if (isFloat)
+                                {
+                                    model.YoY = val;
+                                }
+                            }
+                        }
+                        if (!string.IsNullOrWhiteSpace(model.Code)
+                            && lCode.Any(x => x.Replace(" ", "").Replace("-", "").Equals(model.Code.Replace(" ", "").Replace("-", ""), StringComparison.OrdinalIgnoreCase)))
+                        {
+                            lResult.Add(model);
+                        }
+                    }
+                }
+
+                return lResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Tradingeconimic_Commodities|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        private async Task<(string, string)> MacroMicro_GetAuthorize()
+        {
+            try
+            {
+                var cookies = new CookieContainer();
+                var handler = new HttpClientHandler();
+                handler.CookieContainer = cookies;
+
+                var url = $"https://en.macromicro.me/";
+                var client = new HttpClient(handler);
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                requestMessage.Method = HttpMethod.Get;
+                var responseMessage = await client.SendAsync(requestMessage);
+
+                var html = await responseMessage.Content.ReadAsStringAsync();
+                var index = html.IndexOf("data-stk=");
+                if (index < 0)
+                    return (null, null);
+
+                var sub = html.Substring(index + 10);
+                var indexCut = sub.IndexOf("\"");
+                if (indexCut < 0)
+                    return (null, null);
+
+                var authorize = sub.Substring(0, indexCut);
+                var uri = new Uri(url);
+                var responseCookies = cookies.GetCookies(uri).Cast<Cookie>();
+                return (authorize, responseCookies?.FirstOrDefault().ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.MacroMicro_WCI|EXCEPTION| {ex.Message}");
+            }
+            return (null, null);
+        }
+        public async Task<MacroMicro_Key> MacroMicro_WCI(string key)
+        {
+            //wci: 44756
+            //bdti: 946
+            try
+            {
+                var res = await MacroMicro_GetAuthorize();
+                if (string.IsNullOrWhiteSpace(res.Item1)
+                    || string.IsNullOrWhiteSpace(res.Item2))
+                    return null;
+
+                var client = _client.CreateClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, $"https://en.macromicro.me/charts/data/{key}");
+                request.Headers.Add("authorization", $"Bearer {res.Item1}");
+                request.Headers.Add("cookie", res.Item2);
+                request.Headers.Add("referer", "https://en.macromicro.me/collections/22190/sun-ming-te-investment-dashboard/44756/drewry-world-container-index");
+                request.Headers.Add("user-agent", "zzz");
+
+                request.Content = new StringContent(string.Empty,
+                                    Encoding.UTF8,
+                                    "application/json");//CONTENT-TYPE header
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var responseMessageStr = await response.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<MacroMicro_Main>(responseMessageStr);
+                if (key.Equals("946"))
+                {
+                    return responseModel?.data.key2;
+                }
+                return responseModel?.data.key;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.MacroMicro_WCI|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<List<Metal_Detail>> Metal_GetYellowPhotpho()
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var dtStart = dt.AddYears(-1);
+                var end = $"{dt.Year}-{dt.Month.To2Digit()}-{dt.Day.To2Digit()}";
+                var start = $"{dtStart.Year}-{dtStart.Month.To2Digit()}-{dtStart.Day.To2Digit()}";
+
+                var url = $"https://www.metal.com/api/spotcenter/get_history_prices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjZWxscGhvbmUiOiIiLCJjb21wYW55X2lkIjowLCJjb21wYW55X3N0YXR1cyI6MCwiY3JlYXRlX2F0IjoxNzI4ODE0NDE2LCJlbWFpbCI6Im5ndXllbnBodTEzMTJAZ21haWwuY29tIiwiZW5fZW5kX3RpbWUiOjAsImVuX3JlZ2lzdGVyX3N0ZXAiOjIsImVuX3JlZ2lzdGVyX3RpbWUiOjE3MjY5MzExMjUsImVuX3N0YXJ0X3RpbWUiOjAsImVuX3VzZXJfdHlwZSI6MCwiZW5kX3RpbWUiOjAsImlzX21haWwiOjAsImlzX3Bob25lIjowLCJsYW5ndWFnZSI6IiIsImx5X2VuZF90aW1lIjowLCJseV9zdGFydF90aW1lIjowLCJseV91c2VyX3R5cGUiOjAsInJlZ2lzdGVyX3RpbWUiOjE3MjY5MzExMjQsInN0YXJ0X3RpbWUiOjAsInVuaXF1ZV9pZCI6ImZiNzA2MWY5MTY3OGRiMWVmMmE0MDhiNzZhM2JmZGI1IiwidXNlcl9pZCI6Mzg2Mzk0MywidXNlcl9sYW5ndWFnZSI6ImNuIiwidXNlcl9uYW1lIjoiU01NMTcyNjkzMTEyNUd3IiwidXNlcl90eXBlIjowLCJ6eF9lbmRfdGltZSI6MCwienhfc3RhcnRfdGltZSI6MCwienhfdXNlcl90eXBlIjowfQ.Cto8fQMsanSaEDjBWPNPSMMSX68AaQp8_5uLgnVUYXE&id=202005210065&beginDate={start}&endDate={end}&needQuote=0";
+                var client = _client.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var responseMessageStr = await response.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Metal_Main>(responseMessageStr);
+                return responseModel?.data?.priceListList;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Metal_GetYellowPhotpho|EXCEPTION| {ex.Message}");
             }
             return null;
         }

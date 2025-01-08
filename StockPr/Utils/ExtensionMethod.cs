@@ -1,5 +1,7 @@
 ﻿using StockPr.DAL.Entity;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Reflection;
 
 namespace StockPr.Utils
 {
@@ -66,6 +68,22 @@ namespace StockPr.Utils
             if (val > 9)
                 return val.ToString();
             return $"0{val}";
+        }
+
+        public static string GetDisplayName(this Enum enumValue)
+        {
+            try
+            {
+                return enumValue.GetType()
+                            .GetMember(enumValue.ToString())
+                            .First()
+                            .GetCustomAttribute<DisplayAttribute>()
+                            .GetName();
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         public static bool IsTonKho(this Stock stock)

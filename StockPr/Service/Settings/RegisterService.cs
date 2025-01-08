@@ -10,6 +10,7 @@
             services.AddSingleton<IChartService, ChartService>();
             services.AddSingleton<IAPIService, APIService>();
             services.AddSingleton<IBaoCaoPhanTichService, BaoCaoPhanTichService>();
+            services.AddSingleton<IGiaNganhHangService, GiaNganhHangService>();
         }
     }
 }
