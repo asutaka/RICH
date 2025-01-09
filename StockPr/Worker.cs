@@ -46,11 +46,19 @@ namespace StockPr
                 {
                     if (dt.Hour == 9 || dt.Hour == 13)
                     {
-                        await _giaService.TraceGia(false);
+                        var res = await _giaService.TraceGia(false);
+                        if(res.Item1 > 0)
+                        {
+                            await _teleService.SendMessage(_idGroup, res.Item2);
+                        }
                     }
                     else if (dt.Hour == 17)
                     {
-                        await _giaService.TraceGia(true);
+                        var res = await _giaService.TraceGia(true);
+                        if (res.Item1 > 0)
+                        {
+                            await _teleService.SendMessage(_idGroup, res.Item2);
+                        }
                     }
                 }
                 await Task.Delay(1000 * 60 * 15, stoppingToken);
