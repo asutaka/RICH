@@ -26,39 +26,11 @@ namespace StockPr.Service
             _configRepo = configRepo;
         }
 
-        private string PrintTraceGia(TraceGiaModel model)
+        private async Task<TraceGiaModel> Pig333_GiaThitHeo(bool isAll)
         {
-            var res = $"   - {model.content}: W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
-            if (!string.IsNullOrWhiteSpace(model.description))
-            {
-                res += $"\n       => {model.description}\n";
-            }
-            return res;
-        }
-        public async Task<(int, string)> TraceGia(bool isAll)
-        {
-            var dt = DateTime.Now;
-            var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
-            var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
-            var flag = 7;
             try
             {
-                var mode = EConfigDataType.TraceGia;
-                var builder = Builders<ConfigData>.Filter;
-                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
-                var lConfig = _configRepo.GetByFilter(filter);
-                if (lConfig.Any())
-                {
-                    if (lConfig.Any(x => x.t == t))
-                        return (0, null);
-
-                    _configRepo.DeleteMany(filter);
-                }
-
-                var lTraceGia = new List<TraceGiaModel>();
-                var strOutput = new StringBuilder();
-
-                #region Giá Thịt Lợn
+                var dt = DateTime.Now;
                 var pig = await _apiService.Pig333_GetPigPrice();
                 var modelPig = new TraceGiaModel
                 {
@@ -78,7 +50,7 @@ namespace StockPr.Service
                             var lastWeek = pig.SkipLast(1).Last();
                             var rateWeek = Math.Round(100 * (-1 + last.Value / lastWeek.Value), 1);
                             modelPig.weekly = rateWeek;
-                            if (rateWeek >= flag || rateWeek <= -flag)
+                            if (rateWeek >= _flag || rateWeek <= -_flag)
                             {
                                 isPrintPig = true;
                             }
@@ -116,17 +88,34 @@ namespace StockPr.Service
                 //Print
                 if (isAll || isPrintPig)
                 {
-                    lTraceGia.Add(modelPig);
+                    return modelPig;
                 }
-                #endregion
-
-                #region WCI Index
-                var wci = await _apiService.MacroMicro_WCI("44756");
-                var modelWCI = new TraceGiaModel
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"GiaNganhHangService.Pig333_GiaThitHeo|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        private async Task<TraceGiaModel> MacroMicro(bool isAll, string key)
+        {
+            try
+            {
+                //44756 946
+                var dt = DateTime.Now;
+                var wci = await _apiService.MacroMicro_WCI(key);
+                var modelWCI = new TraceGiaModel();
+                if (key.Equals("44756"))
                 {
-                    content = "Cước Container",
-                    description = "HAH"
-                };
+                    modelWCI.content = "Cước Container";
+                    modelWCI.description = "HAH";
+                }
+                else
+                {
+                    modelWCI.content = "Cước vận tải dầu thô";
+                    modelWCI.description = "PVT,VTO";
+                }
+
                 var isPrintWCI = false;
                 if (wci != null)
                 {
@@ -134,67 +123,70 @@ namespace StockPr.Service
                     var composite = wci.series.FirstOrDefault();
                     if (composite != null)
                     {
-                        try
+                        var lData = composite.Select(x => new MacroMicro_CleanData
                         {
-                            var lData = composite.Select(x => new MacroMicro_CleanData
+                            Date = x[0].ToDateTime("yyyy-MM-dd"),
+                            Value = decimal.Parse(x[1])
+                        });
+                        if (lData.Any())
+                        {
+                            var last = lData.Last();
+                            //weekly
+                            var dtPrev = dt.AddDays(-2);
+                            if (last.Date >= dtPrev)
                             {
-                                Date = x[0].ToDateTime("yyyy-MM-dd"),
-                                Value = decimal.Parse(x[1])
-                            });
-                            if (lData.Any())
-                            {
-                                var last = lData.Last();
-                                //weekly
-                                var dtPrev = dt.AddDays(-2);
-                                if (last.Date >= dtPrev)
+                                var lastWeek = lData.SkipLast(1).Last();
+                                var rateWeek = Math.Round(100 * (-1 + last.Value / lastWeek.Value), 1);
+                                modelWCI.weekly = rateWeek;
+                                if (rateWeek >= _flag || rateWeek <= -_flag)
                                 {
-                                    var lastWeek = lData.SkipLast(1).Last();
-                                    var rateWeek = Math.Round(100 * (-1 + last.Value / lastWeek.Value), 1);
-                                    modelWCI.weekly = rateWeek;
-                                    if (rateWeek >= flag || rateWeek <= -flag)
-                                    {
-                                        isPrintWCI = true;
-                                    }
-                                }
-                                //Monthly
-                                var dtMonthly = dt.AddMonths(-1);
-                                var itemMonthly = lData.Where(x => x.Date <= dtMonthly).OrderByDescending(x => x.Date).FirstOrDefault();
-                                if (itemMonthly != null)
-                                {
-                                    var rateMonthly = Math.Round(100 * (-1 + last.Value / itemMonthly.Value), 1);
-                                    modelWCI.monthly = rateMonthly;
-                                }
-                                //yearly
-                                var dtYearly = dt.AddYears(-1);
-                                var itemYearly = lData.Where(x => x.Date <= dtYearly).OrderByDescending(x => x.Date).FirstOrDefault();
-                                if (itemYearly != null)
-                                {
-                                    var rateYearly = Math.Round(100 * (-1 + last.Value / itemYearly.Value), 1);
-                                    modelWCI.yearly = rateYearly;
-                                }
-                                //YTD
-                                var dtYTD = new DateTime(dt.Year, 1, 2);
-                                var itemYTD = lData.Where(x => x.Date <= dtYTD).OrderByDescending(x => x.Date).FirstOrDefault();
-                                if (itemYTD != null)
-                                {
-                                    var rateYTD = Math.Round(100 * (-1 + last.Value / itemYTD.Value), 1);
-                                    modelWCI.YTD = rateYTD;
+                                    isPrintWCI = true;
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError($"GiaNganhHangService.TraceGia|EXCEPTION| {ex.Message}");
+                            //Monthly
+                            var dtMonthly = dt.AddMonths(-1);
+                            var itemMonthly = lData.Where(x => x.Date <= dtMonthly).OrderByDescending(x => x.Date).FirstOrDefault();
+                            if (itemMonthly != null)
+                            {
+                                var rateMonthly = Math.Round(100 * (-1 + last.Value / itemMonthly.Value), 1);
+                                modelWCI.monthly = rateMonthly;
+                            }
+                            //yearly
+                            var dtYearly = dt.AddYears(-1);
+                            var itemYearly = lData.Where(x => x.Date <= dtYearly).OrderByDescending(x => x.Date).FirstOrDefault();
+                            if (itemYearly != null)
+                            {
+                                var rateYearly = Math.Round(100 * (-1 + last.Value / itemYearly.Value), 1);
+                                modelWCI.yearly = rateYearly;
+                            }
+                            //YTD
+                            var dtYTD = new DateTime(dt.Year, 1, 2);
+                            var itemYTD = lData.Where(x => x.Date <= dtYTD).OrderByDescending(x => x.Date).FirstOrDefault();
+                            if (itemYTD != null)
+                            {
+                                var rateYTD = Math.Round(100 * (-1 + last.Value / itemYTD.Value), 1);
+                                modelWCI.YTD = rateYTD;
+                            }
                         }
                     }
                 }
                 //Print
                 if (isAll || isPrintWCI)
                 {
-                    lTraceGia.Add(modelWCI);
+                    return modelWCI;
                 }
-                #endregion
-                #region Yellow Photphorus Index
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"GiaNganhHangService.MacroMicro|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        private async Task<TraceGiaModel> Metal_GetYellowPhotpho(bool isAll)
+        {
+            try
+            {
+                var dt = DateTime.Now;
                 var lPhotpho = await _apiService.Metal_GetYellowPhotpho();
                 var modelPhotpho = new TraceGiaModel
                 {
@@ -219,7 +211,7 @@ namespace StockPr.Service
                             var itemWeekly = lPhotpho.Where(x => x.metalsPrice.Date <= nearTime).OrderByDescending(x => x.metalsPrice.Date).First();
                             var rateWeek = Math.Round(100 * (-1 + cur.metalsPrice.average / itemWeekly.metalsPrice.average), 1);
                             modelPhotpho.weekly = rateWeek;
-                            if (rateWeek >= flag || rateWeek <= -flag)
+                            if (rateWeek >= _flag || rateWeek <= -_flag)
                             {
                                 isPrintPhotpho = true;
                             }
@@ -251,95 +243,30 @@ namespace StockPr.Service
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"GiaNganhHangService.TraceGia|EXCEPTION| {ex.Message}");
+                        _logger.LogError($"GiaNganhHangService.Metal_GetYellowPhotpho|EXCEPTION| {ex.Message}");
                     }
                 }
                 //Print
                 if (isAll || isPrintPhotpho)
                 {
-                    lTraceGia.Add(modelPhotpho);
+                    return modelPhotpho;
                 }
-                #endregion
-
-                #region BDTI Index
-                var bdti = await _apiService.MacroMicro_WCI("946");
-                var modelBDTI = new TraceGiaModel
-                {
-                    content = "Cước vận tải dầu thô",
-                    description = "PVT,VTO"
-                };
-                var isPrintBDTI = false;
-                if (bdti != null)
-                {
-
-                    var composite = bdti.series.FirstOrDefault();
-                    if (composite != null)
-                    {
-                        try
-                        {
-                            var lData = composite.Select(x => new MacroMicro_CleanData
-                            {
-                                Date = x[0].ToDateTime("yyyy-MM-dd"),
-                                Value = decimal.Parse(x[1])
-                            });
-                            if (lData.Any())
-                            {
-                                var last = lData.Last();
-                                //weekly
-                                var dtPrev = dt.AddDays(-2);
-                                if (last.Date >= dtPrev)
-                                {
-                                    var lastWeek = lData.SkipLast(1).Last();
-                                    var rateWeek = Math.Round(100 * (-1 + last.Value / lastWeek.Value), 1);
-                                    modelBDTI.weekly = rateWeek;
-                                    if (rateWeek >= flag || rateWeek <= -flag)
-                                    {
-                                        isPrintBDTI = true;
-                                    }
-                                }
-                                //Monthly
-                                var dtMonthly = dt.AddMonths(-1);
-                                var itemMonthly = lData.Where(x => x.Date <= dtMonthly).OrderByDescending(x => x.Date).FirstOrDefault();
-                                if (itemMonthly != null)
-                                {
-                                    var rateMonthly = Math.Round(100 * (-1 + last.Value / itemMonthly.Value), 1);
-                                    modelBDTI.monthly = rateMonthly;
-                                }
-                                //yearly
-                                var dtYearly = dt.AddYears(-1);
-                                var itemYearly = lData.Where(x => x.Date <= dtYearly).OrderByDescending(x => x.Date).FirstOrDefault();
-                                if (itemYearly != null)
-                                {
-                                    var rateYearly = Math.Round(100 * (-1 + last.Value / itemYearly.Value), 1);
-                                    modelBDTI.yearly = rateYearly;
-                                }
-                                //YTD
-                                var dtYTD = new DateTime(dt.Year, 1, 2);
-                                var itemYTD = lData.Where(x => x.Date <= dtYTD).OrderByDescending(x => x.Date).FirstOrDefault();
-                                if (itemYTD != null)
-                                {
-                                    var rateYTD = Math.Round(100 * (-1 + last.Value / itemYTD.Value), 1);
-                                    modelBDTI.YTD = rateYTD;
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError($"GiaNganhHangService.TraceGia|EXCEPTION| {ex.Message}");
-                        }
-                    }
-                }
-                //Print
-                if (isAll || isPrintBDTI)
-                {
-                    lTraceGia.Add(modelBDTI);
-                }
-                #endregion
-
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"GiaNganhHangService.Metal_GetYellowPhotpho|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        private async Task<List<TraceGiaModel>> Tradingeconimic_Commodities(bool isAll)
+        {
+            var lTraceGia = new List<TraceGiaModel>();
+            try
+            {
                 var lEconomic = await _apiService.Tradingeconimic_Commodities();
                 foreach (var item in lEconomic)
                 {
-                    if (isAll || item.Weekly >= flag || item.Weekly <= -flag)
+                    if (isAll || item.Weekly >= _flag || item.Weekly <= -_flag)
                     {
                         if (item.Code.Equals(EPrice.Crude_Oil.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
                         {
@@ -522,6 +449,79 @@ namespace StockPr.Service
                             });
                         }
                     }
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"GiaNganhHangService.Tradingeconimic_Commodities|EXCEPTION| {ex.Message}");
+            }
+
+            return lTraceGia;
+        }
+        private string PrintTraceGia(TraceGiaModel model)
+        {
+            var res = $"   - {model.content}: W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
+            if (!string.IsNullOrWhiteSpace(model.description))
+            {
+                res += $"\n       => {model.description}\n";
+            }
+            return res;
+        }
+        public async Task<(int, string)> TraceGia(bool isAll)
+        {
+            var dt = DateTime.Now;
+            var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+            var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
+            try
+            {
+                var mode = EConfigDataType.TraceGia;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return (0, null);
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var lTraceGia = new List<TraceGiaModel>();
+                var strOutput = new StringBuilder();
+
+                //PIG
+                var pig = await Pig333_GiaThitHeo(isAll);
+                if (pig != null) 
+                {
+                    lTraceGia.Add(pig);
+                }
+
+                //WCI
+                var wci = await MacroMicro(isAll, "44756");
+                if (wci != null)
+                {
+                    lTraceGia.Add(wci);
+                }
+
+                //Yellow PhotPho
+                var yellowPhotpho = await Metal_GetYellowPhotpho(isAll);
+                if (yellowPhotpho != null)
+                {
+                    lTraceGia.Add(yellowPhotpho);
+                }
+
+                //BDTI
+                var bdti = await MacroMicro(isAll, "946");
+                if (bdti != null)
+                {
+                    lTraceGia.Add(bdti);
+                }
+
+                //Economic
+                var lTradingEconomic = await Tradingeconimic_Commodities(isAll);
+                if (lTradingEconomic?.Any() ?? false)
+                {
+                    lTraceGia.AddRange(lTradingEconomic);
                 }
 
                 foreach (var item in lTraceGia.OrderByDescending(x => x.weekly).ThenBy(x => x.monthly))
