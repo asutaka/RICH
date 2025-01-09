@@ -1,4 +1,4 @@
-using StockPr.DAL;
+﻿using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Service;
 using StockPr.Utils;
@@ -12,18 +12,21 @@ namespace StockPr
         private readonly IBaoCaoPhanTichService _bcptService;
         private readonly IGiaNganhHangService _giaService;
         private readonly ITeleService _teleService;
+        private readonly ITongCucThongKeService _tongcucService;
         private const long _idGroup = -4237476810;
         //private const long _idChannel = -1002247826353;
         //private const long _idUser = 1066022551;
 
         public Worker(ILogger<Worker> logger, 
-                    ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService,
+                    ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService,
                     IStockRepo stockRepo)
         {
             _logger = logger;
             _bcptService = bcptService;
             _teleService = teleService;
             _giaService = giaService;
+            _tongcucService = tongcucService;
+
             _stockRepo = stockRepo;
         }
 
@@ -40,8 +43,12 @@ namespace StockPr
                 {
                     await _teleService.SendMessage(_idGroup, bcpt);
                 }
-
-                //Trace gi�
+                //Tổng cục thống kê
+                if (dt.Day == 6)
+                {
+                    await _tongcucService.TongCucThongKe(dt);
+                }
+                //Giá Ngành Hàng
                 if (dt.Minute < 15)
                 {
                     if (dt.Hour == 9 || dt.Hour == 13)

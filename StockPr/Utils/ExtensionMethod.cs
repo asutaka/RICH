@@ -86,6 +86,49 @@ namespace StockPr.Utils
             }
         }
 
+        public static string RemoveSignVietnamese(this string val)
+        {
+            var VietnameseSigns = new string[]
+            {
+
+                "aAeEoOuUiIdDyY",
+
+                "áàạảãâấầậẩẫăắằặẳẵ",
+
+                "ÁÀẠẢÃÂẤẦẬẨẪĂẮẰẶẲẴ",
+
+                "éèẹẻẽêếềệểễ",
+
+                "ÉÈẸẺẼÊẾỀỆỂỄ",
+
+                "óòọỏõôốồộổỗơớờợởỡ",
+
+                "ÓÒỌỎÕÔỐỒỘỔỖƠỚỜỢỞỠ",
+
+                "úùụủũưứừựửữ",
+
+                "ÚÙỤỦŨƯỨỪỰỬỮ",
+
+                "íìịỉĩ",
+
+                "ÍÌỊỈĨ",
+
+                "đ",
+
+                "Đ",
+
+                "ýỳỵỷỹ",
+
+                "ÝỲỴỶỸ"
+            };
+            for (int i = 1; i < VietnameseSigns.Length; i++)
+            {
+                for (int j = 0; j < VietnameseSigns[i].Length; j++)
+                    val = val.Replace(VietnameseSigns[i][j], VietnameseSigns[0][i - 1]);
+            }
+            return val;
+        }
+
         public static bool IsTonKho(this Stock stock)
         {
             if (stock.cat is null)

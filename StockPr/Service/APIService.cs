@@ -29,6 +29,9 @@ namespace StockPr.Service
         Task<List<TradingEconomics_Data>> Tradingeconimic_Commodities();
         Task<MacroMicro_Key> MacroMicro_WCI(string key);
         Task<List<Metal_Detail>> Metal_GetYellowPhotpho();
+
+        Task<string> TongCucThongKeGetUrl();
+        Task<Stream> TongCucThongKeGetFile(string url);
     }
     public class APIService : IAPIService
     {
@@ -697,6 +700,7 @@ namespace StockPr.Service
         }
         #endregion
 
+        #region Giá Ngành Hàng
         public async Task<List<Pig333_Clean>> Pig333_GetPigPrice()
         {
             try
@@ -949,6 +953,75 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.Metal_GetYellowPhotpho|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        #endregion
+
+        public async Task<string> TongCucThongKeGetUrl()
+        {
+            try
+            {
+                var lLink = new List<string>();
+                for (int i = 1; i <= 1; i++)
+                {
+                    var url = $"https://www.gso.gov.vn/bao-cao-tinh-hinh-kinh-te-xa-hoi-hang-thang/?paged={i}";
+                    var client = _client.CreateClient();
+                    client.BaseAddress = new Uri(url);
+                    client.Timeout = TimeSpan.FromSeconds(15);
+                    var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                    var html = await responseMessage.Content.ReadAsStringAsync();
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(html);
+                    var linkedPages = doc.DocumentNode.Descendants("a")
+                                                      .Select(a => a.GetAttributeValue("href", null))
+                                                      .Where(u => !string.IsNullOrWhiteSpace(u))
+                                                      .Where(x => (x.Contains("2024") || x.Contains("2023"))
+                                                                && (x.Contains("01") || x.Contains("02") || x.Contains("03") || x.Contains("04") || x.Contains("05") || x.Contains("06")
+                                                                    || x.Contains("07") || x.Contains("08") || x.Contains("09") || x.Contains("10") || x.Contains("11") || x.Contains("12")));
+
+                    lLink.AddRange(linkedPages);
+                }
+                //each link
+                foreach (var item in lLink)
+                {
+                    var clientDetail = new HttpClient { BaseAddress = new Uri(item) };
+                    clientDetail.Timeout = TimeSpan.FromSeconds(15);
+                    var responseMessage = await clientDetail.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                    var html = await responseMessage.Content.ReadAsStringAsync();
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(html);
+                    var linkedPages = doc.DocumentNode.Descendants("a")
+                                                      .Select(a => a.GetAttributeValue("href", null))
+                                                      .Where(u => !string.IsNullOrWhiteSpace(u))
+                                                      .Where(x => x.Contains(".xlsx"));
+                    return linkedPages.FirstOrDefault();
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.TongCucThongKeGetUrl|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<Stream> TongCucThongKeGetFile(string url)
+        {
+            try
+            {
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
+                    return null;
+                return await responseMessage.Content.ReadAsStreamAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.TongCucThongKeGetFile|EXCEPTION| {ex.Message}");
             }
             return null;
         }
