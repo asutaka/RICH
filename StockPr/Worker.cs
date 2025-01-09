@@ -35,22 +35,30 @@ namespace StockPr
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 var dt = DateTime.Now;
-                var bcpt = await _bcptService.BaoCaoPhanTich();
-                if(!string.IsNullOrWhiteSpace(bcpt))
-                {
-                    await _teleService.SendMessage(_idGroup, bcpt);
-                }
+                //var bcpt = await _bcptService.BaoCaoPhanTich();
+                //if(!string.IsNullOrWhiteSpace(bcpt))
+                //{
+                //    await _teleService.SendMessage(_idGroup, bcpt);
+                //}
 
                 //Trace giá
                 if (dt.Minute < 15)
                 {
                     if (dt.Hour == 9 || dt.Hour == 13)
                     {
-                        await _giaService.TraceGia(false);
+                        var res = await _giaService.TraceGia(false);
+                        if(res.Item1 > 0)
+                        {
+                            await _teleService.SendMessage(_idGroup, res.Item2);
+                        }
                     }
                     else if (dt.Hour == 17)
                     {
-                        await _giaService.TraceGia(true);
+                        var res = await _giaService.TraceGia(true);
+                        if (res.Item1 > 0)
+                        {
+                            await _teleService.SendMessage(_idGroup, res.Item2);
+                        }
                     }
                 }
                 await Task.Delay(1000 * 60 * 15, stoppingToken);
