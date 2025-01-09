@@ -3,12 +3,7 @@ using OfficeOpenXml;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Utils;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace StockPr.Service
 {
@@ -65,8 +60,8 @@ namespace StockPr.Service
                 var res = await TongCucThongKeParsingData(url);
                 if (res)
                 {
-                    //var mes = TongCucThongKeThangPrint(dtLocal);
-                    //return (1, mes);
+                    var mes = TongCucThongKeThangPrint(dtLocal);
+                    return (1, mes);
                 }
             }
             catch (Exception ex)
@@ -162,24 +157,24 @@ namespace StockPr.Service
                     }
                 }
 
-                var builder = Builders<ConfigData>.Filter;
-                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
-                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}");
-                var lConfig = _configRepo.GetByFilter(filter);
-                var last = lConfig.LastOrDefault();
-                if (last is null)
-                {
-                    _configRepo.InsertOne(new ConfigData
-                    {
-                        ty = (int)mode,
-                        t = t
-                    });
-                }
-                else
-                {
-                    last.t = t;
-                    _configRepo.Update(last);
-                }
+                //var builder = Builders<ConfigData>.Filter;
+                //FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
+                //var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}");
+                //var lConfig = _configRepo.GetByFilter(filter);
+                //var last = lConfig.LastOrDefault();
+                //if (last is null)
+                //{
+                //    _configRepo.InsertOne(new ConfigData
+                //    {
+                //        ty = (int)mode,
+                //        t = t
+                //    });
+                //}
+                //else
+                //{
+                //    last.t = t;
+                //    _configRepo.Update(last);
+                //}
                 return true;
             }
             catch (Exception ex)
@@ -189,6 +184,26 @@ namespace StockPr.Service
             return false;
         }
 
+        private string TongCucThongKeThangPrint(DateTime dt)
+        {
+            var filter = Builders<ThongKe>.Filter.Eq(x => x.d, int.Parse($"{dt.Year}{dt.Month.To2Digit()}"));
+            var lData = _thongkeRepo.GetByFilter(filter);
+            if (!(lData?.Any() ?? false))
+                return string.Empty;
+
+            var strBuilder = new StringBuilder();
+            strBuilder.AppendLine($"[Thông báo] Tình hình kinh tế - xã hội tháng {dt.Month}");
+            strBuilder.AppendLine();
+
+            strBuilder.AppendLine(CPIStr(dt, lData));
+            strBuilder.AppendLine(NhomNganhStr(dt, lData));
+            strBuilder.AppendLine(CangbienStr(dt, lData));
+            strBuilder.AppendLine(KCNStr(dt, lData));
+            strBuilder.AppendLine(XNKStr(dt, lData));
+            return strBuilder.ToString();
+        }
+
+        #region ParsingData
         private void IIP(ExcelWorksheet sheet, DateTime dt)
         {
             var cQoQPrev = 2;
@@ -554,5 +569,169 @@ namespace StockPr.Service
             }
             return true;
         }
+        #endregion
+
+        #region Print
+        private string CPIStr(DateTime dt, List<ThongKe> lData)//Chuẩn
+        {
+            var strBuilder = new StringBuilder();
+            var GiaTieuDung = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.CPI_GiaTieuDung);
+            var GiaVang = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.CPI_GiaVang);
+            var GiaUSD = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.CPI_DoLa);
+            var LamPhat = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.CPI_LamPhat);
+
+            strBuilder.AppendLine($"*CPI tháng {dt.Month}:");
+            strBuilder.AppendLine($"1. Giá tiêu dùng: M({Math.Round((GiaTieuDung?.qoqoy ?? 0) - 100, 1).ToString("#,##0.##")}%)| Y({Math.Round((GiaTieuDung?.qoq ?? 0) - 100, 1)}%)");
+            strBuilder.AppendLine($"2. Giá Vàng:          M({Math.Round((GiaVang?.qoqoy ?? 0) - 100, 1).ToString("#,##0.##")}%)| Y({Math.Round((GiaVang?.qoq ?? 0) - 100, 1)}%)");
+            strBuilder.AppendLine($"3. Đô la Mỹ:          M({Math.Round((GiaUSD?.qoqoy ?? 0) - 100, 1).ToString("#,##0.##")}%)| Y({Math.Round((GiaUSD?.qoq ?? 0) - 100, 1)}%)");
+            strBuilder.AppendLine($"4. Lạm phát:        M({Math.Round((LamPhat?.qoqoy ?? 0), 1).ToString("#,##0.##")}%)| Y({Math.Round((LamPhat?.qoq ?? 0), 1)}%)");
+            return strBuilder.ToString();
+        }
+
+        private string NhomNganhStr(DateTime dt, List<ThongKe> lData)
+        {
+            var strBuilder = new StringBuilder();
+            strBuilder.AppendLine($"*Nhóm ngành:");
+            strBuilder.AppendLine(DienStr(dt, lData));
+            strBuilder.AppendLine(BanleStr(dt, lData));
+            strBuilder.AppendLine(DautucongStr(dt, lData));
+            return strBuilder.ToString();
+        }
+        
+        private string DienStr(DateTime dt, List<ThongKe> lData)
+        {
+            FilterDefinition<ThongKe> filterIIP = null;
+            var builderIIP = Builders<ThongKe>.Filter;
+            var lFilterIIP = new List<FilterDefinition<ThongKe>>()
+            {
+                builderIIP.Eq(x => x.d, int.Parse($"{dt.Year}{dt.Month.To2Digit()}")),
+                builderIIP.Eq(x => x.key, (int)EKeyTongCucThongKe.IIP_Dien),
+            };
+            foreach (var item in lFilterIIP)
+            {
+                if (filterIIP is null)
+                {
+                    filterIIP = item;
+                    continue;
+                }
+                filterIIP &= item;
+            }
+            var lDataIIP = _thongkeRepo.GetByFilter(filterIIP);
+            var Dien = lDataIIP.FirstOrDefault(x => x.content.RemoveSpace().RemoveSignVietnamese().ToUpper().Contains("Phan Phoi Dien".RemoveSpace().ToUpper()));
+            return $"1. Điện: M({Math.Round((Dien?.qoqoy ?? 0) - 100, 1).ToString("#,##0.##")}%)|Y({Math.Round((Dien?.qoq ?? 0) - 100, 1).ToString("#,##0.##")}%)";
+        }
+
+        private string BanleStr(DateTime dt, List<ThongKe> lData)
+        {
+            var BanLe = GetDataWithRate(lData, dt, EKeyTongCucThongKe.BanLe);
+            return $"2. Bán lẻ: {Math.Round(BanLe.Item1 / 1000, 1).ToString("#,##0.##")} nghìn tỷ|M({BanLe.Item2}%)|Y({BanLe.Item3}%)";
+        }
+
+        private string DautucongStr(DateTime dt, List<ThongKe> lData)
+        {
+            var DauTuCong = GetDataWithRate(lData, dt, EKeyTongCucThongKe.DauTuCong);
+            return $"3. Đầu tư công: {Math.Round(DauTuCong.Item1 / 1000, 1).ToString("#,##0.##")} nghìn tỉ|M({DauTuCong.Item2}%)|Y({DauTuCong.Item3}%)";
+        }
+
+        private string CangbienStr(DateTime dt, List<ThongKe> lData)
+        {
+            var strBuilder = new StringBuilder();
+            var DuongBien = GetDataWithRate(lData, dt, EKeyTongCucThongKe.VanTai_DuongBien);
+            var DuongBo = GetDataWithRate(lData, dt, EKeyTongCucThongKe.VanTai_DuongBo);
+            var DuongHangKhong = GetDataWithRate(lData, dt, EKeyTongCucThongKe.VanTai_HangKhong);
+
+            strBuilder.AppendLine($"*Nhóm ngành cảng biển, Logistic:");
+            strBuilder.AppendLine($"1. Vận tải Đường Biển: M({DuongBien.Item2}%)|Y({DuongBien.Item3}%)");
+            strBuilder.AppendLine($"2. Vận tải Đường Bộ:     M({DuongBo.Item2}%)|Y({DuongBo.Item3}%)");
+            strBuilder.AppendLine($"3. Vận tải Hàng Không: M({DuongHangKhong.Item2}%)|Y({DuongHangKhong.Item3}%)");
+            return strBuilder.ToString();
+        }
+
+        private string KCNStr(DateTime dt, List<ThongKe> lData)
+        {
+            var strBuilder = new StringBuilder();
+            var filterFDI = Builders<ThongKe>.Filter.Eq(x => x.key, (int)EKeyTongCucThongKe.FDI);
+            var lDataFDI = _thongkeRepo.GetByFilter(filterFDI);
+            var lDataCur = lDataFDI.Where(x => x.d == int.Parse($"{dt.Year}{dt.Month.To2Digit()}")).OrderByDescending(x => x.va).Take(5);
+            strBuilder.AppendLine($"*Nhóm ngành KCN:");
+            var iFDI = 1;
+            foreach (var item in lDataCur)
+            {
+                var qoqoy = lDataFDI.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{(dt.AddMonths(-1).Month).To2Digit()}") && x.content.Replace(" ", "").Equals(item.content.Replace(" ", "")));
+                var qoq = lDataFDI.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}") && x.content.Replace(" ", "").Equals(item.content.Replace(" ", "")));
+                var rateQoQoY = (qoqoy is null || qoqoy.va <= 0) ? 0 : Math.Round(100 * (-1 + item.va / qoqoy.va));
+                var rateQoQ = (qoq is null || qoq.va <= 0) ? 0 : Math.Round(100 * (-1 + item.va / qoq.va));
+
+                var unit = "triệu USD";
+                if (item.va >= 1000)
+                {
+                    unit = "tỷ USD";
+                    item.va = Math.Round(item.va / 1000, 1);
+                }
+
+                strBuilder.AppendLine($"{iFDI++}. {item.content}({item.va} {unit})|M({rateQoQoY}%)|Y({rateQoQ}%)");
+            }
+            return strBuilder.ToString();
+        }
+
+        private string XNKStr(DateTime dt, List<ThongKe> lData)
+        {
+            var strBuilder = new StringBuilder();
+            var ThuySan = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_ThuySan);
+            var CaPhe = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_CaPhe);
+            var Gao = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_Gao);
+            var HoaChat = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_HoaChat);
+            var SPChatDeo = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_SPChatDeo);
+            var CaoSu = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_CaoSu);
+            var Go = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_Go);
+            var DetMay = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_DetMay);
+            var SatThep = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_SatThep);
+            var DayDien = GetDataWithRate(lData, dt, EKeyTongCucThongKe.XK_DayDien);
+            strBuilder.AppendLine($"*Xuất khẩu:");
+            strBuilder.AppendLine($"1. Thủy sản:        {Math.Round(ThuySan.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({ThuySan.Item2}%)|Y({ThuySan.Item3}%)");
+            strBuilder.AppendLine($"2. Cà phê:            {Math.Round(CaPhe.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({CaPhe.Item2}%)|Y({CaPhe.Item3}%)");
+            strBuilder.AppendLine($"3. Gạo:                 {Math.Round(Gao.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({Gao.Item2}%)|Y({Gao.Item3}%)");
+            strBuilder.AppendLine($"4. Hóa chất:        {Math.Round(HoaChat.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({HoaChat.Item2}%)|Y({HoaChat.Item3}%)");
+            strBuilder.AppendLine($"5. SP chất dẻo:  {Math.Round(SPChatDeo.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({SPChatDeo.Item2}%)|Y({SPChatDeo.Item3}%)");
+            strBuilder.AppendLine($"6. Cao su:            {Math.Round(CaoSu.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({CaoSu.Item2}%)|Y({CaoSu.Item3}%)");
+            strBuilder.AppendLine($"7. Gỗ:                    {Math.Round(Go.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({Go.Item2}%)|Y({Go.Item3}%)");
+            strBuilder.AppendLine($"8. Dệt may:          {Math.Round(DetMay.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({DetMay.Item2}%)|Y({DetMay.Item3}%)");
+            strBuilder.AppendLine($"9. Sắt thép:         {Math.Round(SatThep.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({SatThep.Item2}%)|Y({SatThep.Item3}%)");
+            strBuilder.AppendLine($"10. Dây điện:      {Math.Round(DayDien.Item1, 1).ToString("#,##0.##").ShowLimit()} triệu USD|M({DayDien.Item2}%)|Y({DayDien.Item3}%)");
+
+            return strBuilder.ToString();
+        }
+
+        private (double, double, double) GetDataWithRate(List<ThongKe> lData, DateTime dt, EKeyTongCucThongKe key1, EKeyTongCucThongKe key2 = EKeyTongCucThongKe.None)
+        {
+            var filterByKey1 = Builders<ThongKe>.Filter.Eq(x => x.key, (int)key1);
+            var lDataFilter1 = _thongkeRepo.GetByFilter(filterByKey1);
+
+            var curVal1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.Year}{dt.Month.To2Digit()}"));
+            var valQoQoY1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{dt.AddMonths(-1).Month.To2Digit()}"));
+            var valQoQ1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}"));
+
+            var curVal = curVal1?.va ?? 0;
+            var valQoQoY = valQoQoY1?.va ?? 0;
+            var valQoQ = valQoQ1?.va ?? 0;
+
+            if (key2 != EKeyTongCucThongKe.None)
+            {
+                var filterByKey2 = Builders<ThongKe>.Filter.Eq(x => x.key, (int)key2);
+                var lDataFilter2 = _thongkeRepo.GetByFilter(filterByKey2);
+                var curVal2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.Year}{dt.Month.To2Digit()}"));
+                var valQoQoY2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{dt.AddMonths(-1).Month.To2Digit()}"));
+                var valQoQ2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}"));
+
+                curVal += (curVal2?.va ?? 0);
+                valQoQoY += (valQoQoY2?.va ?? 0);
+                valQoQ += (valQoQ2?.va ?? 0);
+            }
+
+            var rateQoQoY = valQoQoY > 0 ? Math.Round(100 * (-1 + curVal / valQoQoY), 1) : 0;
+            var rateQoQ = valQoQ > 0 ? Math.Round(100 * (-1 + curVal / valQoQ), 1) : 0;
+            return (curVal, rateQoQoY, rateQoQ);
+        } 
+        #endregion
     }
 }

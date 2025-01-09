@@ -129,6 +129,35 @@ namespace StockPr.Utils
             return val;
         }
 
+        public static string ShowLimit(this string val, int num = 10)
+        {
+            var res = string.Empty;
+            if(string.IsNullOrWhiteSpace(val))
+            {
+                for(int i = 0; i < num; i++)
+                {
+                    res += "  ";
+                }
+            }
+            else
+            {
+                var div = num - val.Length;
+                if(div < 0)
+                {
+                    res = val.Substring(0, num);
+                }
+                else
+                {
+                    for(int i = 0;i < div;i++)
+                    {
+                        res +="  ";
+                    }
+                    res += val;
+                }
+            }
+            return res;
+        }
+
         public static bool IsTonKho(this Stock stock)
         {
             if (stock.cat is null)

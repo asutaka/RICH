@@ -14,8 +14,8 @@ namespace StockPr
         private readonly ITeleService _teleService;
         private readonly ITongCucThongKeService _tongcucService;
         private const long _idGroup = -4237476810;
-        //private const long _idChannel = -1002247826353;
-        //private const long _idUser = 1066022551;
+        private const long _idChannel = -1002247826353;
+        private const long _idUser = 1066022551;
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService,
@@ -38,6 +38,12 @@ namespace StockPr
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 var dt = DateTime.Now;
+                var tmp = await _tongcucService.TongCucThongKe(dt);
+                if (tmp.Item1 > 0)
+                {
+                    await _teleService.SendMessage(_idUser, tmp.Item2);
+                }
+                return;
                 var bcpt = await _bcptService.BaoCaoPhanTich();
                 if(!string.IsNullOrWhiteSpace(bcpt))
                 {
@@ -46,7 +52,11 @@ namespace StockPr
                 //Tổng cục thống kê
                 if (dt.Day == 6)
                 {
-                    await _tongcucService.TongCucThongKe(dt);
+                    var res = await _tongcucService.TongCucThongKe(dt);
+                    if (res.Item1 > 0)
+                    {
+                        await _teleService.SendMessage(_idChannel, res.Item2);
+                    }
                 }
                 //Giá Ngành Hàng
                 if (dt.Minute < 15)
