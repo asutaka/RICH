@@ -35,11 +35,11 @@ namespace StockPr
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 var dt = DateTime.Now;
-                //var bcpt = await _bcptService.BaoCaoPhanTich();
-                //if(!string.IsNullOrWhiteSpace(bcpt))
-                //{
-                //    await _teleService.SendMessage(_idGroup, bcpt);
-                //}
+                var bcpt = await _bcptService.BaoCaoPhanTich();
+                if(!string.IsNullOrWhiteSpace(bcpt))
+                {
+                    await _teleService.SendMessage(_idGroup, bcpt);
+                }
 
                 //Trace giá
                 if (dt.Minute < 15)
