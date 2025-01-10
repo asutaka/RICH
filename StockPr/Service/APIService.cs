@@ -1015,7 +1015,7 @@ namespace StockPr.Service
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
-                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
                     return null;
                 return await responseMessage.Content.ReadAsStreamAsync();
             }

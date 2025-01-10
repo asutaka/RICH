@@ -465,7 +465,27 @@ namespace StockPr.Service
                     if (model.va <= 0 && model.qoq <= 0 && model.qoqoy <= 0)
                         continue;
 
-                    _thongkeRepo.InsertOne(model);
+                    FilterDefinition<ThongKe> filterCheckModel = null;
+                    var builderCheckModel = Builders<ThongKe>.Filter;
+                    var lFilterCheckModel = new List<FilterDefinition<ThongKe>>()
+                            {
+                                builderCheckModel.Eq(x => x.d, model.d),
+                                builderCheckModel.Eq(x => x.key, model.key)
+                            };
+                    foreach (var item in lFilterCheckModel)
+                    {
+                        if (filterCheckModel is null)
+                        {
+                            filterCheckModel = item;
+                            continue;
+                        }
+                        filterCheckModel &= item;
+                    }
+                    var checkModel = _thongkeRepo.GetEntityByFilter(filterCheckModel);
+                    if (checkModel is null)
+                    {
+                        _thongkeRepo.InsertOne(model);
+                    }
                     return true;
                 }
             }
@@ -560,7 +580,28 @@ namespace StockPr.Service
                     if (model.va <= 0 && model.qoq <= 0 && model.qoqoy <= 0)
                         continue;
 
-                    _thongkeRepo.InsertOne(model);
+
+                    FilterDefinition<ThongKe> filterCheckModel = null;
+                    var builderCheckModel = Builders<ThongKe>.Filter;
+                    var lFilterCheckModel = new List<FilterDefinition<ThongKe>>()
+                            {
+                                builderCheckModel.Eq(x => x.d, model.d),
+                                builderCheckModel.Eq(x => x.key, model.key)
+                            };
+                    foreach (var item in lFilterCheckModel)
+                    {
+                        if (filterCheckModel is null)
+                        {
+                            filterCheckModel = item;
+                            continue;
+                        }
+                        filterCheckModel &= item;
+                    }
+                    var checkModel = _thongkeRepo.GetEntityByFilter(filterCheckModel);
+                    if (checkModel is null)
+                    {
+                        _thongkeRepo.InsertOne(model);
+                    }
                 }
             }
             catch (Exception ex)
