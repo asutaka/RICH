@@ -245,7 +245,7 @@ namespace StockPr.Service
                 cQoQ = 6;
             }
 
-            var res = InsertThongKeOnlyRecord(EKeyTongCucThongKe.BanLe, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: -1, colUnit: -1, colPrice: -1, colValPrev: cValPrev, colQoQPrev: -1, "Ban Le");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.BanLe, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: -1, colUnit: -1, colPrice: -1, colValPrev: cValPrev, colQoQPrev: -1, "Ban Le");
         }
 
         private void CPI(ExcelWorksheet sheet, DateTime dt)
@@ -254,14 +254,26 @@ namespace StockPr.Service
             var cQoQoY = 7;
             if (dt.Month == 1)
             {
-                cQoQ = 5;
+                cQoQ = 4;
+                cQoQoY = 5;
+            }
+            else if(dt.Month == 2)
+            {
                 cQoQoY = 6;
+            }
+
+            var lamphat = InsertThongKeOnlyRecord(EKeyTongCucThongKe.CPI_LamPhat, dt, sheet, colContent: 1, colVal: -1, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Lam Phat");
+            if(lamphat.qoq == 0)
+            {
+                cQoQ--;
+                cQoQoY--;
+                InsertThongKeOnlyRecord(EKeyTongCucThongKe.CPI_LamPhat, dt, sheet, colContent: 1, colVal: -1, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Lam Phat");
             }
 
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.CPI_GiaTieuDung, dt, sheet, colContent: 1, colVal: -1, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Chi So Gia Tieu Dung");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.CPI_GiaVang, dt, sheet, colContent: 1, colVal: -1, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Chi So Gia Vang");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.CPI_DoLa, dt, sheet, colContent: 1, colVal: -1, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Do La");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.CPI_LamPhat, dt, sheet, colContent: 1, colVal: -1, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Lam Phat");
+            
         }
 
         private void VanTaiHanhKhach(ExcelWorksheet sheet, DateTime dt)
@@ -278,7 +290,7 @@ namespace StockPr.Service
                 cQoQ = 5;
             }
 
-            var resHangKhong = InsertThongKeOnlyRecord(EKeyTongCucThongKe.HanhKhach_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Hang Khong");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.HanhKhach_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Hang Khong");
         }
 
         private void VanTaiHangHoa(ExcelWorksheet sheet, DateTime dt)
@@ -294,9 +306,9 @@ namespace StockPr.Service
                 cQoQoY = 4;
                 cQoQ = 5;
             }
-            var resDuongBien = InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBien, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Duong Bien");
-            var resDuongBo = InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBo, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Duong Bo");
-            var resHangKhong = InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Hang Khong");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBien, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Duong Bien");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBo, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Duong Bo");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colQoQ: cQoQ, colQoQoY: cQoQoY, colUnit: -1, colPrice: -1, colValPrev: -1, colQoQPrev: -1, "Hang Khong");
         }
 
         private void XuatKhau(ExcelWorksheet sheet, DateTime dt)
@@ -324,12 +336,12 @@ namespace StockPr.Service
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_DayDien, dt, sheet, colContent: 2, colVal: cVal, colQoQ: cQoQ, colQoQoY: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colQoQPrev: -1, "Day dien");
         }
 
-        private bool InsertThongKeOnlyRecord(EKeyTongCucThongKe eThongKe, DateTime dt, ExcelWorksheet sheet, int colContent, int colVal, int colQoQ, int colQoQoY, int colUnit, int colPrice, int colValPrev, int colQoQPrev, string textCompare, string textIgnore = "")
+        private ThongKe InsertThongKeOnlyRecord(EKeyTongCucThongKe eThongKe, DateTime dt, ExcelWorksheet sheet, int colContent, int colVal, int colQoQ, int colQoQoY, int colUnit, int colPrice, int colValPrev, int colQoQPrev, string textCompare, string textIgnore = "")
         {
             try
             {
                 if (colContent <= 0)
-                    return false;
+                    return null;
 
                 var unitStr = string.Empty;
                 //loop all rows in the sheet
@@ -486,14 +498,24 @@ namespace StockPr.Service
                     {
                         _thongkeRepo.InsertOne(model);
                     }
-                    return true;
+                    else
+                    {
+                        checkModel.va = model.va;
+                        checkModel.qoq = model.qoq;
+                        checkModel.qoqoy = model.qoqoy;
+                        checkModel.content = model.content;
+                        checkModel.price = model.price;
+                        checkModel.unit = model.unit;
+                        _thongkeRepo.Update(checkModel);
+                    }
+                    return model;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"TongCucThongKeService.InsertThongKeOnlyRecord|EXCEPTION| {ex.Message}");
             }
-            return false;
+            return null;
         }
 
         private bool InsertThongKeSomeRecord(EKeyTongCucThongKe eThongKe, DateTime dt, ExcelWorksheet sheet, int colContent, int colVal, int colQoQ, int colQoQoY, int colUnit, string keyStart, int colKeyStart, string keyEnd, int colKeyEnd)
@@ -601,6 +623,16 @@ namespace StockPr.Service
                     if (checkModel is null)
                     {
                         _thongkeRepo.InsertOne(model);
+                    }
+                    else
+                    {
+                        checkModel.va = model.va;
+                        checkModel.qoq = model.qoq;
+                        checkModel.qoqoy = model.qoqoy;
+                        checkModel.content = model.content;
+                        checkModel.price = model.price;
+                        checkModel.unit = model.unit;
+                        _thongkeRepo.Update(checkModel);
                     }
                 }
             }
