@@ -57,7 +57,7 @@ namespace StockPr.Service
                         return (0, null);
                 }
 
-                var res = await TongCucThongKeParsingData(url);
+                var res = await TongCucThongKeParsingData(url, dtNow);
                 if (res)
                 {
                     var mes = TongCucThongKeThangPrint(dtLocal);
@@ -72,12 +72,11 @@ namespace StockPr.Service
             return (0, null);
         }
 
-        private async Task<bool> TongCucThongKeParsingData(string url)
+        private async Task<bool> TongCucThongKeParsingData(string url, DateTime dtNow)
         {
             try
             {
                 var mode = EConfigDataType.TongCucThongKeThang;
-                var dtNow = DateTime.Now;
                 var year = dtNow.Year;
                 var urlCheck = url.Replace("-", ".");
                 var index = urlCheck.IndexOf($".{year}");
@@ -161,24 +160,24 @@ namespace StockPr.Service
                     }
                 }
 
-                //var builder = Builders<ConfigData>.Filter;
-                //FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
-                //var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}");
-                //var lConfig = _configRepo.GetByFilter(filter);
-                //var last = lConfig.LastOrDefault();
-                //if (last is null)
-                //{
-                //    _configRepo.InsertOne(new ConfigData
-                //    {
-                //        ty = (int)mode,
-                //        t = t
-                //    });
-                //}
-                //else
-                //{
-                //    last.t = t;
-                //    _configRepo.Update(last);
-                //}
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}");
+                var lConfig = _configRepo.GetByFilter(filter);
+                var last = lConfig.LastOrDefault();
+                if (last is null)
+                {
+                    _configRepo.InsertOne(new ConfigData
+                    {
+                        ty = (int)mode,
+                        t = t
+                    });
+                }
+                else
+                {
+                    last.t = t;
+                    _configRepo.Update(last);
+                }
                 return true;
             }
             catch (Exception ex)

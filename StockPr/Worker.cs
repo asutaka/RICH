@@ -38,12 +38,6 @@ namespace StockPr
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 var dt = DateTime.Now;
-                var tmp = await _tongcucService.TongCucThongKe(dt);
-                if (tmp.Item1 > 0)
-                {
-                    await _teleService.SendMessage(_idUser, tmp.Item2);
-                }
-                return;
                 var bcpt = await _bcptService.BaoCaoPhanTich();
                 if(!string.IsNullOrWhiteSpace(bcpt))
                 {
