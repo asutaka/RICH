@@ -111,8 +111,8 @@ namespace StockPr.Service
                 ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
                 var package = new ExcelPackage(stream);
                 var lSheet = package.Workbook.Worksheets;
-                bool isIIP = false, isVonDauTu = false, isFDI = false, isBanLe = false, isCPI = false, isVantaiHK = false, isVanTaiHH = false, isSPCN = false, isXK = false, isNK = false;
-                foreach (var sheet in lSheet)
+                bool isIIP = false, isVonDauTu = false, isFDI = false, isBanLe = false, isCPI = false, isVantaiHK = false, isVanTaiHH = false, isXK = false;
+                foreach (var sheet in lSheet.OrderByDescending(x => x.Name))
                 {
                     if (false) { }
                     else if (!isIIP && new List<string> { "IIP", "IIPThang" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
@@ -120,12 +120,12 @@ namespace StockPr.Service
                         isIIP = true;
                         IIP(sheet, dt);
                     }
-                    else if (!isVonDauTu && new List<string> { "VDT", "Von Dau Tu", "NSNN", "NSNN Thang", "Von DT" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isVonDauTu && new List<string> { "VDT Thuc hien", "VDT", "Von Dau Tu", "NSNN", "NSNN Thang", "Von DT" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
                     {
                         isVonDauTu = true;
                         VonDauTuNhaNuoc(sheet, dt);
                     }
-                    else if (!isFDI && new List<string> { "FDI" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isFDI && new List<string> { "FDI", "DTNN" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
                     {
                         isFDI = true;
                         FDI(sheet, dt);
@@ -221,9 +221,13 @@ namespace StockPr.Service
 
         private void VonDauTuNhaNuoc(ExcelWorksheet sheet, DateTime dt)
         {
-            //chưa
             var cValPrev = 3;
             var cVal = 4;
+            if (dt.Month == 1)
+            {
+                cValPrev = -1;    
+            }
+            
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.DauTuCong, dt, sheet, colContent: 1, colVal: cVal, colYear: -1, colMonth: -1, colUnit: -1, colPrice: -1, colValPrev: cValPrev, colYearPrev: -1, "Tong So");
         }
 
@@ -738,8 +742,8 @@ namespace StockPr.Service
             {
                 var qoqoy = lDataFDI.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{(dt.AddMonths(-1).Month).To2Digit()}") && x.content.Replace(" ", "").Equals(item.content.Replace(" ", "")));
                 var qoq = lDataFDI.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}") && x.content.Replace(" ", "").Equals(item.content.Replace(" ", "")));
-                var rateQoQoY = (qoqoy is null || qoqoy.va <= 0) ? 0 : Math.Round(100 * (-1 + item.va / qoqoy.va));
-                var rateQoQ = (qoq is null || qoq.va <= 0) ? 0 : Math.Round(100 * (-1 + item.va / qoq.va));
+                var rateM = (qoqoy is null || qoqoy.va <= 0) ? 0 : Math.Round(100 * (-1 + item.va / qoqoy.va));
+                var rateY = (qoq is null || qoq.va <= 0) ? 0 : Math.Round(100 * (-1 + item.va / qoq.va));
 
                 var unit = "triệu USD";
                 if (item.va >= 1000)
@@ -748,7 +752,7 @@ namespace StockPr.Service
                     item.va = Math.Round(item.va / 1000, 1);
                 }
 
-                strBuilder.AppendLine($"{iFDI++}. {item.content}({item.va} {unit})|M({rateQoQoY}%)|Y({rateQoQ}%)");
+                strBuilder.AppendLine($"{iFDI++}. {item.content}({item.va} {unit})|M({rateM}%)|Y({rateY}%)");
             }
             return strBuilder.ToString();
         }
@@ -787,29 +791,29 @@ namespace StockPr.Service
             var lDataFilter1 = _thongkeRepo.GetByFilter(filterByKey1);
 
             var curVal1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.Year}{dt.Month.To2Digit()}"));
-            var valQoQoY1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{dt.AddMonths(-1).Month.To2Digit()}"));
-            var valQoQ1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}"));
+            var valM1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{dt.AddMonths(-1).Month.To2Digit()}"));
+            var valY1 = lDataFilter1.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}"));
 
             var curVal = curVal1?.va ?? 0;
-            var valQoQoY = valQoQoY1?.va ?? 0;
-            var valQoQ = valQoQ1?.va ?? 0;
+            var valM = valM1?.va ?? 0;
+            var valY = valY1?.va ?? 0;
 
             if (key2 != EKeyTongCucThongKe.None)
             {
                 var filterByKey2 = Builders<ThongKe>.Filter.Eq(x => x.key, (int)key2);
                 var lDataFilter2 = _thongkeRepo.GetByFilter(filterByKey2);
                 var curVal2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.Year}{dt.Month.To2Digit()}"));
-                var valQoQoY2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{dt.AddMonths(-1).Month.To2Digit()}"));
-                var valQoQ2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}"));
+                var valM2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.AddMonths(-1).Year}{dt.AddMonths(-1).Month.To2Digit()}"));
+                var valY2 = lDataFilter2.FirstOrDefault(x => x.d == int.Parse($"{dt.AddYears(-1).Year}{dt.Month.To2Digit()}"));
 
                 curVal += (curVal2?.va ?? 0);
-                valQoQoY += (valQoQoY2?.va ?? 0);
-                valQoQ += (valQoQ2?.va ?? 0);
+                valM += (valM2?.va ?? 0);
+                valY += (valY2?.va ?? 0);
             }
 
-            var rateQoQoY = valQoQoY > 0 ? Math.Round(100 * (-1 + curVal / valQoQoY), 1) : 0;
-            var rateQoQ = valQoQ > 0 ? Math.Round(100 * (-1 + curVal / valQoQ), 1) : 0;
-            return (curVal, rateQoQoY, rateQoQ);
+            var rateM = valM > 0 ? Math.Round(100 * (-1 + curVal / valM), 1) : 0;
+            var rateY = valY > 0 ? Math.Round(100 * (-1 + curVal / valY), 1) : 0;
+            return (curVal, rateM, rateY);
         } 
         #endregion
     }
