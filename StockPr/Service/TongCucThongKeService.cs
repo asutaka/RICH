@@ -120,6 +120,11 @@ namespace StockPr.Service
                         isBanLe = true;
                         BanLe(sheet, dt);
                     }
+                    else if (!isXK && new List<string> { "XK", "Xuat Khau", "XK hh", "XK hang hoa", "XK Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
+                    {
+                        isXK = true;
+                        XuatKhau(sheet, dt);
+                    }
                 }
                 foreach (var sheet in lSheet.OrderByDescending(x => x.Name))
                 {
@@ -143,11 +148,6 @@ namespace StockPr.Service
                     {
                         isCPI = true;
                         CPI(sheet, dt);
-                    }
-                    else if (!isXK && new List<string> { "XK", "Xuat Khau", "XK hh", "XK hang hoa", "XK Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
-                    {
-                        isXK = true;
-                        XuatKhau(sheet, dt);
                     }
                     else if (!isVantaiHK && new List<string> { "VT HK", "Hanh Khach", "VanTai HK", "Van Tai HK", "Van Tai Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
@@ -361,7 +361,15 @@ namespace StockPr.Service
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Gao, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Gao");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Ximang, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Xi mang");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_HoaChat, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Hoa chat", textIgnore: "san pham");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SPChatDeo, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Tu chat deo");
+            var res = InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SPChatDeo, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Tu chat deo");
+            if(res is null)
+            {
+                res = InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SPChatDeo, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "san pham chat deo");
+                if(res is null)
+                {
+                    InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SPChatDeo, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "sp chat deo");
+                }
+            }
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_CaoSu, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Cao su");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Go, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Go");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_DetMay, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Det may");
