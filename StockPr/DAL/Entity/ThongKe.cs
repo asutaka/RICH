@@ -11,7 +11,7 @@ namespace StockPr.DAL.Entity
         public double va { get; set; }
         public double price { get; set; }
         public string unit { get; set; }
-        public double qoq { get; set; }
-        public double qoqoy { get; set; }
+        public double y { get; set; }
+        public double m { get; set; }
     }
 }

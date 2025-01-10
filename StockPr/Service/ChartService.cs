@@ -417,7 +417,7 @@ namespace StockPr.Service
                     },
                     new HighChartSeries_BasicColumn
                     {
-                        data = lBanLe.TakeLast(StaticVal._TAKE).Select(x => x.qoq - 100),
+                        data = lBanLe.TakeLast(StaticVal._TAKE).Select(x => x.y - 100),
                         name = "So với cùng kỳ",
                         type = "spline",
                         dataLabels = new HighChartDataLabel { enabled = true, format = "{point.y:.1f}" },
@@ -445,7 +445,7 @@ namespace StockPr.Service
                 {
                     new HighChartSeries_BasicColumn
                     {
-                        data = lThongKe.TakeLast(StaticVal._TAKE).Select(x => x.qoq - 100),
+                        data = lThongKe.TakeLast(StaticVal._TAKE).Select(x => x.y - 100),
                         name = "So với cùng kỳ",
                         type = "spline",
                         dataLabels = new HighChartDataLabel { enabled = true, format = "{point.y:.1f}" },
