@@ -229,11 +229,13 @@ namespace StockPr.Service
 
         private void FDI(ExcelWorksheet sheet, DateTime dt)
         {
+            //chưa
             InsertThongKeSomeRecord(EKeyTongCucThongKe.FDI, dt, sheet, colContent: 2, colVal: 4, colYear: -1, colMonth: -1, colUnit: -1, keyStart: "Dia Phuong", colKeyStart: 1, keyEnd: "Lanh Tho", colKeyEnd: 1);
         }
 
         private void BanLe(ExcelWorksheet sheet, DateTime dt)
         {
+            //chưa
             var cContent = 1;
             var cValPrev = 2;
             var cVal = 3;
@@ -253,12 +255,12 @@ namespace StockPr.Service
         {
             var cYear = 5;
             var cMonth = 7;
-            if (dt.Month == 1)
+            if (dt.Month == 12)
             {
                 cYear = 4;
                 cMonth = 5;
             }
-            else if(dt.Month == 2)
+            else if(dt.Month == 1)
             {
                 cMonth = 6;
             }
@@ -279,6 +281,7 @@ namespace StockPr.Service
 
         private void VanTaiHanhKhach(ExcelWorksheet sheet, DateTime dt)
         {
+            //chưa
             var cContent = 1;
             var cVal = 2;
             var cMonth = 4;
@@ -296,6 +299,7 @@ namespace StockPr.Service
 
         private void VanTaiHangHoa(ExcelWorksheet sheet, DateTime dt)
         {
+            //chưa
             var cContent = 1;
             var cVal = 2;
             var cMonth = 4;
@@ -314,6 +318,7 @@ namespace StockPr.Service
 
         private void XuatKhau(ExcelWorksheet sheet, DateTime dt)
         {
+            //chưa
             var cVal = 4;
             var cPrice = 3;
             var cYear = 10;
