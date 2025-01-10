@@ -347,28 +347,27 @@ namespace StockPr.Service
 
         private void XuatKhau(ExcelWorksheet sheet, DateTime dt)
         {
-            //chưa
+            var cPrice = -1;
+            var cValPrev = -1;
             var cVal = 4;
-            var cPrice = 3;
             var cYear = 10;
             if (dt.Month == 1)
             {
                 cVal = 7;
-                cPrice = 6;
                 cYear = 10;
             }
 
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_ThuySan, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Thuy San");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_CaPhe, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Ca Phe");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Gao, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Gao");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Ximang, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Xi mang");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_HoaChat, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Hoa chat", textIgnore: "san pham");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SPChatDeo, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Tu chat deo");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_CaoSu, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Cao su");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Go, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Go");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_DetMay, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Det may");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SatThep, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Sat thep", textIgnore: "san pham");
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_DayDien, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: -1, colYearPrev: -1, "Day dien");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_ThuySan, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Thuy San");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_CaPhe, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Ca Phe");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Gao, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Gao");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Ximang, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Xi mang");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_HoaChat, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Hoa chat", textIgnore: "san pham");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SPChatDeo, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Tu chat deo");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_CaoSu, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Cao su");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_Go, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Go");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_DetMay, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Det may");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_SatThep, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Sat thep", textIgnore: "san pham");
+            InsertThongKeOnlyRecord(EKeyTongCucThongKe.XK_DayDien, dt, sheet, colContent: 2, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: cPrice, colValPrev: cValPrev, colYearPrev: -1, "Day dien");
         }
 
         private ThongKe InsertThongKeOnlyRecord(EKeyTongCucThongKe eThongKe, DateTime dt, ExcelWorksheet sheet, int colContent, int colVal, int colYear, int colMonth, int colUnit, int colPrice, int colValPrev, int colYearPrev, string textCompare, string textIgnore = "")
@@ -680,7 +679,7 @@ namespace StockPr.Service
         #endregion
 
         #region Print
-        private string CPIStr(DateTime dt, List<ThongKe> lData)//Chuẩn
+        private string CPIStr(DateTime dt, List<ThongKe> lData)
         {
             var strBuilder = new StringBuilder();
             var GiaTieuDung = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.CPI_GiaTieuDung);
