@@ -112,6 +112,15 @@ namespace StockPr.Service
                 var package = new ExcelPackage(stream);
                 var lSheet = package.Workbook.Worksheets;
                 bool isIIP = false, isVonDauTu = false, isFDI = false, isBanLe = false, isCPI = false, isVantaiHK = false, isVanTaiHH = false, isXK = false;
+                foreach (var sheet in lSheet)
+                {
+                    if (false) { }
+                    else if (!isBanLe && new List<string> { "Tongmuc", "Tongmuc OK" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    {
+                        isBanLe = true;
+                        BanLe(sheet, dt);
+                    }
+                }
                 foreach (var sheet in lSheet.OrderByDescending(x => x.Name))
                 {
                     if (false) { }
@@ -130,11 +139,6 @@ namespace StockPr.Service
                         isFDI = true;
                         FDI(sheet, dt);
                     }
-                    else if (!isBanLe && new List<string> { "Tongmuc" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
-                    {
-                        isBanLe = true;
-                        BanLe(sheet, dt);
-                    }
                     else if (!isCPI && new List<string> { "CPI" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
                     {
                         isCPI = true;
@@ -145,12 +149,12 @@ namespace StockPr.Service
                         isXK = true;
                         XuatKhau(sheet, dt);
                     }
-                    else if (!isVantaiHK && new List<string> { "VT HK", "Hanh Khach", "VanTai HK", "Van Tai HK" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isVantaiHK && new List<string> { "VT HK", "Hanh Khach", "VanTai HK", "Van Tai HK", "Van Tai Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
                     {
                         isVantaiHK = true;
                         VanTaiHanhKhach(sheet, dt);
                     }
-                    else if (!isVanTaiHH && new List<string> { "VT HH", "Hang Hoa", "VanTai HH", "Van Tai HH" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isVanTaiHH && new List<string> { "VT HH", "Hang Hoa", "VanTai HH", "Van Tai HH", "VTHangHoaThang" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
                     {
                         isVanTaiHH = true;
                         VanTaiHangHoa(sheet, dt);
@@ -239,20 +243,27 @@ namespace StockPr.Service
 
         private void BanLe(ExcelWorksheet sheet, DateTime dt)
         {
-            //chưa
             var cContent = 1;
             var cValPrev = 2;
             var cVal = 3;
             var cYear = 6;
-            if (dt.Month == 1 || dt.Month % 3 == 0)
+            if (dt.Month == 1)
             {
                 cContent = 2;
                 cValPrev = 3;
                 cVal = 4;
                 cYear = 6;
-            }
+            }  
 
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.BanLe, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: -1, colValPrev: cValPrev, colYearPrev: -1, "Ban Le");
+            var res = InsertThongKeOnlyRecord(EKeyTongCucThongKe.BanLe, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: -1, colValPrev: cValPrev, colYearPrev: -1, "Ban Le");
+            if(res is null)
+            {
+                cContent++;
+                cValPrev++;
+                cVal++;
+                cYear++;
+                InsertThongKeOnlyRecord(EKeyTongCucThongKe.BanLe, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: -1, colUnit: -1, colPrice: -1, colValPrev: cValPrev, colYearPrev: -1, "Ban Le");
+            }
         }
 
         private void CPI(ExcelWorksheet sheet, DateTime dt)
@@ -285,39 +296,53 @@ namespace StockPr.Service
 
         private void VanTaiHanhKhach(ExcelWorksheet sheet, DateTime dt)
         {
-            //chưa
             var cContent = 1;
             var cVal = 2;
             var cMonth = 4;
             var cYear = 5;
-            if (dt.Month == 1 || dt.Month % 3 == 0)
+            if (dt.Month == 1)
             {
                 cContent = 2;
                 cVal = 3;
-                cMonth = 4;
-                cYear = 5;
             }
 
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.HanhKhach_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Hang Khong");
+            var res = InsertThongKeOnlyRecord(EKeyTongCucThongKe.HanhKhach_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Hang Khong");
+            if (res is null)
+            {
+                cContent++;
+                cMonth++;
+                cVal++;
+                cYear++;
+                InsertThongKeOnlyRecord(EKeyTongCucThongKe.HanhKhach_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Hang Khong");
+            }
         }
 
         private void VanTaiHangHoa(ExcelWorksheet sheet, DateTime dt)
         {
-            //chưa
             var cContent = 1;
             var cVal = 2;
             var cMonth = 4;
             var cYear = 5;
-            if (dt.Month == 1 || dt.Month % 3 == 0)
+            if (dt.Month == 1)
             {
                 cContent = 2;
                 cVal = 3;
                 cMonth = 4;
                 cYear = 5;
             }
-            InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBien, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Duong Bien");
+            var res =  InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBien, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Duong Bien");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBo, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Duong Bo");
             InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Hang Khong");
+            if (res is null)
+            {
+                cContent++;
+                cMonth++;
+                cVal++;
+                cYear++;
+                InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBien, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Duong Bien");
+                InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_DuongBo, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Duong Bo");
+                InsertThongKeOnlyRecord(EKeyTongCucThongKe.VanTai_HangKhong, dt, sheet, colContent: cContent, colVal: cVal, colYear: cYear, colMonth: cMonth, colUnit: -1, colPrice: -1, colValPrev: -1, colYearPrev: -1, "Hang Khong");
+            }
         }
 
         private void XuatKhau(ExcelWorksheet sheet, DateTime dt)
