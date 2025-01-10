@@ -176,29 +176,6 @@ namespace StockPr.Utils
         XK_SatThep = 43,
         [Display(Name = "Dây điện")]
         XK_DayDien = 45,
-
-        [Display(Name = "Giá VT - Hàng không")]
-        QUY_GiaVT_HangKhong = 51,
-        [Display(Name = "Giá VT - Bưu chính, chuyển phát")]
-        QUY_GiaVT_BuuChinh = 53,
-        [Display(Name = "Giá NVL - giá điện")]
-        QUY_GiaNVL_Dien = 54,
-        [Display(Name = "Giá XK - Thủy Sản")]
-        QUY_GiaXK_ThuySan = 55,
-        [Display(Name = "Giá XK - Phân bón")]
-        QUY_GiaXK_PhanBon = 62,
-        [Display(Name = "Giá XK - SP Chất dẻo")]
-        QUY_GiaXK_SPChatDeo = 63,
-        [Display(Name = "Giá XK - Gỗ")]
-        QUY_GiaXK_Go = 64,
-        [Display(Name = "Giá XK - Dệt may")]
-        QUY_GiaXK_DetMay = 65,
-        [Display(Name = "Giá XK - Dây cáp điện")]
-        QUY_GiaXK_CapDien = 67,
-        [Display(Name = "GDP y tế")]
-        QUY_GDP_YTE = 68,
-        [Display(Name = "GDP ngân hàng - bảo hiểm")]
-        QUY_GDP_NganHangBaoHiem = 69,
     }
 
     public enum ESource

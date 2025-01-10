@@ -36,8 +36,11 @@ namespace StockPr
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 var dt = DateTime.Now;
+                var isDayOfWork = dt.DayOfWeek >= DayOfWeek.Monday && dt.DayOfWeek <= DayOfWeek.Friday;//Từ thứ 2 đến thứ 6
+                var isPreTrade = dt.Hour < 9;
+                var isTimePrint = dt.Minute >= 15 && dt.Minute < 30;//từ phút thứ 15 đến phút thứ 30
+                var isRealTime = dt.Hour >= 9 && dt.Hour < 15;//từ 9h đến 3h
                 var bcpt = await _bcptService.BaoCaoPhanTich();
                 if(!string.IsNullOrWhiteSpace(bcpt))
                 {
@@ -70,6 +73,28 @@ namespace StockPr
                         {
                             await _teleService.SendMessage(_idGroup, res.Item2);
                         }
+                    }
+                }
+
+                if (isDayOfWork 
+                    && !StaticVal._lNghiLe.Any(x => x.Month == dt.Month && x.Day == dt.Day))
+                {
+                    //if (isRealTime
+                    //    || (dt.Hour == 8 && dt.Minute >= 45)
+                    //    || (dt.Hour == 15 && dt.Minute < 15))
+                    //{
+                    //    await TinHieuMuaBan();
+                    //}
+
+                    if (!isPreTrade && isTimePrint)
+                    {
+                        if (isRealTime)
+                        {
+                            //await Realtime();
+                            return;
+                        }
+                        //await ThongKe(dt);
+                        //await ThongKeTuDoanh(dt);
                     }
                 }
                 await Task.Delay(1000 * 60 * 15, stoppingToken);
