@@ -631,7 +631,8 @@ namespace StockPr.Service
                     var lFilterCheckModel = new List<FilterDefinition<ThongKe>>()
                             {
                                 builderCheckModel.Eq(x => x.d, model.d),
-                                builderCheckModel.Eq(x => x.key, model.key)
+                                builderCheckModel.Eq(x => x.key, model.key),
+                                builderCheckModel.Eq(x => x.content, model.content)
                             };
                     foreach (var item in lFilterCheckModel)
                     {
@@ -732,14 +733,16 @@ namespace StockPr.Service
         private string CangbienStr(DateTime dt, List<ThongKe> lData)
         {
             var strBuilder = new StringBuilder();
-            var DuongBien = GetDataWithRate(lData, dt, EKeyTongCucThongKe.VanTai_DuongBien);
-            var DuongBo = GetDataWithRate(lData, dt, EKeyTongCucThongKe.VanTai_DuongBo);
-            var DuongHangKhong = GetDataWithRate(lData, dt, EKeyTongCucThongKe.VanTai_HangKhong);
+            var DuongBien = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.VanTai_DuongBien);
+            var DuongBo = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.VanTai_DuongBo);
+            var DuongHangKhong = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.VanTai_HangKhong);
+            var KhachHangKhong = lData.FirstOrDefault(x => x.key == (int)EKeyTongCucThongKe.HanhKhach_HangKhong);
 
             strBuilder.AppendLine($"*Nhóm ngành cảng biển, Logistic:");
-            strBuilder.AppendLine($"1. Vận tải Đường Biển: M({DuongBien.Item2}%)|Y({DuongBien.Item3}%)");
-            strBuilder.AppendLine($"2. Vận tải Đường Bộ:     M({DuongBo.Item2}%)|Y({DuongBo.Item3}%)");
-            strBuilder.AppendLine($"3. Vận tải Hàng Không: M({DuongHangKhong.Item2}%)|Y({DuongHangKhong.Item3}%)");
+            strBuilder.AppendLine($"1. Vận tải Đường Biển: M({Math.Round((DuongBien?.m ?? 0) - 100, 1).ToString("#,##0.##")}%)| Y({Math.Round((DuongBien?.y ?? 0) - 100, 1)}%)");
+            strBuilder.AppendLine($"2. Vận tải Đường Bộ:     M({Math.Round((DuongBo?.m ?? 0) - 100, 1).ToString("#,##0.##")}%)| Y({Math.Round((DuongBo?.y ?? 0) - 100, 1)}%)");
+            strBuilder.AppendLine($"3. Vận tải Hàng Không: M({Math.Round((DuongHangKhong?.m ?? 0) - 100, 1).ToString("#,##0.##")}%)| Y({Math.Round((DuongHangKhong?.y ?? 0) - 100, 1)}%)");
+            strBuilder.AppendLine($"4. Tổng lượt khách HK: M({Math.Round((KhachHangKhong?.m ?? 0) - 100, 1).ToString("#,##0.##")}%)| Y({Math.Round((KhachHangKhong?.y ?? 0) - 100, 1)}%)");
             return strBuilder.ToString();
         }
 
