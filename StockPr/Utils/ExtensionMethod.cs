@@ -9,7 +9,21 @@ namespace StockPr.Utils
     {
         public static string RemoveSpace(this string val)
         {
-            return val.Replace(" ", "").Replace(",", "").Replace(".", "").Replace("-", "").Replace("_", "").Trim();
+            return val.Replace(" ", "").Replace(",", "").Replace(".", "").Replace("-", "").Replace("_", "").Replace("(", "").Replace(")","").Trim();
+        }
+
+        public static string RemoveNumber(this string val)
+        {
+            return val.Replace("1", "")
+                .Replace("2", "")
+                .Replace("3", "")
+                .Replace("4", "")
+                .Replace("5", "")
+                .Replace("6", "")
+                .Replace("7", "")
+                .Replace("8", "")
+                .Replace("9", "")
+                .Replace("0", "");
         }
 
         public static long GetYoyQuarter(this int time)

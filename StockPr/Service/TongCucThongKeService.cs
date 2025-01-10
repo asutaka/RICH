@@ -115,7 +115,7 @@ namespace StockPr.Service
                 foreach (var sheet in lSheet)
                 {
                     if (false) { }
-                    else if (!isBanLe && new List<string> { "Tongmuc", "Tongmuc OK" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isBanLe && new List<string> { "Tongmuc", "Tongmuc OK" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isBanLe = true;
                         BanLe(sheet, dt);
@@ -124,37 +124,37 @@ namespace StockPr.Service
                 foreach (var sheet in lSheet.OrderByDescending(x => x.Name))
                 {
                     if (false) { }
-                    else if (!isIIP && new List<string> { "IIP", "IIPThang" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isIIP && new List<string> { "IIP", "IIPThang" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isIIP = true;
                         IIP(sheet, dt);
                     }
-                    else if (!isVonDauTu && new List<string> { "VDT Thuc hien", "VDT", "Von Dau Tu", "NSNN", "NSNN Thang", "Von DT" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isVonDauTu && new List<string> { "VDT Thuc hien", "VDT", "Von Dau Tu", "NSNN", "NSNN Thang", "Von DT" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isVonDauTu = true;
                         VonDauTuNhaNuoc(sheet, dt);
                     }
-                    else if (!isFDI && new List<string> { "FDI", "DTNN" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isFDI && new List<string> { "FDI", "DTNN" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isFDI = true;
                         FDI(sheet, dt);
                     }
-                    else if (!isCPI && new List<string> { "CPI" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isCPI && new List<string> { "CPI" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isCPI = true;
                         CPI(sheet, dt);
                     }
-                    else if (!isXK && new List<string> { "XK", "Xuat Khau", "XK hh", "XK hang hoa", "XK Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isXK && new List<string> { "XK", "Xuat Khau", "XK hh", "XK hang hoa", "XK Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isXK = true;
                         XuatKhau(sheet, dt);
                     }
-                    else if (!isVantaiHK && new List<string> { "VT HK", "Hanh Khach", "VanTai HK", "Van Tai HK", "Van Tai Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isVantaiHK && new List<string> { "VT HK", "Hanh Khach", "VanTai HK", "Van Tai HK", "Van Tai Thang" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isVantaiHK = true;
                         VanTaiHanhKhach(sheet, dt);
                     }
-                    else if (!isVanTaiHH && new List<string> { "VT HH", "Hang Hoa", "VanTai HH", "Van Tai HH", "VTHangHoaThang" }.Any(x => sheet.Name.RemoveSpace().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().ToUpper())))
+                    else if (!isVanTaiHH && new List<string> { "VT HH", "Hang Hoa", "VanTai HH", "Van Tai HH", "VTHangHoaThang" }.Any(x => sheet.Name.RemoveSpace().RemoveNumber().RemoveSignVietnamese().ToUpper().EndsWith(x.RemoveSpace().RemoveNumber().ToUpper())))
                     {
                         isVanTaiHH = true;
                         VanTaiHangHoa(sheet, dt);
@@ -237,8 +237,7 @@ namespace StockPr.Service
 
         private void FDI(ExcelWorksheet sheet, DateTime dt)
         {
-            //chưa
-            InsertThongKeSomeRecord(EKeyTongCucThongKe.FDI, dt, sheet, colContent: 2, colVal: 4, colYear: -1, colMonth: -1, colUnit: -1, keyStart: "Dia Phuong", colKeyStart: 1, keyEnd: "Lanh Tho", colKeyEnd: 1);
+            InsertThongKeSomeRecord(EKeyTongCucThongKe.FDI, dt, sheet, colContent: 2, colVal: 4, colVal2: 5, keyStart: "Dia Phuong", colKeyStart: 1, keyEnd: "Lanh Tho", colKeyEnd: 1);
         }
 
         private void BanLe(ExcelWorksheet sheet, DateTime dt)
@@ -552,7 +551,7 @@ namespace StockPr.Service
             return null;
         }
 
-        private bool InsertThongKeSomeRecord(EKeyTongCucThongKe eThongKe, DateTime dt, ExcelWorksheet sheet, int colContent, int colVal, int colYear, int colMonth, int colUnit, string keyStart, int colKeyStart, string keyEnd, int colKeyEnd)
+        private bool InsertThongKeSomeRecord(EKeyTongCucThongKe eThongKe, DateTime dt, ExcelWorksheet sheet, int colContent, int colVal, int colVal2, string keyStart, int colKeyStart, string keyEnd, int colKeyEnd)
         {
             try
             {
@@ -608,30 +607,12 @@ namespace StockPr.Service
                         model.va = isDouble ? Math.Round(val, 1) : 0;
                     }
 
-                    if (colYear > 0)
+                    if(colVal2 > 0)
                     {
-                        var valStr = sheet.Cells[i, colYear].Value?.ToString().Trim() ?? string.Empty;
+                        var valStr = sheet.Cells[i, colVal2].Value?.ToString().Trim() ?? string.Empty;
                         var isDouble = double.TryParse(valStr.Replace(",", ""), out var val);
-                        model.y = isDouble ? Math.Round(val, 1) : 0;
-                    }
-
-                    if (colMonth > 0)
-                    {
-                        var valStr = sheet.Cells[i, colMonth].Value?.ToString().Trim() ?? string.Empty;
-                        var isDouble = double.TryParse(valStr.Replace(",", ""), out var val);
-                        model.m = isDouble ? Math.Round(val, 1) : 0;
-                    }
-
-                    if (colUnit > 0)
-                    {
-                        var valStr = sheet.Cells[i, colUnit].Value?.ToString().Trim() ?? string.Empty;//
-                        if (string.IsNullOrWhiteSpace(valStr.Replace("'", "").Replace("\"", "")))
-                        {
-                            valStr = unitStr;
-                        }
-                        model.unit = valStr;
-                        unitStr = valStr;
-                    }
+                        model.va += isDouble ? Math.Round(val, 1) : 0;
+                    }    
 
                     if (model.va <= 0 && model.y <= 0 && model.m <= 0)
                         continue;
