@@ -14,13 +14,15 @@ namespace StockPr
         private readonly ITeleService _teleService;
         private readonly ITongCucThongKeService _tongcucService;
         private readonly IAnalyzeService _analyzeService;
+        private readonly ITuDoanhService _tudoanhService;
+
         private const long _idGroup = -4237476810;
         private const long _idChannel = -1002247826353;
         private const long _idUser = 1066022551;
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    IStockRepo stockRepo)
+                    ITuDoanhService tudoanhService, IStockRepo stockRepo)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -28,6 +30,7 @@ namespace StockPr
             _giaService = giaService;
             _tongcucService = tongcucService;
             _analyzeService = analyzeService;
+            _tudoanhService = tudoanhService;
 
             _stockRepo = stockRepo;
         }
@@ -95,7 +98,7 @@ namespace StockPr
                             var mes = await _analyzeService.Realtime();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
-                                await _teleService.SendMessage(_idChannel, bcpt);
+                                await _teleService.SendMessage(_idChannel, mes);
                             }
                         }
 
@@ -106,7 +109,11 @@ namespace StockPr
 
                         if(dt.Hour >= 15)
                         {
-                            //await ThongKeTuDoanh(dt);
+                            var res = await _tudoanhService.TuDoanhHSX();
+                            if (res.Item1 > 0)
+                            {
+                                await _teleService.SendMessage(_idChannel, res.Item2);
+                            }
                         }
                     }
                 }

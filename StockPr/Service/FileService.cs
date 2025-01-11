@@ -7,17 +7,13 @@ namespace StockPr.Service
     public interface IFileService
     {
         List<TudoanhPDF> HSX(Stream data);
-        List<TudoanhPDF> HNX(Stream data);
     }
     public class FileService : IFileService
     {
         private readonly ILogger<FileService> _logger;
-        private readonly IStockRepo _stockRepo;
-        public FileService(ILogger<FileService> logger,
-                        IStockRepo stockRepo)
+        public FileService(ILogger<FileService> logger)
         {
             _logger = logger;
-            _stockRepo = stockRepo;
         }
 
         public List<TudoanhPDF> HSX(Stream data)
@@ -249,106 +245,6 @@ namespace StockPr.Service
 
                 return lData;
             }
-        }
-
-        public List<TudoanhPDF> HNX(Stream data)
-        {
-            var content = pdfText(data);
-            return MapHNX(content);
-        }
-
-        private string pdfText(Stream data)
-        {
-            //try
-            //{
-            //    var reader = new iTextSharp.text.pdf.PdfReader(data);
-
-            //    string text = string.Empty;
-            //    for (int page = 1; page <= reader.NumberOfPages; page++)
-            //    {
-            //        text += iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, page);
-            //        text += "\n";
-            //    }
-
-            //    reader.Close();
-            //    return text;
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex.Message);
-            //}
-            return string.Empty;
-        }
-
-        private List<TudoanhPDF> MapHNX(string content)
-        {
-            var indexFileHNX = content.IndexOf("Sở Giao dịch Chứng khoán Hà Nội");
-            if (indexFileHNX < 0)
-                return null;
-
-            var strTieuDe = "GIAO DỊCH TỰ DOANH THEO MÃ CHỨNG KHOÁN";
-            var indexNgay = content.IndexOf(strTieuDe);
-            if (indexNgay < 0)
-                return null;
-            content = content.Substring(indexNgay);
-            var lLine = content.Split(new string[] { "\n" }, StringSplitOptions.None);
-            var dateStr = lLine.ElementAt(0).Replace(strTieuDe, "").Trim();
-            var date = dateStr.ToDateTime("dd/MM/yyyy");
-
-            var lStock = _stockRepo.GetAll();
-
-            var isRead = false;
-            var isBegin = false;
-            var lData = new List<TudoanhPDF>();
-            foreach (var item in lLine)
-            {
-                try
-                {
-                    if (item.Contains("Tổng GTGD Tự doanh"))
-                    {
-                        isRead = true;
-                    }
-
-                    if (!isRead)
-                        continue;
-
-                    var arrData = item.Split(new string[] { " " }, StringSplitOptions.None);
-                    if (!isBegin
-                        && arrData.ElementAt(0) == "1")
-                    {
-                        isBegin = true;
-                    }
-                    if (!isBegin)
-                        continue;
-                    var count = arrData.Length;
-                    if (count < 8)
-                        continue;
-
-                    var maCKCheck = arrData.ElementAt(1).Trim();
-                    var check = lStock.Any(x => x.s == maCKCheck);
-                    if (check)
-                    {
-                        var model = new TudoanhPDF
-                        {
-                            no = int.Parse(arrData.ElementAt(0)),
-                            d = new DateTimeOffset(date, TimeSpan.FromHours(0)).ToUnixTimeSeconds(),
-                            s = arrData.ElementAt(1),
-                            bvo = int.Parse(arrData.ElementAt(2).Replace(",", "").Replace(".", "")),
-                            bva = (int)(long.Parse(arrData.ElementAt(3).Replace(",", "").Replace(".", "")) / 1000),
-                            svo = int.Parse(arrData.ElementAt(4).Replace(",", "").Replace(".", "")),
-                            sva = (int)(long.Parse(arrData.ElementAt(5).Replace(",", "").Replace(".", "")) / 1000),
-                            t = DateTimeOffset.Now.ToUnixTimeSeconds()
-                        };
-                        lData.Add(model);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                }
-            }
-
-            return lData;
         }
     }
 }
