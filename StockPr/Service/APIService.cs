@@ -1050,27 +1050,9 @@ namespace StockPr.Service
                 var doc = new HtmlDocument();
                 doc.LoadHtml(html);
 
-                var nodes = doc.DocumentNode.SelectNodes("//*[@id=\"body\"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/div") as IEnumerable<HtmlNode>;
-                foreach (HtmlNode node in nodes.ElementAt(0).ChildNodes)
-                {
-                    if (string.IsNullOrWhiteSpace(node.InnerText))
-                        continue;
-
-                    var document = new HtmlDocument();
-                    document.LoadHtml(node.InnerHtml);
-                    var lNode = document.DocumentNode.SelectNodes("//a");
-                    foreach (var item in lNode)
-                    {
-                        var tagA = document.DocumentNode.SelectSingleNode("//a");
-                        var title = tagA.Attributes["title"].Value;
-                        if (!(title.Contains("giao dịch tự doanh")
-                            && title.Contains($"{dt.Day.To2Digit()}/{dt.Month.To2Digit()}/{dt.Year}")))
-                            continue;
-
-                        link = tagA.Attributes["href"].Value;
-                        break;
-                    }
-                }
+                link = doc.DocumentNode.Descendants("a")
+                    .Where(x => x.InnerHtml.Contains("giao dịch tự doanh") && x.InnerHtml.Contains($"{dt.Day.To2Digit()}/{dt.Month.To2Digit()}/{dt.Year}"))
+                                                      .Select(a => a.GetAttributeValue("href", null)).FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(link))
                     return null;
