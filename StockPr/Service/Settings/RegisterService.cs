@@ -12,6 +12,7 @@
             services.AddSingleton<IBaoCaoPhanTichService, BaoCaoPhanTichService>();
             services.AddSingleton<IGiaNganhHangService, GiaNganhHangService>();
             services.AddSingleton<ITongCucThongKeService, TongCucThongKeService>();
+            services.AddSingleton<IAnalyzeService, AnalyzeService>();
         }
     }
 }

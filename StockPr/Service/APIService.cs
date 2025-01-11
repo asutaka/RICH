@@ -1,5 +1,7 @@
 ﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
+using Skender.Stock.Indicators;
+using StockPr.Model;
 using StockPr.Model.BCPT;
 using StockPr.Utils;
 using System.Net;
@@ -32,6 +34,9 @@ namespace StockPr.Service
 
         Task<string> TongCucThongKeGetUrl();
         Task<Stream> TongCucThongKeGetFile(string url);
+
+        Task<List<Quote>> SSI_GetDataStock(string code);
+        Task<List<Money24h_PTKTResponse>> Money24h_GetMaTheoChiBao(string chibao);
     }
     public class APIService : IAPIService
     {
@@ -1024,6 +1029,75 @@ namespace StockPr.Service
                 _logger.LogError($"APIService.TongCucThongKeGetFile|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public async Task<List<Money24h_PTKTResponse>> Money24h_GetMaTheoChiBao(string chibao)
+        {
+            var lOutput = new List<Money24h_PTKTResponse>();
+            try
+            {
+                var body = "{\"floor_codes\":[\"10\",\"11\",\"02\",\"03\"],\"group_ids\":[\"0001\",\"1000\",\"2000\",\"3000\",\"4000\",\"5000\",\"6000\",\"7000\",\"8000\",\"8301\",\"9000\"],\"signals\":[{\"" + chibao + "\":\"up\"}]}";
+                var url = "https://api-finance-t19.24hmoney.vn/v2/web/indices/technical-signal-filter?sort=asc&page=1&per_page=50";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(5);
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Method = HttpMethod.Post;
+                requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                var responseMessage = await client.SendAsync(requestMessage);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Money24h_PTKT_LV1Response>(resultArray);
+                if (responseModel.status == 200
+                    && responseModel.data.total_symbol > 0
+                    && responseModel.data.data.Any())
+                {
+                    return responseModel.data.data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Money24h_GetMaTheoChiBao|EXCEPTION| {ex.Message}");
+            }
+            return lOutput;
+        }
+
+        public async Task<List<Quote>> SSI_GetDataStock(string code)
+        {
+            var lOutput = new List<Quote>();
+            var urlBase = "https://iboard-api.ssi.com.vn/statistics/charts/history?symbol={0}&resolution={1}&from={2}&to={3}";
+            try
+            {
+                var url = string.Format(urlBase, code, "1D", DateTimeOffset.Now.AddYears(-2).ToUnixTimeSeconds(), DateTimeOffset.Now.ToUnixTimeSeconds());
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<SSI_DataTradingResponse>(resultArray);
+                if (responseModel.data.t.Any())
+                {
+                    var count = responseModel.data.t.Count();
+                    for (int i = 0; i < count; i++)
+                    {
+                        lOutput.Add(new Quote
+                        {
+                            Date = responseModel.data.t.ElementAt(i).UnixTimeStampToDateTime(),
+                            Open = responseModel.data.o.ElementAt(i),
+                            Close = responseModel.data.c.ElementAt(i),
+                            High = responseModel.data.h.ElementAt(i),
+                            Low = responseModel.data.l.ElementAt(i),
+                            Volume = responseModel.data.v.ElementAt(i)
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.SSI_GetDataStock|EXCEPTION| {ex.Message}");
+            }
+            Thread.Sleep(200);
+            return lOutput;
         }
     }
 }

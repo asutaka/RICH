@@ -77,6 +77,23 @@ namespace StockPr.Utils
                 return DateTime.MinValue;
             }
         }
+
+        public static DateTime UnixTimeStampToDateTime(this decimal unixTimeStamp, bool isSecond = true)
+        {
+            // Unix timestamp is seconds past epoch
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            if (isSecond)
+            {
+                dateTime = dateTime.AddSeconds((double)unixTimeStamp).ToLocalTime();
+            }
+            else
+            {
+                dateTime = dateTime.AddMilliseconds((double)unixTimeStamp).ToLocalTime();
+            }
+
+            return dateTime;
+        }
+
         public static string To2Digit(this int val)
         {
             if (val > 9)

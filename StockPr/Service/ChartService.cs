@@ -79,18 +79,6 @@ namespace StockPr.Service
                     lStream.Add(stream);
                 }
 
-                if (stock.IsHangKhong())
-                {
-                    var stream = await Chart_ThongKeQuy_HangKhong();
-                    lStream.Add(stream);
-                }
-
-                if (stock.IsCaoSu())
-                {
-                    var stream = await Chart_ThongKeQuy_HangKhong();
-                    lStream.Add(stream);
-                }
-
                 if (stock.IsNganHang())
                 {
                     lStream.AddRange(await Chart_NganHang(input));
@@ -431,34 +419,6 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"ChartService.Chart_BanLe|EXCEPTION| {ex.Message}");
-            }
-
-            return null;
-        }
-
-        private async Task<Stream> Chart_ThongKeQuy_HangKhong()
-        {
-            try
-            {
-                var lThongKe = _thongkequyRepo.GetByFilter(Builders<ThongKe>.Filter.Eq(x => x.key, (int)EKeyTongCucThongKe.QUY_GiaVT_HangKhong)).OrderBy(x => x.d);
-                var lSeries = new List<HighChartSeries_BasicColumn>
-                {
-                    new HighChartSeries_BasicColumn
-                    {
-                        data = lThongKe.TakeLast(StaticVal._TAKE).Select(x => x.y - 100),
-                        name = "So với cùng kỳ",
-                        type = "spline",
-                        dataLabels = new HighChartDataLabel { enabled = true, format = "{point.y:.1f}" },
-                        color = "#C00000",
-                        yAxis = 1
-                    }
-                };
-
-                return await Chart_BasicBase($"Giá vận tải hàng không quý so với cùng kỳ năm ngoái(QoQ)", lThongKe.TakeLast(StaticVal._TAKE).Select(x => x.d.GetNameQuarter()).ToList(), lSeries, "Đơn vị: %", "Đơn vị: %");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"ChartService.Chart_ThongKeQuy_HangKhong|EXCEPTION| {ex.Message}");
             }
 
             return null;

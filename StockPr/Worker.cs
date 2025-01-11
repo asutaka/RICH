@@ -13,12 +13,13 @@ namespace StockPr
         private readonly IGiaNganhHangService _giaService;
         private readonly ITeleService _teleService;
         private readonly ITongCucThongKeService _tongcucService;
+        private readonly IAnalyzeService _analyzeService;
         private const long _idGroup = -4237476810;
         private const long _idChannel = -1002247826353;
         private const long _idUser = 1066022551;
 
         public Worker(ILogger<Worker> logger, 
-                    ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService,
+                    ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
                     IStockRepo stockRepo)
         {
             _logger = logger;
@@ -26,6 +27,7 @@ namespace StockPr
             _teleService = teleService;
             _giaService = giaService;
             _tongcucService = tongcucService;
+            _analyzeService = analyzeService;
 
             _stockRepo = stockRepo;
         }
@@ -90,7 +92,11 @@ namespace StockPr
                     {
                         if (isRealTime)
                         {
-                            //await Realtime();
+                            var mes = await _analyzeService.Realtime();
+                            if (!string.IsNullOrWhiteSpace(mes))
+                            {
+                                await _teleService.SendMessage(_idChannel, bcpt);
+                            }
                             return;
                         }
                         //await ThongKe(dt);
