@@ -4,6 +4,7 @@ using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
+using System;
 using System.Text;
 
 namespace StockPr.Service
@@ -21,17 +22,20 @@ namespace StockPr.Service
         private readonly IConfigDataRepo _configRepo;
         private readonly IStockRepo _stockRepo;
         private readonly ICategoryRepo _categoryRepo;
+        private readonly IOrderBlockRepo _orderBlockRepo;
         public AnalyzeService(ILogger<AnalyzeService> logger,
                                     IAPIService apiService,
                                     IConfigDataRepo configRepo,
                                     IStockRepo stockRepo,
-                                    ICategoryRepo categoryRepo) 
+                                    ICategoryRepo categoryRepo,
+                                    IOrderBlockRepo orderBlockRepo) 
         {
             _logger = logger;
             _apiService = apiService;
             _configRepo = configRepo;
             _stockRepo = stockRepo;
             _categoryRepo = categoryRepo;
+            _orderBlockRepo = orderBlockRepo;
         }
 
         public async Task<string> Realtime()
@@ -63,6 +67,20 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"AnalyzeService.Realtime|EXCEPTION(ChiBao52W)| {ex.Message}");
+            }
+
+            //Chỉ báo OrderBlock
+            try
+            {
+                var chibao = await CheckOrderBlock();
+                if (chibao.Item1 > 0)
+                {
+                    sBuilder.AppendLine(chibao.Item2);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.Realtime|EXCEPTION(OrderBlock)| {ex.Message}");
             }
 
             return sBuilder.ToString();
@@ -220,6 +238,72 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"AnalyzeService.ChiBao52W|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        private async Task<(int, string)> CheckOrderBlock()
+        {
+            try
+            {
+                var strOutput = new StringBuilder();
+                var lOB = _orderBlockRepo.GetAll();
+                if (lOB.Any())
+                {
+                    var lStock = _stockRepo.GetAll();
+                    var lSymbol = lOB.Select(x => x.s).Distinct();
+                    lSymbol = lStock.Where(x => lSymbol.Any(y => y == x.s)).OrderBy(x => x.rank).Select(x => x.s).Take(50).ToList();
+                    var lRes = new List<OrderBlock>();
+                    foreach (var item in lSymbol)
+                    {
+                        var lData = await _apiService.SSI_GetDataStock(item);
+                        var last = lData.LastOrDefault();
+                        if(last != null)
+                        {
+                            var res = last.IsOrderBlock(lOB.Where(x => x.s == item));
+                            if(res.Item1)
+                            {
+                                lRes.Add(res.Item2);
+                            }
+                        }
+
+                        Thread.Sleep(100);
+                    }
+
+                    var lOrderBlockBuy = lRes.Where(x => x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotInsideBar);
+                    if (lOrderBlockBuy.Any())
+                    {
+                        strOutput.AppendLine();
+                        strOutput.AppendLine($"[Thông báo] Tín hiệu OrderBlock MUA");
+                        var index = 1;
+                        foreach (var item in lOrderBlockBuy)
+                        {
+                            var content = $"{index++}. {item.s}|ENTRY: {item.Entry}|SL: {item.SL}";
+                            strOutput.AppendLine(content);
+                        }
+                    }
+
+                    var lOrderBlockSell = lRes.Where(x => x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar);
+                    if (lOrderBlockSell.Any())
+                    {
+                        strOutput.AppendLine();
+                        strOutput.AppendLine($"[Thông báo] Tín hiệu OrderBlock BÁN");
+                        var index = 1;
+                        foreach (var item in lOrderBlockSell)
+                        {
+                            var content = $"{index++}. {item.s}|ENTRY: {item.Entry}|SL: {item.SL}";
+                            strOutput.AppendLine(content);
+                        }
+                    }
+                }
+
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.CheckOrderBlock|EXCEPTION| {ex.Message}");
             }
 
             return (0, null);
@@ -431,10 +515,10 @@ namespace StockPr.Service
 
                 var strOutput = new StringBuilder();
                 var lReport = new List<ReportPTKT>();
-                var dtStart = DateTime.Now;
-                FilterDefinition<Stock> filter = Builders<Stock>.Filter.Gte(x => x.status, 0);
+                var filter = Builders<Stock>.Filter.Gte(x => x.status, 0);
+                //xóa toàn bộ OrderBlock
+                _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Gte(x => x.Open, 0));
                 var lStock = _stockRepo.GetByFilter(filter).OrderBy(x => x.rank);
-                int dem = 0;
                 foreach (var item in lStock)
                 {
                     try
@@ -478,9 +562,35 @@ namespace StockPr.Service
                     }
                 }
                 //
-                strOutput.Clear();
-                var dtEnd = DateTime.Now;
-                var ts = (dtEnd - dtStart).TotalSeconds;
+                var lOrderBlockBuy = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.BotPinbar) || x.ob.Mode == (int)EOrderBlockMode.BotInsideBar)
+                                  .OrderBy(x => x.rank)
+                                  .Take(10);
+                if(lOrderBlockBuy.Any())
+                {
+                    strOutput.AppendLine();
+                    strOutput.AppendLine($"*OrderBlock MUA:");
+                    var index = 1;
+                    foreach (var item in lOrderBlockBuy)
+                    {
+                        var content = $"{index++}. {item.s}|ENTRY: {item.ob.Entry}|SL: {item.ob.SL}";
+                        strOutput.AppendLine(content);
+                    }
+                }
+
+                var lOrderBlockSell = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.TopPinbar) || x.ob.Mode == (int)EOrderBlockMode.TopInsideBar)
+                                 .OrderBy(x => x.rank)
+                                 .Take(10);
+                if (lOrderBlockSell.Any())
+                {
+                    strOutput.AppendLine();
+                    strOutput.AppendLine($"*OrderBlock BÁN:");
+                    var index = 1;
+                    foreach (var item in lOrderBlockSell)
+                    {
+                        var content = $"{index++}. {item.s}|ENTRY: {item.ob.Entry}|SL: {item.ob.SL}";
+                        strOutput.AppendLine(content);
+                    }
+                }
 
                 _configRepo.InsertOne(new ConfigData
                 {
@@ -503,10 +613,27 @@ namespace StockPr.Service
             try
             {
                 var lData = await _apiService.SSI_GetDataStock(code);
+
+                #region Order Block
+                var lOrderBlock = lData.GetOrderBlock(5);
+                if (lOrderBlock.Any())
+                {
+                    foreach (var item in lOrderBlock)
+                    {
+                        item.s = code;
+                        _orderBlockRepo.InsertOne(item);
+                    }
+                }
+                #endregion
+
                 var res = ChiBaoKyThuatOnlyStock(lData, limitvol);
                 if (res != null)
                 {
                     res.s = code;
+                    var checkOB = lData.Last().IsOrderBlock(lOrderBlock);
+                    if(checkOB.Item1)
+                        res.ob = checkOB.Item2;
+
                     return res;
                 }
             }

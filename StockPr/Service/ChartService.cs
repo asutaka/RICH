@@ -19,17 +19,15 @@ namespace StockPr.Service
         private readonly ICommonService _commonService;
         private readonly IAPIService _apiService;
         private readonly IThongKeRepo _thongkeRepo;
-        private readonly IThongKeQuyRepo _thongkequyRepo;
         public ChartService(ILogger<ChartService> logger, 
             ICommonService commonService, IAPIService apiService,  
-            IFinancialRepo financialRepo, IThongKeRepo thongKeRepo, IThongKeQuyRepo thongKeQuyRepo) 
+            IFinancialRepo financialRepo, IThongKeRepo thongKeRepo) 
         {
             _logger = logger;
             _commonService = commonService;
             _apiService = apiService;
             _financialRepo = financialRepo;
             _thongkeRepo = thongKeRepo;
-            _thongkequyRepo = thongKeQuyRepo;
         }
 
         public async Task<List<InputFileStream>> Chart_MaCK(string input)
@@ -317,42 +315,22 @@ namespace StockPr.Service
             }
 
             var lThongKe = _thongkeRepo.GetByFilter(Builders<ThongKe>.Filter.Eq(x => x.key, (int)eThongKe)).OrderBy(x => x.d);
-            var lThongKeQuy = _thongkequyRepo.GetByFilter(Builders<ThongKe>.Filter.Eq(x => x.key, (int)eThongKe)).OrderBy(x => x.d);
 
-            var lastThongKe = lThongKe?.LastOrDefault() ?? new ThongKe();//202301
-            var lastThongKeQuy = lThongKeQuy?.LastOrDefault() ?? new ThongKe();//20231
-
+            var lastThongKe = lThongKe?.LastOrDefault() ?? new ThongKe();
             var yearThongKe = lastThongKe.d / 100;
-            var yearThongKeQuy = lastThongKeQuy.d / 10;
-
             var monthThongKe = lastThongKe.d - yearThongKe * 100;
-            var monthThongKeQuy = (lastThongKeQuy.d - yearThongKeQuy * 10) * 3;
-
             var dayThongKe = 27;
-            var dayThongKeQuy = 28;
-
             var dThongKe = new DateTime(yearThongKe < 1 ? 1 : yearThongKe, monthThongKe < 1 ? 1 : monthThongKe, dayThongKe < 1 ? 1 : dayThongKe);
-            var dThongKeQuy = new DateTime(yearThongKeQuy < 1 ? 1 : yearThongKeQuy, monthThongKeQuy < 1 ? 1 : monthThongKeQuy, dayThongKeQuy < 1 ? 1 : dayThongKeQuy);
 
-            var isNK = eThongKe.ToString().Contains("NK");
-            var lData = new List<(double, double, string)>();
-
-            if (dThongKe > dThongKeQuy)
-            {
-                lData = lThongKe.Select(x => (x.va, x.price, x.d.GetNameMonth())).ToList();
-            }
-            else
-            {
-                lData = lThongKeQuy.Select(x => (x.va, x.price, x.d.GetNameQuarter())).ToList();
-            }
-            return await Chart_XNK(lData, !isNK, strTitle, string.Empty, string.Empty);
+            var lData = lThongKe.Select(x => (x.va, x.price, x.d.GetNameMonth())).ToList();
+            return await Chart_XNK(lData, strTitle, string.Empty, string.Empty);
         }
 
-        private async Task<Stream> Chart_XNK(IEnumerable<(double, double, string)> lVal, bool isXK, string title, string unit1, string unit2)
+        private async Task<Stream> Chart_XNK(IEnumerable<(double, double, string)> lVal, string title, string unit1, string unit2)
         {
             try
             {
-                var strMode = isXK ? "xuất khẩu" : "nhập khẩu";
+                var strMode = "xuất khẩu";
                 var lSeries = new List<HighChartSeries_BasicColumn>
                 {
                     new HighChartSeries_BasicColumn

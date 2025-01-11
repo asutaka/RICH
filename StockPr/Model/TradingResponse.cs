@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Skender.Stock.Indicators;
+using StockPr.DAL.Entity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -122,5 +124,15 @@ namespace StockPr.Model
         public bool isGEMA20 { get; set; }//Nằm trên MA20
         public bool isIchi { get; set; }//giá vượt trên ichi
         public bool isPriceUp { get; set; }//cp tăng giá hay ko
+        public OrderBlock ob { get; set; }
+    }
+
+    public class TopBotModel
+    {
+        public DateTime Date { get; set; }
+        public bool IsTop { get; set; }
+        public bool IsBot { get; set; }
+        public decimal Value { get; set; }
+        public Quote Item { get; set; }
     }
 }

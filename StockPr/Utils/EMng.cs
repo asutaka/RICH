@@ -127,6 +127,14 @@ namespace StockPr.Utils
         Khac = 99
     }
 
+    public enum EOrderBlockMode
+    {
+        TopPinbar = 1,
+        TopInsideBar = 2,
+        BotPinbar = 3,
+        BotInsideBar = 4
+    }
+
     public enum EKeyTongCucThongKe
     {
         None = 0,
