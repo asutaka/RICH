@@ -195,6 +195,26 @@ namespace StockPr.Utils
         KBS = 13
     }
 
+    public enum EMoney24hTimeType
+    {
+        [Display(Name = "today")]
+        today = 1,
+        [Display(Name = "week")]
+        week = 2,
+        [Display(Name = "month")]
+        month = 3
+    }
+
+    public enum EExchange
+    {
+        [Display(Name = "10")]
+        HSX = 1,
+        [Display(Name = "02")]
+        HNX = 2,
+        [Display(Name = "03")]
+        UPCOM = 3
+    }
+
     public enum EPrice
     {
         [Display(Name = "Crude Oil")]

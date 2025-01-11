@@ -11,6 +11,7 @@
             services.AddSingleton<IThongKeRepo, ThongKeRepo>();
             services.AddSingleton<IThongKeQuyRepo, ThongKeQuyRepo>();
             services.AddSingleton<IConfigBaoCaoPhanTichRepo, ConfigBaoCaoPhanTichRepo>();
+            services.AddSingleton<ICategoryRepo, CategoryRepo>();
         }
     }
 }

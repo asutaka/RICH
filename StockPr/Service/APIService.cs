@@ -39,6 +39,8 @@ namespace StockPr.Service
 
         Task<List<Quote>> SSI_GetDataStock(string code);
         Task<List<Money24h_PTKTResponse>> Money24h_GetMaTheoChiBao(string chibao);
+        Task<List<Money24h_ForeignResponse>> Money24h_GetForeign(EExchange mode, EMoney24hTimeType type);
+        Task<Money24h_NhomNganhResponse> Money24h_GetNhomNganh(EMoney24hTimeType type);
     }
     public class APIService : IAPIService
     {
@@ -1120,6 +1122,71 @@ namespace StockPr.Service
                 _logger.LogError($"APIService.Money24h_GetMaTheoChiBao|EXCEPTION| {ex.Message}");
             }
             return lOutput;
+        }
+
+        public async Task<List<Money24h_ForeignResponse>> Money24h_GetForeign(EExchange mode, EMoney24hTimeType type)
+        {
+            var lOutput = new List<Money24h_ForeignResponse>();
+            try
+            {
+                var urlBase = "https://api-finance-t19.24hmoney.vn/v2/web/indices/foreign-trading-all-stock-by-time?code={0}&type={1}";
+                var url = string.Format(urlBase, mode.GetDisplayName(), type.GetDisplayName());
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Money24h_ForeignAPIResponse>(resultArray);
+                if (responseModel.status == 200
+                    && responseModel.data.data.Any())
+                {
+                    var date = responseModel.data.from_date.ToDateTime("dd/MM/yyyy");
+                    if (date.Day == DateTime.Now.Day)
+                    {
+                        return responseModel.data.data.Where(x => x.symbol.Length == 3).OrderByDescending(x => x.net_val).Select((x, index) => new Money24h_ForeignResponse
+                        {
+                            no = index + 1,
+                            d = new DateTimeOffset(date, TimeSpan.FromHours(0)).ToUnixTimeSeconds(),
+                            s = x.symbol,
+                            sell_qtty = x.sell_qtty,
+                            sell_val = x.sell_val,
+                            buy_qtty = x.buy_qtty,
+                            buy_val = x.buy_val,
+                            net_val = x.net_val,
+                            t = DateTimeOffset.Now.ToUnixTimeSeconds()
+                        }).ToList();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Money24h_GetForeign|EXCEPTION| {ex.Message}");
+            }
+            return lOutput;
+        }
+
+        public async Task<Money24h_NhomNganhResponse> Money24h_GetNhomNganh(EMoney24hTimeType type)
+        {
+            try
+            {
+                var urlBase = "https://api-finance-t19.24hmoney.vn/v2/ios/company-group/all-level-with-summary?type={0}";
+                var url = string.Format(urlBase, type.GetDisplayName());
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var result = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Money24h_NhomNganhResponse>(result);
+                if (responseModel.status == 200)
+                {
+                    return responseModel;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Money24h_GetNhomNganh|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
 
         public async Task<List<Quote>> SSI_GetDataStock(string code)

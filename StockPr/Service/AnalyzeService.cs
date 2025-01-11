@@ -1,7 +1,9 @@
-﻿using Skender.Stock.Indicators;
+﻿using MongoDB.Driver;
+using Skender.Stock.Indicators;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Model;
+using StockPr.Utils;
 using System.Text;
 
 namespace StockPr.Service
@@ -9,6 +11,8 @@ namespace StockPr.Service
     public interface IAnalyzeService
     {
         Task<string> Realtime();
+        Task<string> ThongKeGDNN_NhomNganh();
+        Task<(int, string)> ChiBaoKyThuat(DateTime dt);
     }
     public class AnalyzeService : IAnalyzeService
     {
@@ -16,15 +20,18 @@ namespace StockPr.Service
         private readonly IAPIService _apiService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IStockRepo _stockRepo;
+        private readonly ICategoryRepo _categoryRepo;
         public AnalyzeService(ILogger<AnalyzeService> logger,
                                     IAPIService apiService,
                                     IConfigDataRepo configRepo,
-                                    IStockRepo stockRepo) 
+                                    IStockRepo stockRepo,
+                                    ICategoryRepo categoryRepo) 
         {
             _logger = logger;
             _apiService = apiService;
             _configRepo = configRepo;
             _stockRepo = stockRepo;
+            _categoryRepo = categoryRepo;
         }
 
         public async Task<string> Realtime()
@@ -61,7 +68,7 @@ namespace StockPr.Service
             return sBuilder.ToString();
         }
 
-        public async Task<(int, string)> ChiBaoMA20()
+        private async Task<(int, string)> ChiBaoMA20()
         {
             try
             {
@@ -170,7 +177,7 @@ namespace StockPr.Service
             return (0, null);
         }
 
-        public async Task<(int, string)> ChiBao52W()
+        private async Task<(int, string)> ChiBao52W()
         {
             try
             {
@@ -216,6 +223,341 @@ namespace StockPr.Service
             }
 
             return (0, null);
+        }
+
+        public async Task<string> ThongKeGDNN_NhomNganh()
+        {
+            var dt = DateTime.Now;
+            var sBuilder = new StringBuilder();
+            var foreign = await ThongkeForeign(dt);
+            if(foreign.Item1 > 0)
+            {
+                sBuilder.AppendLine(foreign.Item2);
+                sBuilder.AppendLine();
+            }
+
+            var nhomnganh = await ThongkeNhomNganh(dt);
+            if(nhomnganh.Item1 > 0)
+            {
+                sBuilder.AppendLine(nhomnganh.Item2);
+            }
+            return sBuilder.ToString();
+        }
+
+        private async Task<(int, string)> ThongkeForeign(DateTime dt)
+        {
+            var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+            var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
+            try
+            {
+                var type = EMoney24hTimeType.today;
+                var mode = EConfigDataType.GDNN_today;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return (0, null);
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var strOutput = new StringBuilder();
+                var lData = new List<Money24h_ForeignResponse>();
+                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HSX, type));
+                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HNX, type));
+                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.UPCOM, type));
+                if (!lData.Any())
+                    return (0, null);
+
+                var head = $"[Thông báo] GDNN ngày {dt.ToString("dd/MM/yyyy")}:"; ;
+                strOutput.AppendLine(head);
+                strOutput.AppendLine($"*Top mua ròng:");
+                var lTopBuy = lData.OrderByDescending(x => x.net_val).Take(10);
+                var lTopSell = lData.OrderBy(x => x.net_val).Take(10);
+                var index = 1;
+                foreach (var item in lTopBuy)
+                {
+                    var content = $"{index}. {item.s} (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                strOutput.AppendLine();
+                strOutput.AppendLine($"*Top bán ròng:");
+                index = 1;
+                foreach (var item in lTopSell)
+                {
+                    var content = $"{index}. {item.s} (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = (int)EConfigDataType.GDNN_today,
+                    t = t
+                });
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.ThongkeForeign|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        private async Task<(int, string)> ThongkeNhomNganh(DateTime dt)
+        {
+            var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+            var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
+            try
+            {
+                var type = EMoney24hTimeType.today;
+                var mode = EConfigDataType.ThongKeNhomNganh_today;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return (0, null);
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var strOutput = new StringBuilder();
+
+                var res = await _apiService.Money24h_GetNhomNganh(type);
+                if (res is null
+                    || !res.data.groups.Any()
+                    || res.data.last_update < dTime)
+                    return (0, null);
+
+                var lData = _categoryRepo.GetAll();
+                var lNhomNganhData = new List<Money24h_NhomNganh_GroupResponse>();
+                foreach (var itemLv1 in res.data.groups)
+                {
+                    var findLv1 = lData.FirstOrDefault(x => x.code == itemLv1.icb_code);
+                    if (findLv1 != null)
+                    {
+                        itemLv1.icb_name = findLv1.name;
+                        lNhomNganhData.Add(itemLv1);
+                        continue;
+                    }
+
+                    foreach (var itemLv2 in itemLv1.child)
+                    {
+                        var findLv2 = lData.FirstOrDefault(x => x.code == itemLv2.icb_code);
+                        if (findLv2 != null)
+                        {
+                            itemLv2.icb_name = findLv2.name;
+                            lNhomNganhData.Add(itemLv2);
+                            continue;
+                        }
+
+                        foreach (var itemLv3 in itemLv2.child)
+                        {
+                            var findLv3 = lData.FirstOrDefault(x => x.code == itemLv3.icb_code);
+                            if (findLv3 != null)
+                            {
+                                itemLv3.icb_name = findLv3.name;
+                                lNhomNganhData.Add(itemLv3);
+                                continue;
+                            }
+
+                            foreach (var itemLv4 in itemLv3.child)
+                            {
+                                var findLv4 = lData.FirstOrDefault(x => x.code == itemLv4.icb_code);
+                                if (findLv4 != null)
+                                {
+                                    itemLv4.icb_name = findLv4.name;
+                                    lNhomNganhData.Add(itemLv4);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!lNhomNganhData.Any())
+                    return (0, null);
+
+                lNhomNganhData = lNhomNganhData.OrderByDescending(x => (float)x.total_stock_increase / x.total_stock).Take(5).ToList();
+
+
+                var head = $"[Thông báo] Nhóm ngành được quan tâm ngày {dt.ToString("dd/MM/yyyy")}:";
+                strOutput.AppendLine(head);
+                var index = 1;
+                foreach (var item in lNhomNganhData)
+                {
+                    var content = $"{index}. {item.icb_name}({Math.Round((float)item.total_stock_increase * 100 / item.total_stock, 1)}%)";
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = (int)mode,
+                    t = t
+                });
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.ThongkeNhomNganh|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        public async Task<(int, string)> ChiBaoKyThuat(DateTime dt)
+        {
+            try
+            {
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                FilterDefinition<ConfigData> filterConfig = Builders<ConfigData>.Filter.Eq(x => x.ty, (int)EConfigDataType.ChiBaoKyThuat);
+                var lConfig = _configRepo.GetByFilter(filterConfig);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return (0, null);
+
+                    _configRepo.DeleteMany(filterConfig);
+                }
+
+                var strOutput = new StringBuilder();
+                var lReport = new List<ReportPTKT>();
+                var dtStart = DateTime.Now;
+                FilterDefinition<Stock> filter = Builders<Stock>.Filter.Gte(x => x.status, 0);
+                var lStock = _stockRepo.GetByFilter(filter).OrderBy(x => x.rank);
+                int dem = 0;
+                foreach (var item in lStock)
+                {
+                    try
+                    {
+                        var model = await ChiBaoKyThuatOnlyStock(item.s, 50000);
+                        if (model is null)
+                            continue;
+                        model.rank = item.rank;
+
+                        lReport.Add(model);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"CalculateService.ChiBaoKyThuat|EXCEPTION(ChiBaoKyThuatOnlyStock)| {ex.Message}");
+                    }
+                }
+
+                var count = lReport.Count;
+                //Tỉ lệ cp trên ma20 
+                strOutput.AppendLine($"[Thống kê PTKT]");
+                strOutput.AppendLine($"*Tổng quan:");
+                strOutput.AppendLine($" - Số cp tăng giá: {Math.Round((float)lReport.Count(x => x.isPriceUp) * 100 / count, 1)}%");
+                strOutput.AppendLine($" - Số cp trên MA20: {Math.Round((float)lReport.Count(x => x.isGEMA20) * 100 / count, 1)}%");
+
+                var lTrenMa20 = lReport.Where(x => x.isPriceUp && x.isCrossMa20Up)
+                                    .OrderBy(x => x.rank)
+                                    .Take(20);
+                if (lTrenMa20.Any())
+                {
+                    strOutput.AppendLine();
+                    strOutput.AppendLine($"*Top cp cắt lên MA20:");
+                    var index = 1;
+                    foreach (var item in lTrenMa20)
+                    {
+                        var content = $"{index++}. {item.s}";
+                        if (item.isIchi)
+                        {
+                            content += " - Ichimoku";
+                        }
+                        strOutput.AppendLine(content);
+                    }
+                }
+                //
+                strOutput.Clear();
+                var dtEnd = DateTime.Now;
+                var ts = (dtEnd - dtStart).TotalSeconds;
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = (int)EConfigDataType.ChiBaoKyThuat,
+                    t = t
+                });
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.ChiBaoKyThuat|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        private async Task<ReportPTKT> ChiBaoKyThuatOnlyStock(string code, int limitvol)
+        {
+            try
+            {
+                var lData = await _apiService.SSI_GetDataStock(code);
+                var res = ChiBaoKyThuatOnlyStock(lData, limitvol);
+                if (res != null)
+                {
+                    res.s = code;
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"CalculateService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        private ReportPTKT ChiBaoKyThuatOnlyStock(List<Quote> lData, int limitvol)
+        {
+            try
+            {
+                if (lData.Count() < 250)
+                    return null;
+                if (limitvol > 0 && lData.Last().Volume < limitvol)
+                    return null;
+
+                var model = new ReportPTKT();
+
+                var lIchi = lData.GetIchimoku();
+                var lBb = lData.GetBollingerBands();
+                var lEma21 = lData.GetEma(21);
+                var lEma50 = lData.GetEma(50);
+                //var lEma200 = lData.GetEma(200);
+                var lRsi = lData.GetRsi();
+
+                //MA20
+                var entity = lData.Last();
+                var bb = lBb.Last();
+                var entityNear = lData.SkipLast(1).TakeLast(1).First();
+                var bbNear = lBb.SkipLast(1).TakeLast(1).First();
+
+                model.isGEMA20 = entity.Close >= (decimal)bb.Sma;
+                model.isCrossMa20Up = entityNear.Close < (decimal)bbNear.Sma && entity.Close >= (decimal)bb.Sma && entity.Open <= (decimal)bb.Sma;
+                model.isPriceUp = entity.Close > entity.Open;
+
+                //Ichi
+                var ichiCheck = lIchi.Last();
+                if (entity.Close > ichiCheck.SenkouSpanA && entity.Close > ichiCheck.SenkouSpanB)
+                {
+                    model.isIchi = true;
+                }
+                return model;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"CalculateService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
     }
 }

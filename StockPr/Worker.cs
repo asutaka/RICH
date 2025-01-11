@@ -104,7 +104,16 @@ namespace StockPr
 
                         if (dt.Hour == 14 && dt.Minute >= 45)
                         {
-                            //await ThongKe(dt);
+                            var mes = await _analyzeService.ThongKeGDNN_NhomNganh();
+                            if (!string.IsNullOrWhiteSpace(mes))
+                            {
+                                await _teleService.SendMessage(_idChannel, mes);
+                            }
+                            var res = await _analyzeService.ChiBaoKyThuat(dt);
+                            if (res.Item1 > 0)
+                            {
+                                await _teleService.SendMessage(_idChannel, res.Item2);
+                            }
                         }
 
                         if(dt.Hour >= 15)
