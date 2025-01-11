@@ -84,13 +84,6 @@ namespace StockPr
                 if (isDayOfWork 
                     && !StaticVal._lNghiLe.Any(x => x.Month == dt.Month && x.Day == dt.Day))
                 {
-                    //if (isRealTime
-                    //    || (dt.Hour == 8 && dt.Minute >= 45)
-                    //    || (dt.Hour == 15 && dt.Minute < 15))
-                    //{
-                    //    await TinHieuMuaBan();
-                    //}
-
                     if (!isPreTrade)
                     {
                         if (isRealTime && isTimePrint)
