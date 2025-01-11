@@ -13,6 +13,8 @@
             services.AddSingleton<IGiaNganhHangService, GiaNganhHangService>();
             services.AddSingleton<ITongCucThongKeService, TongCucThongKeService>();
             services.AddSingleton<IAnalyzeService, AnalyzeService>();
+            services.AddSingleton<ITuDoanhService, TuDoanhService>();
+            services.AddSingleton<IFileService, FileService>();
         }
     }
 }

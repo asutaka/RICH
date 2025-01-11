@@ -35,6 +35,8 @@ namespace StockPr.Service
         Task<string> TongCucThongKeGetUrl();
         Task<Stream> TongCucThongKeGetFile(string url);
 
+        Task<Stream> TuDoanhHSX(DateTime dt);
+
         Task<List<Quote>> SSI_GetDataStock(string code);
         Task<List<Money24h_PTKTResponse>> Money24h_GetMaTheoChiBao(string chibao);
     }
@@ -1027,6 +1029,64 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.TongCucThongKeGetFile|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<Stream> TuDoanhHSX(DateTime dt)
+        {
+            try
+            {
+                //LV1
+                var link = string.Empty;
+                var url = "https://www.hsx.vn";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var html = await responseMessage.Content.ReadAsStringAsync();
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var nodes = doc.DocumentNode.SelectNodes("//*[@id=\"body\"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/div") as IEnumerable<HtmlNode>;
+                foreach (HtmlNode node in nodes.ElementAt(0).ChildNodes)
+                {
+                    if (string.IsNullOrWhiteSpace(node.InnerText))
+                        continue;
+
+                    var document = new HtmlDocument();
+                    document.LoadHtml(node.InnerHtml);
+                    var lNode = document.DocumentNode.SelectNodes("//a");
+                    foreach (var item in lNode)
+                    {
+                        var tagA = document.DocumentNode.SelectSingleNode("//a");
+                        var title = tagA.Attributes["title"].Value;
+                        if (!(title.Contains("giao dịch tự doanh")
+                            && title.Contains($"{dt.Day.To2Digit()}/{dt.Month.To2Digit()}/{dt.Year}")))
+                            continue;
+
+                        link = tagA.Attributes["href"].Value;
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(link))
+                    return null;
+
+                //LV2
+                var clientDetail = new HttpClient { BaseAddress = new Uri($"{url}{link.Replace("ViewArticle", "GetRelatedFiles")}?rows=30&page=1") };
+                responseMessage = await clientDetail.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var content = await responseMessage.Content.ReadAsStringAsync();
+                var model = JsonConvert.DeserializeObject<HSXTudoanhModel>(content);
+                var lastID = model.rows?.FirstOrDefault()?.cell?.FirstOrDefault();
+                //LV3
+                var clientDownload = new HttpClient { BaseAddress = new Uri($"{url}/Modules/CMS/Web/DownloadFile?id={lastID}") };
+                responseMessage = await clientDownload.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                return await responseMessage.Content.ReadAsStreamAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.TuDoanhHSX|EXCEPTION| {ex.Message}");
             }
             return null;
         }
