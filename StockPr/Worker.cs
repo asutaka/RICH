@@ -42,7 +42,7 @@ namespace StockPr
                 var isDayOfWork = dt.DayOfWeek >= DayOfWeek.Monday && dt.DayOfWeek <= DayOfWeek.Friday;//Từ thứ 2 đến thứ 6
                 var isPreTrade = dt.Hour < 9;
                 var isTimePrint = dt.Minute >= 15 && dt.Minute < 30;//từ phút thứ 15 đến phút thứ 30
-                var isRealTime = dt.Hour >= 9 && dt.Hour < 15;//từ 9h đến 3h
+                var isRealTime = (dt.Hour >= 9 && dt.Hour < 12) || (dt.Hour >= 13 && dt.Hour < 15);//từ 9h đến 3h
                 var bcpt = await _bcptService.BaoCaoPhanTich();
                 if(!string.IsNullOrWhiteSpace(bcpt))
                 {
@@ -88,19 +88,26 @@ namespace StockPr
                     //    await TinHieuMuaBan();
                     //}
 
-                    if (!isPreTrade && isTimePrint)
+                    if (!isPreTrade)
                     {
-                        if (isRealTime)
+                        if (isRealTime && isTimePrint)
                         {
                             var mes = await _analyzeService.Realtime();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
                                 await _teleService.SendMessage(_idChannel, bcpt);
                             }
-                            return;
                         }
-                        //await ThongKe(dt);
-                        //await ThongKeTuDoanh(dt);
+
+                        if (dt.Hour == 14 && dt.Minute >= 45)
+                        {
+                            //await ThongKe(dt);
+                        }
+
+                        if(dt.Hour >= 15)
+                        {
+                            //await ThongKeTuDoanh(dt);
+                        }
                     }
                 }
                 await Task.Delay(1000 * 60 * 15, stoppingToken);
