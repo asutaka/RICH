@@ -369,7 +369,7 @@ namespace StockPr.Service
                             lTraceGia.Add(new TraceGiaModel
                             {
                                 content = "Cà phê",
-                                description = "",
+                                description = "CTP",
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
