@@ -562,7 +562,7 @@ namespace StockPr.Service
                     }
                 }
                 //
-                var lOrderBlockBuy = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.BotPinbar) || x.ob.Mode == (int)EOrderBlockMode.BotInsideBar)
+                var lOrderBlockBuy = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.BotPinbar || x.ob.Mode == (int)EOrderBlockMode.BotInsideBar))
                                   .OrderBy(x => x.rank)
                                   .Take(10);
                 if(lOrderBlockBuy.Any())
@@ -577,7 +577,7 @@ namespace StockPr.Service
                     }
                 }
 
-                var lOrderBlockSell = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.TopPinbar) || x.ob.Mode == (int)EOrderBlockMode.TopInsideBar)
+                var lOrderBlockSell = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.TopPinbar || x.ob.Mode == (int)EOrderBlockMode.TopInsideBar))
                                  .OrderBy(x => x.rank)
                                  .Take(10);
                 if (lOrderBlockSell.Any())
@@ -657,8 +657,8 @@ namespace StockPr.Service
 
                 var lIchi = lData.GetIchimoku();
                 var lBb = lData.GetBollingerBands();
-                var lEma21 = lData.GetEma(21);
-                var lEma50 = lData.GetEma(50);
+                //var lEma21 = lData.GetEma(21);
+                //var lEma50 = lData.GetEma(50);
                 //var lEma200 = lData.GetEma(200);
                 var lRsi = lData.GetRsi();
 

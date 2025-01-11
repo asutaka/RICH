@@ -39,6 +39,9 @@ namespace StockPr.Utils
                 var lPivot = lData.GetTopBottom_H(minrate);
                 var max = lPivot.Where(x => x.IsTop).MaxBy(x => x.Value);
                 var min = lPivot.Where(x => x.IsBot).MinBy(x => x.Value);
+                if(max is null || min is null)
+                    return lOrderBlock;
+
                 var flagDate = max.Date > min.Date ? min.Date : max.Date;
                 lPivot = lPivot.Where(x => x.Date >= flagDate).ToList();
                 foreach (var pivot in lPivot)
@@ -51,6 +54,9 @@ namespace StockPr.Utils
 
                     if (pivot.IsTop)
                     {
+                        if (pivot.Date < max.Date)
+                            continue;
+
                         var uplen = item.High - Math.Max(item.Open, item.Close);
                         if (uplen / len >= (decimal)0.6)
                         {
@@ -72,6 +78,9 @@ namespace StockPr.Utils
                         }
                         else
                         {
+                            if (pivot.Date < min.Date)
+                                continue;
+
                             var next = lData.FirstOrDefault(x => x.Date > pivot.Date);
                             if (next.Open > next.Close
                                 && next.Close <= Math.Min(item.Open, item.Close)

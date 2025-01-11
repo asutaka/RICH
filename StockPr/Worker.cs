@@ -42,6 +42,7 @@ namespace StockPr
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
+
                 var isDayOfWork = dt.DayOfWeek >= DayOfWeek.Monday && dt.DayOfWeek <= DayOfWeek.Friday;//Từ thứ 2 đến thứ 6
                 var isPreTrade = dt.Hour < 9;
                 var isTimePrint = dt.Minute >= 15 && dt.Minute < 30;//từ phút thứ 15 đến phút thứ 30
