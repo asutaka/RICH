@@ -1,17 +1,11 @@
-﻿using Abot2.Crawler;
-using Abot2.Poco;
-using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using StockPr.Model;
 using StockPr.Model.BCPT;
 using StockPr.Utils;
-using System;
 using System.Net;
-using System.Reflection.PortableExecutable;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace StockPr.Service
 {
@@ -869,12 +863,6 @@ namespace StockPr.Service
             return null;
         }
 
-        private static void PageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
-        {
-            var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
-            var rawPageText = e.CrawledPage.Content.Text;
-        }
-
         private async Task<(string, string)> MacroMicro_GetAuthorize()
         {
             try
@@ -889,6 +877,7 @@ namespace StockPr.Service
                 client.Timeout = TimeSpan.FromSeconds(15);
 
                 var requestMessage = new HttpRequestMessage();
+                requestMessage.Headers.Add("Accept", "application/json");
                 requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
                 requestMessage.Method = HttpMethod.Post;
                 var responseMessage = await client.SendAsync(requestMessage);
