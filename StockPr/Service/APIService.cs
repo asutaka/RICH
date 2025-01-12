@@ -879,42 +879,34 @@ namespace StockPr.Service
         {
             try
             {
-                var url = $"https://en.macromicro.me/";
-                var config = new CrawlConfiguration
-                {
-                    MaxPagesToCrawl = 10, //Only crawl 10 pages
-                    MinCrawlDelayPerDomainMilliSeconds = 3000 //Wait this many millisecs between requests
-                };
-                var crawler = new PoliteWebCrawler(config);
+                var cookies = new CookieContainer();
+                var handler = new HttpClientHandler();
+                handler.CookieContainer = cookies;
 
-                crawler.PageCrawlCompleted += PageCrawlCompleted;//Several events available...
+                var url = $"https://en.macromicro.me/api/view/chart/946";
+                var client = new HttpClient(handler);
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
 
-                var crawlResult = await crawler.CrawlAsync(new Uri(url));
-                var tmp = 1;
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                requestMessage.Method = HttpMethod.Post;
+                var responseMessage = await client.SendAsync(requestMessage);
 
-                //var cookie = string.Empty;
-                //var url = $"https://en.macromicro.me/";
-                //var web = new HtmlWeb()
-                //{
-                //    UseCookies = true
-                //};
-                //web.PostResponse += (request, response) =>
-                //{
-                //    cookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
-                //};
-                //var document = web.Load(url);
-                //var html = document.ParsedText;
-                //var index = html.IndexOf("data-stk=");
+                var html = await responseMessage.Content.ReadAsStringAsync();
+                var index = html.IndexOf("data-stk=");
                 //if (index < 0)
                 //    return (null, null);
 
-                //var sub = html.Substring(index + 10);
-                //var indexCut = sub.IndexOf("\"");
+                var sub = html.Substring(index + 10);
+                var indexCut = sub.IndexOf("\"");
                 //if (indexCut < 0)
                 //    return (null, null);
 
-                //var authorize = sub.Substring(0, indexCut);
-                //return (authorize, cookie);
+                var authorize = sub.Substring(0, indexCut);
+                var uri = new Uri(url);
+                var responseCookies = cookies.GetCookies(uri).Cast<Cookie>();
+                return (authorize, responseCookies?.FirstOrDefault().ToString());
             }
             catch (Exception ex)
             {
@@ -922,6 +914,54 @@ namespace StockPr.Service
             }
             return (null, null);
         }
+
+        //private async Task<(string, string)> MacroMicro_GetAuthorize()
+        //{
+        //    try
+        //    {
+        //        var url = $"https://en.macromicro.me/";
+        //        var config = new CrawlConfiguration
+        //        {
+        //            MaxPagesToCrawl = 10, //Only crawl 10 pages
+        //            MinCrawlDelayPerDomainMilliSeconds = 3000 //Wait this many millisecs between requests
+        //        };
+        //        var crawler = new PoliteWebCrawler(config);
+
+        //        crawler.PageCrawlCompleted += PageCrawlCompleted;//Several events available...
+
+        //        var crawlResult = await crawler.CrawlAsync(new Uri(url));
+        //        var tmp = 1;
+
+        //        //var cookie = string.Empty;
+        //        //var url = $"https://en.macromicro.me/";
+        //        //var web = new HtmlWeb()
+        //        //{
+        //        //    UseCookies = true
+        //        //};
+        //        //web.PostResponse += (request, response) =>
+        //        //{
+        //        //    cookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
+        //        //};
+        //        //var document = web.Load(url);
+        //        //var html = document.ParsedText;
+        //        //var index = html.IndexOf("data-stk=");
+        //        //if (index < 0)
+        //        //    return (null, null);
+
+        //        //var sub = html.Substring(index + 10);
+        //        //var indexCut = sub.IndexOf("\"");
+        //        //if (indexCut < 0)
+        //        //    return (null, null);
+
+        //        //var authorize = sub.Substring(0, indexCut);
+        //        //return (authorize, cookie);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"APIService.MacroMicro_WCI|EXCEPTION| {ex.Message}");
+        //    }
+        //    return (null, null);
+        //}
         public async Task<MacroMicro_Key> MacroMicro_WCI(string key)
         {
             //wci: 44756
