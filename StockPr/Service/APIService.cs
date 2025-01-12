@@ -1,14 +1,10 @@
 ﻿using HtmlAgilityPack;
-using MongoDB.Driver.Core.WireProtocol.Messages;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using StockPr.Model;
 using StockPr.Model.BCPT;
 using StockPr.Utils;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 
 namespace StockPr.Service
@@ -871,42 +867,6 @@ namespace StockPr.Service
         //{
         //    try
         //    {
-        //        try
-        //        {
-
-        //            var _httpClient = new HttpClient();
-        //            var data_ = JsonConvert.SerializeObject(string.Empty);
-        //            var buffer_ = System.Text.Encoding.UTF8.GetBytes(data_);
-        //            var byteContent_ = new ByteArrayContent(buffer_);
-        //            byteContent_.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        //            byteContent_.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
-
-        //            string _urls = "https://en.macromicro.me/api/view/chart/946";
-        //            var responses_ = await _httpClient.PostAsJsonAsync(_urls, byteContent_);
-
-        //            if (responses_.StatusCode == HttpStatusCode.OK)
-        //            {
-        //                Console.WriteLine("[GetPrimeryAccount] Response: Success");
-        //                string body = await responses_.Content.ReadAsStringAsync();
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-
-        //            Console.WriteLine(ex.Message); ;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"APIService.MacroMicro_WCI|EXCEPTION| {ex.Message}");
-        //    }
-        //    return (null, null);
-        //}
-
-        //private async Task<(string, string)> MacroMicro_GetAuthorize()
-        //{
-        //    try
-        //    {
         //        var cookies = new CookieContainer();
         //        var handler = new HttpClientHandler();
         //        handler.CookieContainer = cookies;
@@ -949,7 +909,7 @@ namespace StockPr.Service
             try
             {
                 var cookie = string.Empty;
-                var url = $"https://www.macromicro.me/";
+                var url = $"https://en.macromicro.me/";
                 var web = new HtmlWeb()
                 {
                     UseCookies = true
@@ -990,10 +950,10 @@ namespace StockPr.Service
                     return null;
 
                 var client = _client.CreateClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, $"https://www.macromicro.me/charts/data/{key}");
+                var request = new HttpRequestMessage(HttpMethod.Get, $"https://en.macromicro.me/charts/data/{key}");
                 request.Headers.Add("authorization", $"Bearer {res.Item1}");
                 request.Headers.Add("cookie", res.Item2);
-                request.Headers.Add("referer", "https://www.macromicro.me/collections/22190/sun-ming-te-investment-dashboard/44756/drewry-world-container-index");
+                request.Headers.Add("referer", "https://en.macromicro.me/collections/22190/sun-ming-te-investment-dashboard/44756/drewry-world-container-index");
                 request.Headers.Add("user-agent", "zzz");
 
                 request.Content = new StringContent(string.Empty,
