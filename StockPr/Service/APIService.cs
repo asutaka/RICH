@@ -1,4 +1,6 @@
-﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+﻿using Abot2.Crawler;
+using Abot2.Poco;
+using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
@@ -867,33 +869,52 @@ namespace StockPr.Service
             return null;
         }
 
+        private static void PageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
+        {
+            var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
+            var rawPageText = e.CrawledPage.Content.Text;
+        }
+
         private async Task<(string, string)> MacroMicro_GetAuthorize()
         {
             try
             {
-                var cookie = string.Empty;
                 var url = $"https://en.macromicro.me/";
-                var web = new HtmlWeb()
+                var config = new CrawlConfiguration
                 {
-                    UseCookies = true
+                    MaxPagesToCrawl = 10, //Only crawl 10 pages
+                    MinCrawlDelayPerDomainMilliSeconds = 3000 //Wait this many millisecs between requests
                 };
-                web.PostResponse += (request, response) =>
-                {
-                    cookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
-                };
-                var document = web.Load(url);
-                var html = document.ParsedText;
-                var index = html.IndexOf("data-stk=");
-                if (index < 0)
-                    return (null, null);
+                var crawler = new PoliteWebCrawler(config);
 
-                var sub = html.Substring(index + 10);
-                var indexCut = sub.IndexOf("\"");
-                if (indexCut < 0)
-                    return (null, null);
+                crawler.PageCrawlCompleted += PageCrawlCompleted;//Several events available...
 
-                var authorize = sub.Substring(0, indexCut);
-                return (authorize, cookie);
+                var crawlResult = await crawler.CrawlAsync(new Uri(url));
+                var tmp = 1;
+
+                //var cookie = string.Empty;
+                //var url = $"https://en.macromicro.me/";
+                //var web = new HtmlWeb()
+                //{
+                //    UseCookies = true
+                //};
+                //web.PostResponse += (request, response) =>
+                //{
+                //    cookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
+                //};
+                //var document = web.Load(url);
+                //var html = document.ParsedText;
+                //var index = html.IndexOf("data-stk=");
+                //if (index < 0)
+                //    return (null, null);
+
+                //var sub = html.Substring(index + 10);
+                //var indexCut = sub.IndexOf("\"");
+                //if (indexCut < 0)
+                //    return (null, null);
+
+                //var authorize = sub.Substring(0, indexCut);
+                //return (authorize, cookie);
             }
             catch (Exception ex)
             {
