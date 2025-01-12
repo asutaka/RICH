@@ -21,12 +21,10 @@ namespace StockPr.Utils
         ThongKeNhomNganh_month = 22,
         ChiBaoKyThuat = 30,
         TongCucThongKeThang = 41,
-        TongCucThongKeQuy = 42,
-        TongCucHaiQuan_XK = 43,
-        TongCucHaiQuan_NK = 44,
         CurrentTime = 50,
         TraceGia = 60,
         CheckVietStockToken = 61,
+        MacroMicro = 62
     }
 
     public enum EStockType

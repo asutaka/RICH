@@ -934,7 +934,7 @@ namespace StockPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError($"APIService.MacroMicro_WCI|EXCEPTION| {ex.Message}");
+                _logger.LogError($"APIService.MacroMicro_GetAuthorize|EXCEPTION| {ex.Message}");
             }
             return (null, null);
         }

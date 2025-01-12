@@ -13,11 +13,11 @@ namespace StockPr.Service
     }
     public class GiaNganhHangService : IGiaNganhHangService
     {
-        private readonly ILogger<MessageService> _logger;
+        private readonly ILogger<GiaNganhHangService> _logger;
         private readonly IAPIService _apiService;
         private readonly IConfigDataRepo _configRepo;
         private readonly int _flag = 7;
-        public GiaNganhHangService(ILogger<MessageService> logger,
+        public GiaNganhHangService(ILogger<GiaNganhHangService> logger,
                                     IAPIService apiService,
                                     IConfigDataRepo configRepo)
         {
