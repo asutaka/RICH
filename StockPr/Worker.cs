@@ -37,8 +37,6 @@ namespace StockPr
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var tmp = await _giaService.TraceGia(false);
-            return;
             StockInstance();
 
             while (!stoppingToken.IsCancellationRequested)

@@ -16,14 +16,17 @@ namespace StockPr.Service
         private readonly ILogger<GiaNganhHangService> _logger;
         private readonly IAPIService _apiService;
         private readonly IConfigDataRepo _configRepo;
+        private readonly IMacroMicroRepo _macroRepo;
         private readonly int _flag = 7;
         public GiaNganhHangService(ILogger<GiaNganhHangService> logger,
                                     IAPIService apiService,
-                                    IConfigDataRepo configRepo)
+                                    IConfigDataRepo configRepo,
+                                    IMacroMicroRepo macroRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _configRepo = configRepo;
+            _macroRepo = macroRepo;
         }
 
         private async Task<TraceGiaModel> Pig333_GiaThitHeo(bool isAll)
@@ -94,6 +97,50 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"GiaNganhHangService.Pig333_GiaThitHeo|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        private async Task<TraceGiaModel> MacroMicroLocal(bool isAll, string key)
+        {
+            try
+            {
+                var model = new TraceGiaModel();
+                if (key.Equals("44756"))
+                {
+                    model.content = "Cước Container";
+                    model.description = "HAH";
+                }
+                else
+                {
+                    model.content = "Cước vận tải dầu thô";
+                    model.description = "PVT,VTO";
+                }
+
+                var builder = Builders<MacroMicro>.Filter;
+                var filter = builder.Eq(x => x.key, key);
+                var entity = _macroRepo.GetEntityByFilter(filter);
+                if (entity is null)
+                    return null;
+
+                var isPrint = false;
+                model.weekly = (decimal)entity.W;
+                model.monthly = (decimal)entity.M;
+                model.yearly = (decimal)entity.Y;
+                model.YTD = (decimal)entity.YTD;
+                if (model.weekly >= _flag || model.weekly <= -_flag)
+                {
+                    isPrint = true;
+                }
+
+                //Print
+                if (isAll || isPrint)
+                {
+                    return model;
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"GiaNganhHangService.MacroMicroLocal|EXCEPTION| {ex.Message}");
             }
             return null;
         }
@@ -469,8 +516,6 @@ namespace StockPr.Service
         }
         public async Task<(int, string)> TraceGia(bool isAll)
         {
-            var tmp = await MacroMicro(isAll, "44756");
-            return (0, null);
             var dt = DateTime.Now;
             var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
             var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
@@ -499,7 +544,7 @@ namespace StockPr.Service
                 }
 
                 //WCI
-                var wci = await MacroMicro(isAll, "44756");
+                var wci = await MacroMicroLocal(isAll, "44756");
                 if (wci != null)
                 {
                     lTraceGia.Add(wci);
@@ -513,7 +558,7 @@ namespace StockPr.Service
                 }
 
                 //BDTI
-                var bdti = await MacroMicro(isAll, "946");
+                var bdti = await MacroMicroLocal(isAll, "946");
                 if (bdti != null)
                 {
                     lTraceGia.Add(bdti);

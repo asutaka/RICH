@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace StockExtendPr.DAL.Entity
+namespace StockPr.DAL.Entity
 {
     [BsonIgnoreExtraElements]
     public class MacroMicro : BaseDTO

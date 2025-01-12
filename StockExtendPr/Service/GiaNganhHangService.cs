@@ -47,12 +47,13 @@ namespace StockExtendPr.Service
                     _configRepo.DeleteMany(filter);
                 }
                 //WCI
-                var wci = await MacroMicro(isAll, "44756");
+                var wci_key = "44756";
+                var wci = await MacroMicro(isAll, wci_key);
                 if (wci != null)
                 {
                     lTraceGia.Add(wci);
                     var builderM = Builders<MacroMicro>.Filter;
-                    var filterM = builderM.Eq(x => x.s, "wci");
+                    var filterM = builderM.Eq(x => x.key, wci_key);
                     var lMacroMicro = _macromicroRepo.GetByFilter(filterM);
                     var last = lMacroMicro.LastOrDefault();
                     if (last is null)
@@ -60,6 +61,7 @@ namespace StockExtendPr.Service
                         _macromicroRepo.InsertOne(new MacroMicro
                         {
                             s = "wci",
+                            key = wci_key,
                             W = (double)Math.Round(wci.weekly, 1),
                             M = (double)Math.Round(wci.monthly, 1),
                             Y = (double)Math.Round(wci.yearly, 1),
@@ -69,6 +71,7 @@ namespace StockExtendPr.Service
                     }
                     else
                     {
+                        last.key = wci_key;
                         last.W = (double)Math.Round(wci.weekly, 1);
                         last.M = (double)Math.Round(wci.monthly, 1);
                         last.Y = (double)Math.Round(wci.yearly, 1);
@@ -79,18 +82,20 @@ namespace StockExtendPr.Service
                 }
 
                 //BDTI
-                var bdti = await MacroMicro(isAll, "946");
+                var bdti_key = "946";
+                var bdti = await MacroMicro(isAll, bdti_key);
                 if (bdti != null)
                 {
                     lTraceGia.Add(bdti);
                     var builderM = Builders<MacroMicro>.Filter;
-                    var filterM = builderM.Eq(x => x.s, "bdti");
+                    var filterM = builderM.Eq(x => x.key, bdti_key);
                     var lMacroMicro = _macromicroRepo.GetByFilter(filterM);
                     var last = lMacroMicro.LastOrDefault();
                     if (last is null)
                     {
                         _macromicroRepo.InsertOne(new MacroMicro
                         {
+                            key = bdti_key,
                             s = "bdti",
                             W = (double)Math.Round(wci.weekly, 1),
                             M = (double)Math.Round(wci.monthly, 1),
@@ -100,6 +105,7 @@ namespace StockExtendPr.Service
                     }
                     else
                     {
+                        last.key = bdti_key;
                         last.W = (double)Math.Round(wci.weekly, 1);
                         last.M = (double)Math.Round(wci.monthly, 1);
                         last.Y = (double)Math.Round(wci.yearly, 1);
