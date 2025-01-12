@@ -15,6 +15,7 @@
             services.AddSingleton<IAnalyzeService, AnalyzeService>();
             services.AddSingleton<ITuDoanhService, TuDoanhService>();
             services.AddSingleton<IFileService, FileService>();
+            services.AddSingleton<IBaoCaoTaiChinhService, BaoCaoTaiChinhService>();
         }
     }
 }

@@ -15,6 +15,7 @@ namespace StockPr
         private readonly ITongCucThongKeService _tongcucService;
         private readonly IAnalyzeService _analyzeService;
         private readonly ITuDoanhService _tudoanhService;
+        private readonly IBaoCaoTaiChinhService _bctcService;
 
         private const long _idGroup = -4237476810;
         private const long _idChannel = -1002247826353;
@@ -22,7 +23,7 @@ namespace StockPr
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    ITuDoanhService tudoanhService, IStockRepo stockRepo)
+                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -31,6 +32,7 @@ namespace StockPr
             _tongcucService = tongcucService;
             _analyzeService = analyzeService;
             _tudoanhService = tudoanhService;
+            _bctcService = bctcService;
 
             _stockRepo = stockRepo;
         }
@@ -118,6 +120,20 @@ namespace StockPr
                                 await _teleService.SendMessage(_idChannel, res.Item2);
                             }
                         }
+                    }
+                }
+
+                if (dt.Hour == 23
+                    && ((dt.Month % 3 == 1 && dt.Day >= 15) || dt.Month % 3 == 2 && dt.Day == 10))  
+                {
+                    var isValid = await _bctcService.CheckVietStockToken();
+                    if (isValid)
+                    {
+                        await _bctcService.SyncBCTC();
+                    }
+                    else
+                    {
+                        await _teleService.SendMessage(_idUser, $"[VietStock] Token is Expired");
                     }
                 }
                 await Task.Delay(1000 * 60 * 15, stoppingToken);
