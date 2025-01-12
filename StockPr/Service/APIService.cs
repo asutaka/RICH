@@ -1,11 +1,15 @@
-﻿using HtmlAgilityPack;
+﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using StockPr.Model;
 using StockPr.Model.BCPT;
 using StockPr.Utils;
+using System;
 using System.Net;
+using System.Reflection.PortableExecutable;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace StockPr.Service
 {
@@ -867,21 +871,18 @@ namespace StockPr.Service
         {
             try
             {
-                var cookies = new CookieContainer();
-                var handler = new HttpClientHandler();
-                handler.CookieContainer = cookies;
-
+                var cookie = string.Empty;
                 var url = $"https://en.macromicro.me/";
-                var client = new HttpClient(handler);
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(15);
-
-                var requestMessage = new HttpRequestMessage();
-                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
-                requestMessage.Method = HttpMethod.Get;
-                var responseMessage = await client.SendAsync(requestMessage);
-
-                var html = await responseMessage.Content.ReadAsStringAsync();
+                var web = new HtmlWeb()
+                {
+                    UseCookies = true
+                };
+                web.PostResponse += (request, response) =>
+                {
+                    cookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
+                };
+                var document = web.Load(url);
+                var html = document.ParsedText;
                 var index = html.IndexOf("data-stk=");
                 if (index < 0)
                     return (null, null);
@@ -892,9 +893,7 @@ namespace StockPr.Service
                     return (null, null);
 
                 var authorize = sub.Substring(0, indexCut);
-                var uri = new Uri(url);
-                var responseCookies = cookies.GetCookies(uri).Cast<Cookie>();
-                return (authorize, responseCookies?.FirstOrDefault().ToString());
+                return (authorize, cookie);
             }
             catch (Exception ex)
             {

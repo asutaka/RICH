@@ -469,6 +469,8 @@ namespace StockPr.Service
         }
         public async Task<(int, string)> TraceGia(bool isAll)
         {
+            var tmp = await MacroMicro(isAll, "44756");
+            return (0, null);
             var dt = DateTime.Now;
             var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
             var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
