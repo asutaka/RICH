@@ -97,19 +97,19 @@ namespace StockExtendPr.Service
                         {
                             key = bdti_key,
                             s = "bdti",
-                            W = (double)Math.Round(wci.weekly, 1),
-                            M = (double)Math.Round(wci.monthly, 1),
-                            Y = (double)Math.Round(wci.yearly, 1),
-                            YTD = (double)Math.Round(wci.YTD, 1),
+                            W = (double)Math.Round(bdti.weekly, 1),
+                            M = (double)Math.Round(bdti.monthly, 1),
+                            Y = (double)Math.Round(bdti.yearly, 1),
+                            YTD = (double)Math.Round(bdti.YTD, 1),
                         });
                     }
                     else
                     {
                         last.key = bdti_key;
-                        last.W = (double)Math.Round(wci.weekly, 1);
-                        last.M = (double)Math.Round(wci.monthly, 1);
-                        last.Y = (double)Math.Round(wci.yearly, 1);
-                        last.YTD = (double)Math.Round(wci.YTD, 1);
+                        last.W = (double)Math.Round(bdti.weekly, 1);
+                        last.M = (double)Math.Round(bdti.monthly, 1);
+                        last.Y = (double)Math.Round(bdti.yearly, 1);
+                        last.YTD = (double)Math.Round(bdti.YTD, 1);
                         _macromicroRepo.Update(last);
                     }
                 }
