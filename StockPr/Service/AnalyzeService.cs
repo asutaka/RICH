@@ -572,7 +572,7 @@ namespace StockPr.Service
                     var index = 1;
                     foreach (var item in lOrderBlockBuy)
                     {
-                        var content = $"{index++}. {item.s}|ENTRY: {item.ob.Entry}|SL: {item.ob.SL}";
+                        var content = $"{index++}. {item.s}|ENTRY: {Math.Round(item.ob.Entry, 1)}|SL: {Math.Round(item.ob.SL, 1)}";
                         strOutput.AppendLine(content);
                     }
                 }
@@ -587,7 +587,7 @@ namespace StockPr.Service
                     var index = 1;
                     foreach (var item in lOrderBlockSell)
                     {
-                        var content = $"{index++}. {item.s}|ENTRY: {item.ob.Entry}|SL: {item.ob.SL}";
+                        var content = $"{index++}. {item.s}|ENTRY: {Math.Round(item.ob.Entry, 1)}|SL: {Math.Round(item.ob.SL,1)}";
                         strOutput.AppendLine(content);
                     }
                 }
