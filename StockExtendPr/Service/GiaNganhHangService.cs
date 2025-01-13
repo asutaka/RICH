@@ -34,7 +34,7 @@ namespace StockExtendPr.Service
                 var lTraceGia = new List<TraceGiaModel>();
                 var mode = EConfigDataType.MacroMicro;
                 var dt = DateTime.Now;
-                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}{dt.Hour.To2Digit()}");
                 var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
                 var builder = Builders<ConfigData>.Filter;
                 FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
