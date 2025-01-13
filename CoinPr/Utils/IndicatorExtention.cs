@@ -1,8 +1,8 @@
-﻿using Skender.Stock.Indicators;
-using StockPr.DAL.Entity;
-using StockPr.Model;
+﻿using CoinPr.DAL.Entity;
+using CoinPr.Model;
+using Skender.Stock.Indicators;
 
-namespace StockPr.Utils
+namespace CoinPr.Utils
 {
     public static class IndicatorExtention
     {
@@ -10,12 +10,12 @@ namespace StockPr.Utils
         {
             try
             {
-                if(!(lOrderBlock?.Any() ?? false))
+                if (!(lOrderBlock?.Any() ?? false))
                     return (false, null);
 
                 var top = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar)
                                                     && item.Close >= x.Focus);
-                if(top != null)
+                if (top != null)
                     return (true, top);
 
                 var bot = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotPinbar)
@@ -39,7 +39,7 @@ namespace StockPr.Utils
                 var lPivot = lData.GetTopBottom_H(minrate);
                 var max = lPivot.Where(x => x.IsTop).MaxBy(x => x.Value);
                 var min = lPivot.Where(x => x.IsBot).MinBy(x => x.Value);
-                if(max is null || min is null)
+                if (max is null || min is null)
                     return lOrderBlock;
 
                 var flagDate = max.Date > min.Date ? min.Date : max.Date;
@@ -49,7 +49,7 @@ namespace StockPr.Utils
                     var item = lData.First(x => x.Date == pivot.Date);
                     var len = item.High - item.Low;
                     var avgLen = lData.Where(x => x.Date <= pivot.Date).TakeLast(5).Average(x => x.High - x.Low);
-                    if (len < avgLen * (decimal)1.3) 
+                    if (len < avgLen * (decimal)1.3)
                         continue;
 
                     if (pivot.IsTop)
@@ -182,7 +182,7 @@ namespace StockPr.Utils
                     var itemPrev1 = lData.ElementAt(i - 2);
                     var itemPrev2 = lData.ElementAt(i - 3);
                     var itemPrev3 = lData.ElementAt(i - 4);
-                    
+
                     var last = lResult.LastOrDefault();
                     if (itemCheck.Low < Math.Min(Math.Min(itemPrev1.Low, itemPrev2.Low), itemPrev3.Low)
                         && itemCheck.Low < itemNext1.Low)
@@ -190,9 +190,9 @@ namespace StockPr.Utils
                         var model = new TopBotModel { Date = itemCheck.Date, IsTop = false, IsBot = true, Value = itemCheck.Low, Item = itemCheck };
                         if (last != null)
                         {
-                            if(last.IsBot)
+                            if (last.IsBot)
                             {
-                                if(last.Value > model.Value)
+                                if (last.Value > model.Value)
                                 {
                                     lResult.Remove(last);
                                 }
@@ -243,7 +243,7 @@ namespace StockPr.Utils
                 }
                 return lResult;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"IndicatorExtention.GetTopBottom_HL|EXCEPTION| {ex.Message}");
             }

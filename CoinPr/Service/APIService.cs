@@ -10,6 +10,7 @@ namespace CoinPr.Service
 {
     public interface IAPIService
     {
+        Task<List<Quote>> GetData(string symbol, EExchange exchange, EInterval interval);
         Task<List<BinanceAllSymbol>> GetBinanceSymbol();
         Task<List<BybitSymbolDetail>> GetBybitSymbol();
         Task<List<Quote>> GetCoinData_Binance(string coin, string mode, long fromTime);
@@ -25,6 +26,81 @@ namespace CoinPr.Service
         {
             _logger = logger;
             _client = httpClientFactory;
+        }
+
+        public async Task<List<Quote>> GetData(string symbol, EExchange exchange, EInterval interval)
+        {
+            try
+            {
+                if (exchange == EExchange.Bybit)
+                {
+                    Bybit.Net.Enums.KlineInterval bybitInterval = Bybit.Net.Enums.KlineInterval.FifteenMinutes;
+                    if(interval == EInterval.H1)
+                    {
+                        bybitInterval = Bybit.Net.Enums.KlineInterval.OneHour;
+                    }
+                    else if(interval == EInterval.H4)
+                    {
+                        bybitInterval = Bybit.Net.Enums.KlineInterval.FourHours;
+                    }
+                    else if(interval == EInterval.D1)
+                    {
+                        bybitInterval = Bybit.Net.Enums.KlineInterval.OneDay;
+                    }
+                    else if(interval == EInterval.W1)
+                    {
+                        bybitInterval = Bybit.Net.Enums.KlineInterval.OneWeek;
+                    }
+
+                    var lByBit = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Bybit.Net.Enums.Category.Linear, symbol, bybitInterval);
+                    var lDataBybit = lByBit.Data.List.Select(x => new Quote
+                    {
+                        Date = x.StartTime,
+                        Open = x.OpenPrice,
+                        High = x.HighPrice,
+                        Low = x.LowPrice,
+                        Close = x.ClosePrice,
+                        Volume = x.Volume,
+                    }).ToList();
+
+                    return lDataBybit;
+                }
+
+                Binance.Net.Enums.KlineInterval BinanceInterval = Binance.Net.Enums.KlineInterval.FifteenMinutes;
+                if (interval == EInterval.H1)
+                {
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneHour;
+                }
+                else if (interval == EInterval.H4)
+                {
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.FourHour;
+                }
+                else if (interval == EInterval.D1)
+                {
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneDay;
+                }
+                else if (interval == EInterval.W1)
+                {
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneWeek;
+                }
+                var lBinance = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, BinanceInterval, limit: 500);
+                var lDataBinance = lBinance.Data.Select(x => new Quote
+                {
+                    Date = x.OpenTime,
+                    Open = x.OpenPrice,
+                    High = x.HighPrice,
+                    Low = x.LowPrice,
+                    Close = x.ClosePrice,
+                    Volume = x.Volume,
+                }).ToList();
+
+                return lDataBinance;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetData|EXCEPTION|INPUT: {symbol}| {ex.Message}");
+            }
+            return null;
         }
 
         public async Task<List<BinanceAllSymbol>> GetBinanceSymbol()

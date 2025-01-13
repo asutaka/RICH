@@ -6,6 +6,8 @@
         {
             services.AddSingleton<IMessageService, MessageService>();
             services.AddSingleton<ITeleService, TeleService>();
+            services.AddSingleton<IAnalyzeService, AnalyzeService>();
+            services.AddSingleton<IAPIService, APIService>();
         }
     }
 }
