@@ -101,6 +101,7 @@ namespace StockExtendPr.Service
                             M = (double)Math.Round(bdti.monthly, 1),
                             Y = (double)Math.Round(bdti.yearly, 1),
                             YTD = (double)Math.Round(bdti.YTD, 1),
+                            t = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                         });
                     }
                     else
@@ -110,6 +111,7 @@ namespace StockExtendPr.Service
                         last.M = (double)Math.Round(bdti.monthly, 1);
                         last.Y = (double)Math.Round(bdti.yearly, 1);
                         last.YTD = (double)Math.Round(bdti.YTD, 1);
+                        last.t = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                         _macromicroRepo.Update(last);
                     }
                 }
