@@ -1,4 +1,5 @@
-﻿using CoinPr.Model;
+﻿using CoinPr.DAL.Entity;
+using CoinPr.Model;
 using CoinPr.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +12,7 @@ namespace CoinPr.Service
     public interface IAPIService
     {
         Task<List<Quote>> GetData(string symbol, EExchange exchange, EInterval interval);
-        Task<List<BinanceAllSymbol>> GetBinanceSymbol();
+        Task<List<Coin>> GetBinanceSymbol();
         Task<List<BybitSymbolDetail>> GetBybitSymbol();
         Task<List<Quote>> GetCoinData_Binance(string coin, string mode, long fromTime);
         Task<List<Quote>> GetCoinData_Binance(string coin, int num, string mode);
@@ -103,7 +104,7 @@ namespace CoinPr.Service
             return null;
         }
 
-        public async Task<List<BinanceAllSymbol>> GetBinanceSymbol()
+        public async Task<List<Coin>> GetBinanceSymbol()
         {
             var url = "https://api3.binance.com/sapi/v1/convert/exchangeInfo?toAsset=USDT";
             try
@@ -122,15 +123,15 @@ namespace CoinPr.Service
                 var response = await client.SendAsync(request);
                 var contents = await response.Content.ReadAsStringAsync();
                 if (contents.Length < 200)
-                    return new List<BinanceAllSymbol>();
-                var res = JsonConvert.DeserializeObject<List<BinanceAllSymbol>>(contents);
+                    return new List<Coin>();
+                var res = JsonConvert.DeserializeObject<List<Coin>>(contents);
                 return res;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"APIService.GetBinanceSymbol|EXCEPTION| {ex.Message}");
             }
-            return new List<BinanceAllSymbol>();
+            return new List<Coin>();
         }
 
         public async Task<List<BybitSymbolDetail>> GetBybitSymbol()
