@@ -10,6 +10,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.ServiceDependencies();
         services.DALDependencies();
     })
+    .UseWindowsService()
     .Build();
 
 await host.RunAsync();
