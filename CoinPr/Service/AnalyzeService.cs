@@ -71,7 +71,7 @@ namespace CoinPr.Service
                 _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.H1));
                 foreach (var binance in lCoin)
                 {
-                    await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.H1, 10);
+                    await StoreOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.H1, 10);
                 }
                 #endregion
                 #region 4H
@@ -80,7 +80,7 @@ namespace CoinPr.Service
                     _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.H4));
                     foreach (var binance in lCoin)
                     {
-                        await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.H4, 15);
+                        await StoreOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.H4, 15);
                     }
                 }
                 #endregion
@@ -90,7 +90,7 @@ namespace CoinPr.Service
                     _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.D1));
                     foreach (var binance in lCoin)
                     {
-                        await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.D1, 20);
+                        await StoreOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.D1, 20);
                     }
                 }
                 #endregion
@@ -100,7 +100,7 @@ namespace CoinPr.Service
                     _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.W1));
                     foreach (var binance in lCoin)
                     {
-                        await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.W1, 20);
+                        await StoreOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.W1, 20);
                     }
                 }
                 #endregion
@@ -112,7 +112,7 @@ namespace CoinPr.Service
             }
         }
 
-        private async Task CheckOrderBlock(string symbol, EExchange exchange, EInterval interval, int minrate = 5)
+        private async Task StoreOrderBlock(string symbol, EExchange exchange, EInterval interval, int minrate = 5)
         {
             try
             {
