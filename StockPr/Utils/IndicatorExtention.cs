@@ -127,16 +127,15 @@ namespace StockPr.Utils
                         }
                         else
                         {
-                            var next = lData.FirstOrDefault(x => x.Date > pivot.Date);
-                            if (next is null)
+                            var prev = lData.LastOrDefault(x => x.Date < pivot.Date);
+                            if (prev is null || prev.Open <= prev.Close || item.Open >= item.Close)
                                 continue;
 
-                            if (next.Open < next.Close
-                                && next.Close >= Math.Max(item.Open, item.Close)
-                                && next.Low <= item.Low)
+                            if (item.Close >= Math.Max(prev.Open, prev.Close)
+                                && item.Low <= prev.Low)
                             {
-                                var entry = Math.Min(item.Open, item.Close) + Math.Abs(item.Open - item.Close) / 4;
-                                var sl = Math.Min(item.Low, next.Low) + Math.Abs(item.Open - item.Close) / 4; ;
+                                var entry = Math.Min(prev.Open, prev.Close) + Math.Abs(prev.Open - prev.Close) / 4;
+                                var sl = Math.Min(item.Low, prev.Low) + Math.Abs(prev.Open - prev.Close) / 4; ;
                                 lOrderBlock.Add(new OrderBlock
                                 {
                                     Date = item.Date,

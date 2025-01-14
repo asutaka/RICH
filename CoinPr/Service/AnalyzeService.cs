@@ -58,14 +58,56 @@ namespace CoinPr.Service
         {
             try
             {
+                var dt = DateTime.Now;
                 var lCoin = _coinRepo.GetAll();
-                #region 1W
-                _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.W1));
+                #region 15m
+                _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.M15));
                 foreach (var binance in lCoin)
                 {
-                    await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.W1, 20);
+                    await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.M15, 20);
+                }
+                #endregion
+                #region 1H
+                if (dt.Hour < 6 || (dt.Hour >= 12 && dt.Hour < 18))
+                {
+                    _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.H1));
+                    foreach (var binance in lCoin)
+                    {
+                        await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.H1, 20);
+                    }
+                }
+                #endregion
+                #region 4H
+                if (dt.Hour >= 12 && dt.Hour < 18)
+                {
+                    _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.H4));
+                    foreach (var binance in lCoin)
+                    {
+                        await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.H4, 20);
+                    }
+                }
+                #endregion
+                #region 1D
+                if (dt.DayOfWeek == DayOfWeek.Monday && dt.Hour < 6)
+                {
+                    _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.D1));
+                    foreach (var binance in lCoin)
+                    {
+                        await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.D1, 20);
+                    }
+                }
+                #endregion
+                #region 1W
+                if (dt.Day == 1 && dt.Hour >= 6 && dt.Hour < 12)
+                {
+                    _orderBlockRepo.DeleteMany(Builders<OrderBlock>.Filter.Eq(x => x.interval, (int)EInterval.W1));
+                    foreach (var binance in lCoin)
+                    {
+                        await CheckOrderBlock($"{binance.FromAsset}{binance.ToAsset}", exchange: EExchange.Binance, EInterval.W1, 20);
+                    }
                 } 
                 #endregion
+
             }
             catch (Exception ex)
             {
