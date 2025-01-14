@@ -571,7 +571,7 @@ namespace StockPr.Service
                     lTraceGia.AddRange(lTradingEconomic);
                 }
 
-                foreach (var item in lTraceGia.OrderByDescending(x => x.weekly).ThenBy(x => x.monthly))
+                foreach (var item in lTraceGia.OrderByDescending(x => x.weekly).ThenByDescending(x => x.monthly).ThenByDescending(x => x.yearly))
                 {
                     strOutput.AppendLine(PrintTraceGia(item));
                 }
