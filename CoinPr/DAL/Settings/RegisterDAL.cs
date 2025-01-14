@@ -7,6 +7,7 @@
             services.AddSingleton<IUserMessageRepo, UserMessageRepo>();
             services.AddSingleton<IOrderBlockRepo, OrderBlockRepo>();
             services.AddSingleton<ICoinRepo, CoinRepo>();
+            services.AddSingleton<IBlackListRepo, BlackListRepo>();
         }
     }
 }
