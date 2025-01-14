@@ -532,7 +532,7 @@ namespace StockPr.Service
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"CalculateService.ChiBaoKyThuat|EXCEPTION(ChiBaoKyThuatOnlyStock)| {ex.Message}");
+                        _logger.LogError($"AnalyzeService.ChiBaoKyThuat|EXCEPTION(ChiBaoKyThuatOnlyStock)| {ex.Message}");
                     }
                 }
 
@@ -639,7 +639,7 @@ namespace StockPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CalculateService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
+                _logger.LogError($"AnalyzeService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
             }
             return null;
         }
@@ -682,7 +682,7 @@ namespace StockPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError($"CalculateService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
+                _logger.LogError($"AnalyzeService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
             }
             return null;
         }

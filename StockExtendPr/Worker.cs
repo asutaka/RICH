@@ -18,7 +18,7 @@ namespace StockExtendPr
             while (!stoppingToken.IsCancellationRequested)
             {
                 await _giaService.TraceGia(true);
-                await Task.Delay(1000 * 60 * 60, stoppingToken);
+                await Task.Delay(1000 * 60 * 600, stoppingToken);
             }
         }
     }

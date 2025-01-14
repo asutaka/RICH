@@ -34,7 +34,7 @@ namespace StockExtendPr.Service
                 var lTraceGia = new List<TraceGiaModel>();
                 var mode = EConfigDataType.MacroMicro;
                 var dt = DateTime.Now;
-                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}{dt.Hour.To2Digit()}");
                 var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
                 var builder = Builders<ConfigData>.Filter;
                 FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
@@ -97,19 +97,21 @@ namespace StockExtendPr.Service
                         {
                             key = bdti_key,
                             s = "bdti",
-                            W = (double)Math.Round(wci.weekly, 1),
-                            M = (double)Math.Round(wci.monthly, 1),
-                            Y = (double)Math.Round(wci.yearly, 1),
-                            YTD = (double)Math.Round(wci.YTD, 1),
+                            W = (double)Math.Round(bdti.weekly, 1),
+                            M = (double)Math.Round(bdti.monthly, 1),
+                            Y = (double)Math.Round(bdti.yearly, 1),
+                            YTD = (double)Math.Round(bdti.YTD, 1),
+                            t = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                         });
                     }
                     else
                     {
                         last.key = bdti_key;
-                        last.W = (double)Math.Round(wci.weekly, 1);
-                        last.M = (double)Math.Round(wci.monthly, 1);
-                        last.Y = (double)Math.Round(wci.yearly, 1);
-                        last.YTD = (double)Math.Round(wci.YTD, 1);
+                        last.W = (double)Math.Round(bdti.weekly, 1);
+                        last.M = (double)Math.Round(bdti.monthly, 1);
+                        last.Y = (double)Math.Round(bdti.yearly, 1);
+                        last.YTD = (double)Math.Round(bdti.YTD, 1);
+                        last.t = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                         _macromicroRepo.Update(last);
                     }
                 }
