@@ -615,7 +615,7 @@ namespace StockPr.Service
                 var lData = await _apiService.SSI_GetDataStock(code);
 
                 #region Order Block
-                var lOrderBlock = lData.GetOrderBlock(5);
+                var lOrderBlock = lData.GetOrderBlock(10);
                 if (lOrderBlock.Any())
                 {
                     foreach (var item in lOrderBlock)
