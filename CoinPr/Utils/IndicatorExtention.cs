@@ -14,12 +14,12 @@ namespace CoinPr.Utils
                     return (false, null);
 
                 var top = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar)
-                                                    && item.Close >= x.Focus);
+                                                    && item.Close >= x.Focus && item.Close < x.SL);
                 if (top != null)
                     return (true, top);
 
                 var bot = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotPinbar)
-                                                   && item.Close <= x.Focus);
+                                                   && item.Close <= x.Focus && item.Close > x.SL);
 
                 if (bot != null)
                     return (true, bot);
