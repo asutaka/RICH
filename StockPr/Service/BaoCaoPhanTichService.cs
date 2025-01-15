@@ -688,7 +688,7 @@ namespace StockPr.Service
                             ty = (int)ESource.BSC
                         });
 
-                        sBuilder.AppendLine($"{title} {itemValid.title}");
+                        sBuilder.AppendLine($"{title} {HttpUtility.HtmlDecode(itemValid.title)}");
                         if (string.IsNullOrWhiteSpace(itemValid.path))
                         {
                             sBuilder.AppendLine($"Link: {commonlink}");
