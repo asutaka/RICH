@@ -253,7 +253,7 @@ namespace StockPr.Service
                 {
                     var lStock = _stockRepo.GetAll();
                     var lSymbol = lOB.Select(x => x.s).Distinct();
-                    lSymbol = lStock.Where(x => lSymbol.Any(y => y == x.s)).OrderBy(x => x.rank).Select(x => x.s).Take(50).ToList();
+                    lSymbol = lStock.Where(x => lSymbol.Any(y => y == x.s)).OrderBy(x => x.rank).Select(x => x.s).Take(100).ToList();
                     var lRes = new List<OrderBlock>();
                     foreach (var item in lSymbol)
                     {
@@ -279,7 +279,7 @@ namespace StockPr.Service
                         var index = 1;
                         foreach (var item in lOrderBlockBuy)
                         {
-                            var content = $"{index++}. {item.s}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
+                            var content = $"{index++}. {item.s}|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
                             strOutput.AppendLine(content);
                         }
                     }
@@ -292,7 +292,7 @@ namespace StockPr.Service
                         var index = 1;
                         foreach (var item in lOrderBlockSell)
                         {
-                            var content = $"{index++}. {item.s}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
+                            var content = $"{index++}. {item.s}|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
                             strOutput.AppendLine(content);
                         }
                     }
