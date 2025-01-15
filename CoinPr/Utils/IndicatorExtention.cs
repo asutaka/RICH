@@ -37,14 +37,64 @@ namespace CoinPr.Utils
             try
             {
                 var lPivot = lData.GetTopBottom_H(minrate);
-                var max = lPivot.Where(x => x.IsTop).MaxBy(x => x.Value);
-                var min = lPivot.Where(x => x.IsBot).MinBy(x => x.Value);
-                if (max is null || min is null)
+                var lBot = lPivot.Where(x => x.IsBot).ToList();
+                lBot.Reverse();
+                var lRemove = new List<TopBotModel>();
+                TopBotModel itemCheck = null;
+                foreach (var item in lBot)
+                {
+                    if (itemCheck is null)
+                    {
+                        itemCheck = item;
+                        continue;
+                    }
+
+                    if (item.Value >= itemCheck.Value)
+                    {
+                        lRemove.Add(item);
+                    }
+                    else
+                    {
+                        itemCheck = item;
+                    }
+                }
+                if (lRemove.Any())
+                {
+                    lBot = lBot.Except(lRemove).ToList();
+                }
+                //
+                var lTop = lPivot.Where(x => x.IsTop).ToList();
+                lTop.Reverse();
+                itemCheck = null;
+                lRemove.Clear();
+                foreach (var item in lTop)
+                {
+                    if (itemCheck is null)
+                    {
+                        itemCheck = item;
+                        continue;
+                    }
+
+                    if (item.Value <= itemCheck.Value)
+                    {
+                        lRemove.Add(item);
+                    }
+                    else
+                    {
+                        itemCheck = item;
+                    }
+                }
+                if (lRemove.Any())
+                {
+                    lTop = lTop.Except(lRemove).ToList();
+                }
+                lPivot.Clear();
+                lPivot.AddRange(lBot);
+                lPivot.AddRange(lTop);
+                if (!lPivot.Any())
                     return lOrderBlock;
 
-                var flagDate = max.Date > min.Date ? min.Date : max.Date;
-                lPivot = lPivot.Where(x => x.Date >= flagDate).ToList();
-                foreach (var pivot in lPivot)
+                foreach (var pivot in lPivot.OrderBy(x => x.Date))
                 {
                     var item = lData.First(x => x.Date == pivot.Date);
                     var len = item.High - item.Low;
@@ -54,9 +104,6 @@ namespace CoinPr.Utils
 
                     if (pivot.IsTop)
                     {
-                        if (pivot.Date < max.Date)
-                            continue;
-
                         var uplen = item.High - Math.Max(item.Open, item.Close);
                         if (uplen / len >= (decimal)0.6)
                         {
@@ -78,9 +125,6 @@ namespace CoinPr.Utils
                         }
                         else
                         {
-                            if (pivot.Date < min.Date)
-                                continue;
-
                             var next = lData.FirstOrDefault(x => x.Date > pivot.Date);
                             if (next.Open > next.Close
                                 && next.Close <= Math.Min(item.Open, item.Close)
