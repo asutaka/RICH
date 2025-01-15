@@ -6,7 +6,7 @@ namespace StockPr.Utils
 {
     public static class IndicatorExtention
     {
-        public static (bool, OrderBlock) IsOrderBlock(this Quote item, IEnumerable<OrderBlock> lOrderBlock)
+        public static (bool, OrderBlock) IsOrderBlock(this Quote item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 86400 * 10)
         {
             try
             {
@@ -14,12 +14,12 @@ namespace StockPr.Utils
                     return (false, null);
 
                 var top = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar)
-                                                    && item.Close >= x.Focus && item.Close < x.SL);
+                                                    && item.Close >= x.Focus && item.Close < x.SL && (item.Date - x.Date).TotalSeconds >= mintime);
                 if(top != null)
                     return (true, top);
 
                 var bot = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotPinbar)
-                                                   && item.Close <= x.Focus && item.Close > x.SL);
+                                                   && item.Close <= x.Focus && item.Close > x.SL && (item.Date - x.Date).TotalSeconds >= mintime);
 
                 if (bot != null)
                     return (true, bot);
