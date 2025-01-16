@@ -239,6 +239,11 @@ namespace CoinPr.Service
                 {
                     lRes.Add(liquid);
                 }
+
+                if(lRes.Any())
+                {
+                    //Action
+                }
             }
             catch (Exception ex)
             {
