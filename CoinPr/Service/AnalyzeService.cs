@@ -120,7 +120,7 @@ namespace CoinPr.Service
                 Thread.Sleep(200);
                 if(lData is null)
                 {
-                    _blackListRepo.InsertOne(new BlackList { ContractKey = symbol });
+                    //_blackListRepo.InsertOne(new BlackList { ContractKey = symbol });
                     return;
                 }
                 var lOrderBlock = lData.GetOrderBlock(minrate);

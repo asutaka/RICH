@@ -6,7 +6,7 @@ namespace CoinPr.Utils
 {
     public static class IndicatorExtention
     {
-        public static (bool, OrderBlock) IsOrderBlock(this Quote item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 86400 * 10)
+        public static (bool, OrderBlock) IsOrderBlock(this Quote item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 24 * 10)
         {
             try
             {
@@ -14,19 +14,45 @@ namespace CoinPr.Utils
                     return (false, null);
 
                 var top = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar)
-                                                    && item.Close >= x.Focus && item.Close < x.SL && (item.Date - x.Date).TotalSeconds >= mintime);
+                                                    && item.Close >= x.Focus && item.Close < x.SL && (item.Date - x.Date).TotalHours >= mintime);
                 if (top != null)
                     return (true, top);
 
                 var bot = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotPinbar)
-                                                   && item.Close <= x.Focus && item.Close > x.SL && (item.Date - x.Date).TotalSeconds >= mintime);
+                                                   && item.Close <= x.Focus && item.Close > x.SL && (item.Date - x.Date).TotalHours >= mintime);
 
                 if (bot != null)
                     return (true, bot);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"PartternService.CheckBatDay|EXCEPTION| {ex.Message}");
+                Console.WriteLine($"PartternService.IsOrderBlock|EXCEPTION| {ex.Message}");
+            }
+            return (false, null);
+        }
+
+        public static (bool, IEnumerable<OrderBlock>) IsOrderBlock(this decimal item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 24 * 10)
+        {
+            try
+            {
+                if (!(lOrderBlock?.Any() ?? false))
+                    return (false, null);
+
+                var date = DateTime.Now;
+                var top = lOrderBlock.Where(x => (x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar)
+                                                    && item >= x.Focus && item < x.SL && (date - x.Date).TotalHours >= mintime);
+                if (top != null)
+                    return (true, top);
+
+                var bot = lOrderBlock.Where(x => (x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotPinbar)
+                                                   && item <= x.Focus && item > x.SL && (date - x.Date).TotalHours >= mintime);
+
+                if (bot != null)
+                    return (true, bot);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"PartternService.IsOrderBlock|EXCEPTION| {ex.Message}");
             }
             return (false, null);
         }

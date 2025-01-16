@@ -328,6 +328,7 @@ namespace CoinPr.Service
                 requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
                 requestMessage.Method = HttpMethod.Get;
                 var responseMessage = await client.SendAsync(requestMessage);
+                Thread.Sleep(100);
 
                 var contents = await responseMessage.Content.ReadAsStringAsync();
                 if (contents.Length < 200)

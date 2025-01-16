@@ -1,45 +1,34 @@
-﻿using CoinPr.Model;
+﻿using Binance.Net.Objects.Models.Futures.Socket;
+using CoinPr.DAL;
+using CoinPr.DAL.Entity;
+using CoinPr.Model;
 using CoinPr.Utils;
+using MongoDB.Driver;
 using Newtonsoft.Json;
-using System.Net.WebSockets;
+using Telegram.Bot.Types;
 using Websocket.Client;
 
 namespace CoinPr.Service
 {
     public interface IWebSocketService
     {
-        void BinancePrice();
         void BinanceLiquid();
-        void LiquidWebSocket(string url);
     }
     public class WebSocketService : IWebSocketService
     {
+        private readonly long _idChannel = -1002424403434;
+        private const long _idUser = 1066022551;
         private readonly ILogger<WebSocketService> _logger;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
-        private readonly long _idChannel = -1002424403434;
-        private const long _idUser = 1066022551;
-        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService)
+        private readonly IOrderBlockRepo _orderBlockRepo;
+        
+        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, IOrderBlockRepo orderBlockRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
-        }
-
-        public void BinancePrice()
-        {
-            try
-            {
-                var price = StaticVal.BinanceSocketInstance().UsdFuturesApi.ExchangeData.SubscribeToAllMiniTickerUpdatesAsync((data) =>
-                {
-                    var tmp = data.Data;
-                    var x = 12;
-                });
-            } 
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION| {ex.Message}");
-            }
+            _orderBlockRepo = orderBlockRepo;
         }
 
         public void BinanceLiquid()
@@ -52,6 +41,7 @@ namespace CoinPr.Service
                     if(val >= 20000)
                     {
                         Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Type}|{data.Data.Quantity}|{data.Data.Price}|{val}");
+                        HandleMessage(data.Data).GetAwaiter().GetResult();
                     }
                 });
             }
@@ -61,39 +51,48 @@ namespace CoinPr.Service
             }
         }
 
-        public void LiquidWebSocket(string url)
+        private async Task HandleMessage(BinanceFuturesStreamLiquidation msg)
         {
             try
             {
-                var uri = new Uri("ws://ws.coinank.com/wsKline/wsKline");
-                var factory = new Func<ClientWebSocket>(() =>
+                var date = DateTime.Now;
+                var min_1W = 240 * 7;
+                var min_1D = 240;
+                var min_4H = 40;
+                var min_1H = 10;
+
+                var lOrderBlock = _orderBlockRepo.GetByFilter(Builders<OrderBlock>.Filter.Eq(x => x.s, msg.Symbol))
+                                          .OrderByDescending(x => x.interval).ToList();
+                var checkOrderBlock = msg.Price.IsOrderBlock(lOrderBlock, 0);
+                if(checkOrderBlock.Item1)
                 {
-                    var client = new ClientWebSocket { Options = { KeepAliveInterval = TimeSpan.FromSeconds(10) } };
-                    client.Options.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36");
-                    return client;
-                });
+                    //Check OrderBlock
+                    //tối thiểu 10 nến
+                    var recheck = checkOrderBlock.Item2.FirstOrDefault(x => (x.interval == (int)EInterval.W1 && (date - x.Date).TotalHours >= min_1W)
+                                                                            || (x.interval == (int)EInterval.D1 && (date - x.Date).TotalHours >= min_1D)
+                                                                            || (x.interval == (int)EInterval.H4 && (date - x.Date).TotalHours >= min_4H)
+                                                                            || (x.interval == (int)EInterval.H1 && (date - x.Date).TotalHours >= min_1H));
+                    if(recheck != null)
+                    {
 
-                var exitEvent = new ManualResetEvent(false);
+                        var side = (recheck.Mode == (int)EOrderBlockMode.TopInsideBar || recheck.Mode == (int)EOrderBlockMode.TopPinbar) ? "SELL" : "BUY";
+                        var interval = ((EInterval)recheck.interval).GetDisplayName();
+                        Console.WriteLine($"{date.ToString("dd/MM/yyyy")}|ORDERBLOCK({interval})|{side}|{msg.Symbol}|ENTRY: {recheck.Entry}|SL: {recheck.SL}");
+                    }
+                    //Check Liquid
+                    //var dat = await _apiService.CoinAnk_GetLiquidValue(msg.Symbol);
+                    //if (dat?.data?.liqHeatMap != null)
+                    //{
 
-                var client = new WebsocketClient(uri, factory);
-                client.ReconnectTimeout = TimeSpan.FromSeconds(5);
-                client.ReconnectionHappened.Subscribe(info =>
-                {
-                    //Console.WriteLine($"Reconnection happened, type: {info.Type}");
-                    client.Send("ping");
-                    client.Send("{\"op\":\"subscribe\",\"args\":\"liqOrder@All@All@1m\"}");
-                });
-
-                client.MessageReceived.Subscribe(msg => HandleMessage(msg).GetAwaiter().GetResult());
-                client.Start();
-                Task.Run(() => client.Send("{\"op\":\"subscribe\",\"args\":\"liqOrder@All@All@1m\"}"));
-                exitEvent.WaitOne();
+                    //}
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"WebSocketService.LiquidWebSocket|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION| {ex.Message}");
             }
         }
+
 
         private async Task HandleMessage(ResponseMessage msg)
         {
