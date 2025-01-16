@@ -37,6 +37,13 @@ namespace StockPr.Utils
             var lOrderBlock = new List<OrderBlock>();
             try
             {
+                var lVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Close = x.Volume
+                });
+                var lMa20Vol = lVol.GetSma(20);
+
                 var lPivot = lData.GetTopBottom_H(minrate);
                 var lBot = lPivot.Where(x => x.IsBot).ToList();
                 lBot.Reverse();
@@ -98,6 +105,9 @@ namespace StockPr.Utils
                 foreach (var pivot in lPivot.OrderBy(x => x.Date))
                 {
                     var item = lData.First(x => x.Date == pivot.Date);
+                    var volMa20 = lMa20Vol.First(x => x.Date == pivot.Date);
+                    if (item.Volume < (decimal)(volMa20.Sma.Value * 1.2))
+                        continue;
                     var len = item.High - item.Low;
                     var avgLen = lData.Where(x => x.Date <= pivot.Date).TakeLast(5).Average(x => x.High - x.Low);
                     if (len < avgLen * (decimal)1.3) 
