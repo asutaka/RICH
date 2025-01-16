@@ -40,7 +40,7 @@ namespace CoinPr.Service
                     var val = Math.Round(data.Data.Price * data.Data.Quantity);
                     if(val >= 20000)
                     {
-                        Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Type}|{data.Data.Quantity}|{data.Data.Price}|{val}");
+                        Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Price}|{val}");
                         HandleMessage(data.Data).GetAwaiter().GetResult();
                     }
                 });
@@ -51,7 +51,7 @@ namespace CoinPr.Service
             }
         }
 
-        private async Task HandleMessage(BinanceFuturesStreamLiquidation msg)
+        private async Task<TradingResponse> CheckOrderBlock(BinanceFuturesStreamLiquidation msg)
         {
             try
             {
@@ -64,217 +64,180 @@ namespace CoinPr.Service
                 var lOrderBlock = _orderBlockRepo.GetByFilter(Builders<OrderBlock>.Filter.Eq(x => x.s, msg.Symbol))
                                           .OrderByDescending(x => x.interval).ToList();
                 var checkOrderBlock = msg.Price.IsOrderBlock(lOrderBlock, 0);
-                if(checkOrderBlock.Item1)
+                if (checkOrderBlock.Item1)
                 {
-                    //Check OrderBlock
                     //tối thiểu 10 nến
                     var recheck = checkOrderBlock.Item2.FirstOrDefault(x => (x.interval == (int)EInterval.W1 && (date - x.Date).TotalHours >= min_1W)
                                                                             || (x.interval == (int)EInterval.D1 && (date - x.Date).TotalHours >= min_1D)
                                                                             || (x.interval == (int)EInterval.H4 && (date - x.Date).TotalHours >= min_4H)
                                                                             || (x.interval == (int)EInterval.H1 && (date - x.Date).TotalHours >= min_1H));
-                    if(recheck != null)
+                    if (recheck != null)
                     {
-
-                        var side = (recheck.Mode == (int)EOrderBlockMode.TopInsideBar || recheck.Mode == (int)EOrderBlockMode.TopPinbar) ? "SELL" : "BUY";
-                        var interval = ((EInterval)recheck.interval).GetDisplayName();
-                        Console.WriteLine($"{date.ToString("dd/MM/yyyy")}|ORDERBLOCK({interval})|{side}|{msg.Symbol}|ENTRY: {recheck.Entry}|SL: {recheck.SL}");
+                        var ob = new TradingResponse
+                        {
+                            s = msg.Symbol,
+                            Date = date,
+                            Type = (int)TradingResponseType.OrderBlock,
+                            Side = (recheck.Mode == (int)EOrderBlockMode.TopInsideBar || recheck.Mode == (int)EOrderBlockMode.TopPinbar) ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy,
+                            Interval = recheck.interval,
+                            Entry = recheck.Entry,
+                            SL = recheck.SL
+                        };
+                        return ob;
+                        //lMes.Add($"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({interval})|{side}|{msg.Symbol}|ENTRY: {recheck.Entry}|SL: {recheck.SL}");
                     }
-                    //Check Liquid
-                    //var dat = await _apiService.CoinAnk_GetLiquidValue(msg.Symbol);
-                    //if (dat?.data?.liqHeatMap != null)
-                    //{
-
-                    //}
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"WebSocketService.CheckOrderBlock|EXCEPTION| {ex.Message}");
             }
+            return null;
         }
-
-
-        private async Task HandleMessage(ResponseMessage msg)
+        private async Task<TradingResponse> CheckLiquid(BinanceFuturesStreamLiquidation msg)
         {
             try
             {
-                if (msg.Text.Length <= 50)
-                    return;
-                var res = JsonConvert.DeserializeObject<LiquidResponse>(msg.Text);
-                if (res.data is null)
-                    return;
+                var date = DateTime.Now;
+                var dat = await _apiService.CoinAnk_GetLiquidValue(msg.Symbol);
+                if (dat?.data?.liqHeatMap is null)
+                    return null;
 
-                foreach (var item in res.data)
+                var flag = -1;
+                var count = dat.data.liqHeatMap.priceArray.Count();
+                for (var i = 0; i < count; i++)
                 {
-                    if (!"Binance".Equals(item.exchangeName, StringComparison.OrdinalIgnoreCase)
-                        //|| !_lSymbol.Contains(item.contractCode)
-                        || item.tradeTurnover < 20000)
-                        continue;
-
-                    var message = $"{item.posSide}|{item.tradeTurnover.ToString("#,##0.##")}";
-                    //Console.WriteLine(message);
-                    var dat = await _apiService.CoinAnk_GetLiquidValue(item.contractCode);
-                    Thread.Sleep(100);
-                    try
+                    var element = dat.data.liqHeatMap.priceArray[i];
+                    if (element > msg.Price)
                     {
-                        if (dat is null || dat.data is null || dat.data.liqHeatMap is null)
-                        {
-                            if (item.tradeTurnover >= 25000)
-                            {
-                                await _teleService.SendMessage(_idUser, $"[LOG-nodataliquid] {item.baseCoin}|{message}");
-                            }
-                            continue;
-                        }
-
-                        var lPrice = await _apiService.GetCoinData_Binance(item.contractCode, "1h", DateTimeOffset.Now.AddHours(-12).ToUnixTimeMilliseconds());
-                        if (!(lPrice?.Any() ?? false))
-                        {
-                            if (item.tradeTurnover >= 25000)
-                            {
-                                await _teleService.SendMessage(_idUser, $"[LOG-nodataprice] {item.baseCoin}|{message}");
-                            }
-                            continue;
-                        }
-
-                        var flag = -1;
-                        var curPrice = lPrice.Last().Close;
-                        var count = dat.data.liqHeatMap.priceArray.Count();
-                        for (var i = 0; i < count; i++)
-                        {
-                            var element = dat.data.liqHeatMap.priceArray[i];
-                            if (element > curPrice)
-                            {
-                                flag = i; break;
-                            }
-                        }
-
-                        if (flag < 0)
-                        {
-                            await _teleService.SendMessage(_idUser, $"[LOG-noflag] {item.baseCoin}({curPrice})|{message}");
-                            continue;
-                        }
-
-                        var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280);
-                        var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
-                        var minPrice = lPrice.Min(x => x.Low);
-                        var maxPrice = lPrice.Max(x => x.High);
-                        if (item.posSide.Equals("short", StringComparison.OrdinalIgnoreCase))
-                        {
-                            decimal priceMaxCeil = 0;
-                            var maxCeil = lLiquidLast.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                            if (maxCeil.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
-                            {
-                                priceMaxCeil = dat.data.liqHeatMap.priceArray[(int)maxCeil.ElementAt(1)];
-                            }
-                            if (priceMaxCeil <= 0)
-                            {
-                                if (item.tradeTurnover >= 25000)
-                                {
-                                    await _teleService.SendMessage(_idUser, $"[LOG-noliquid] {item.baseCoin}({curPrice})|{message}");
-                                }
-                                continue;
-                            }
-                            if ((2 * priceMaxCeil + minPrice) <= 3 * curPrice
-                                && (8 * priceMaxCeil + minPrice) > 9 * curPrice
-                                && curPrice < maxPrice * (decimal)0.98)
-                            {
-                                //Buy khi giá gần đến điểm thanh lý trên(2/3)
-                                var tp = Math.Round(100 * (-1 + priceMaxCeil / curPrice), 1);
-
-                                var mess = $"|LONG|{item.baseCoin}|Entry: {curPrice} --> Giá tăng gần đến điểm thanh lý({priceMaxCeil})|TP({tp}%)|SL(-2%):{curPrice * (decimal)0.98}";
-                                await _teleService.SendMessage(_idUser, mess);
-                                continue;
-                                //Console.WriteLine(mess);
-                            }
-
-                            priceMaxCeil = 0;
-                            maxCeil = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                            if (maxCeil.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
-                            {
-                                priceMaxCeil = dat.data.liqHeatMap.priceArray[(int)maxCeil.ElementAt(1)];
-                            }
-                            if (priceMaxCeil <= 0)
-                            {
-                                await _teleService.SendMessage(_idUser, $"[LOG-noliquid] {item.baseCoin}({curPrice})|{message}");
-                                continue;
-                            }
-
-                            if (curPrice > priceMaxCeil)
-                            {
-                                //Sell khi giá vượt qua điểm thanh lý trên
-                                var mess = $"|SHORT|{item.baseCoin}|Entry: {curPrice} --> Giá tăng vượt qua điểm thanh lý điểm thanh lý: {priceMaxCeil}|TP(5%): {curPrice * (decimal)0.95}|SL(3%):{curPrice * (decimal)1.03}";
-                                await _teleService.SendMessage(_idUser, mess);
-                                //Console.WriteLine(mess);
-                            }
-                            else
-                            {
-                                if (item.tradeTurnover >= 25000)
-                                {
-                                    await _teleService.SendMessage(_idUser, $"[LOG-nopassrule] {item.baseCoin}({curPrice})|{message}");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            decimal priceMaxFloor = 0;
-                            var maxFloor = lLiquidLast.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                            if (maxFloor.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
-                            {
-                                priceMaxFloor = dat.data.liqHeatMap.priceArray[(int)maxFloor.ElementAt(1)];
-                            }
-                            if (priceMaxFloor <= 0)
-                            {
-                                if (item.tradeTurnover >= 25000)
-                                {
-                                    await _teleService.SendMessage(_idUser, $"[LOG-noliquid] {item.baseCoin}({curPrice})|{message}");
-                                }
-                                continue;
-                            }
-
-                            if ((maxPrice + 2 * priceMaxFloor) >= 3 * curPrice
-                                && (maxPrice + 8 * priceMaxFloor) < 9 * curPrice
-                                && curPrice > minPrice * (decimal)1.02)
-                            {
-                                //Sell khi giá gần đến điểm thanh lý dưới(1/3)
-                                var tp = Math.Abs(Math.Round(100 * (-1 + priceMaxFloor / curPrice), 1));
-                                var mess = $"|SHORT|{item.baseCoin}|Entry: {curPrice} --> Giá giảm gần đến điểm thanh lý: {priceMaxFloor}|TP({tp}%)|SL(2%):{curPrice * (decimal)1.02}";
-                                await _teleService.SendMessage(_idUser, mess);
-                                continue;
-                                //Console.WriteLine(mess);
-                            }
-
-                            priceMaxFloor = 0;
-                            maxFloor = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                            if (maxFloor.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
-                            {
-                                priceMaxFloor = dat.data.liqHeatMap.priceArray[(int)maxFloor.ElementAt(1)];
-                            }
-                            if (priceMaxFloor <= 0)
-                            {
-                                await _teleService.SendMessage(_idUser, $"[LOG-noliquid] {item.baseCoin}({curPrice})|{message}");
-                                continue;
-                            }
-
-                            if (curPrice < priceMaxFloor)
-                            {
-                                //Buy khi giá gần đến điểm thanh lý dưới(1/3)
-                                var mess = $"|LONG|{item.baseCoin}|Entry: {curPrice} --> Giá giảm vượt qua điểm thanh lý: {priceMaxFloor}|TP(5%): {curPrice * (decimal)1.05}|SL(3%):{curPrice * (decimal)0.97}";
-                                await _teleService.SendMessage(_idUser, mess);
-                                //Console.WriteLine(mess);
-                            }
-                            else
-                            {
-                                if (item.tradeTurnover >= 25000)
-                                {
-                                    await _teleService.SendMessage(_idUser, $"[LOG-nopassrule] {item.baseCoin}({curPrice})|{message}");
-                                }
-                            }
-                        }
+                        flag = i; break;
                     }
-                    catch (Exception ex)
+                }
+                var avgPrice = (decimal)0.5 * (dat.data.liqHeatMap.priceArray[0] + dat.data.liqHeatMap.priceArray[count - 1]);
+
+                if (flag <= 0)
+                    return null;
+
+                var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280);
+                var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
+                if(msg.Side == Binance.Net.Enums.OrderSide.Buy)
+                {
+                    decimal priceAtMaxLiquid = 0;
+                    var maxLiquid = lLiquidLast.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
                     {
-                        _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION|INPUT: {JsonConvert.SerializeObject(item)}| {ex.Message}");
+                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                     }
+                    if (priceAtMaxLiquid > 0
+                        && (2 * priceAtMaxLiquid + avgPrice) >= 3 * msg.Price
+                        && (8 * priceAtMaxLiquid + avgPrice) < 9 * msg.Price)
+                    {
+                        var liquid = new TradingResponse
+                        {
+                            s = msg.Symbol,
+                            Date = date,
+                            Type = (int)TradingResponseType.Liquid,
+                            Side = Binance.Net.Enums.OrderSide.Buy,
+                            Price = priceAtMaxLiquid,
+                            Status = (int)LiquidStatus.Prepare
+                        };
+                        return liquid;
+                    }
+
+                    //
+                    priceAtMaxLiquid = 0;
+                    maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
+                    {
+                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
+                    }
+
+                    if (priceAtMaxLiquid > 0
+                        && msg.Price < priceAtMaxLiquid)
+                    {
+                        var liquid = new TradingResponse
+                        {
+                            s = msg.Symbol,
+                            Date = date,
+                            Type = (int)TradingResponseType.Liquid,
+                            Side = Binance.Net.Enums.OrderSide.Buy,
+                            Price = msg.Price,
+                            Status = (int)LiquidStatus.Ready
+                        };
+                        return liquid;
+                    }
+                }
+                else
+                {
+                    decimal priceAtMaxLiquid = 0;
+                    var maxLiquid = lLiquidLast.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
+                    {
+                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
+                    }
+
+                    if (priceAtMaxLiquid > 0
+                        && (2 * priceAtMaxLiquid + avgPrice) <= 3 * msg.Price
+                        && (8 * priceAtMaxLiquid + avgPrice) > 9 * msg.Price)
+                    {
+                        var liquid = new TradingResponse
+                        {
+                            s = msg.Symbol,
+                            Date = date,
+                            Type = (int)TradingResponseType.Liquid,
+                            Side = Binance.Net.Enums.OrderSide.Sell,
+                            Price = priceAtMaxLiquid,
+                            Status = (int)LiquidStatus.Prepare
+                        };
+                        return liquid;
+                    }
+                    //
+                    priceAtMaxLiquid = 0;
+                    maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
+                    {
+                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
+                    }
+
+                    if(priceAtMaxLiquid > 0 
+                        && msg.Price > priceAtMaxLiquid)
+                    {
+                        var liquid = new TradingResponse
+                        {
+                            s = msg.Symbol,
+                            Date = date,
+                            Type = (int)TradingResponseType.Liquid,
+                            Side = Binance.Net.Enums.OrderSide.Sell,
+                            Price = msg.Price,
+                            Status = (int)LiquidStatus.Ready
+                        };
+                        return liquid;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"WebSocketService.CheckLiquid|EXCEPTION| {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private async Task HandleMessage(BinanceFuturesStreamLiquidation msg)
+        {
+            try
+            {
+                var lRes = new List<TradingResponse>();
+                var ob = await CheckOrderBlock(msg);
+                if(ob != null)
+                {
+                    lRes.Add(ob);
+                }
+
+                var liquid = await CheckLiquid(msg);
+                if(liquid != null)
+                {
+                    lRes.Add(liquid);
                 }
             }
             catch (Exception ex)

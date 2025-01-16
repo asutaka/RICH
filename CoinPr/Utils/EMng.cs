@@ -35,4 +35,16 @@ namespace CoinPr.Utils
         BotPinbar = 3,
         BotInsideBar = 4
     }
+
+    public enum TradingResponseType
+    {
+        OrderBlock = 1,
+        Liquid = 2
+    }
+
+    public enum LiquidStatus
+    {
+        Prepare = 1,
+        Ready = 2
+    }
 }
