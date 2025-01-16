@@ -27,15 +27,15 @@ namespace CoinPr
                 //{
                 //    _socketService.LiquidWebSocket("wss://ws.coinank.com/wsKline/wsKline");
                 //});
-                _socketService.BinancePrice();
-                //_socketService.BinanceLiquid();
+                //_socketService.BinancePrice();
+                _socketService.BinanceLiquid();
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    //if (dt.Hour < 12)
-                    //{
-                    //    await _analyzeService.SyncCoinBinance();
-                    //}
-                    //await _analyzeService.DetectOrderBlock();
+                    if (dt.Hour < 12)
+                    {
+                        await _analyzeService.SyncCoinBinance();
+                    }
+                    await _analyzeService.DetectOrderBlock();
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                     //await Task.Delay(1000, stoppingToken);
                     await Task.Delay(1000 * 60 * 60 * 12, stoppingToken);

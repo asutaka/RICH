@@ -67,33 +67,39 @@ namespace CoinPr.Service
                     return lDataBybit;
                 }
 
+                string intervalStr = "15m";
                 Binance.Net.Enums.KlineInterval BinanceInterval = Binance.Net.Enums.KlineInterval.FifteenMinutes;
                 if (interval == EInterval.H1)
                 {
+                    intervalStr = "1h";
                     BinanceInterval = Binance.Net.Enums.KlineInterval.OneHour;
                 }
                 else if (interval == EInterval.H4)
                 {
+                    intervalStr = "4h";
                     BinanceInterval = Binance.Net.Enums.KlineInterval.FourHour;
                 }
                 else if (interval == EInterval.D1)
                 {
+                    intervalStr = "1d";
                     BinanceInterval = Binance.Net.Enums.KlineInterval.OneDay;
                 }
                 else if (interval == EInterval.W1)
                 {
+                    intervalStr = "1w";
                     BinanceInterval = Binance.Net.Enums.KlineInterval.OneWeek;
                 }
-                var lBinance = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, BinanceInterval, limit: 500);
-                var lDataBinance = lBinance.Data.Select(x => new Quote
-                {
-                    Date = x.OpenTime,
-                    Open = x.OpenPrice,
-                    High = x.HighPrice,
-                    Low = x.LowPrice,
-                    Close = x.ClosePrice,
-                    Volume = x.Volume,
-                }).ToList();
+                //var lBinance = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, BinanceInterval, limit: 500);
+                //var lDataBinance = lBinance.Data.Select(x => new Quote
+                //{
+                //    Date = x.OpenTime,
+                //    Open = x.OpenPrice,
+                //    High = x.HighPrice,
+                //    Low = x.LowPrice,
+                //    Close = x.ClosePrice,
+                //    Volume = x.Volume,
+                //}).ToList();
+                var lDataBinance = await GetCoinData_Binance(symbol, intervalStr, 0);
 
                 return lDataBinance;
             }
@@ -252,7 +258,12 @@ namespace CoinPr.Service
 
         public async Task<List<Quote>> GetCoinData_Binance(string coin, string mode, long fromTime)
         {
-            var url = string.Format("https://api3.binance.com/api/v3/klines?symbol={0}&interval={1}&startTime={2}&limit=1000", coin, mode, fromTime);
+            var url = string.Format("https://api3.binance.com/api/v3/klines?symbol={0}&interval={1}&startTime={2}&limit=500", coin, mode, fromTime);
+            if (fromTime <= 0)
+            {
+                url = string.Format("https://api3.binance.com/api/v3/klines?symbol={0}&interval={1}&limit=500", coin, mode);
+            }
+           
             try
             {
                 using var client = _client.CreateClient();
