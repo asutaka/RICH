@@ -37,11 +37,12 @@ namespace CoinPr.Service
                     var val = Math.Round(data.Data.Price * data.Data.Quantity);
                     if(val >= 20000)
                     {
-                        Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Price}|{val}");
+                        //Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Price}|{val}");
                         var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
                         if (!string.IsNullOrWhiteSpace(mes))
                         {
-                            Console.WriteLine(mes);
+                            _teleService.SendMessage(_idChannel, mes).GetAwaiter().GetResult();
+                            //Console.WriteLine(mes);
                         }
                     }
                 });
