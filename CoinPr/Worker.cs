@@ -1,5 +1,4 @@
 using CoinPr.Service;
-using CryptoExchange.Net.CommonObjects;
 
 namespace CoinPr
 {
