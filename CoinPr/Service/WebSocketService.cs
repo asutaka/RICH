@@ -38,7 +38,11 @@ namespace CoinPr.Service
                     if(val >= 20000)
                     {
                         Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Price}|{val}");
-                        HandleMessage(data.Data).GetAwaiter().GetResult();
+                        var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
+                        if (!string.IsNullOrWhiteSpace(mes))
+                        {
+                            Console.WriteLine(mes);
+                        }
                     }
                 });
             }
@@ -48,7 +52,7 @@ namespace CoinPr.Service
             }
         }
 
-        private async Task HandleMessage(BinanceFuturesStreamLiquidation msg)
+        private async Task<string> HandleMessage(BinanceFuturesStreamLiquidation msg)
         {
             try
             {
@@ -58,7 +62,7 @@ namespace CoinPr.Service
 
                 //show
                 if (ob is null && liquid is null)
-                    return;
+                    return null;
 
                 string mes = string.Empty;
 
@@ -95,11 +99,14 @@ namespace CoinPr.Service
                         }
                     }
                 }
+
+                return mes;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION| {ex.Message}");
             }
+            return null;
         }
 
         private TradingResponse CheckOrderBlock(BinanceFuturesStreamLiquidation msg)
