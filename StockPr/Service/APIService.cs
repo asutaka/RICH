@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using MongoDB.Driver.Core.WireProtocol.Messages;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using StockPr.Model;
@@ -112,27 +113,52 @@ namespace StockPr.Service
 
         public async Task<List<BCPT_Crawl_Data>> VinaCapital_GetPost()
         {
+            var lResult = new List<BCPT_Crawl_Data>();
             var url = $"https://vinacapital.com/wp-admin/admin-ajax.php";
             var dt = DateTime.Now;
+            var dFormat = $"{dt.Day.To2Digit()}/{dt.Month.To2Digit()}/{dt.Year}";
             try
             {
                 var client = _client.CreateClient();
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var request = new HttpRequestMessage(HttpMethod.Post, url);
-                request.Headers.Add("accept-language", "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5");
-                request.Headers.Add("content-type", "application/x-www-form-urlencoded; charset=UTF-8");
                 request.Headers.Add("referer", "https://vinacapital.com/vi/news-insights/");
                 request.Headers.Add("user-agent", "zz");
-                var content = new StringContent($"action=loadinsightsyear&year={dt.Year}", null, "application/x-www-form-urlencoded; charset=UTF-8");
+                var content = new StringContent($"action=loadinsightsyear&year={dt.Year}", null, "application/x-www-form-urlencoded");
                 request.Content = content;
                 var response = await client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
-                //return responseModel?.pageProps?.dataCategory?.dataList?.data;
+                var html = await response.Content.ReadAsStringAsync();
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var nodes = doc.DocumentNode.ChildNodes;
+
+                foreach (HtmlNode node in nodes)
+                {
+                    if (!node.InnerText.Contains(dFormat)) 
+                        continue;
+
+                    var path = node.InnerHtml.Split("\"").FirstOrDefault(x => x.Contains(".pdf"));
+                    if (path is null)
+                        continue;
+                    var id = $"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}{path.Substring(path.Length - 10)}";
+
+                    var model = new BCPT_Crawl_Data
+                    {
+                        id = id,
+                        date = dt,
+                        title = node.InnerText.Replace(dFormat, string.Empty).Trim(),
+                        path = path 
+                    };
+                    lResult.Add(model);
+                }
+                return lResult;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"APIService.DSC_GetPost|EXCEPTION| {ex.Message}");
+                _logger.LogError($"APIService.VinaCapital_GetPost|EXCEPTION| {ex.Message}");
             }
             return null;
         }
