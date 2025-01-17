@@ -4,9 +4,6 @@ using CoinPr.DAL.Entity;
 using CoinPr.Model;
 using CoinPr.Utils;
 using MongoDB.Driver;
-using Newtonsoft.Json;
-using Telegram.Bot.Types;
-using Websocket.Client;
 
 namespace CoinPr.Service
 {
@@ -51,7 +48,61 @@ namespace CoinPr.Service
             }
         }
 
-        private async Task<TradingResponse> CheckOrderBlock(BinanceFuturesStreamLiquidation msg)
+        private async Task HandleMessage(BinanceFuturesStreamLiquidation msg)
+        {
+            try
+            {
+                var date = DateTime.UtcNow;
+                var ob = CheckOrderBlock(msg);
+                var liquid = await CheckLiquid(msg);
+
+                //show
+                if (ob is null && liquid is null)
+                    return;
+
+                string mes = string.Empty;
+
+                if(ob != null && liquid is null)
+                {
+                    mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}";
+                }
+                else if(liquid != null)
+                {
+                    //add To list follow
+                    if (liquid.Status == (int)LiquidStatus.Prepare)
+                    {
+                        mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-PREPARE|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}";
+                    }
+                    else
+                    {
+                        if(ob is null)
+                        {
+                            mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}";
+                        }
+                        else
+                        {
+                            var div = ob.Entry - liquid.Entry;
+                            var isOb = (ob.Side == Binance.Net.Enums.OrderSide.Buy && div < 0)
+                                    || (ob.Side == Binance.Net.Enums.OrderSide.Sell && div > 0);
+                            if (isOb)
+                            {
+                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-LIQUID|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}";
+                            }
+                            else
+                            {
+                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID-ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}";
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private TradingResponse CheckOrderBlock(BinanceFuturesStreamLiquidation msg)
         {
             try
             {
@@ -84,7 +135,6 @@ namespace CoinPr.Service
                             SL = recheck.SL
                         };
                         return ob;
-                        //lMes.Add($"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({interval})|{side}|{msg.Symbol}|ENTRY: {recheck.Entry}|SL: {recheck.SL}");
                     }
                 }
             }
@@ -120,7 +170,7 @@ namespace CoinPr.Service
 
                 var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280);
                 var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
-                if(msg.Side == Binance.Net.Enums.OrderSide.Buy)
+                if (msg.Side == Binance.Net.Enums.OrderSide.Buy)
                 {
                     decimal priceAtMaxLiquid = 0;
                     var maxLiquid = lLiquidLast.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
@@ -155,6 +205,7 @@ namespace CoinPr.Service
                     if (priceAtMaxLiquid > 0
                         && msg.Price < priceAtMaxLiquid)
                     {
+                        var sl = msg.Price - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                         var liquid = new TradingResponse
                         {
                             s = msg.Symbol,
@@ -162,6 +213,8 @@ namespace CoinPr.Service
                             Type = (int)TradingResponseType.Liquid,
                             Side = Binance.Net.Enums.OrderSide.Buy,
                             Price = msg.Price,
+                            Entry = msg.Price,
+                            SL = sl,
                             Status = (int)LiquidStatus.Ready
                         };
                         return liquid;
@@ -199,9 +252,10 @@ namespace CoinPr.Service
                         priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                     }
 
-                    if(priceAtMaxLiquid > 0 
+                    if (priceAtMaxLiquid > 0
                         && msg.Price > priceAtMaxLiquid)
                     {
+                        var sl = msg.Price + (priceAtMaxLiquid - avgPrice) / 3;
                         var liquid = new TradingResponse
                         {
                             s = msg.Symbol,
@@ -209,6 +263,8 @@ namespace CoinPr.Service
                             Type = (int)TradingResponseType.Liquid,
                             Side = Binance.Net.Enums.OrderSide.Sell,
                             Price = msg.Price,
+                            Entry = msg.Price,
+                            SL = sl,
                             Status = (int)LiquidStatus.Ready
                         };
                         return liquid;
@@ -221,34 +277,6 @@ namespace CoinPr.Service
             }
 
             return null;
-        }
-
-        private async Task HandleMessage(BinanceFuturesStreamLiquidation msg)
-        {
-            try
-            {
-                var lRes = new List<TradingResponse>();
-                var ob = await CheckOrderBlock(msg);
-                if(ob != null)
-                {
-                    lRes.Add(ob);
-                }
-
-                var liquid = await CheckLiquid(msg);
-                if(liquid != null)
-                {
-                    lRes.Add(liquid);
-                }
-
-                if(lRes.Any())
-                {
-                    //Action
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION| {ex.Message}");
-            }
         }
     }
 }
