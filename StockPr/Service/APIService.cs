@@ -14,6 +14,7 @@ namespace StockPr.Service
         Task<Stream> GetChartImage(string body);
 
         Task<List<DSC_Data>> DSC_GetPost();
+        Task<List<BCPT_Crawl_Data>> VinaCapital_GetPost();
         Task<List<VNDirect_Data>> VNDirect_GetPost(bool isIndustry);
         Task<List<MigrateAsset_Data>> MigrateAsset_GetPost();
         Task<List<AGR_Data>> Agribank_GetPost(bool isIndustry);
@@ -101,6 +102,33 @@ namespace StockPr.Service
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<DSC_Main>(responseMessageStr);
                 return responseModel?.pageProps?.dataCategory?.dataList?.data;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.DSC_GetPost|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<List<BCPT_Crawl_Data>> VinaCapital_GetPost()
+        {
+            var url = $"https://vinacapital.com/wp-admin/admin-ajax.php";
+            var dt = DateTime.Now;
+            try
+            {
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Add("accept-language", "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5");
+                request.Headers.Add("content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+                request.Headers.Add("referer", "https://vinacapital.com/vi/news-insights/");
+                request.Headers.Add("user-agent", "zz");
+                var content = new StringContent($"action=loadinsightsyear&year={dt.Year}", null, "application/x-www-form-urlencoded; charset=UTF-8");
+                request.Content = content;
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                //return responseModel?.pageProps?.dataCategory?.dataList?.data;
             }
             catch (Exception ex)
             {
