@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinPr", "CoinPr\CoinPr.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockPr", "StockPr\StockPr.csproj", "{0E53A71F-4066-4966-B550-9BE2E36B0FDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockExtendPr", "StockExtendPr\StockExtendPr.csproj", "{E3D2F604-B8B3-4E2B-BC3E-5A011BB75D8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockExtendPr", "StockExtendPr\StockExtendPr.csproj", "{E3D2F604-B8B3-4E2B-BC3E-5A011BB75D8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradePr", "TradePr\TradePr.csproj", "{1755D89E-330E-4A94-A135-396C85FDE091}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{E3D2F604-B8B3-4E2B-BC3E-5A011BB75D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3D2F604-B8B3-4E2B-BC3E-5A011BB75D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3D2F604-B8B3-4E2B-BC3E-5A011BB75D8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1755D89E-330E-4A94-A135-396C85FDE091}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1755D89E-330E-4A94-A135-396C85FDE091}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1755D89E-330E-4A94-A135-396C85FDE091}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1755D89E-330E-4A94-A135-396C85FDE091}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
