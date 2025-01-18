@@ -1,6 +1,7 @@
 ﻿using CoinPr.DAL.Entity;
 using CoinPr.Model;
 using Skender.Stock.Indicators;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CoinPr.Utils
 {
@@ -144,8 +145,9 @@ namespace CoinPr.Utils
                         var uplen = item.High - Math.Max(item.Open, item.Close);
                         if (uplen / len >= (decimal)0.6)
                         {
-                            var entry = item.High - uplen / 4;
-                            var sl = entry + uplen;
+                            var entry = item.High - uplen / 5;
+                            var sl = entry + uplen / 2;
+                            var tp = entry - uplen;
                             lOrderBlock.Add(new OrderBlock
                             {
                                 Date = item.Date,
@@ -156,6 +158,7 @@ namespace CoinPr.Utils
                                 Mode = (int)EOrderBlockMode.TopPinbar,
                                 Entry = entry,
                                 SL = sl,
+                                TP = tp,
                                 Focus = Math.Max(item.Open, item.Close),
                             });
                             //Console.WriteLine($"TOP(pinbar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
@@ -167,8 +170,11 @@ namespace CoinPr.Utils
                                 && next.Close <= Math.Min(item.Open, item.Close)
                                 && next.Open >= Math.Max(item.Open, item.Close))
                             {
-                                var entry = Math.Min(item.Open, item.Close) + 3 * Math.Abs(item.Open - item.Close) / 4;
-                                var sl = Math.Max(item.High, next.High) + Math.Abs(item.Open - item.Close) / 4;
+                                var entry = item.High - Math.Abs(item.High - item.Low) / 5;
+                                var sl1 = entry + Math.Abs(item.High - item.Low) / 2;
+                                var sl2 = next.High + Math.Abs(item.High - item.Low) / 5;
+                                var sl = sl1 > sl2 ? sl1 : sl2;
+                                var tp = entry - 2 * Math.Abs(sl - entry);
                                 lOrderBlock.Add(new OrderBlock
                                 {
                                     Date = item.Date,
@@ -179,6 +185,7 @@ namespace CoinPr.Utils
                                     Mode = (int)EOrderBlockMode.TopInsideBar,
                                     Entry = entry,
                                     SL = sl,
+                                    TP = tp,
                                     Focus = Math.Min(item.Open, item.Close)
                                 });
                                 //Console.WriteLine($"TOP(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
@@ -190,8 +197,9 @@ namespace CoinPr.Utils
                         var belowLen = Math.Min(item.Open, item.Close) - item.Low;
                         if (belowLen / len >= (decimal)0.6)
                         {
-                            var entry = belowLen / 4 + item.Low;
-                            var sl = entry - belowLen;
+                            var entry = item.Low + belowLen / 5;
+                            var sl = entry - belowLen / 2;
+                            var tp = entry + belowLen;
                             //Console.WriteLine($"BOT(pinbar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
                             lOrderBlock.Add(new OrderBlock
                             {
@@ -203,6 +211,7 @@ namespace CoinPr.Utils
                                 Mode = (int)EOrderBlockMode.BotPinbar,
                                 Entry = entry,
                                 SL = sl,
+                                TP = tp,
                                 Focus = Math.Max(item.Open, item.Close)
                             });
                         }
@@ -215,8 +224,12 @@ namespace CoinPr.Utils
                             if (item.Close >= Math.Max(prev.Open, prev.Close)
                                 && item.Low <= prev.Low)
                             {
-                                var entry = Math.Min(prev.Open, prev.Close) + Math.Abs(prev.Open - prev.Close) / 4;
-                                var sl = Math.Min(item.Low, prev.Low) + Math.Abs(prev.Open - prev.Close) / 4; ;
+                                var entry = prev.Low + Math.Abs(prev.High - prev.Low) / 5;
+                                var sl1 = entry - Math.Abs(prev.High - prev.Low) / 2;
+                                var sl2 = item.Low - Math.Abs(prev.High - prev.Low) / 5;
+                                var sl = sl1 < sl2 ? sl1 : sl2;
+                                var tp = entry + 2 * Math.Abs(sl - entry);
+
                                 lOrderBlock.Add(new OrderBlock
                                 {
                                     Date = item.Date,
@@ -227,6 +240,7 @@ namespace CoinPr.Utils
                                     Mode = (int)EOrderBlockMode.BotInsideBar,
                                     Entry = entry,
                                     SL = sl,
+                                    TP = tp,
                                     Focus = Math.Max(item.Open, item.Close)
                                 });
                                 //Console.WriteLine($"BOT(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");

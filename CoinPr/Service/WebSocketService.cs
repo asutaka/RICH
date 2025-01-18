@@ -57,7 +57,7 @@ namespace CoinPr.Service
         {
             try
             {
-                var date = DateTime.UtcNow;
+                var date = DateTime.Now;
                 var ob = CheckOrderBlock(msg);
                 var liquid = await CheckLiquid(msg);
 
@@ -69,20 +69,20 @@ namespace CoinPr.Service
 
                 if(ob != null && liquid is null)
                 {
-                    mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}";
+                    mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}|TP: {ob.TP}";
                 }
                 else if(liquid != null)
                 {
                     //add To list follow
                     if (liquid.Status == (int)LiquidStatus.Prepare)
                     {
-                        mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-PREPARE|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}";
+                        mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-PREPARE|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}|TP: {ob.TP}";
                     }
                     else
                     {
                         if(ob is null)
                         {
-                            mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}";
+                            mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}|TP: {liquid.TP}";
                         }
                         else
                         {
@@ -91,11 +91,11 @@ namespace CoinPr.Service
                                     || (ob.Side == Binance.Net.Enums.OrderSide.Sell && div > 0);
                             if (isOb)
                             {
-                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-LIQUID|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}";
+                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-LIQUID|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}|TP: {ob.TP}";
                             }
                             else
                             {
-                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID-ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}";
+                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID-ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}|TP: {liquid.TP}";
                             }
                         }
                     }
@@ -140,7 +140,8 @@ namespace CoinPr.Service
                             Side = (recheck.Mode == (int)EOrderBlockMode.TopInsideBar || recheck.Mode == (int)EOrderBlockMode.TopPinbar) ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy,
                             Interval = recheck.interval,
                             Entry = recheck.Entry,
-                            SL = recheck.SL
+                            SL = recheck.SL,
+                            TP = recheck.TP
                         };
                         return ob;
                     }
@@ -214,6 +215,7 @@ namespace CoinPr.Service
                         && msg.Price < priceAtMaxLiquid)
                     {
                         var sl = msg.Price - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
+                        var tp = msg.Price + 2 * Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                         var liquid = new TradingResponse
                         {
                             s = msg.Symbol,
@@ -223,6 +225,7 @@ namespace CoinPr.Service
                             Price = msg.Price,
                             Entry = msg.Price,
                             SL = sl,
+                            TP = tp,
                             Status = (int)LiquidStatus.Ready
                         };
                         return liquid;
@@ -264,6 +267,7 @@ namespace CoinPr.Service
                         && msg.Price > priceAtMaxLiquid)
                     {
                         var sl = msg.Price + (priceAtMaxLiquid - avgPrice) / 3;
+                        var tp = msg.Price - 2 * Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                         var liquid = new TradingResponse
                         {
                             s = msg.Symbol,
@@ -273,6 +277,7 @@ namespace CoinPr.Service
                             Price = msg.Price,
                             Entry = msg.Price,
                             SL = sl,
+                            TP = tp,
                             Status = (int)LiquidStatus.Ready
                         };
                         return liquid;

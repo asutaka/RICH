@@ -17,6 +17,7 @@ namespace CoinPr.DAL.Entity
         public int Mode { get; set; }
         public decimal Entry { get; set; }
         public decimal SL { get; set; }
+        public decimal TP { get; set; }
         public decimal Focus { get; set; }
     }
 }
