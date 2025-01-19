@@ -1,5 +1,6 @@
 ﻿using Skender.Stock.Indicators;
 using System.Xml.Linq;
+using TestPr.Model;
 using TestPr.Utils;
 
 namespace TestPr.Service
@@ -30,8 +31,143 @@ namespace TestPr.Service
                     Close = x.ClosePrice,
                     Volume = x.Volume,
                 }).ToList();
-                var lOrderBlock = lDataBinance.GetOrderBlock(10);
-                var checkOrderBlock = lDataBinance.Last().IsOrderBlock(lOrderBlock, 0);
+
+                var lOrderBlock = new List<OrderBlock>();
+                decimal MoneyPerUnit = 15;//15 per unit
+                OrderBlock prepare = null;
+                var flag = false;
+                var indexFlag = -1;
+                OutputModel output = null;
+                var lRes = new List<OutputModel>();
+                var indexPrepare = -1;
+
+                for (var i = 300; i < lDataBinance.Count - 1; i++)
+                {
+                    var lData = lDataBinance.Take(i).ToList();
+                    var cur = lData.Last();
+
+                    if(prepare != null && !flag)
+                    {
+                        if(prepare.Mode == (int)EOrderBlockMode.TopPinbar 
+                            || prepare.Mode == (int)EOrderBlockMode.TopInsideBar)
+                        {
+                            if (cur.High >= prepare.Entry)
+                            {
+                                flag = true;
+                                indexFlag = i;
+                                output = new OutputModel
+                                {
+                                    BuyTime = cur.Date,
+                                    StartPrice = prepare.Entry,
+                                    ViThe = "Short"
+                                };
+                            }
+                        }
+                        else
+                        {
+                            if (cur.Low <= prepare.Entry)
+                            {
+                                flag = true;
+                                indexFlag = i;
+                                output = new OutputModel
+                                {
+                                    BuyTime = cur.Date,
+                                    StartPrice = prepare.Entry,
+                                    ViThe = "Long"
+                                };
+                            }
+                        }
+                    }
+
+                    if (flag)
+                    {
+                        if (prepare.Mode == (int)EOrderBlockMode.TopPinbar
+                           || prepare.Mode == (int)EOrderBlockMode.TopInsideBar)
+                        {
+                            if(cur.Low <= prepare.TP)
+                            {
+                                output.EndPrice = prepare.TP;
+                                output.SellTime = cur.Date;
+                                output.NamGiu = i - indexFlag;
+                                output.TiLe = Math.Abs(Math.Round((-1 + prepare.TP/prepare.Entry) ,2));
+                                output.TienLaiThucTe = (1 + output.TiLe) * MoneyPerUnit;
+                                output.LaiLo = "Lai";
+                                lRes.Add(output);
+                                //reset
+                                output = null;
+                                flag = false;
+                                indexFlag = -1;
+                                prepare = null;
+                            }
+                            else if(cur.High >= prepare.SL)
+                            {
+                                output.EndPrice = prepare.SL;
+                                output.SellTime = cur.Date;
+                                output.NamGiu = i - indexFlag;
+                                output.TiLe = -Math.Abs(Math.Round((-1 + prepare.SL / prepare.Entry), 2));
+                                output.TienLaiThucTe = (1 + output.TiLe) * MoneyPerUnit;
+                                output.LaiLo = "Lo";
+                                lRes.Add(output);
+                                //reset
+                                output = null;
+                                flag = false;
+                                indexFlag = -1;
+                                prepare = null;
+                            }
+                        }
+                        else
+                        {
+                            if (cur.High >= prepare.TP)
+                            {
+                                output.EndPrice = prepare.TP;
+                                output.SellTime = cur.Date;
+                                output.NamGiu = i - indexFlag;
+                                output.TiLe = Math.Abs(Math.Round((-1 + prepare.TP / prepare.Entry), 2));
+                                output.TienLaiThucTe = (1 + output.TiLe) * MoneyPerUnit;
+                                output.LaiLo = "Lai";
+                                lRes.Add(output);
+                                //reset
+                                output = null;
+                                flag = false;
+                                indexFlag = -1;
+                                prepare = null;
+                            }
+                            else if (cur.Low <= prepare.SL)
+                            {
+                                output.EndPrice = prepare.SL;
+                                output.SellTime = cur.Date;
+                                output.NamGiu = i - indexFlag;
+                                output.TiLe = -Math.Abs(Math.Round((-1 + prepare.SL / prepare.Entry), 2));
+                                output.TienLaiThucTe = (1 + output.TiLe) * MoneyPerUnit;
+                                output.LaiLo = "Lo";
+                                lRes.Add(output);
+                                //reset
+                                output = null;
+                                flag = false;
+                                indexFlag = -1;
+                                prepare = null;
+                            }
+                        }
+                        continue;
+                    }
+
+                    if(indexPrepare > 0 && i - indexPrepare > 10)
+                    {
+                        indexPrepare = -1;
+                        prepare = null;
+                    }
+                    var checkOrderBlock = cur.IsOrderBlock(lOrderBlock, 0);
+                    if(checkOrderBlock.Item1)
+                    {
+                        prepare = checkOrderBlock.Item2;
+                        indexPrepare = i;
+                    }
+                    //ob
+                    lOrderBlock = lData.GetOrderBlock(10);
+                }
+
+                var tongtien = lRes.Sum(x => x.TienLaiThucTe) - lRes.Count() * MoneyPerUnit;
+
                 var tmp = 1;
                 //var lBinance = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, BinanceInterval, limit: 500);
             }
