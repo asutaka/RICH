@@ -1,8 +1,7 @@
-﻿using CoinPr.DAL.Entity;
-using CoinPr.Model;
-using Skender.Stock.Indicators;
+﻿using Skender.Stock.Indicators;
+using TestPr.Model;
 
-namespace CoinPr.Utils
+namespace TestPr.Utils
 {
     public static class IndicatorExtention
     {
@@ -142,7 +141,7 @@ namespace CoinPr.Utils
                     if (pivot.IsTop)
                     {
                         var uplen = item.High - Math.Max(item.Open, item.Close);
-                        if (uplen / len >= (decimal)0.6)
+                        if (uplen / len >= (decimal)0.5)
                         {
                             var entry = item.High - uplen / 5;
                             var sl = entry + uplen / 2;
@@ -194,7 +193,7 @@ namespace CoinPr.Utils
                     else
                     {
                         var belowLen = Math.Min(item.Open, item.Close) - item.Low;
-                        if (belowLen / len >= (decimal)0.6)
+                        if (belowLen / len >= (decimal)0.5)
                         {
                             var entry = item.Low + belowLen / 5;
                             var sl = entry - belowLen / 2;
