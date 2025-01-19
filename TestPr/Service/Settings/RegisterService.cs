@@ -5,6 +5,7 @@
         public static void ServiceDependencies(this IServiceCollection services)
         {
             services.AddSingleton<ITestService, TestService>();
+            services.AddSingleton<IAPIService, APIService>();
         }
     }
 }

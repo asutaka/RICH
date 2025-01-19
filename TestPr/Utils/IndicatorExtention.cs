@@ -131,6 +131,9 @@ namespace TestPr.Utils
                 {
                     var item = lData.First(x => x.Date == pivot.Date);
                     var volMa20 = lMa20Vol.First(x => x.Date == pivot.Date);
+                    if (volMa20.Sma is null)
+                        continue;
+
                     var len = item.High - item.Low;
                     var avgLen = lData.Where(x => x.Date <= pivot.Date).TakeLast(5).Average(x => x.High - x.Low);
 

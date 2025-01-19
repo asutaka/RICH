@@ -1,0 +1,109 @@
+﻿using Newtonsoft.Json.Linq;
+using Skender.Stock.Indicators;
+using System.Net.Http.Headers;
+using System.Text;
+using TestPr.Utils;
+
+namespace TestPr.Service
+{
+    public interface IAPIService
+    {
+        Task<List<Quote>> GetData(string symbol, EInterval interval);
+    }
+    public class APIService : IAPIService
+    {
+        private readonly ILogger<APIService> _logger;
+        private readonly IHttpClientFactory _client;
+        public APIService(ILogger<APIService> logger,
+                        IHttpClientFactory httpClientFactory)
+        {
+            _logger = logger;
+            _client = httpClientFactory;
+        }
+
+        public async Task<List<Quote>> GetData(string symbol, EInterval interval)
+        {
+            try
+            {
+                string intervalStr = "15m";
+                Binance.Net.Enums.KlineInterval BinanceInterval = Binance.Net.Enums.KlineInterval.FifteenMinutes;
+                if (interval == EInterval.H1)
+                {
+                    intervalStr = "1h";
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneHour;
+                }
+                else if (interval == EInterval.H4)
+                {
+                    intervalStr = "4h";
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.FourHour;
+                }
+                else if (interval == EInterval.D1)
+                {
+                    intervalStr = "1d";
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneDay;
+                }
+                else if (interval == EInterval.W1)
+                {
+                    intervalStr = "1w";
+                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneWeek;
+                }
+                var lDataBinance = await GetCoinData_Binance(symbol, intervalStr, 0);
+
+                return lDataBinance;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetData|EXCEPTION|INPUT: {symbol}| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<List<Quote>> GetCoinData_Binance(string coin, string mode, long fromTime)
+        {
+            var url = string.Format("https://api3.binance.com/api/v3/klines?symbol={0}&interval={1}&startTime={2}&limit=1000", coin, mode, fromTime);
+            if (fromTime <= 0)
+            {
+                url = string.Format("https://api3.binance.com/api/v3/klines?symbol={0}&interval={1}&limit=1000", coin, mode);
+            }
+
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return new List<Quote>();
+
+                var lArray = JArray.Parse(contents);
+                if (lArray.Any())
+                {
+                    var lOut = lArray.Select(x => new Quote
+                    {
+                        Date = long.Parse(x[0].ToString()).UnixTimeStampMinisecondToDateTime(),
+                        Open = decimal.Parse(x[1].ToString()),
+                        High = decimal.Parse(x[2].ToString()),
+                        Low = decimal.Parse(x[3].ToString()),
+                        Close = decimal.Parse(x[4].ToString()),
+                        Volume = decimal.Parse(x[5].ToString()),
+                    }).ToList();
+                    return lOut;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetCoinData_Binance|EXCEPTION|INPUT: coin:{coin}| {ex.Message}");
+            }
+            return new List<Quote>();
+        }
+    }
+}

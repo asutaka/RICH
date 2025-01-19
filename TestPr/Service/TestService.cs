@@ -12,16 +12,18 @@ namespace TestPr.Service
     public class TestService : ITestService
     {
         private readonly ILogger<TestService> _logger;
-        public TestService(ILogger<TestService> logger)
+        private readonly IAPIService _apiService;
+        public TestService(ILogger<TestService> logger, IAPIService apiService)
         {
             _logger = logger;
+            _apiService = apiService;
         }
 
         public async Task MethodTest()
         {
             try
             {
-                var lBinance = await StaticVal.BinanceInstance().SpotApi.ExchangeData.GetKlinesAsync("BTCUSDT", Binance.Net.Enums.KlineInterval.OneDay, limit: 1000);
+                var lBinance = await StaticVal.BinanceInstance().SpotApi.ExchangeData.GetKlinesAsync("ETHUSDT", Binance.Net.Enums.KlineInterval.OneDay, limit: 1000);
                 var lDataBinance = lBinance.Data.Select(x => new Quote
                 {
                     Date = x.OpenTime,
