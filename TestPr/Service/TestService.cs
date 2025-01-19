@@ -23,7 +23,7 @@ namespace TestPr.Service
         {
             try
             {
-                var lBinance = await StaticVal.BinanceInstance().SpotApi.ExchangeData.GetKlinesAsync("ETHUSDT", Binance.Net.Enums.KlineInterval.OneDay, limit: 1000);
+                var lBinance = await StaticVal.BinanceInstance().SpotApi.ExchangeData.GetKlinesAsync("BTCUSDT", Binance.Net.Enums.KlineInterval.FourHour, limit: 1000);
                 var lDataBinance = lBinance.Data.Select(x => new Quote
                 {
                     Date = x.OpenTime,
