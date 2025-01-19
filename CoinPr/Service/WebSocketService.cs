@@ -4,6 +4,7 @@ using CoinPr.DAL.Entity;
 using CoinPr.Model;
 using CoinPr.Utils;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace CoinPr.Service
 {
@@ -58,7 +59,10 @@ namespace CoinPr.Service
             try
             {
                 var date = DateTime.Now;
-                var ob = CheckOrderBlock(msg);
+                //TradingResponse ob = CheckOrderBlock(msg);
+                TradingResponse ob = null;
+                Console.WriteLine($"{JsonConvert.SerializeObject(msg)}");
+                return string.Empty;
                 var liquid = await CheckLiquid(msg);
 
                 //show
@@ -183,7 +187,7 @@ namespace CoinPr.Service
                 {
                     decimal priceAtMaxLiquid = 0;
                     var maxLiquid = lLiquidLast.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                     {
                         priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                     }
@@ -206,7 +210,7 @@ namespace CoinPr.Service
                     //
                     priceAtMaxLiquid = 0;
                     maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                     {
                         priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                     }
@@ -235,7 +239,7 @@ namespace CoinPr.Service
                 {
                     decimal priceAtMaxLiquid = 0;
                     var maxLiquid = lLiquidLast.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                     {
                         priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                     }
@@ -258,7 +262,7 @@ namespace CoinPr.Service
                     //
                     priceAtMaxLiquid = 0;
                     maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.9 * dat.data.liqHeatMap.maxLiqValue)
+                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                     {
                         priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                     }

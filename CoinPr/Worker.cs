@@ -29,7 +29,7 @@ namespace CoinPr
                     {
                         await _analyzeService.SyncCoinBinance();
                     }
-                    await _analyzeService.DetectOrderBlock();
+                    //await _analyzeService.DetectOrderBlock();
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                     //await Task.Delay(1000, stoppingToken);
                     await Task.Delay(1000 * 60 * 60 * 12, stoppingToken);

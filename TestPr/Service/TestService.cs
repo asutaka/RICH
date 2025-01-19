@@ -1,5 +1,4 @@
 ﻿using Skender.Stock.Indicators;
-using System.Xml.Linq;
 using TestPr.Model;
 using TestPr.Utils;
 
