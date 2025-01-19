@@ -45,6 +45,10 @@ namespace TestPr.Service
                 {
                     var lData = lDataBinance.Take(i).ToList();
                     var cur = lData.Last();
+                    //if(cur.Date.Year == 2024 && cur.Date.Month == 11 &&  cur.Date.Day == 4)
+                    //{
+                    //    var ss = 1;
+                    //}
 
                     if(prepare != null && !flag)
                     {
@@ -60,7 +64,7 @@ namespace TestPr.Service
                                     BuyTime = cur.Date,
                                     StartPrice = prepare.Entry,
                                     ViThe = "Short",
-                                    SignalTime = lData.ElementAt(indexPrepare).Date,
+                                    SignalTime = prepare.Date,
                                     TP = prepare.TP,
                                     SL = prepare.SL,
                                 };
@@ -77,7 +81,7 @@ namespace TestPr.Service
                                     BuyTime = cur.Date,
                                     StartPrice = prepare.Entry,
                                     ViThe = "Long",
-                                    SignalTime = lData.ElementAt(indexPrepare).Date,
+                                    SignalTime = prepare.Date,
                                     TP = prepare.TP,
                                     SL = prepare.SL,
                                 };
@@ -162,14 +166,15 @@ namespace TestPr.Service
                         indexPrepare = -1;
                         prepare = null;
                     }
+
+                    //ob
+                    lOrderBlock = lData.GetOrderBlock(10);
                     var checkOrderBlock = cur.IsOrderBlock(lOrderBlock, 0);
                     if(checkOrderBlock.Item1)
                     {
                         prepare = checkOrderBlock.Item2;
                         indexPrepare = i;
                     }
-                    //ob
-                    lOrderBlock = lData.GetOrderBlock(10);
                 }
 
                 var tongtien = lRes.Sum(x => x.TienLaiThucTe) - lRes.Count() * MoneyPerUnit;
