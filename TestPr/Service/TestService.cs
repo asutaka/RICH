@@ -60,7 +60,7 @@ namespace TestPr.Service
                                     BuyTime = cur.Date,
                                     StartPrice = prepare.Entry,
                                     ViThe = "Short",
-                                    SignalTime = prepare.Date,
+                                    SignalTime = lData.ElementAt(indexPrepare).Date,
                                     TP = prepare.TP,
                                     SL = prepare.SL,
                                 };
@@ -77,7 +77,7 @@ namespace TestPr.Service
                                     BuyTime = cur.Date,
                                     StartPrice = prepare.Entry,
                                     ViThe = "Long",
-                                    SignalTime = prepare.Date,
+                                    SignalTime = lData.ElementAt(indexPrepare).Date,
                                     TP = prepare.TP,
                                     SL = prepare.SL,
                                 };
@@ -157,7 +157,7 @@ namespace TestPr.Service
                         continue;
                     }
 
-                    if(indexPrepare > 0 && i - indexPrepare > 10)
+                    if(indexPrepare > 0 && (i - indexPrepare) > 10)
                     {
                         indexPrepare = -1;
                         prepare = null;
