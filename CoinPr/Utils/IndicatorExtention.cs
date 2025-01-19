@@ -6,7 +6,7 @@ namespace CoinPr.Utils
 {
     public static class IndicatorExtention
     {
-        public static (bool, OrderBlock) IsOrderBlock(this Quote item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 24 * 10)
+        public static (bool, OrderBlock) IsOrderBlock(this Quote item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 86400 * 10)
         {
             try
             {
@@ -14,45 +14,19 @@ namespace CoinPr.Utils
                     return (false, null);
 
                 var top = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar)
-                                                    && item.Close >= x.Focus && item.Close < x.SL && (item.Date - x.Date).TotalHours >= mintime);
+                                                    && item.Close >= x.Focus && item.Close < x.SL && (item.Date - x.Date).TotalSeconds >= mintime);
                 if (top != null)
                     return (true, top);
 
                 var bot = lOrderBlock.FirstOrDefault(x => (x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotPinbar)
-                                                   && item.Close <= x.Focus && item.Close > x.SL && (item.Date - x.Date).TotalHours >= mintime);
+                                                   && item.Close <= x.Focus && item.Close > x.SL && (item.Date - x.Date).TotalSeconds >= mintime);
 
                 if (bot != null)
                     return (true, bot);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"PartternService.IsOrderBlock|EXCEPTION| {ex.Message}");
-            }
-            return (false, null);
-        }
-
-        public static (bool, IEnumerable<OrderBlock>) IsOrderBlock(this decimal item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 24 * 10)
-        {
-            try
-            {
-                if (!(lOrderBlock?.Any() ?? false))
-                    return (false, null);
-
-                var date = DateTime.Now;
-                var top = lOrderBlock.Where(x => (x.Mode == (int)EOrderBlockMode.TopPinbar || x.Mode == (int)EOrderBlockMode.TopInsideBar)
-                                                    && item >= x.Focus && item < x.SL && (date - x.Date).TotalHours >= mintime);
-                if (top != null)
-                    return (true, top);
-
-                var bot = lOrderBlock.Where(x => (x.Mode == (int)EOrderBlockMode.BotPinbar || x.Mode == (int)EOrderBlockMode.BotPinbar)
-                                                   && item <= x.Focus && item > x.SL && (date - x.Date).TotalHours >= mintime);
-
-                if (bot != null)
-                    return (true, bot);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"PartternService.IsOrderBlock|EXCEPTION| {ex.Message}");
+                Console.WriteLine($"PartternService.CheckBatDay|EXCEPTION| {ex.Message}");
             }
             return (false, null);
         }
@@ -131,25 +105,43 @@ namespace CoinPr.Utils
                 {
                     var item = lData.First(x => x.Date == pivot.Date);
                     var volMa20 = lMa20Vol.First(x => x.Date == pivot.Date);
+                    if (item.Volume < (decimal)(volMa20.Sma.Value * 1.2))
+                        continue;
                     var len = item.High - item.Low;
                     var avgLen = lData.Where(x => x.Date <= pivot.Date).TakeLast(5).Average(x => x.High - x.Low);
-
-                    var next = lData.FirstOrDefault(x => x.Date > pivot.Date);
-                    var volMa20_Next = lMa20Vol.First(x => x.Date == next.Date);
-                    var len_Next = next.High - next.Low;
-
-                    var prev = lData.LastOrDefault(x => x.Date < pivot.Date);
+                    if (len < avgLen * (decimal)1.3)
+                        continue;
 
                     if (pivot.IsTop)
                     {
                         var uplen = item.High - Math.Max(item.Open, item.Close);
-                        if (uplen / len >= (decimal)0.5)
+                        if (uplen / len >= (decimal)0.6)
                         {
-                            if (item.Volume >= (decimal)(volMa20.Sma.Value * 1.2) && len >= avgLen * (decimal)1.3)
+                            var entry = item.High - uplen / 4;
+                            var sl = entry + uplen;
+                            lOrderBlock.Add(new OrderBlock
                             {
-                                var entry = item.High - uplen / 5;
-                                var sl = entry + uplen / 2;
-                                var tp = entry - uplen;
+                                Date = item.Date,
+                                Open = item.Open,
+                                Close = item.Close,
+                                High = item.High,
+                                Low = item.Low,
+                                Mode = (int)EOrderBlockMode.TopPinbar,
+                                Entry = entry,
+                                SL = sl,
+                                Focus = Math.Max(item.Open, item.Close),
+                            });
+                            //Console.WriteLine($"TOP(pinbar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
+                        }
+                        else
+                        {
+                            var next = lData.FirstOrDefault(x => x.Date > pivot.Date);
+                            if (next.Open > next.Close
+                                && next.Close <= Math.Min(item.Open, item.Close)
+                                && next.Open >= Math.Max(item.Open, item.Close))
+                            {
+                                var entry = Math.Min(item.Open, item.Close) + 3 * Math.Abs(item.Open - item.Close) / 4;
+                                var sl = Math.Max(item.High, next.High) + Math.Abs(item.Open - item.Close) / 4;
                                 lOrderBlock.Add(new OrderBlock
                                 {
                                     Date = item.Date,
@@ -157,79 +149,47 @@ namespace CoinPr.Utils
                                     Close = item.Close,
                                     High = item.High,
                                     Low = item.Low,
-                                    Mode = (int)EOrderBlockMode.TopPinbar,
+                                    Mode = (int)EOrderBlockMode.TopInsideBar,
                                     Entry = entry,
                                     SL = sl,
-                                    TP = tp,
-                                    Focus = Math.Max(item.Open, item.Close),
+                                    Focus = Math.Min(item.Open, item.Close)
                                 });
-                                continue;
-                                //Console.WriteLine($"TOP(pinbar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
+                                //Console.WriteLine($"TOP(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
                             }
-                        }
-
-                        if (item.Volume >= (decimal)(volMa20.Sma.Value * 1.2) && len >= avgLen * (decimal)1.3)
-                        {
-                            if (item.Open <= item.Close || item.Close >= Math.Min(prev.Open, prev.Close))
-                                continue;
-
-                            var entry = prev.High - Math.Abs(prev.High - prev.Low) / 5;
-                            var sl1 = entry + Math.Abs(prev.High - prev.Low) / 2;
-                            var sl2 = item.High + Math.Abs(prev.High - prev.Low) / 5;
-                            var sl = sl1 > sl2 ? sl1 : sl2;
-                            var tp = entry - 2 * Math.Abs(sl - entry);
-                            lOrderBlock.Add(new OrderBlock
-                            {
-                                Date = item.Date,
-                                Open = item.Open,
-                                Close = item.Close,
-                                High = item.High,
-                                Low = item.Low,
-                                Mode = (int)EOrderBlockMode.TopInsideBar,
-                                Entry = entry,
-                                SL = sl,
-                                TP = tp,
-                                Focus = Math.Min(item.Open, item.Close)
-                            });
-                            //Console.WriteLine($"TOP(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
-                        }
-                        else if (next.Volume >= (decimal)(volMa20_Next.Sma.Value * 1.2) && len_Next >= avgLen * (decimal)1.3)
-                        {
-                            if (next.Open <= next.Close || next.Close >= Math.Min(item.Open, item.Close))
-                                continue;
-
-                            var entry = item.High - Math.Abs(item.High - item.Low) / 5;
-                            var sl1 = entry + Math.Abs(item.High - item.Low) / 2;
-                            var sl2 = next.High + Math.Abs(item.High - item.Low) / 5;
-                            var sl = sl1 > sl2 ? sl1 : sl2;
-                            var tp = entry - 2 * Math.Abs(sl - entry);
-                            lOrderBlock.Add(new OrderBlock
-                            {
-                                Date = item.Date,
-                                Open = item.Open,
-                                Close = item.Close,
-                                High = item.High,
-                                Low = item.Low,
-                                Mode = (int)EOrderBlockMode.TopInsideBar,
-                                Entry = entry,
-                                SL = sl,
-                                TP = tp,
-                                Focus = Math.Min(item.Open, item.Close)
-                            });
-                            //Console.WriteLine($"TOP(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
                         }
                     }
                     else
                     {
                         var belowLen = Math.Min(item.Open, item.Close) - item.Low;
-                        if (belowLen / len >= (decimal)0.5)
+                        if (belowLen / len >= (decimal)0.6)
                         {
-                            if (item.Volume >= (decimal)(volMa20.Sma.Value * 1.2) && len >= avgLen * (decimal)1.3)
+                            var entry = belowLen / 4 + item.Low;
+                            var sl = entry - belowLen;
+                            //Console.WriteLine($"BOT(pinbar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
+                            lOrderBlock.Add(new OrderBlock
                             {
-                                var entry = item.Low + belowLen / 5;
-                                var sl = entry - belowLen / 2;
-                                var tp = entry + belowLen;
-                                //Console.WriteLine($"BOT(pinbar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
+                                Date = item.Date,
+                                Open = item.Open,
+                                Close = item.Close,
+                                High = item.High,
+                                Low = item.Low,
+                                Mode = (int)EOrderBlockMode.BotPinbar,
+                                Entry = entry,
+                                SL = sl,
+                                Focus = Math.Max(item.Open, item.Close)
+                            });
+                        }
+                        else
+                        {
+                            var prev = lData.LastOrDefault(x => x.Date < pivot.Date);
+                            if (prev is null || prev.Open <= prev.Close || item.Open >= item.Close)
+                                continue;
+
+                            if (item.Close >= Math.Max(prev.Open, prev.Close)
+                                && item.Low <= prev.Low)
+                            {
+                                var entry = Math.Min(prev.Open, prev.Close) + Math.Abs(prev.Open - prev.Close) / 4;
+                                var sl = Math.Min(item.Low, prev.Low) + Math.Abs(prev.Open - prev.Close) / 4; ;
                                 lOrderBlock.Add(new OrderBlock
                                 {
                                     Date = item.Date,
@@ -237,65 +197,13 @@ namespace CoinPr.Utils
                                     Close = item.Close,
                                     High = item.High,
                                     Low = item.Low,
-                                    Mode = (int)EOrderBlockMode.BotPinbar,
+                                    Mode = (int)EOrderBlockMode.BotInsideBar,
                                     Entry = entry,
                                     SL = sl,
-                                    TP = tp,
                                     Focus = Math.Max(item.Open, item.Close)
                                 });
-                                continue;
+                                //Console.WriteLine($"BOT(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
                             }
-                        }
-
-                        if ((item.Volume < (decimal)(volMa20.Sma.Value * 1.2) || len < avgLen * (decimal)1.3))
-                        {
-                            if (item.Open >= item.Close || item.Close <= Math.Max(prev.Open, prev.Close))
-                                continue;
-
-                            var entry = prev.Low + Math.Abs(prev.High - prev.Low) / 5;
-                            var sl1 = entry - Math.Abs(prev.High - prev.Low) / 2;
-                            var sl2 = item.Low - Math.Abs(prev.High - prev.Low) / 5;
-                            var sl = sl1 < sl2 ? sl1 : sl2;
-                            var tp = entry + 2 * Math.Abs(sl - entry);
-                            lOrderBlock.Add(new OrderBlock
-                            {
-                                Date = item.Date,
-                                Open = item.Open,
-                                Close = item.Close,
-                                High = item.High,
-                                Low = item.Low,
-                                Mode = (int)EOrderBlockMode.BotInsideBar,
-                                Entry = entry,
-                                SL = sl,
-                                TP = tp,
-                                Focus = Math.Min(item.Open, item.Close)
-                            });
-                            //Console.WriteLine($"BOT(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
-                        }
-                        else if (next.Volume >= (decimal)(volMa20_Next.Sma.Value * 1.2) && len_Next >= avgLen * (decimal)1.3)
-                        {
-                            if (next.Open >= next.Close || next.Close <= Math.Max(item.Open, item.Close))
-                                continue;
-
-                            var entry = item.Low + Math.Abs(item.High - item.Low) / 5;
-                            var sl1 = entry - Math.Abs(item.High - item.Low) / 2;
-                            var sl2 = next.Low - Math.Abs(item.High - item.Low) / 5;
-                            var sl = sl1 < sl2 ? sl1 : sl2;
-                            var tp = entry + 2 * Math.Abs(sl - entry);
-                            lOrderBlock.Add(new OrderBlock
-                            {
-                                Date = item.Date,
-                                Open = item.Open,
-                                Close = item.Close,
-                                High = item.High,
-                                Low = item.Low,
-                                Mode = (int)EOrderBlockMode.BotInsideBar,
-                                Entry = entry,
-                                SL = sl,
-                                TP = tp,
-                                Focus = Math.Min(item.Open, item.Close)
-                            });
-                            //Console.WriteLine($"BOT(outsidebar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
                         }
                     }
                 }

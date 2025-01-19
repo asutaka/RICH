@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.ObjectPool;
-using Skender.Stock.Indicators;
+﻿using Skender.Stock.Indicators;
 using StockPr.DAL.Entity;
 using StockPr.Model;
 

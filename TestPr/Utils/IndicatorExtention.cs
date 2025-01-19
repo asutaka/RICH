@@ -5,6 +5,7 @@ namespace TestPr.Utils
 {
     public static class IndicatorExtention
     {
+        private const int ENTRY_RATE = 5;
         public static (bool, OrderBlock) IsOrderBlock(this Quote item, IEnumerable<OrderBlock> lOrderBlock, long mintime = 24 * 10)
         {
             try
@@ -146,7 +147,7 @@ namespace TestPr.Utils
                         {
                             if (item.Volume >= (decimal)(volMa20.Sma.Value * 1.2) && len >= avgLen * (decimal)1.3)
                             {
-                                var entry = item.High - uplen / 5;
+                                var entry = item.High - uplen / ENTRY_RATE;
                                 var sl = entry + uplen / 2;
                                 var tp = entry - uplen;
                                 lOrderBlock.Add(new OrderBlock
@@ -172,9 +173,9 @@ namespace TestPr.Utils
                             if (item.Open <= item.Close || item.Close >= Math.Min(prev.Open, prev.Close))
                                 continue;
 
-                            var entry = prev.High - Math.Abs(prev.High - prev.Low) / 5;
+                            var entry = prev.High - Math.Abs(prev.High - prev.Low) / ENTRY_RATE;
                             var sl1 = entry + Math.Abs(prev.High - prev.Low) / 2;
-                            var sl2 = item.High + Math.Abs(prev.High - prev.Low) / 5;
+                            var sl2 = item.High + Math.Abs(prev.High - prev.Low) / ENTRY_RATE;
                             var sl = sl1 > sl2 ? sl1 : sl2;
                             var tp = entry - 2 * Math.Abs(sl - entry);
                             lOrderBlock.Add(new OrderBlock
@@ -197,9 +198,9 @@ namespace TestPr.Utils
                             if (next.Open <= next.Close || next.Close >= Math.Min(item.Open, item.Close))
                                 continue;
 
-                            var entry = item.High - Math.Abs(item.High - item.Low) / 5;
+                            var entry = item.High - Math.Abs(item.High - item.Low) / ENTRY_RATE;
                             var sl1 = entry + Math.Abs(item.High - item.Low) / 2;
-                            var sl2 = next.High + Math.Abs(item.High - item.Low) / 5;
+                            var sl2 = next.High + Math.Abs(item.High - item.Low) / ENTRY_RATE;
                             var sl = sl1 > sl2 ? sl1 : sl2;
                             var tp = entry - 2 * Math.Abs(sl - entry);
                             lOrderBlock.Add(new OrderBlock
@@ -225,7 +226,7 @@ namespace TestPr.Utils
                         {
                             if (item.Volume >= (decimal)(volMa20.Sma.Value * 1.2) && len >= avgLen * (decimal)1.3)
                             {
-                                var entry = item.Low + belowLen / 5;
+                                var entry = item.Low + belowLen / ENTRY_RATE;
                                 var sl = entry - belowLen / 2;
                                 var tp = entry + belowLen;
                                 //Console.WriteLine($"BOT(pinbar): {item.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {entry}|SL: {sl}");
@@ -251,9 +252,9 @@ namespace TestPr.Utils
                             if (item.Open >= item.Close || item.Close <= Math.Max(prev.Open, prev.Close))
                                 continue;
 
-                            var entry = prev.Low + Math.Abs(prev.High - prev.Low) / 5;
+                            var entry = prev.Low + Math.Abs(prev.High - prev.Low) / ENTRY_RATE;
                             var sl1 = entry - Math.Abs(prev.High - prev.Low) / 2;
-                            var sl2 = item.Low - Math.Abs(prev.High - prev.Low) / 5;
+                            var sl2 = item.Low - Math.Abs(prev.High - prev.Low) / ENTRY_RATE;
                             var sl = sl1 < sl2 ? sl1 : sl2;
                             var tp = entry + 2 * Math.Abs(sl - entry);
                             lOrderBlock.Add(new OrderBlock
@@ -276,9 +277,9 @@ namespace TestPr.Utils
                             if (next.Open >= next.Close || next.Close <= Math.Max(item.Open, item.Close))
                                 continue;
 
-                            var entry = item.Low + Math.Abs(item.High - item.Low) / 5;
+                            var entry = item.Low + Math.Abs(item.High - item.Low) / ENTRY_RATE;
                             var sl1 = entry - Math.Abs(item.High - item.Low) / 2;
-                            var sl2 = next.Low - Math.Abs(item.High - item.Low) / 5;
+                            var sl2 = next.Low - Math.Abs(item.High - item.Low) / ENTRY_RATE;
                             var sl = sl1 < sl2 ? sl1 : sl2;
                             var tp = entry + 2 * Math.Abs(sl - entry);
                             lOrderBlock.Add(new OrderBlock
