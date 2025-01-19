@@ -59,7 +59,10 @@ namespace TestPr.Service
                                 {
                                     BuyTime = cur.Date,
                                     StartPrice = prepare.Entry,
-                                    ViThe = "Short"
+                                    ViThe = "Short",
+                                    SignalTime = prepare.Date,
+                                    TP = prepare.TP,
+                                    SL = prepare.SL,
                                 };
                             }
                         }
@@ -73,7 +76,10 @@ namespace TestPr.Service
                                 {
                                     BuyTime = cur.Date,
                                     StartPrice = prepare.Entry,
-                                    ViThe = "Long"
+                                    ViThe = "Long",
+                                    SignalTime = prepare.Date,
+                                    TP = prepare.TP,
+                                    SL = prepare.SL,
                                 };
                             }
                         }
