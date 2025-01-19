@@ -143,7 +143,7 @@ namespace TestPr.Utils
                     if (pivot.IsTop)
                     {
                         var uplen = item.High - Math.Max(item.Open, item.Close);
-                        if (uplen / len >= (decimal)0.5)
+                        if (uplen / len >= (decimal)0.6)
                         {
                             if (item.Volume >= (decimal)(volMa20.Sma.Value * 1.2) && len >= avgLen * (decimal)1.3)
                             {
@@ -222,7 +222,7 @@ namespace TestPr.Utils
                     else
                     {
                         var belowLen = Math.Min(item.Open, item.Close) - item.Low;
-                        if (belowLen / len >= (decimal)0.5)
+                        if (belowLen / len >= (decimal)0.6)
                         {
                             if (item.Volume >= (decimal)(volMa20.Sma.Value * 1.2) && len >= avgLen * (decimal)1.3)
                             {

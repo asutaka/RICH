@@ -169,7 +169,7 @@ namespace TestPr.Service
 
                     //ob
                     lOrderBlock = lData.GetOrderBlock(10);
-                    var checkOrderBlock = cur.IsOrderBlock(lOrderBlock, 0);
+                    var checkOrderBlock = cur.IsOrderBlock(lOrderBlock, 100);
                     if(checkOrderBlock.Item1)
                     {
                         prepare = checkOrderBlock.Item2;
