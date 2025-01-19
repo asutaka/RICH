@@ -31,6 +31,7 @@ namespace TestPr.Service
                     Volume = x.Volume,
                 }).ToList();
                 var lOrderBlock = lDataBinance.GetOrderBlock(10);
+                var checkOrderBlock = lDataBinance.Last().IsOrderBlock(lOrderBlock, 0);
                 var tmp = 1;
                 //var lBinance = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, BinanceInterval, limit: 500);
             }
