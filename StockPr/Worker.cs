@@ -16,6 +16,7 @@ namespace StockPr
         private readonly IAnalyzeService _analyzeService;
         private readonly ITuDoanhService _tudoanhService;
         private readonly IBaoCaoTaiChinhService _bctcService;
+        private readonly IPortfolioService _portfolioService;
 
         private const long _idGroup = -4237476810;
         private const long _idChannel = -1002247826353;
@@ -23,7 +24,7 @@ namespace StockPr
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo)
+                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -35,6 +36,7 @@ namespace StockPr
             _bctcService = bctcService;
 
             _stockRepo = stockRepo;
+            _portfolioService = portfolioService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -49,10 +51,17 @@ namespace StockPr
                 var isPreTrade = dt.Hour < 9;
                 var isTimePrint = dt.Minute >= 15 && dt.Minute < 30;//từ phút thứ 15 đến phút thứ 30
                 var isRealTime = (dt.Hour >= 9 && dt.Hour < 12) || (dt.Hour >= 13 && dt.Hour < 15);//từ 9h đến 3h
+                //Báo cáo phân tích
                 var bcpt = await _bcptService.BaoCaoPhanTich();
                 if(!string.IsNullOrWhiteSpace(bcpt))
                 {
                     await _teleService.SendMessage(_idGroup, bcpt);
+                }
+                //Quỹ đầu tư
+                var portfolio = await _portfolioService.Portfolio();
+                if (!string.IsNullOrWhiteSpace(portfolio))
+                {
+                    await _teleService.SendMessage(_idChannel, $"[Quỹ Đầu Tư]\n{portfolio}");
                 }
                 //Tổng cục thống kê
                 if (dt.Day == 6)

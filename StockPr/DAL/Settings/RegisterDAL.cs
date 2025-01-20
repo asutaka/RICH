@@ -13,6 +13,7 @@
             services.AddSingleton<ICategoryRepo, CategoryRepo>();
             services.AddSingleton<IOrderBlockRepo, OrderBlockRepo>();
             services.AddSingleton<IMacroMicroRepo, MacroMicroRepo>();
+            services.AddSingleton<IConfigPortfolioRepo, ConfigPortfolioRepo>();
         }
     }
 }

@@ -16,6 +16,7 @@
             services.AddSingleton<ITuDoanhService, TuDoanhService>();
             services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IBaoCaoTaiChinhService, BaoCaoTaiChinhService>();
+            services.AddSingleton<IPortfolioService, PortfolioService>();
         }
     }
 }

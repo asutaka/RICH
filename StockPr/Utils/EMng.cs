@@ -200,6 +200,9 @@ namespace StockPr.Utils
         VCI = 12,
         KBS = 13,
         VinaCapital = 14,
+
+        VCBF = 20,
+        DC = 21,
     }
 
     public enum EMoney24hTimeType
