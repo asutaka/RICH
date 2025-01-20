@@ -40,7 +40,7 @@ namespace CoinPr.Service
                         var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
                         if (!string.IsNullOrWhiteSpace(mes))
                         {
-                            _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
+                            _teleService.SendMessage(_idChannel, mes).GetAwaiter().GetResult();
                             //Console.WriteLine(mes);
                         }
                     }
