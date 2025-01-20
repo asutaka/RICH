@@ -18,7 +18,7 @@ namespace CoinPr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ITradingRepo _tradingRepo;
-        private const int MIN_VALUE = 2000;
+        private const int MIN_VALUE = 10000;
         
         public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo)
         {
