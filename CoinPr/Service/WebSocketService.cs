@@ -64,7 +64,14 @@ namespace CoinPr.Service
                 if (liquid.Status == (int)LiquidStatus.Ready)
                     ext = "(INVERT)";
 
-                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.Side}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}";
+                if(liquid.Entry >= 1)
+                {
+                    liquid.Entry = Math.Round(liquid.Entry, 2);
+                    liquid.TP = Math.Round(liquid.TP, 2);
+                    liquid.SL = Math.Round(liquid.SL, 2);
+                }
+
+                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{liquid.Side}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}";
                 _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
                     s = liquid.s,
