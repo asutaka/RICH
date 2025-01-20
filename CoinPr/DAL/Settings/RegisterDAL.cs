@@ -8,6 +8,7 @@
             services.AddSingleton<IOrderBlockRepo, OrderBlockRepo>();
             services.AddSingleton<ICoinRepo, CoinRepo>();
             services.AddSingleton<IBlackListRepo, BlackListRepo>();
+            services.AddSingleton<ITradingRepo, TradingRepo>();
         }
     }
 }

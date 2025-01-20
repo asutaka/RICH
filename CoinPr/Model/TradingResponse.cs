@@ -17,11 +17,10 @@ namespace CoinPr.Model
         public DateTime Date { get; set; }
         public int Type { get; set; }//OrderBlock or Liquid
         public Binance.Net.Enums.OrderSide Side { get; set; }//Buy Or Sell
-        public int Interval { get; set; }//Only OrderBlock
         public decimal Entry { get; set; }//Only OrderBlock
         public decimal SL { get; set; }//Only OrderBlock
         public decimal TP { get; set; }//Only OrderBlock
-        public decimal Price { get; set; }//Only Liquid
+        public decimal Focus { get; set; }
         public int Status { get; set; }//Only Liquid
     }
 }

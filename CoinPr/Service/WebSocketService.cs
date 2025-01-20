@@ -1,10 +1,8 @@
 ﻿using Binance.Net.Objects.Models.Futures.Socket;
 using CoinPr.DAL;
-using CoinPr.DAL.Entity;
 using CoinPr.Model;
 using CoinPr.Utils;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 
 namespace CoinPr.Service
 {
@@ -19,15 +17,15 @@ namespace CoinPr.Service
         private readonly ILogger<WebSocketService> _logger;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
-        private readonly IOrderBlockRepo _orderBlockRepo;
-        private const int MIN_VALUE = 20000;
+        private readonly ITradingRepo _tradingRepo;
+        private const int MIN_VALUE = 2000;
         
-        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, IOrderBlockRepo orderBlockRepo)
+        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
-            _orderBlockRepo = orderBlockRepo;
+            _tradingRepo = tradingRepo;
         }
 
         public void BinanceLiquid()
@@ -37,9 +35,8 @@ namespace CoinPr.Service
                 var liquid = StaticVal.BinanceSocketInstance().UsdFuturesApi.ExchangeData.SubscribeToAllLiquidationUpdatesAsync((data) =>
                 {
                     var val = Math.Round(data.Data.Price * data.Data.Quantity);
-                    if(val >= MIN_VALUE)
+                    if(val >= MIN_VALUE && StaticVal._lCoinAnk.Contains(data.Data.Symbol))
                     {
-                        //Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Price}|{val}");
                         var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
                         if (!string.IsNullOrWhiteSpace(mes))
                         {
@@ -57,112 +54,193 @@ namespace CoinPr.Service
 
         private async Task<string> HandleMessage(BinanceFuturesStreamLiquidation msg)
         {
+            string mes = string.Empty;
             try
             {
-                var date = DateTime.Now;
-                //TradingResponse ob = CheckOrderBlock(msg);
-                TradingResponse ob = null;
-                Console.WriteLine($"{JsonConvert.SerializeObject(msg)}");
-                return string.Empty;
                 var liquid = await CheckLiquid(msg);
+                if (liquid is null)
+                    return mes;
+                var ext = string.Empty;
+                if (liquid.Status == (int)LiquidStatus.Ready)
+                    ext = "(INVERT)";
 
-                //show
-                if (ob is null && liquid is null)
-                    return null;
-
-                string mes = string.Empty;
-
-                if(ob != null && liquid is null)
+                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.Side}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}";
+                _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
-                    mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}|TP: {ob.TP}";
-                }
-                else if(liquid != null)
-                {
-                    //add To list follow
-                    if (liquid.Status == (int)LiquidStatus.Prepare)
-                    {
-                        mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-PREPARE|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}|TP: {ob.TP}";
-                    }
-                    else
-                    {
-                        if(ob is null)
-                        {
-                            mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}|TP: {liquid.TP}";
-                        }
-                        else
-                        {
-                            var div = ob.Entry - liquid.Entry;
-                            var isOb = (ob.Side == Binance.Net.Enums.OrderSide.Buy && div < 0)
-                                    || (ob.Side == Binance.Net.Enums.OrderSide.Sell && div > 0);
-                            if (isOb)
-                            {
-                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})-LIQUID|{ob.Side}|{ob.s}|ENTRY: {ob.Entry}|SL: {ob.SL}|TP: {ob.TP}";
-                            }
-                            else
-                            {
-                                mes = $"{date.ToString("dd/MM/yyyy HH:mm")}|LIQUID-ORDERBLOCK({((EInterval)ob.Interval).GetDisplayName()})|{liquid.Side}|{liquid.s}|ENTRY: {liquid.Entry}|SL: {liquid.SL}|TP: {liquid.TP}";
-                            }
-                        }
-                    }
-                }
-
-                return mes;
+                    s = liquid.s,
+                    d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
+                    Side = liquid.Side == Binance.Net.Enums.OrderSide.Buy ? 1 : 2,
+                    Entry = (double)liquid.Entry,
+                    TP = (double)liquid.TP,
+                    SL = (double)liquid.SL,
+                    Focus = (double)liquid.Focus
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"WebSocketService.HandleMessage|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return mes;
         }
 
-        private TradingResponse CheckOrderBlock(BinanceFuturesStreamLiquidation msg)
+        private TradingResponse LiquidBuy(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
         {
             try
             {
-                var date = DateTime.Now;
-                var min_1W = 240 * 7;
-                var min_1D = 240;
-                var min_4H = 40;
-                var min_1H = 10;
-
-                var lOrderBlock = _orderBlockRepo.GetByFilter(Builders<OrderBlock>.Filter.Eq(x => x.s, msg.Symbol))
-                                          .OrderByDescending(x => x.interval).ToList();
-                var checkOrderBlock = msg.Price.IsOrderBlock(lOrderBlock, 0);
-                if (checkOrderBlock.Item1)
+                decimal priceAtMaxLiquid = 0;
+                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
+                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                 {
-                    //tối thiểu 10 nến
-                    var recheck = checkOrderBlock.Item2.FirstOrDefault(x => (x.interval == (int)EInterval.W1 && (date - x.Date).TotalHours >= min_1W)
-                                                                            || (x.interval == (int)EInterval.D1 && (date - x.Date).TotalHours >= min_1D)
-                                                                            || (x.interval == (int)EInterval.H4 && (date - x.Date).TotalHours >= min_4H)
-                                                                            || (x.interval == (int)EInterval.H1 && (date - x.Date).TotalHours >= min_1H));
-                    if (recheck != null)
+                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
+                }
+
+                //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
+                if (priceAtMaxLiquid > 0
+                    && msg.Price >= avgPrice)
+                {
+                    var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
+                    var liquid = new TradingResponse
                     {
-                        var ob = new TradingResponse
-                        {
-                            s = msg.Symbol,
-                            Date = date,
-                            Type = (int)TradingResponseType.OrderBlock,
-                            Side = (recheck.Mode == (int)EOrderBlockMode.TopInsideBar || recheck.Mode == (int)EOrderBlockMode.TopPinbar) ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy,
-                            Interval = recheck.interval,
-                            Entry = recheck.Entry,
-                            SL = recheck.SL,
-                            TP = recheck.TP
-                        };
-                        return ob;
-                    }
+                        s = msg.Symbol,
+                        Date = DateTime.Now,
+                        Type = (int)TradingResponseType.Liquid,
+                        Side = Binance.Net.Enums.OrderSide.Buy,
+                        Focus = avgPrice,
+                        Entry = entry,
+                        TP = priceAtMaxLiquid,
+                        SL = avgPrice,
+                        Status = (int)LiquidStatus.Prepare
+                    };
+                    return liquid;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"WebSocketService.CheckOrderBlock|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"WebSocketService.LiquidBuy|EXCEPTION| {ex.Message}");
             }
+
             return null;
         }
+
+        private TradingResponse LiquidBuy_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
+        {
+            try
+            {
+                decimal priceAtMaxLiquid = 0;
+                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
+                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
+                {
+                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
+                }
+
+                //Giá hiện tại nhỏ hơn giá tại điểm thanh lý
+                if (priceAtMaxLiquid > 0
+                    && msg.Price < priceAtMaxLiquid)
+                {
+                    var liquid = new TradingResponse
+                    {
+                        s = msg.Symbol,
+                        Date = DateTime.Now,
+                        Type = (int)TradingResponseType.Liquid,
+                        Side = Binance.Net.Enums.OrderSide.Buy,
+                        Focus = priceAtMaxLiquid,
+                        Entry = msg.Price,
+                        TP = avgPrice,
+                        SL = msg.Price - Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
+                        Status = (int)LiquidStatus.Ready
+                    };
+                    return liquid;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"WebSocketService.LiquidBuy_Inverse|EXCEPTION| {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private TradingResponse LiquidSell(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
+        {
+            try
+            {
+                decimal priceAtMaxLiquid = 0;
+                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
+                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
+                {
+                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
+                }
+
+                //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
+                if (priceAtMaxLiquid > 0
+                   && msg.Price <= avgPrice)
+                {
+                    var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
+                    var liquid = new TradingResponse
+                    {
+                        s = msg.Symbol,
+                        Date = DateTime.Now,
+                        Type = (int)TradingResponseType.Liquid,
+                        Side = Binance.Net.Enums.OrderSide.Sell,
+                        Focus = avgPrice,
+                        Entry = entry,
+                        TP = priceAtMaxLiquid,
+                        SL = avgPrice,
+                        Status = (int)LiquidStatus.Prepare
+                    };
+                    return liquid;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"WebSocketService.LiquidSell|EXCEPTION| {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private TradingResponse LiquidSell_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
+        {
+            try
+            {
+                decimal priceAtMaxLiquid = 0;
+                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
+                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
+                {
+                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
+                }
+
+                //Giá hiện tại lớn hơn giá tại điểm thanh lý
+                if (priceAtMaxLiquid > 0
+                    && msg.Price > priceAtMaxLiquid)
+                {
+                    var liquid = new TradingResponse
+                    {
+                        s = msg.Symbol,
+                        Date = DateTime.Now,
+                        Type = (int)TradingResponseType.Liquid,
+                        Side = Binance.Net.Enums.OrderSide.Sell,
+                        Focus = priceAtMaxLiquid,
+                        Entry = msg.Price,
+                        TP = avgPrice,
+                        SL = msg.Price + Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
+                        Status = (int)LiquidStatus.Ready
+                    };
+                    return liquid;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"WebSocketService.LiquidSell_Inverse|EXCEPTION| {ex.Message}");
+            }
+
+            return null;
+        }
+
         private async Task<TradingResponse> CheckLiquid(BinanceFuturesStreamLiquidation msg)
         {
             try
             {
-                var date = DateTime.Now;
                 var dat = await _apiService.CoinAnk_GetLiquidValue(msg.Symbol);
                 if (dat?.data?.liqHeatMap is null)
                     return null;
@@ -186,107 +264,17 @@ namespace CoinPr.Service
                 var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
                 if (msg.Side == Binance.Net.Enums.OrderSide.Buy)
                 {
-                    decimal priceAtMaxLiquid = 0;
-                    var maxLiquid = lLiquidLast.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
-                    {
-                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                    }
-                    if (priceAtMaxLiquid > 0
-                        && (2 * priceAtMaxLiquid + avgPrice) >= 3 * msg.Price
-                        && (8 * priceAtMaxLiquid + avgPrice) < 9 * msg.Price)
-                    {
-                        var liquid = new TradingResponse
-                        {
-                            s = msg.Symbol,
-                            Date = date,
-                            Type = (int)TradingResponseType.Liquid,
-                            Side = Binance.Net.Enums.OrderSide.Buy,
-                            Price = priceAtMaxLiquid,
-                            Status = (int)LiquidStatus.Prepare
-                        };
-                        return liquid;
-                    }
+                    var res = LiquidBuy(msg, lLiquidLast, flag, avgPrice, dat);
+                    res ??= LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat);
 
-                    //
-                    priceAtMaxLiquid = 0;
-                    maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
-                    {
-                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                    }
-
-                    if (priceAtMaxLiquid > 0
-                        && msg.Price < priceAtMaxLiquid)
-                    {
-                        var sl = msg.Price - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
-                        var tp = msg.Price + 2 * Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
-                        var liquid = new TradingResponse
-                        {
-                            s = msg.Symbol,
-                            Date = date,
-                            Type = (int)TradingResponseType.Liquid,
-                            Side = Binance.Net.Enums.OrderSide.Buy,
-                            Price = msg.Price,
-                            Entry = msg.Price,
-                            SL = sl,
-                            TP = tp,
-                            Status = (int)LiquidStatus.Ready
-                        };
-                        return liquid;
-                    }
+                    return res;
                 }
                 else
                 {
-                    decimal priceAtMaxLiquid = 0;
-                    var maxLiquid = lLiquidLast.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
-                    {
-                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                    }
+                    var res = LiquidSell(msg, lLiquidLast, flag, avgPrice, dat);
+                    res ??= LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat);
 
-                    if (priceAtMaxLiquid > 0
-                        && (2 * priceAtMaxLiquid + avgPrice) <= 3 * msg.Price
-                        && (8 * priceAtMaxLiquid + avgPrice) > 9 * msg.Price)
-                    {
-                        var liquid = new TradingResponse
-                        {
-                            s = msg.Symbol,
-                            Date = date,
-                            Type = (int)TradingResponseType.Liquid,
-                            Side = Binance.Net.Enums.OrderSide.Sell,
-                            Price = priceAtMaxLiquid,
-                            Status = (int)LiquidStatus.Prepare
-                        };
-                        return liquid;
-                    }
-                    //
-                    priceAtMaxLiquid = 0;
-                    maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                    if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
-                    {
-                        priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                    }
-
-                    if (priceAtMaxLiquid > 0
-                        && msg.Price > priceAtMaxLiquid)
-                    {
-                        var sl = msg.Price + (priceAtMaxLiquid - avgPrice) / 3;
-                        var tp = msg.Price - 2 * Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
-                        var liquid = new TradingResponse
-                        {
-                            s = msg.Symbol,
-                            Date = date,
-                            Type = (int)TradingResponseType.Liquid,
-                            Side = Binance.Net.Enums.OrderSide.Sell,
-                            Price = msg.Price,
-                            Entry = msg.Price,
-                            SL = sl,
-                            TP = tp,
-                            Status = (int)LiquidStatus.Ready
-                        };
-                        return liquid;
-                    }
+                    return res;
                 }
             }
             catch (Exception ex)
