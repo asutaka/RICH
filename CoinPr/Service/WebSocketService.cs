@@ -109,6 +109,7 @@ namespace CoinPr.Service
                     && msg.Price >= avgPrice)
                 {
                     var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
+                    var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
                     var liquid = new TradingResponse
                     {
                         s = msg.Symbol,
@@ -118,7 +119,7 @@ namespace CoinPr.Service
                         Focus = avgPrice,
                         Entry = entry,
                         TP = priceAtMaxLiquid,
-                        SL = avgPrice,
+                        SL = sl,
                         Status = (int)LiquidStatus.Prepare
                     };
                     return liquid;
@@ -186,6 +187,7 @@ namespace CoinPr.Service
                    && msg.Price <= avgPrice)
                 {
                     var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
+                    var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
                     var liquid = new TradingResponse
                     {
                         s = msg.Symbol,
@@ -195,7 +197,7 @@ namespace CoinPr.Service
                         Focus = avgPrice,
                         Entry = entry,
                         TP = priceAtMaxLiquid,
-                        SL = avgPrice,
+                        SL = sl,
                         Status = (int)LiquidStatus.Prepare
                     };
                     return liquid;
