@@ -70,15 +70,16 @@ namespace CoinPr.Service
                     liquid.TP = Math.Round(liquid.TP, 2);
                     liquid.SL = Math.Round(liquid.SL, 2);
                 }
-                var side = liquid.Side == Binance.Net.Enums.OrderSide.Buy ? "Short" : "Long";
-                var sideVal = liquid.Side == Binance.Net.Enums.OrderSide.Buy ? 2 : 1;
+                var side = ((liquid.Side == Binance.Net.Enums.OrderSide.Buy && !string.IsNullOrWhiteSpace(ext))
+                            || (liquid.Side == Binance.Net.Enums.OrderSide.Sell && string.IsNullOrWhiteSpace(ext))) ? 1 : 2;
+                var sideText = side == 1 ? "Long" : "Short";
 
-                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{side}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}";
+                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}";
                 _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
                     s = liquid.s,
                     d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
-                    Side = sideVal,
+                    Side = side,
                     Entry = (double)liquid.Entry,
                     TP = (double)liquid.TP,
                     SL = (double)liquid.SL,
