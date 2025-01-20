@@ -20,6 +20,7 @@ namespace CoinPr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly IOrderBlockRepo _orderBlockRepo;
+        private const int MIN_VALUE = 20000;
         
         public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, IOrderBlockRepo orderBlockRepo)
         {
@@ -36,7 +37,7 @@ namespace CoinPr.Service
                 var liquid = StaticVal.BinanceSocketInstance().UsdFuturesApi.ExchangeData.SubscribeToAllLiquidationUpdatesAsync((data) =>
                 {
                     var val = Math.Round(data.Data.Price * data.Data.Quantity);
-                    if(val >= 20000)
+                    if(val >= MIN_VALUE)
                     {
                         //Console.WriteLine($"{data.Data.Symbol}|{data.Data.Side}|{data.Data.Price}|{val}");
                         var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
