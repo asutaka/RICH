@@ -299,7 +299,7 @@ namespace CoinPr.Service
                 if (flag <= 0)
                     return null;
 
-                var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280);
+                var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 270);
                 var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
                 if (msg.Side == Binance.Net.Enums.OrderSide.Buy)
                 {
