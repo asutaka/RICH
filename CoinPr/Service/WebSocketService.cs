@@ -292,10 +292,9 @@ namespace CoinPr.Service
                 if (dat?.data?.liqHeatMap is null)
                     return null;
 
-                var avgPrice = (decimal)0.5 * (dat.data.liqHeatMap.priceArray[0] + dat.data.liqHeatMap.priceArray[count - 1]);
-
                 var flag = -1;
                 var count = dat.data.liqHeatMap.priceArray.Count();
+                var avgPrice = (decimal)0.5 * (dat.data.liqHeatMap.priceArray[0] + dat.data.liqHeatMap.priceArray[count - 1]);
                 for (var i = 0; i < count; i++)
                 {
                     var element = dat.data.liqHeatMap.priceArray[i];
