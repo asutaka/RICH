@@ -18,7 +18,7 @@ namespace CoinPr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ITradingRepo _tradingRepo;
-        private const int MIN_VALUE = 15000;
+        private const int MIN_VALUE = 5000;
         private static Dictionary<string, DateTime> _dicRes = new Dictionary<string, DateTime>();
         
         public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo)
@@ -100,7 +100,8 @@ namespace CoinPr.Service
                             || (liquid.Side == Binance.Net.Enums.OrderSide.Sell && string.IsNullOrWhiteSpace(ext))) ? 1 : 2;
                 var sideText = side == 1 ? "Long" : "Short";
 
-                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}";
+                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}\n" +
+                    $"PriceAt: {liquid.PriceAtLiquid}| Avg: {liquid.AvgPrice}| Cur: {liquid.CurrentPrice}|Mode:{((ELiquidMode)liquid.Mode).ToString()}";
                 _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
                     s = liquid.s,
@@ -149,6 +150,8 @@ namespace CoinPr.Service
                         SL = sl,
                         Status = (int)LiquidStatus.Prepare
                     };
+                    liquid.PriceAtLiquid = priceAtMaxLiquid;
+                    liquid.Mode = (int)ELiquidMode.MuaCungChieu;
                     return liquid;
                 }
             }
@@ -188,6 +191,8 @@ namespace CoinPr.Service
                         SL = sl,
                         Status = (int)LiquidStatus.Ready
                     };
+                    liquid.PriceAtLiquid = priceAtMaxLiquid;
+                    liquid.Mode = (int)ELiquidMode.BanNguocChieu;
                     return liquid;
                 }
             }
@@ -229,6 +234,8 @@ namespace CoinPr.Service
                         SL = sl,
                         Status = (int)LiquidStatus.Prepare
                     };
+                    liquid.Mode = (int)ELiquidMode.BanCungChieu;
+                    liquid.PriceAtLiquid = priceAtMaxLiquid;
                     return liquid;
                 }
             }
@@ -267,6 +274,8 @@ namespace CoinPr.Service
                         SL = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
+                    liquid.Mode = (int)ELiquidMode.MuaNguocChieu;
+                    liquid.PriceAtLiquid = priceAtMaxLiquid;
                     return liquid;
                 }
             }
@@ -308,12 +317,24 @@ namespace CoinPr.Service
                     var res = LiquidBuy(msg, lLiquidLast, flag, avgPrice, dat);
                     res ??= LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat);
 
+                    if(res != null)
+                    {
+                        res.CurrentPrice = msg.AveragePrice;
+                        res.AvgPrice = avgPrice;
+                    }
+                   
                     return res;
                 }
                 else
                 {
                     var res = LiquidSell(msg, lLiquidLast, flag, avgPrice, dat);
                     res ??= LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat);
+
+                    if (res != null)
+                    {
+                        res.CurrentPrice = msg.AveragePrice;
+                        res.AvgPrice = avgPrice;
+                    }
 
                     return res;
                 }

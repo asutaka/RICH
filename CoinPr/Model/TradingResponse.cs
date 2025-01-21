@@ -22,5 +22,10 @@ namespace CoinPr.Model
         public decimal TP { get; set; }//Only OrderBlock
         public decimal Focus { get; set; }
         public int Status { get; set; }//Only Liquid
+        //For Test
+        public decimal AvgPrice { get; set; }
+        public decimal PriceAtLiquid { get; set; }
+        public decimal CurrentPrice { get; set; }
+        public int Mode { get; set; }
     }
 }
