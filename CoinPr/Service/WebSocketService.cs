@@ -186,7 +186,7 @@ namespace CoinPr.Service
                         Focus = msg.AveragePrice,
                         Entry = msg.AveragePrice,
                         TP = avgPrice,
-                        SL = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
+                        SL = msg.AveragePrice + Math.Abs((msg.AveragePrice - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
@@ -268,7 +268,7 @@ namespace CoinPr.Service
                         Focus = msg.AveragePrice,
                         Entry = msg.AveragePrice,
                         TP = avgPrice,
-                        SL = msg.AveragePrice - Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
+                        SL = msg.AveragePrice - Math.Abs((msg.AveragePrice - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
                     liquid.Mode = (int)ELiquidMode.MuaNguocChieu;
