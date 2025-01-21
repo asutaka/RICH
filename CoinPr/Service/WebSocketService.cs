@@ -19,7 +19,7 @@ namespace CoinPr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ITradingRepo _tradingRepo;
-        private const int MIN_VALUE = 5000;
+        private const int MIN_VALUE = 10000;
         private static Dictionary<string, DateTime> _dicRes = new Dictionary<string, DateTime>();
         
         public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo)
