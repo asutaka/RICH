@@ -126,19 +126,20 @@ namespace CoinPr.Service
             try
             {
                 decimal priceAtMaxLiquid = 0;
-                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
+                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
                 if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                 {
                     priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                 }
 
                 //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
+                var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
+                var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
+
                 if (priceAtMaxLiquid > 0
-                    && msg.AveragePrice >= avgPrice
-                    && priceAtMaxLiquid > avgPrice)
+                    && msg.AveragePrice >= sl
+                    && msg.AveragePrice < entry)
                 {
-                    var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
-                    var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
                     var liquid = new TradingResponse
                     {
                         s = msg.Symbol,
@@ -168,28 +169,24 @@ namespace CoinPr.Service
         {
             try
             {
-                decimal priceAtMaxLiquid = 0;
-                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                if (maxLiquid.ElementAt(2) >= (decimal)0.88 * dat.data.liqHeatMap.maxLiqValue)
-                {
-                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                }
+                var lMaxliquid = lLiquid.Where(x => x.ElementAt(1) > flag).Where(x => x.ElementAt(2) >= (decimal)0.88 * dat.data.liqHeatMap.maxLiqValue);
+                if (lMaxliquid == null || !lMaxliquid.Any())
+                    return null;
+                var priceAtMaxLiquid = lMaxliquid.Max(x => x.ElementAt(1));
 
                 //Giá hiện tại nhỏ hơn giá tại điểm thanh lý
-                if (priceAtMaxLiquid > 0
-                    && msg.AveragePrice < priceAtMaxLiquid)
+                if (msg.AveragePrice > priceAtMaxLiquid)
                 {
-                    var sl = msg.AveragePrice - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                     var liquid = new TradingResponse
                     {
                         s = msg.Symbol,
                         Date = DateTime.Now,
                         Type = (int)TradingResponseType.Liquid,
                         Side = Binance.Net.Enums.OrderSide.Sell,
-                        Focus = priceAtMaxLiquid,
+                        Focus = msg.AveragePrice,
                         Entry = msg.AveragePrice,
                         TP = avgPrice,
-                        SL = sl,
+                        SL = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
@@ -210,19 +207,21 @@ namespace CoinPr.Service
             try
             {
                 decimal priceAtMaxLiquid = 0;
-                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
+                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag).MaxBy(x => x.ElementAt(2));
                 if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                 {
                     priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                 }
 
                 //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
+                var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
+                var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
+
                 if (priceAtMaxLiquid > 0
-                   && msg.AveragePrice <= avgPrice
-                   && priceAtMaxLiquid < avgPrice)
+                   && msg.AveragePrice <= sl
+                   && msg.AveragePrice > entry)
                 {
-                    var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
-                    var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
+                   
                     var liquid = new TradingResponse
                     {
                         s = msg.Symbol,
@@ -252,16 +251,13 @@ namespace CoinPr.Service
         {
             try
             {
-                decimal priceAtMaxLiquid = 0;
-                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
-                {
-                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                }
+                var lMaxliquid = lLiquid.Where(x => x.ElementAt(1) < flag).Where(x => x.ElementAt(2) >= (decimal)0.88 * dat.data.liqHeatMap.maxLiqValue);
+                if (lMaxliquid == null || !lMaxliquid.Any())
+                    return null;
+                var priceAtMaxLiquid = lMaxliquid.Min(x => x.ElementAt(1));
 
                 //Giá hiện tại lớn hơn giá tại điểm thanh lý
-                if (priceAtMaxLiquid > 0
-                    && msg.AveragePrice > priceAtMaxLiquid)
+                if (msg.AveragePrice < priceAtMaxLiquid)
                 {
                     var liquid = new TradingResponse
                     {
@@ -269,10 +265,10 @@ namespace CoinPr.Service
                         Date = DateTime.Now,
                         Type = (int)TradingResponseType.Liquid,
                         Side = Binance.Net.Enums.OrderSide.Buy,
-                        Focus = priceAtMaxLiquid,
+                        Focus = msg.AveragePrice,
                         Entry = msg.AveragePrice,
                         TP = avgPrice,
-                        SL = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
+                        SL = msg.AveragePrice - Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
                     liquid.Mode = (int)ELiquidMode.MuaNguocChieu;
@@ -296,24 +292,26 @@ namespace CoinPr.Service
                 if (dat?.data?.liqHeatMap is null)
                     return null;
 
+                var avgPrice = (decimal)0.5 * (dat.data.liqHeatMap.priceArray[0] + dat.data.liqHeatMap.priceArray[count - 1]);
+
                 var flag = -1;
                 var count = dat.data.liqHeatMap.priceArray.Count();
                 for (var i = 0; i < count; i++)
                 {
                     var element = dat.data.liqHeatMap.priceArray[i];
-                    if (element > msg.AveragePrice)
+                    if (element >= avgPrice)
                     {
                         flag = i; break;
                     }
                 }
-                var avgPrice = (decimal)0.5 * (dat.data.liqHeatMap.priceArray[0] + dat.data.liqHeatMap.priceArray[count - 1]);
+               
 
                 if (flag <= 0)
                     return null;
 
                 var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 270);
                 var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
-                if (msg.Side == Binance.Net.Enums.OrderSide.Buy)
+                if (msg.AveragePrice >= avgPrice)
                 {
                     var res = LiquidBuy(msg, lLiquidLast, flag, avgPrice, dat);
                     res ??= LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat);
