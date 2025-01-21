@@ -60,7 +60,7 @@ namespace CoinPr.Service
                         var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
                         if (!string.IsNullOrWhiteSpace(mes))
                         {
-                            _teleService.SendMessage(_idChannel, mes).GetAwaiter().GetResult();
+                            _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
                             //Console.WriteLine(mes);
                         }
                     }
@@ -132,7 +132,8 @@ namespace CoinPr.Service
 
                 //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
                 if (priceAtMaxLiquid > 0
-                    && msg.AveragePrice >= avgPrice)
+                    && msg.AveragePrice >= avgPrice
+                    && priceAtMaxLiquid > avgPrice)
                 {
                     var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
                     var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
@@ -211,7 +212,8 @@ namespace CoinPr.Service
 
                 //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
                 if (priceAtMaxLiquid > 0
-                   && msg.AveragePrice <= avgPrice)
+                   && msg.AveragePrice <= avgPrice
+                   && priceAtMaxLiquid < avgPrice)
                 {
                     var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
                     var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
