@@ -35,7 +35,7 @@ namespace CoinPr.Service
             {
                 var liquid = StaticVal.BinanceSocketInstance().UsdFuturesApi.ExchangeData.SubscribeToAllLiquidationUpdatesAsync((data) =>
                 {
-                    var val = Math.Round(data.Data.Price * data.Data.Quantity);
+                    var val = Math.Round(data.Data.AveragePrice * data.Data.Quantity);
                     if(val >= MIN_VALUE && StaticVal._lCoinAnk.Contains(data.Data.Symbol))
                     {
                         var dt = DateTime.Now;
@@ -132,7 +132,7 @@ namespace CoinPr.Service
 
                 //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
                 if (priceAtMaxLiquid > 0
-                    && msg.Price >= avgPrice)
+                    && msg.AveragePrice >= avgPrice)
                 {
                     var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
                     var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
@@ -172,9 +172,9 @@ namespace CoinPr.Service
 
                 //Giá hiện tại nhỏ hơn giá tại điểm thanh lý
                 if (priceAtMaxLiquid > 0
-                    && msg.Price < priceAtMaxLiquid)
+                    && msg.AveragePrice < priceAtMaxLiquid)
                 {
-                    var sl = msg.Price - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
+                    var sl = msg.AveragePrice - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                     var liquid = new TradingResponse
                     {
                         s = msg.Symbol,
@@ -182,7 +182,7 @@ namespace CoinPr.Service
                         Type = (int)TradingResponseType.Liquid,
                         Side = Binance.Net.Enums.OrderSide.Buy,
                         Focus = priceAtMaxLiquid,
-                        Entry = msg.Price,
+                        Entry = msg.AveragePrice,
                         TP = avgPrice,
                         SL = sl,
                         Status = (int)LiquidStatus.Ready
@@ -211,7 +211,7 @@ namespace CoinPr.Service
 
                 //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
                 if (priceAtMaxLiquid > 0
-                   && msg.Price <= avgPrice)
+                   && msg.AveragePrice <= avgPrice)
                 {
                     var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
                     var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
@@ -251,7 +251,7 @@ namespace CoinPr.Service
 
                 //Giá hiện tại lớn hơn giá tại điểm thanh lý
                 if (priceAtMaxLiquid > 0
-                    && msg.Price > priceAtMaxLiquid)
+                    && msg.AveragePrice > priceAtMaxLiquid)
                 {
                     var liquid = new TradingResponse
                     {
@@ -260,9 +260,9 @@ namespace CoinPr.Service
                         Type = (int)TradingResponseType.Liquid,
                         Side = Binance.Net.Enums.OrderSide.Sell,
                         Focus = priceAtMaxLiquid,
-                        Entry = msg.Price,
+                        Entry = msg.AveragePrice,
                         TP = avgPrice,
-                        SL = msg.Price + Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
+                        SL = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
                     return liquid;
@@ -289,7 +289,7 @@ namespace CoinPr.Service
                 for (var i = 0; i < count; i++)
                 {
                     var element = dat.data.liqHeatMap.priceArray[i];
-                    if (element > msg.Price)
+                    if (element > msg.AveragePrice)
                     {
                         flag = i; break;
                     }
