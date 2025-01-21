@@ -7,6 +7,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services.AddHostedService<Worker>();
         services.AddHttpClient();
+        services.AddMemoryCache();
         services.ServiceDependencies();
         services.DALDependencies();
     })

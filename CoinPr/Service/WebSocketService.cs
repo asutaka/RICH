@@ -18,7 +18,8 @@ namespace CoinPr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ITradingRepo _tradingRepo;
-        private const int MIN_VALUE = 20000;
+        private const int MIN_VALUE = 15000;
+        private static Dictionary<string, DateTime> _dicRes = new Dictionary<string, DateTime>();
         
         public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo)
         {
@@ -37,6 +38,25 @@ namespace CoinPr.Service
                     var val = Math.Round(data.Data.Price * data.Data.Quantity);
                     if(val >= MIN_VALUE && StaticVal._lCoinAnk.Contains(data.Data.Symbol))
                     {
+                        var dt = DateTime.Now;
+                        var first = _dicRes.FirstOrDefault(x => x.Key == data.Data.Symbol);
+                        if(first.Key != null)
+                        {
+                            var div = (dt - first.Value).TotalSeconds;
+                            if(div >= 30)
+                            {
+                                _dicRes[data.Data.Symbol] = dt;
+                            }
+                            else
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            _dicRes.Add(data.Data.Symbol, dt);
+                        }
+
                         var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
                         if (!string.IsNullOrWhiteSpace(mes))
                         {
