@@ -3,6 +3,7 @@ using CoinPr.DAL;
 using CoinPr.Model;
 using CoinPr.Utils;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace CoinPr.Service
 {
@@ -38,6 +39,7 @@ namespace CoinPr.Service
                     var val = Math.Round(data.Data.AveragePrice * data.Data.Quantity);
                     if(val >= MIN_VALUE && StaticVal._lCoinAnk.Contains(data.Data.Symbol))
                     {
+                        Console.WriteLine(JsonConvert.SerializeObject(data.Data));
                         var dt = DateTime.Now;
                         var first = _dicRes.FirstOrDefault(x => x.Key == data.Data.Symbol);
                         if(first.Key != null)
@@ -96,9 +98,8 @@ namespace CoinPr.Service
                     liquid.TP = Math.Round(liquid.TP, 5);
                     liquid.SL = Math.Round(liquid.SL, 5);
                 }
-                var side = ((liquid.Side == Binance.Net.Enums.OrderSide.Buy && !string.IsNullOrWhiteSpace(ext))
-                            || (liquid.Side == Binance.Net.Enums.OrderSide.Sell && string.IsNullOrWhiteSpace(ext))) ? 1 : 2;
-                var sideText = side == 1 ? "Long" : "Short";
+                var side = (liquid.Mode == (int)ELiquidMode.MuaCungChieu || liquid.Mode == (int)ELiquidMode.MuaNguocChieu) ? 1 : 2;
+                var sideText =  side == 1 ? "Long" : "Short";
 
                 mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}{ext}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}\n" +
                     $"PriceAt: {liquid.PriceAtLiquid}| Avg: {liquid.AvgPrice}| Cur: {liquid.CurrentPrice}|Mode:{((ELiquidMode)liquid.Mode).ToString()}";
@@ -169,7 +170,7 @@ namespace CoinPr.Service
             {
                 decimal priceAtMaxLiquid = 0;
                 var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag - 1).MaxBy(x => x.ElementAt(2));
-                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
+                if (maxLiquid.ElementAt(2) >= (decimal)0.88 * dat.data.liqHeatMap.maxLiqValue)
                 {
                     priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
                 }
