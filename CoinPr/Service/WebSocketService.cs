@@ -116,7 +116,7 @@ namespace CoinPr.Service
                         Date = DateTime.Now,
                         Type = (int)TradingResponseType.Liquid,
                         Side = Binance.Net.Enums.OrderSide.Buy,
-                        Focus = avgPrice,
+                        Focus = sl,
                         Entry = entry,
                         TP = priceAtMaxLiquid,
                         SL = sl,
@@ -148,6 +148,7 @@ namespace CoinPr.Service
                 if (priceAtMaxLiquid > 0
                     && msg.Price < priceAtMaxLiquid)
                 {
+                    var sl = msg.Price - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                     var liquid = new TradingResponse
                     {
                         s = msg.Symbol,
@@ -157,7 +158,7 @@ namespace CoinPr.Service
                         Focus = priceAtMaxLiquid,
                         Entry = msg.Price,
                         TP = avgPrice,
-                        SL = msg.Price - Math.Abs((priceAtMaxLiquid - avgPrice) / 3),
+                        SL = sl,
                         Status = (int)LiquidStatus.Ready
                     };
                     return liquid;
@@ -194,7 +195,7 @@ namespace CoinPr.Service
                         Date = DateTime.Now,
                         Type = (int)TradingResponseType.Liquid,
                         Side = Binance.Net.Enums.OrderSide.Sell,
-                        Focus = avgPrice,
+                        Focus = sl,
                         Entry = entry,
                         TP = priceAtMaxLiquid,
                         SL = sl,
