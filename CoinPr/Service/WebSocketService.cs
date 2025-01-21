@@ -90,6 +90,12 @@ namespace CoinPr.Service
                     liquid.TP = Math.Round(liquid.TP, 2);
                     liquid.SL = Math.Round(liquid.SL, 2);
                 }
+                else
+                {
+                    liquid.Entry = Math.Round(liquid.Entry, 5);
+                    liquid.TP = Math.Round(liquid.TP, 5);
+                    liquid.SL = Math.Round(liquid.SL, 5);
+                }
                 var side = ((liquid.Side == Binance.Net.Enums.OrderSide.Buy && !string.IsNullOrWhiteSpace(ext))
                             || (liquid.Side == Binance.Net.Enums.OrderSide.Sell && string.IsNullOrWhiteSpace(ext))) ? 1 : 2;
                 var sideText = side == 1 ? "Long" : "Short";
