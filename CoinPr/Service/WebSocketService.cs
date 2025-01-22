@@ -111,7 +111,11 @@ namespace CoinPr.Service
                     Entry = (double)liquid.Entry,
                     TP = (double)liquid.TP,
                     SL = (double)liquid.SL,
-                    Focus = (double)liquid.Focus
+                    Focus = (double)liquid.Focus,
+                    AvgPrice = (double)liquid.AvgPrice,
+                    PriceAtLiquid = (double)liquid.PriceAtLiquid,
+                    CurrentPrice = (double)liquid.CurrentPrice,
+                    Mode = liquid.Mode
                 });
             }
             catch (Exception ex)

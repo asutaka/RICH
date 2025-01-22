@@ -1,4 +1,5 @@
 using TestPr;
+using TestPr.DAL.Settings;
 using TestPr.Service.Settings;
 
 IHost host = Host.CreateDefaultBuilder(args)
@@ -7,6 +8,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddHostedService<Worker>();
         services.AddHttpClient();
         services.ServiceDependencies();
+        services.DALDependencies();
     })
     .Build();
 

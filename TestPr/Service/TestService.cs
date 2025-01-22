@@ -1,4 +1,5 @@
 ﻿using Skender.Stock.Indicators;
+using TestPr.DAL;
 using TestPr.Model;
 using TestPr.Utils;
 
@@ -7,15 +8,18 @@ namespace TestPr.Service
     public interface ITestService
     {
         Task MethodTest();
+        Task MethodTestEntry();
     }
     public class TestService : ITestService
     {
         private readonly ILogger<TestService> _logger;
         private readonly IAPIService _apiService;
-        public TestService(ILogger<TestService> logger, IAPIService apiService)
+        private readonly ITradingRepo _tradingRepo;
+        public TestService(ILogger<TestService> logger, IAPIService apiService, ITradingRepo tradingRepo)
         {
             _logger = logger;
             _apiService = apiService;
+            _tradingRepo = tradingRepo;
         }
 
         public async Task MethodTest()
@@ -185,7 +189,19 @@ namespace TestPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"TestService.MethodTest|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task MethodTestEntry()
+        {
+            try
+            {
+                var lTrading = _tradingRepo.GetAll();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
     }
