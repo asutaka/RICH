@@ -172,7 +172,8 @@ namespace CoinPr.Service
                 var lMaxliquid = lLiquid.Where(x => x.ElementAt(1) > flag).Where(x => x.ElementAt(2) >= (decimal)0.88 * dat.data.liqHeatMap.maxLiqValue);
                 if (lMaxliquid == null || !lMaxliquid.Any())
                     return null;
-                var priceAtMaxLiquid = lMaxliquid.Max(x => x.ElementAt(1));
+                var index = lMaxliquid.MaxBy(x => x.ElementAt(1));
+                var priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)index.ElementAt(1)];
 
                 //Giá hiện tại nhỏ hơn giá tại điểm thanh lý
                 if (msg.AveragePrice > priceAtMaxLiquid)
@@ -254,7 +255,8 @@ namespace CoinPr.Service
                 var lMaxliquid = lLiquid.Where(x => x.ElementAt(1) < flag).Where(x => x.ElementAt(2) >= (decimal)0.88 * dat.data.liqHeatMap.maxLiqValue);
                 if (lMaxliquid == null || !lMaxliquid.Any())
                     return null;
-                var priceAtMaxLiquid = lMaxliquid.Min(x => x.ElementAt(1));
+                var index = lMaxliquid.MinBy(x => x.ElementAt(1));
+                var priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)index.ElementAt(1)];
 
                 //Giá hiện tại lớn hơn giá tại điểm thanh lý
                 if (msg.AveragePrice < priceAtMaxLiquid)
