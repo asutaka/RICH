@@ -191,7 +191,7 @@ namespace CoinPr.Service
                         Side = Binance.Net.Enums.OrderSide.Sell,
                         Focus = msg.AveragePrice,
                         Entry = msg.AveragePrice,
-                        TP = avgPrice,
+                        TP = priceAtMaxLiquid - Math.Abs((msg.AveragePrice - avgPrice) / 3),
                         SL = msg.AveragePrice + Math.Abs((msg.AveragePrice - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
@@ -274,7 +274,7 @@ namespace CoinPr.Service
                         Side = Binance.Net.Enums.OrderSide.Buy,
                         Focus = msg.AveragePrice,
                         Entry = msg.AveragePrice,
-                        TP = avgPrice,
+                        TP = priceAtMaxLiquid + Math.Abs((msg.AveragePrice - avgPrice) / 3),,
                         SL = msg.AveragePrice - Math.Abs((msg.AveragePrice - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
@@ -315,7 +315,7 @@ namespace CoinPr.Service
                 if (flag <= 0)
                     return null;
 
-                var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 270);
+                var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280 && x.ElementAt(0) <= 286);
                 var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
                 if (msg.AveragePrice >= avgPrice)
                 {
