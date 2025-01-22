@@ -274,7 +274,7 @@ namespace CoinPr.Service
                         Side = Binance.Net.Enums.OrderSide.Buy,
                         Focus = msg.AveragePrice,
                         Entry = msg.AveragePrice,
-                        TP = priceAtMaxLiquid + Math.Abs((msg.AveragePrice - avgPrice) / 3),,
+                        TP = priceAtMaxLiquid + Math.Abs((msg.AveragePrice - avgPrice) / 3),
                         SL = msg.AveragePrice - Math.Abs((msg.AveragePrice - avgPrice) / 3),
                         Status = (int)LiquidStatus.Ready
                     };
