@@ -115,7 +115,8 @@ namespace CoinPr.Service
                     AvgPrice = (double)liquid.AvgPrice,
                     PriceAtLiquid = (double)liquid.PriceAtLiquid,
                     CurrentPrice = (double)liquid.CurrentPrice,
-                    Mode = liquid.Mode
+                    Mode = liquid.Mode,
+                    Date = liquid.Date,
                 });
             }
             catch (Exception ex)

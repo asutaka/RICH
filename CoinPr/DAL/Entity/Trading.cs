@@ -17,5 +17,6 @@ namespace CoinPr.DAL.Entity
         public double PriceAtLiquid { get; set; }
         public double CurrentPrice { get; set; }
         public int Mode { get; set; }
+        public DateTime Date { get; set; }
     }
 }
