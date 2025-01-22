@@ -13,5 +13,10 @@ namespace TestPr.DAL.Entity
         public double TP { get; set; }//Only OrderBlock
         public double Focus { get; set; }
         public int Status { get; set; }//Only Liquid
+
+        public double AvgPrice { get; set; }
+        public double PriceAtLiquid { get; set; }
+        public double CurrentPrice { get; set; }
+        public int Mode { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Skender.Stock.Indicators;
+﻿using MongoDB.Driver.Linq;
+using Newtonsoft.Json;
+using Skender.Stock.Indicators;
 using TestPr.DAL;
 using TestPr.Model;
 using TestPr.Utils;
@@ -198,6 +200,64 @@ namespace TestPr.Service
             try
             {
                 var lTrading = _tradingRepo.GetAll();
+                var lSymbol = lTrading.Select(x => x.s).Distinct();
+                foreach (var item in lSymbol)
+                {
+                    var lval = lTrading.Where(x => x.s == item);
+                    var lData = await _apiService.GetData(item, EInterval.M1);
+                    foreach (var val in lval)
+                    {
+                        var lVisible = lData.Where(x => new DateTimeOffset(x.Date).ToUnixTimeSeconds() > val.d);
+                        if (!lVisible.Any())
+                            continue;
+                        if(val.Side == 1)
+                        {
+                            var first = lVisible.FirstOrDefault(x => x.High >= (decimal)val.Entry);
+                            if (first is null)
+                                continue;
+
+                            var lLast = lVisible.Where(x => x.Date > first.Date);
+                            foreach (var itemlast in lLast)
+                            {
+                                if(itemlast.Low <= (decimal)val.SL)
+                                {
+                                    //Loss
+                                    Console.WriteLine($"|LOSS| {JsonConvert.SerializeObject(val)}");
+                                    break;
+                                }
+                                else if(itemlast.High >= (decimal)val.TP)
+                                {
+                                    //Win
+                                    Console.WriteLine($"|WIN| {JsonConvert.SerializeObject(val)}");
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var first = lVisible.FirstOrDefault(x => x.Low <= (decimal)val.Entry);
+                            if (first is null)
+                                continue;
+
+                            var lLast = lVisible.Where(x => x.Date > first.Date);
+                            foreach (var itemlast in lLast)
+                            {
+                                if (itemlast.High >= (decimal)val.SL)
+                                {
+                                    //Loss
+                                    Console.WriteLine($"|LOSS| {JsonConvert.SerializeObject(val)}");
+                                    break;
+                                }
+                                else if (itemlast.Low <= (decimal)val.TP)
+                                {
+                                    //Win
+                                    Console.WriteLine($"|WIN| {JsonConvert.SerializeObject(val)}");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {

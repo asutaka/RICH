@@ -12,6 +12,8 @@ namespace TestPr.Utils
 
     public enum EInterval
     {
+        [Display(Name = "M1")]
+        M1 = 0,
         [Display(Name = "M15")]
         M15 = 1,//15m
         [Display(Name = "H1")]

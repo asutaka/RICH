@@ -26,26 +26,25 @@ namespace TestPr.Service
             try
             {
                 string intervalStr = "15m";
-                Binance.Net.Enums.KlineInterval BinanceInterval = Binance.Net.Enums.KlineInterval.FifteenMinutes;
                 if (interval == EInterval.H1)
                 {
                     intervalStr = "1h";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneHour;
                 }
                 else if (interval == EInterval.H4)
                 {
                     intervalStr = "4h";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.FourHour;
                 }
                 else if (interval == EInterval.D1)
                 {
                     intervalStr = "1d";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneDay;
                 }
                 else if (interval == EInterval.W1)
                 {
                     intervalStr = "1w";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneWeek;
+                }
+                else if (interval == EInterval.M1)
+                {
+                    intervalStr = "1m";
                 }
                 var lDataBinance = await GetCoinData_Binance(symbol, intervalStr, 0);
 
