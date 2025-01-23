@@ -378,7 +378,7 @@ namespace CoinPr.Service
                 var lTopBot15M = lData15M.GetTopBottom_H(0);
 
                 var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280 && x.ElementAt(0) <= 286);
-                var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
+                var lLiquidLast = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) == 288);
                 if (msg.AveragePrice >= avgPrice)
                 {
                     var res = LiquidBuy(msg, lLiquidLast, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
