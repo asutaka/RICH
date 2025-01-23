@@ -200,7 +200,7 @@ namespace CoinPr.Service
                 var priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)index.ElementAt(1)];
 
                 //Giá hiện tại nhỏ hơn giá tại điểm thanh lý
-                if (msg.AveragePrice > priceAtMaxLiquid)
+                if (msg.AveragePrice > priceAtMaxLiquid && rsi5 > 70)
                 {
                     var liquid = new TradingResponse
                     {
@@ -302,8 +302,8 @@ namespace CoinPr.Service
                 var index = lMaxliquid.MinBy(x => x.ElementAt(1));
                 var priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)index.ElementAt(1)];
 
-                //Giá hiện tại lớn hơn giá tại điểm thanh lý
-                if (msg.AveragePrice < priceAtMaxLiquid)
+                //Giá hiện tại nhỏ hơn giá tại điểm thanh lý
+                if (msg.AveragePrice < priceAtMaxLiquid && rsi5 < 30)
                 {
                     var liquid = new TradingResponse
                     {
