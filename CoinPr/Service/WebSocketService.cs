@@ -46,7 +46,7 @@ namespace CoinPr.Service
                         if(first.Key != null)
                         {
                             var div = (dt - first.Value).TotalSeconds;
-                            if(div >= 30)
+                            if(div >= 60)
                             {
                                 _dicRes[data.Data.Symbol] = dt;
                             }
