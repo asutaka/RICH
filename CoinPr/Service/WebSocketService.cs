@@ -4,6 +4,7 @@ using CoinPr.Model;
 using CoinPr.Utils;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using Skender.Stock.Indicators;
 
 namespace CoinPr.Service
 {
@@ -117,6 +118,15 @@ namespace CoinPr.Service
                     CurrentPrice = (double)liquid.CurrentPrice,
                     Mode = liquid.Mode,
                     Date = liquid.Date,
+                    Rsi_5 = (double)liquid.Rsi_5,
+                    Rsi_15 = (double)liquid.Rsi_15,
+                    Top_1 = (double)liquid.Top_1,
+                    Top_2 = (double)liquid.Top_2,
+                    Bot_1 = (double)liquid.Bot_1,
+                    Bot_2 = (double)liquid.Bot_2,
+                    TP_2 = (double)liquid.TP_2,
+                    TP_3 = (double)liquid.TP_3,
+                    SL_2 = (double)liquid.SL_2,
                 });
             }
             catch (Exception ex)
@@ -126,11 +136,11 @@ namespace CoinPr.Service
             return mes;
         }
 
-        private TradingResponse LiquidBuy(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
+        private (bool, TradingResponse) LiquidBuy(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
         {
+            decimal priceAtMaxLiquid = 0;
             try
             {
-                decimal priceAtMaxLiquid = 0;
                 var maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
                 if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                 {
@@ -159,7 +169,16 @@ namespace CoinPr.Service
                     };
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
                     liquid.Mode = (int)ELiquidMode.MuaCungChieu;
-                    return liquid;
+                    liquid.Rsi_5 = (decimal)rsi5;
+                    liquid.Rsi_15 = (decimal)rsi15;
+                    liquid.Top_1 = top1;
+                    liquid.Top_2 = top2;
+                    liquid.Bot_1 = bot1;
+                    liquid.Bot_2 = bot2;
+                    liquid.TP_2 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - liquid.Entry) / 3;
+                    liquid.TP_3 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - liquid.Entry) / 2;
+                    liquid.SL_2 = 0;
+                    return (true, liquid);
                 }
             }
             catch (Exception ex)
@@ -167,10 +186,10 @@ namespace CoinPr.Service
                 _logger.LogError(ex, $"WebSocketService.LiquidBuy|EXCEPTION| {ex.Message}");
             }
 
-            return null;
+            return (priceAtMaxLiquid > 0, null);
         }
 
-        private TradingResponse LiquidBuy_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
+        private TradingResponse LiquidBuy_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
         {
             try
             {
@@ -197,6 +216,16 @@ namespace CoinPr.Service
                     };
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
                     liquid.Mode = (int)ELiquidMode.BanNguocChieu;
+                    liquid.Rsi_5 = (decimal)rsi5;
+                    liquid.Rsi_15 = (decimal)rsi15;
+                    liquid.Top_1 = top1;
+                    liquid.Top_2 = top2;
+                    liquid.Bot_1 = bot1;
+                    liquid.Bot_2 = bot2;
+
+                    liquid.TP_2 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - avgPrice) / 3;
+                    liquid.TP_3 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - avgPrice) / 2;
+                    liquid.SL_2 = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                     return liquid;
                 }
             }
@@ -208,11 +237,11 @@ namespace CoinPr.Service
             return null;
         }
 
-        private TradingResponse LiquidSell(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
+        private (bool, TradingResponse) LiquidSell(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
         {
+            decimal priceAtMaxLiquid = 0;
             try
             {
-                decimal priceAtMaxLiquid = 0;
                 var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag).MaxBy(x => x.ElementAt(2));
                 if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
                 {
@@ -242,7 +271,17 @@ namespace CoinPr.Service
                     };
                     liquid.Mode = (int)ELiquidMode.BanCungChieu;
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
-                    return liquid;
+                    liquid.Rsi_5 = (decimal)rsi5;
+                    liquid.Rsi_15 = (decimal)rsi15;
+                    liquid.Top_1 = top1;
+                    liquid.Top_2 = top2;
+                    liquid.Bot_1 = bot1;
+                    liquid.Bot_2 = bot2;
+
+                    liquid.TP_2 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - liquid.Entry) / 3;
+                    liquid.TP_3 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - liquid.Entry) / 2;
+                    liquid.SL_2 = 0;
+                    return (true, liquid);
                 }
             }
             catch (Exception ex)
@@ -250,10 +289,10 @@ namespace CoinPr.Service
                 _logger.LogError(ex, $"WebSocketService.LiquidSell|EXCEPTION| {ex.Message}");
             }
 
-            return null;
+            return (priceAtMaxLiquid > 0, null);
         }
 
-        private TradingResponse LiquidSell_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat)
+        private TradingResponse LiquidSell_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
         {
             try
             {
@@ -280,6 +319,16 @@ namespace CoinPr.Service
                     };
                     liquid.Mode = (int)ELiquidMode.MuaNguocChieu;
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
+                    liquid.Rsi_5 = (decimal)rsi5;
+                    liquid.Rsi_15 = (decimal)rsi15;
+                    liquid.Top_1 = top1;
+                    liquid.Top_2 = top2;
+                    liquid.Bot_1 = bot1;
+                    liquid.Bot_2 = bot2;
+
+                    liquid.TP_2 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - avgPrice) / 3;
+                    liquid.TP_3 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - avgPrice) / 2;
+                    liquid.SL_2 = msg.AveragePrice - Math.Abs((priceAtMaxLiquid - avgPrice) / 3);
                     return liquid;
                 }
             }
@@ -314,34 +363,53 @@ namespace CoinPr.Service
 
                 if (flag <= 0)
                     return null;
+                var lData5M = await _apiService.GetData(msg.Symbol, EExchange.Binance, EInterval.M5);
+                var lRsi5M = lData5M.GetRsi();
+                var lTopBot5M = lData5M.GetTopBottom_H(0);
+                var lTop = lTopBot5M.Where(x => x.IsTop);
+                var lBot = lTopBot5M.Where(x => x.IsBot);
+                var top1 = lTop?.LastOrDefault()?.Value ?? 0;
+                var top2 = lTop?.SkipLast(1).LastOrDefault()?.Value ?? 0;
+                var bot1 = lBot?.LastOrDefault()?.Value ?? 0;
+                var bot2 = lBot?.SkipLast(1).LastOrDefault()?.Value ?? 0;
+                Thread.Sleep(200);
+                var lData15M = await _apiService.GetData(msg.Symbol, EExchange.Binance, EInterval.M15);
+                var lRsi15M = lData15M.GetRsi();
+                var lTopBot15M = lData15M.GetTopBottom_H(0);
 
                 var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280 && x.ElementAt(0) <= 286);
                 var lLiquidLast = lLiquid.Where(x => x.ElementAt(0) == 288);
                 if (msg.AveragePrice >= avgPrice)
                 {
-                    var res = LiquidBuy(msg, lLiquidLast, flag, avgPrice, dat);
-                    res ??= LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat);
-
-                    if(res != null)
+                    var res = LiquidBuy(msg, lLiquidLast, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
+                    if(!res.Item1)
                     {
-                        res.CurrentPrice = msg.AveragePrice;
-                        res.AvgPrice = avgPrice;
+                        res.Item2 ??= LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
+                    }    
+
+                    if(res.Item2 != null)
+                    {
+                        res.Item2.CurrentPrice = msg.AveragePrice;
+                        res.Item2.AvgPrice = avgPrice;
                     }
                    
-                    return res;
+                    return res.Item2;
                 }
                 else
                 {
-                    var res = LiquidSell(msg, lLiquidLast, flag, avgPrice, dat);
-                    res ??= LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat);
-
-                    if (res != null)
+                    var res = LiquidSell(msg, lLiquidLast, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
+                    if(!res.Item1)
                     {
-                        res.CurrentPrice = msg.AveragePrice;
-                        res.AvgPrice = avgPrice;
+                        res.Item2 ??= LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
+                    }
+                    
+                    if (res.Item2 != null)
+                    {
+                        res.Item2.CurrentPrice = msg.AveragePrice;
+                        res.Item2.AvgPrice = avgPrice;
                     }
 
-                    return res;
+                    return res.Item2;
                 }
             }
             catch (Exception ex)

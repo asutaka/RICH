@@ -18,5 +18,16 @@ namespace CoinPr.DAL.Entity
         public double CurrentPrice { get; set; }
         public int Mode { get; set; }
         public DateTime Date { get; set; }
+
+
+        public double Rsi_5 { get; set; }//5p
+        public double Rsi_15 { get; set; }//15
+        public double Top_1 { get; set; }
+        public double Top_2 { get; set; }
+        public double Bot_1 { get; set; }
+        public double Bot_2 { get; set; }
+        public double TP_2 { get; set; }
+        public double TP_3 { get; set; }
+        public double SL_2 { get; set; }
     }
 }

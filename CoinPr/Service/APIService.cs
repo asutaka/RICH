@@ -33,73 +33,41 @@ namespace CoinPr.Service
         {
             try
             {
-                if (exchange == EExchange.Bybit)
-                {
-                    Bybit.Net.Enums.KlineInterval bybitInterval = Bybit.Net.Enums.KlineInterval.FifteenMinutes;
-                    if(interval == EInterval.H1)
-                    {
-                        bybitInterval = Bybit.Net.Enums.KlineInterval.OneHour;
-                    }
-                    else if(interval == EInterval.H4)
-                    {
-                        bybitInterval = Bybit.Net.Enums.KlineInterval.FourHours;
-                    }
-                    else if(interval == EInterval.D1)
-                    {
-                        bybitInterval = Bybit.Net.Enums.KlineInterval.OneDay;
-                    }
-                    else if(interval == EInterval.W1)
-                    {
-                        bybitInterval = Bybit.Net.Enums.KlineInterval.OneWeek;
-                    }
-
-                    var lByBit = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Bybit.Net.Enums.Category.Linear, symbol, bybitInterval);
-                    var lDataBybit = lByBit.Data.List.Select(x => new Quote
-                    {
-                        Date = x.StartTime,
-                        Open = x.OpenPrice,
-                        High = x.HighPrice,
-                        Low = x.LowPrice,
-                        Close = x.ClosePrice,
-                        Volume = x.Volume,
-                    }).ToList();
-
-                    return lDataBybit;
-                }
-
-                string intervalStr = "15m";
-                Binance.Net.Enums.KlineInterval BinanceInterval = Binance.Net.Enums.KlineInterval.FifteenMinutes;
-                if (interval == EInterval.H1)
-                {
-                    intervalStr = "1h";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneHour;
-                }
-                else if (interval == EInterval.H4)
-                {
-                    intervalStr = "4h";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.FourHour;
-                }
-                else if (interval == EInterval.D1)
-                {
-                    intervalStr = "1d";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneDay;
-                }
-                else if (interval == EInterval.W1)
-                {
-                    intervalStr = "1w";
-                    BinanceInterval = Binance.Net.Enums.KlineInterval.OneWeek;
-                }
-                //var lBinance = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, BinanceInterval, limit: 500);
-                //var lDataBinance = lBinance.Data.Select(x => new Quote
+                //if (exchange == EExchange.Bybit)
                 //{
-                //    Date = x.OpenTime,
-                //    Open = x.OpenPrice,
-                //    High = x.HighPrice,
-                //    Low = x.LowPrice,
-                //    Close = x.ClosePrice,
-                //    Volume = x.Volume,
-                //}).ToList();
-                var lDataBinance = await GetCoinData_Binance(symbol, intervalStr, 0);
+                //    Bybit.Net.Enums.KlineInterval bybitInterval = Bybit.Net.Enums.KlineInterval.FifteenMinutes;
+                //    if(interval == EInterval.H1)
+                //    {
+                //        bybitInterval = Bybit.Net.Enums.KlineInterval.OneHour;
+                //    }
+                //    else if(interval == EInterval.H4)
+                //    {
+                //        bybitInterval = Bybit.Net.Enums.KlineInterval.FourHours;
+                //    }
+                //    else if(interval == EInterval.D1)
+                //    {
+                //        bybitInterval = Bybit.Net.Enums.KlineInterval.OneDay;
+                //    }
+                //    else if(interval == EInterval.W1)
+                //    {
+                //        bybitInterval = Bybit.Net.Enums.KlineInterval.OneWeek;
+                //    }
+
+                //    var lByBit = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Bybit.Net.Enums.Category.Linear, symbol, bybitInterval);
+                //    var lDataBybit = lByBit.Data.List.Select(x => new Quote
+                //    {
+                //        Date = x.StartTime,
+                //        Open = x.OpenPrice,
+                //        High = x.HighPrice,
+                //        Low = x.LowPrice,
+                //        Close = x.ClosePrice,
+                //        Volume = x.Volume,
+                //    }).ToList();
+
+                //    return lDataBybit;
+                //}
+
+                var lDataBinance = await GetCoinData_Binance(symbol, interval.GetDisplayName(), 0);
 
                 return lDataBinance;
             }

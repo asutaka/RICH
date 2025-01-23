@@ -27,5 +27,14 @@ namespace CoinPr.Model
         public decimal PriceAtLiquid { get; set; }
         public decimal CurrentPrice { get; set; }
         public int Mode { get; set; }
+        public decimal Rsi_5 { get; set; }//5p
+        public decimal Rsi_15 { get; set; }//15
+        public decimal Top_1 { get; set; }
+        public decimal Top_2 { get; set; }
+        public decimal Bot_1 { get; set; }
+        public decimal Bot_2 { get; set; }
+        public decimal TP_2 { get; set; }
+        public decimal TP_3 { get; set; }
+        public decimal SL_2 { get; set; }
     }
 }
