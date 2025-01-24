@@ -21,7 +21,7 @@ namespace TradePr.Utils
             return _binance;
         }
 
-        public static BinanceSocketClient BinanceSocketInstance(string key, string secret)
+        public static BinanceSocketClient BinanceSocketInstance()
         {
             if (_binanceSocket == null)
             {
@@ -29,5 +29,68 @@ namespace TradePr.Utils
             }
             return _binanceSocket;
         }
+
+        public static List<string> _lCoinAnk = new List<string>
+        {
+            "BTCUSDT",
+            "ETHUSDT",
+            "XRPUSDT",
+            "BNBUSDT",
+            "SOLUSDT",
+            "DOGEUSDT",
+            "LTCUSDT",
+            "BCHUSDT",
+            "DOTUSDT",
+            "LINKUSDT",
+            "ARBUSDT",
+            "WLDUSDT",
+            "MATICUSDT",
+            "ADAUSDT",
+            "OPUSDT",
+            "UNFIUSDT",
+            "MKRUSDT",
+            "PERPUSDT",
+            "APTUSDT",
+            "EOSUSDT",
+            "SUIUSDT",
+            "FILUSDT",
+            "ETCUSDT",
+            "AVAXUSDT",
+            "CYBERUSDT",
+            "ATOMUSDT",
+            "APEUSDT",
+            "DYDXUSDT",
+            "TRBUSDT",
+            "RUNEUSDT",
+            "AGLDUSDT",
+            "SUSHIUSDT",
+            "GRTUSDT",
+            "ANTUSDT",
+            "1INCHUSDT",
+            "JOEUSDT",
+            "LINAUSDT",
+            "GTCUSDT",
+            "XTZUSDT",
+            "NEOUSDT",
+            "BELUSDT",
+            "MAGICUSDT",
+            "EGLDUSDT",
+            "GMXUSDT",
+            "IDUSDT",
+            "THETAUSDT",
+            "VETAUSDT",
+            "KNCUSDT",
+            "STORGUSDT",
+            "AGIXUSDT",
+            "OCEANUSDT",
+            "STGUSDT",
+            "C98USDT",
+            "ZILUSDT",
+            "MDTUSDT",
+            "KLAYUSDT",
+            "MINAUSDT",
+            "HIGHUSDT",
+            "STMXUSDT"
+        };
     }
 }
