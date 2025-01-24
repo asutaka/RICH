@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using MongoDB.Driver;
+using Newtonsoft.Json;
+using TradePr.DAL;
+using TradePr.DAL.Entity;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -14,12 +17,14 @@ namespace TradePr.Service
         private readonly ICacheService _cacheService;
         private readonly string _api_key = string.Empty;
         private readonly string _api_secret = string.Empty;
-        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService) 
+        private readonly IActionTradeRepo _actionRepo;
+        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo) 
         { 
             _logger = logger;
             _api_key = config["Account:API_KEY"];
             _api_secret = config["Account:SECRET_KEY"];
             _cacheService = cacheService;
+            _actionRepo = actionRepo;
         }
 
         public async Task GetAccountInfo()
@@ -47,46 +52,137 @@ namespace TradePr.Service
                     if (!lSymbol.Any(x => x == data.Symbol))
                         return;
 
-                    Console.Write($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}: {JsonConvert.SerializeObject(data)}");
-                    var tmp = 1;
+                    FilterDefinition<ActionTrade> filter = null;
+                    var builder = Builders<ActionTrade>.Filter;
+                    var lFilter = new List<FilterDefinition<ActionTrade>>()
+                    {
+                        builder.Eq(x => x.IsFinish, false),
+                        builder.Eq(x => x.s, data.Symbol),
+                    };
+                    foreach (var item in lFilter)
+                    {
+                        if (filter is null)
+                        {
+                            filter = item;
+                            continue;
+                        }
+                        filter &= item;
+                    }
+                    var lProcessing = _actionRepo.GetByFilter(filter);
+                    var lTradingClean = lTrading.Where(x => x.s == data.Symbol);
+                    foreach ( var item in lTradingClean)
+                    {
+                        if (lProcessing.Any(x => x.key == item.key))
+                            continue;
 
+                        if(item.Mode == (int)ELiquidMode.BanNguocChieu
+                           || item.Mode == (int)ELiquidMode.MuaNguocChieu)
+                        {
+                            //Buy, Sell imediate 
+                            _actionRepo.InsertOne(new ActionTrade
+                            {
+                                key = item.key,
+                                s = item.s,
+                                Mode = item.Mode,
+                                dbuy = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                Entry = item.Entry,
+                                TP = item.TP,
+                                SL = item.SL,
+                                IsFinish = false
+                            });
+                            Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}: {JsonConvert.SerializeObject(data)}");
+                        }
+                        else if(item.Mode == (int)ELiquidMode.MuaCungChieu)
+                        {
+                            if(data.Data.LastPrice >= (decimal)item.Entry && data.Data.LastPrice < (decimal)(item.Entry + Math.Abs(item.TP - item.Entry)/3))
+                            {
+                                _actionRepo.InsertOne(new ActionTrade
+                                {
+                                    key = item.key,
+                                    s = item.s,
+                                    Mode = item.Mode,
+                                    dbuy = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                    Entry = item.Entry,
+                                    TP = item.TP,
+                                    SL = item.SL,
+                                    IsFinish = false
+                                });
+                                Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}: {JsonConvert.SerializeObject(data)}");
+                            }
+                        }
+                        else
+                        {
+                            if (data.Data.LastPrice <= (decimal)item.Entry && data.Data.LastPrice > (decimal)(item.Entry - Math.Abs(item.TP - item.Entry) / 3))
+                            {
+                                _actionRepo.InsertOne(new ActionTrade
+                                {
+                                    key = item.key,
+                                    s = item.s,
+                                    Mode = item.Mode,
+                                    dbuy = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                    Entry = item.Entry,
+                                    TP = item.TP,
+                                    SL = item.SL,
+                                    IsFinish = false
+                                });
+                                Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}: {JsonConvert.SerializeObject(data)}");
+                            }
+                        }
+                    }
 
+                    if(lProcessing.Any())
+                    {
+                        var now = DateTimeOffset.Now.ToUnixTimeSeconds();
+                        foreach(var item in lProcessing)
+                        {
+                            if(item.Mode == (int)ELiquidMode.MuaCungChieu 
+                            || item.Mode == (int)ELiquidMode.MuaNguocChieu)
+                            {
+                                if(data.Data.LastPrice >= (decimal)item.TP)
+                                {
+                                    item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                                    item.IsFinish = true;
+                                    item.IsWin = 1;
+                                    _actionRepo.Update(item);
+                                }
+                                else if(data.Data.LastPrice <= (decimal)item.SL)
+                                {
+                                    item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                                    item.IsFinish = true;
+                                    item.IsWin = 2;
+                                    _actionRepo.Update(item);
+                                }
+                            }
+                            else
+                            {
+                                if (data.Data.LastPrice <= (decimal)item.TP)
+                                {
+                                    item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                                    item.IsFinish = true;
+                                    item.IsWin = 1;
+                                    _actionRepo.Update(item);
+                                }
+                                else if (data.Data.LastPrice >= (decimal)item.SL)
+                                {
+                                    item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                                    item.IsFinish = true;
+                                    item.IsWin = 2;
+                                    _actionRepo.Update(item);
+                                }
+                            }
 
-                    //var val = Math.Round(data.Data.AveragePrice * data.Data.Quantity);
-                    //if (val >= MIN_VALUE && StaticVal._lCoinAnk.Contains(data.Data.Symbol))
-                    //{
-                    //    Console.WriteLine(JsonConvert.SerializeObject(data.Data));
-                    //    var dt = DateTime.Now;
-                    //    var first = _dicRes.FirstOrDefault(x => x.Key == data.Data.Symbol);
-                    //    if (first.Key != null)
-                    //    {
-                    //        var div = (dt - first.Value).TotalSeconds;
-                    //        if (div >= 120)
-                    //        {
-                    //            _dicRes[data.Data.Symbol] = dt;
-                    //        }
-                    //        else
-                    //        {
-                    //            return;
-                    //        }
-                    //    }
-                    //    else
-                    //    {
-                    //        _dicRes.Add(data.Data.Symbol, dt);
-                    //    }
-
-                    //    var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
-                    //    if (!string.IsNullOrWhiteSpace(mes))
-                    //    {
-                    //        _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
-                    //        //Console.WriteLine(mes);
-                    //    }
-                    //}
+                            if(Math.Abs(now - item.dbuy) >= 7200)
+                            {
+                                item.IsFinish = true;
+                                item.IsWin = 3;
+                            }
+                        }
+                    }
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BinanceService.TradeAction|EXCEPTION| {ex.Message}");
             }
         }
     }

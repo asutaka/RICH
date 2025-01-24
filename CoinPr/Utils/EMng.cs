@@ -59,4 +59,14 @@ namespace CoinPr.Utils
         BanCungChieu = 3,
         BanNguocChieu = 4
     }
+
+    public enum ECase
+    {
+        Case1 = 1,
+        Case2 = 2,
+        Case3 = 3,
+        Case4 = 4,
+        Case5 = 5,
+        Case6 = 6
+    }
 }

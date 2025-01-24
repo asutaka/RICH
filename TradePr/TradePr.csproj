@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Model\**" />
+    <Content Remove="Model\**" />
+    <EmbeddedResource Remove="Model\**" />
+    <None Remove="Model\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Binance.Net" Version="10.16.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
@@ -15,9 +22,5 @@
     <PackageReference Include="MongoDB.Driver" Version="2.27.0" />
     <PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" Version="1.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Model\" />
   </ItemGroup>
 </Project>

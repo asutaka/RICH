@@ -106,6 +106,7 @@ namespace CoinPr.Service
                     $"PriceAt: {liquid.PriceAtLiquid}| Avg: {liquid.AvgPrice}| Cur: {liquid.CurrentPrice}|Mode:{((ELiquidMode)liquid.Mode).ToString()}";
                 _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
+                    key = Guid.NewGuid().ToString(),
                     s = liquid.s,
                     d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
                     Side = side,
@@ -124,9 +125,122 @@ namespace CoinPr.Service
                     Top_2 = (double)liquid.Top_2,
                     Bot_1 = (double)liquid.Bot_1,
                     Bot_2 = (double)liquid.Bot_2,
-                    TP_2 = (double)liquid.TP_2,
-                    TP_3 = (double)liquid.TP_3,
-                    SL_2 = (double)liquid.SL_2,
+                    Case = (int)ECase.Case1
+                });
+                _tradingRepo.InsertOne(new DAL.Entity.Trading
+                {
+                    key = Guid.NewGuid().ToString(),
+                    s = liquid.s,
+                    d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
+                    Side = side,
+                    Entry = (double)liquid.Entry,
+                    TP = (double)liquid.TP_2,
+                    SL = (double)liquid.SL,
+                    Focus = (double)liquid.Focus,
+                    AvgPrice = (double)liquid.AvgPrice,
+                    PriceAtLiquid = (double)liquid.PriceAtLiquid,
+                    CurrentPrice = (double)liquid.CurrentPrice,
+                    Mode = liquid.Mode,
+                    Date = liquid.Date,
+                    Rsi_5 = (double)liquid.Rsi_5,
+                    Rsi_15 = (double)liquid.Rsi_15,
+                    Top_1 = (double)liquid.Top_1,
+                    Top_2 = (double)liquid.Top_2,
+                    Bot_1 = (double)liquid.Bot_1,
+                    Bot_2 = (double)liquid.Bot_2,
+                    Case = (int)ECase.Case2
+                });
+                _tradingRepo.InsertOne(new DAL.Entity.Trading
+                {
+                    key = Guid.NewGuid().ToString(),
+                    s = liquid.s,
+                    d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
+                    Side = side,
+                    Entry = (double)liquid.Entry,
+                    TP = (double)liquid.TP_3,
+                    SL = (double)liquid.SL,
+                    Focus = (double)liquid.Focus,
+                    AvgPrice = (double)liquid.AvgPrice,
+                    PriceAtLiquid = (double)liquid.PriceAtLiquid,
+                    CurrentPrice = (double)liquid.CurrentPrice,
+                    Mode = liquid.Mode,
+                    Date = liquid.Date,
+                    Rsi_5 = (double)liquid.Rsi_5,
+                    Rsi_15 = (double)liquid.Rsi_15,
+                    Top_1 = (double)liquid.Top_1,
+                    Top_2 = (double)liquid.Top_2,
+                    Bot_1 = (double)liquid.Bot_1,
+                    Bot_2 = (double)liquid.Bot_2,
+                    Case = (int)ECase.Case3
+                });
+                _tradingRepo.InsertOne(new DAL.Entity.Trading
+                {
+                    key = Guid.NewGuid().ToString(),
+                    s = liquid.s,
+                    d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
+                    Side = side,
+                    Entry = (double)liquid.Entry,
+                    TP = (double)liquid.TP,
+                    SL = (double)liquid.SL_2,
+                    Focus = (double)liquid.Focus,
+                    AvgPrice = (double)liquid.AvgPrice,
+                    PriceAtLiquid = (double)liquid.PriceAtLiquid,
+                    CurrentPrice = (double)liquid.CurrentPrice,
+                    Mode = liquid.Mode,
+                    Date = liquid.Date,
+                    Rsi_5 = (double)liquid.Rsi_5,
+                    Rsi_15 = (double)liquid.Rsi_15,
+                    Top_1 = (double)liquid.Top_1,
+                    Top_2 = (double)liquid.Top_2,
+                    Bot_1 = (double)liquid.Bot_1,
+                    Bot_2 = (double)liquid.Bot_2,
+                    Case = (int)ECase.Case4
+                });
+                _tradingRepo.InsertOne(new DAL.Entity.Trading
+                {
+                    key = Guid.NewGuid().ToString(),
+                    s = liquid.s,
+                    d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
+                    Side = side,
+                    Entry = (double)liquid.Entry,
+                    TP = (double)liquid.TP_2,
+                    SL = (double)liquid.SL_2,
+                    Focus = (double)liquid.Focus,
+                    AvgPrice = (double)liquid.AvgPrice,
+                    PriceAtLiquid = (double)liquid.PriceAtLiquid,
+                    CurrentPrice = (double)liquid.CurrentPrice,
+                    Mode = liquid.Mode,
+                    Date = liquid.Date,
+                    Rsi_5 = (double)liquid.Rsi_5,
+                    Rsi_15 = (double)liquid.Rsi_15,
+                    Top_1 = (double)liquid.Top_1,
+                    Top_2 = (double)liquid.Top_2,
+                    Bot_1 = (double)liquid.Bot_1,
+                    Bot_2 = (double)liquid.Bot_2,
+                    Case = (int)ECase.Case5
+                });
+                _tradingRepo.InsertOne(new DAL.Entity.Trading
+                {
+                    key = Guid.NewGuid().ToString(),
+                    s = liquid.s,
+                    d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
+                    Side = side,
+                    Entry = (double)liquid.Entry,
+                    TP = (double)liquid.TP_3,
+                    SL = (double)liquid.SL_2,
+                    Focus = (double)liquid.Focus,
+                    AvgPrice = (double)liquid.AvgPrice,
+                    PriceAtLiquid = (double)liquid.PriceAtLiquid,
+                    CurrentPrice = (double)liquid.CurrentPrice,
+                    Mode = liquid.Mode,
+                    Date = liquid.Date,
+                    Rsi_5 = (double)liquid.Rsi_5,
+                    Rsi_15 = (double)liquid.Rsi_15,
+                    Top_1 = (double)liquid.Top_1,
+                    Top_2 = (double)liquid.Top_2,
+                    Bot_1 = (double)liquid.Bot_1,
+                    Bot_2 = (double)liquid.Bot_2,
+                    Case = (int)ECase.Case6
                 });
             }
             catch (Exception ex)

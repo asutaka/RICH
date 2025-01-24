@@ -5,6 +5,7 @@ namespace TradePr.DAL.Entity
     [BsonIgnoreExtraElements]
     public class Trading : BaseDTO
     {
+        public string key { get; set; }
         public string s { get; set; }
         public int d { get; set; }//Date
         public int Side { get; set; }//Buy Or Sell
@@ -27,8 +28,6 @@ namespace TradePr.DAL.Entity
         public double Top_2 { get; set; }
         public double Bot_1 { get; set; }
         public double Bot_2 { get; set; }
-        public double TP_2 { get; set; }
-        public double TP_3 { get; set; }
-        public double SL_2 { get; set; }
+        public int Case { get; set; }
     }
 }
