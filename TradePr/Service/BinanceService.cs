@@ -173,8 +173,10 @@ namespace TradePr.Service
 
                             if(Math.Abs(now - item.dbuy) >= 7200)
                             {
+                                item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                                 item.IsFinish = true;
                                 item.IsWin = 3;
+                                _actionRepo.Update(item);
                             }
                         }
                     }
