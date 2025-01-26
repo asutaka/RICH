@@ -1,4 +1,5 @@
-﻿using Binance.Net.Clients;
+﻿using Amazon.Runtime.Internal.Transform;
+using Binance.Net.Clients;
 using Bybit.Net.Clients;
 
 namespace CoinPr.Utils
@@ -108,6 +109,69 @@ namespace CoinPr.Utils
             "MINAUSDT",
             "HIGHUSDT",
             "STMXUSDT"
+        };
+
+        public static Dictionary<string, int> _dicMargin = new Dictionary<string, int>
+        {
+            {"BTCUSDT",10 },
+            {"ETHUSDT",10 },
+            {"XRPUSDT",5 },
+            {"BNBUSDT",5 },
+            {"SOLUSDT",5 },
+            {"DOGEUSDT",5 },
+            {"LTCUSDT",5 },
+            {"BCHUSDT",5 },
+            {"DOTUSDT",5 },
+            {"LINKUSDT",5 },
+            {"ARBUSDT",5 },
+            {"WLDUSDT",5 },
+            {"MATICUSDT",5 },
+            {"ADAUSDT",5 },
+            {"OPUSDT",5 },
+            {"UNFIUSDT",5 },
+            {"MKRUSDT",5 },
+            {"PERPUSDT",5 },
+            {"APTUSDT",5 },
+            {"EOSUSDT",5 },
+            {"SUIUSDT",5 },
+            {"FILUSDT",5 },
+            {"ETCUSDT",5 },
+            {"AVAXUSDT",5 },
+            {"CYBERUSDT",5 },
+            {"ATOMUSDT",5 },
+            {"APEUSDT",5 },
+            {"DYDXUSDT",5 },
+            {"TRBUSDT",5 },
+            {"RUNEUSDT",5 },
+            {"AGLDUSDT",5 },
+            {"SUSHIUSDT",5 },
+            {"GRTUSDT",5 },
+            {"ANTUSDT",5 },
+            {"1INCHUSDT",5 },
+            {"JOEUSDT",5 },
+            {"LINAUSDT",5 },
+            {"GTCUSDT",5 },
+            {"XTZUSDT",5 },
+            {"NEOUSDT",5 },
+            {"BELUSDT",5 },
+            {"MAGICUSDT",5 },
+            {"EGLDUSDT",5 },
+            {"GMXUSDT",5 },
+            {"IDUSDT",5 },
+            {"THETAUSDT",5 },
+            {"VETAUSDT",5 },
+            {"KNCUSDT",5 },
+            {"STORGUSDT",5 },
+            {"AGIXUSDT",5 },
+            {"OCEANUSDT",5 },
+            {"STGUSDT",5 },
+            {"C98USDT",5 },
+            {"ZILUSDT",5 },
+            {"MDTUSDT",5 },
+            {"KLAYUSDT",5 },
+            {"MINAUSDT",5 },
+            {"HIGHUSDT",5 },
+            {"STMXUSDT", 5 }
         };
     }
 }

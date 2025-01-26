@@ -40,26 +40,6 @@ namespace CoinPr.Utils
         BotInsideBar = 4
     }
 
-    public enum TradingResponseType
-    {
-        OrderBlock = 1,
-        Liquid = 2
-    }
-
-    public enum LiquidStatus
-    {
-        Prepare = 1,
-        Ready = 2
-    }
-
-    public enum ELiquidMode
-    {
-        MuaCungChieu = 1,
-        MuaNguocChieu = 2,
-        BanCungChieu = 3,
-        BanNguocChieu = 4
-    }
-
     public enum ECase
     {
         Case1 = 1,

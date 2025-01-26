@@ -15,25 +15,25 @@ namespace CoinPr.Model
     {
         public string s { get; set; }
         public DateTime Date { get; set; }
-        public int Type { get; set; }//OrderBlock or Liquid
         public Binance.Net.Enums.OrderSide Side { get; set; }//Buy Or Sell
-        public decimal Entry { get; set; }//Only OrderBlock
-        public decimal SL { get; set; }//Only OrderBlock
-        public decimal TP { get; set; }//Only OrderBlock
+        public decimal Entry { get; set; }
+        public decimal SL { get; set; }
+        public decimal TP { get; set; }
         public decimal Focus { get; set; }
-        public int Status { get; set; }//Only Liquid
         //For Test
-        public decimal AvgPrice { get; set; }
-        public decimal PriceAtLiquid { get; set; }
         public decimal CurrentPrice { get; set; }
-        public int Mode { get; set; }
-        public decimal Rsi_5 { get; set; }//5p
-        public decimal Top_1 { get; set; }
-        public decimal Top_2 { get; set; }
-        public decimal Bot_1 { get; set; }
-        public decimal Bot_2 { get; set; }
+        public decimal AvgPrice { get; set; }
+        public decimal Liquid { get; set; }
+        public decimal Rsi { get; set; }//5p
+        public decimal TopFirst { get; set; }
+        public decimal TopNext { get; set; }
+        public decimal BotFirst { get; set; }
+        public decimal BotNext { get; set; }
+        public decimal RateVol { get; set; }
         public decimal TP_2 { get; set; }
         public decimal TP_3 { get; set; }
+        public decimal TP25 { get; set; }
         public decimal SL_2 { get; set; }
+        public decimal SL25 { get; set; }
     }
 }
