@@ -38,35 +38,35 @@ namespace CoinPr.Service
                 var liquid = StaticVal.BinanceSocketInstance().UsdFuturesApi.ExchangeData.SubscribeToAllLiquidationUpdatesAsync((data) =>
                 {
                     var val = Math.Round(data.Data.AveragePrice * data.Data.Quantity);
-                    if(val >= MIN_VALUE && StaticVal._lCoinAnk.Contains(data.Data.Symbol))
+                    if (val < MIN_VALUE
+                        || !StaticVal._lCoinAnk.Contains(data.Data.Symbol))
+                        return;
+
+                    //Console.WriteLine(JsonConvert.SerializeObject(data.Data));
+                    var dt = DateTime.Now;
+                    var first = _dicRes.FirstOrDefault(x => x.Key == data.Data.Symbol);
+                    if (first.Key != null)
                     {
-                        Console.WriteLine(JsonConvert.SerializeObject(data.Data));
-                        var dt = DateTime.Now;
-                        var first = _dicRes.FirstOrDefault(x => x.Key == data.Data.Symbol);
-                        if(first.Key != null)
+                        var div = (dt - first.Value).TotalSeconds;
+                        if (div >= 120)
                         {
-                            var div = (dt - first.Value).TotalSeconds;
-                            if(div >= 120)
-                            {
-                                _dicRes[data.Data.Symbol] = dt;
-                            }
-                            else
-                            {
-                                return;
-                            }
+                            _dicRes[data.Data.Symbol] = dt;
                         }
                         else
                         {
-                            _dicRes.Add(data.Data.Symbol, dt);
-                        }
-
-                        var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
-                        if (!string.IsNullOrWhiteSpace(mes))
-                        {
-                            _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
-                            //Console.WriteLine(mes);
+                            return;
                         }
                     }
+                    else
+                    {
+                        _dicRes.Add(data.Data.Symbol, dt);
+                    }
+
+                    var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
+                    if (string.IsNullOrWhiteSpace(mes))
+                        return;
+
+                    _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
                 });
             }
             catch (Exception ex)
@@ -250,59 +250,6 @@ namespace CoinPr.Service
             return mes;
         }
 
-        private (bool, TradingResponse) LiquidBuy(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
-        {
-            decimal priceAtMaxLiquid = 0;
-            try
-            {
-                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) > flag).MaxBy(x => x.ElementAt(2));
-                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
-                {
-                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                }
-
-                //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
-                var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
-                var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
-
-                if (priceAtMaxLiquid > 0
-                    && msg.AveragePrice >= sl
-                    && msg.AveragePrice < entry)
-                {
-                    var liquid = new TradingResponse
-                    {
-                        s = msg.Symbol,
-                        Date = DateTime.Now,
-                        Type = (int)TradingResponseType.Liquid,
-                        Side = Binance.Net.Enums.OrderSide.Buy,
-                        Focus = sl,
-                        Entry = entry,
-                        TP = priceAtMaxLiquid,
-                        SL = sl,
-                        Status = (int)LiquidStatus.Prepare
-                    };
-                    liquid.PriceAtLiquid = priceAtMaxLiquid;
-                    liquid.Mode = (int)ELiquidMode.MuaCungChieu;
-                    liquid.Rsi_5 = (decimal)rsi5;
-                    liquid.Rsi_15 = (decimal)rsi15;
-                    liquid.Top_1 = top1;
-                    liquid.Top_2 = top2;
-                    liquid.Bot_1 = bot1;
-                    liquid.Bot_2 = bot2;
-                    liquid.TP_2 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - liquid.Entry) / 3;
-                    liquid.TP_3 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - liquid.Entry) / 2;
-                    liquid.SL_2 = 0;
-                    return (true, liquid);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"WebSocketService.LiquidBuy|EXCEPTION| {ex.Message}");
-            }
-
-            return (priceAtMaxLiquid > 0, null);
-        }
-
         private TradingResponse LiquidBuy_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
         {
             try
@@ -349,61 +296,6 @@ namespace CoinPr.Service
             }
 
             return null;
-        }
-
-        private (bool, TradingResponse) LiquidSell(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
-        {
-            decimal priceAtMaxLiquid = 0;
-            try
-            {
-                var maxLiquid = lLiquid.Where(x => x.ElementAt(1) < flag).MaxBy(x => x.ElementAt(2));
-                if (maxLiquid.ElementAt(2) >= (decimal)0.85 * dat.data.liqHeatMap.maxLiqValue)
-                {
-                    priceAtMaxLiquid = dat.data.liqHeatMap.priceArray[(int)maxLiquid.ElementAt(1)];
-                }
-
-                //Giá hiện tại nằm ở 2/3 từ giá tại điểm thanh lý - giá trung bình(chính giữa màn hình)
-                var entry = (2 * priceAtMaxLiquid + avgPrice) / 3;
-                var sl = (priceAtMaxLiquid + 2 * avgPrice) / 3;
-
-                if (priceAtMaxLiquid > 0
-                   && msg.AveragePrice <= sl
-                   && msg.AveragePrice > entry)
-                {
-                   
-                    var liquid = new TradingResponse
-                    {
-                        s = msg.Symbol,
-                        Date = DateTime.Now,
-                        Type = (int)TradingResponseType.Liquid,
-                        Side = Binance.Net.Enums.OrderSide.Sell,
-                        Focus = sl,
-                        Entry = entry,
-                        TP = priceAtMaxLiquid,
-                        SL = sl,
-                        Status = (int)LiquidStatus.Prepare
-                    };
-                    liquid.Mode = (int)ELiquidMode.BanCungChieu;
-                    liquid.PriceAtLiquid = priceAtMaxLiquid;
-                    liquid.Rsi_5 = (decimal)rsi5;
-                    liquid.Rsi_15 = (decimal)rsi15;
-                    liquid.Top_1 = top1;
-                    liquid.Top_2 = top2;
-                    liquid.Bot_1 = bot1;
-                    liquid.Bot_2 = bot2;
-
-                    liquid.TP_2 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - liquid.Entry) / 3;
-                    liquid.TP_3 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - liquid.Entry) / 2;
-                    liquid.SL_2 = 0;
-                    return (true, liquid);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"WebSocketService.LiquidSell|EXCEPTION| {ex.Message}");
-            }
-
-            return (priceAtMaxLiquid > 0, null);
         }
 
         private TradingResponse LiquidSell_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
@@ -495,35 +387,27 @@ namespace CoinPr.Service
                 var lLiquidLast = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) == 288);
                 if (msg.AveragePrice >= avgPrice)
                 {
-                    var res = LiquidBuy(msg, lLiquidLast, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
-                    if(!res.Item1)
-                    {
-                        res.Item2 ??= LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
-                    }    
+                    var res = LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
 
-                    if(res.Item2 != null)
+                    if(res != null)
                     {
-                        res.Item2.CurrentPrice = msg.AveragePrice;
-                        res.Item2.AvgPrice = avgPrice;
+                        res.CurrentPrice = msg.AveragePrice;
+                        res.AvgPrice = avgPrice;
                     }
                    
-                    return res.Item2;
+                    return res;
                 }
                 else
                 {
-                    var res = LiquidSell(msg, lLiquidLast, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
-                    if(!res.Item1)
-                    {
-                        res.Item2 ??= LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
-                    }
+                    var res = LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
                     
-                    if (res.Item2 != null)
+                    if (res != null)
                     {
-                        res.Item2.CurrentPrice = msg.AveragePrice;
-                        res.Item2.AvgPrice = avgPrice;
+                        res.CurrentPrice = msg.AveragePrice;
+                        res.AvgPrice = avgPrice;
                     }
 
-                    return res.Item2;
+                    return res;
                 }
             }
             catch (Exception ex)
