@@ -65,7 +65,7 @@ namespace CoinPr.Service
                     if (string.IsNullOrWhiteSpace(mes))
                         return;
 
-                    _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
+                    _teleService.SendMessage(_idChannel, mes).GetAwaiter().GetResult();
                 });
             }
             catch (Exception ex)
@@ -83,7 +83,20 @@ namespace CoinPr.Service
                 if (liquid is null)
                     return mes;
 
-                var dot = liquid.Entry >= 1 ? 2 : 5;
+                var dot = 5;
+                if (liquid.Entry < (decimal)0.001)
+                {
+                    dot = 8;
+                }
+                else if (liquid.Entry < (decimal)0.01)
+                {
+                    dot = 7;
+                }
+                else if (liquid.Entry < (decimal)0.1)
+                {
+                    dot = 6;
+                }
+                
                 liquid.Entry = Math.Round(liquid.Entry, dot);
                 liquid.TP = Math.Round(liquid.TP, dot);
                 liquid.TP_2 = Math.Round(liquid.TP_2, dot);
@@ -96,7 +109,7 @@ namespace CoinPr.Service
 
                 var sideText =  liquid.Side == Binance.Net.Enums.OrderSide.Buy ? "Long" : "Short";
 
-                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}\n" +
+                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}|ENTRY: {liquid.Entry}|TP: {liquid.TP25}|SL: {liquid.SL25}\n" +
                     $"Cur: {liquid.CurrentPrice}|Avg: {liquid.AvgPrice}|Liquid: {liquid.Liquid}|Rsi: {liquid.Rsi}|Vol: {liquid.RateVol}";
                 _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
