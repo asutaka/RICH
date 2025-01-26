@@ -3,7 +3,6 @@ using CoinPr.DAL;
 using CoinPr.Model;
 using CoinPr.Utils;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 
 namespace CoinPr.Service
@@ -120,7 +119,6 @@ namespace CoinPr.Service
                     Mode = liquid.Mode,
                     Date = liquid.Date,
                     Rsi_5 = (double)liquid.Rsi_5,
-                    Rsi_15 = (double)liquid.Rsi_15,
                     Top_1 = (double)liquid.Top_1,
                     Top_2 = (double)liquid.Top_2,
                     Bot_1 = (double)liquid.Bot_1,
@@ -143,7 +141,6 @@ namespace CoinPr.Service
                     Mode = liquid.Mode,
                     Date = liquid.Date,
                     Rsi_5 = (double)liquid.Rsi_5,
-                    Rsi_15 = (double)liquid.Rsi_15,
                     Top_1 = (double)liquid.Top_1,
                     Top_2 = (double)liquid.Top_2,
                     Bot_1 = (double)liquid.Bot_1,
@@ -166,7 +163,6 @@ namespace CoinPr.Service
                     Mode = liquid.Mode,
                     Date = liquid.Date,
                     Rsi_5 = (double)liquid.Rsi_5,
-                    Rsi_15 = (double)liquid.Rsi_15,
                     Top_1 = (double)liquid.Top_1,
                     Top_2 = (double)liquid.Top_2,
                     Bot_1 = (double)liquid.Bot_1,
@@ -189,7 +185,6 @@ namespace CoinPr.Service
                     Mode = liquid.Mode,
                     Date = liquid.Date,
                     Rsi_5 = (double)liquid.Rsi_5,
-                    Rsi_15 = (double)liquid.Rsi_15,
                     Top_1 = (double)liquid.Top_1,
                     Top_2 = (double)liquid.Top_2,
                     Bot_1 = (double)liquid.Bot_1,
@@ -212,7 +207,6 @@ namespace CoinPr.Service
                     Mode = liquid.Mode,
                     Date = liquid.Date,
                     Rsi_5 = (double)liquid.Rsi_5,
-                    Rsi_15 = (double)liquid.Rsi_15,
                     Top_1 = (double)liquid.Top_1,
                     Top_2 = (double)liquid.Top_2,
                     Bot_1 = (double)liquid.Bot_1,
@@ -235,7 +229,6 @@ namespace CoinPr.Service
                     Mode = liquid.Mode,
                     Date = liquid.Date,
                     Rsi_5 = (double)liquid.Rsi_5,
-                    Rsi_15 = (double)liquid.Rsi_15,
                     Top_1 = (double)liquid.Top_1,
                     Top_2 = (double)liquid.Top_2,
                     Bot_1 = (double)liquid.Bot_1,
@@ -250,7 +243,7 @@ namespace CoinPr.Service
             return mes;
         }
 
-        private TradingResponse LiquidBuy_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
+        private TradingResponse LiquidBuy_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, decimal top1, decimal top2, decimal bot1, decimal bot2)
         {
             try
             {
@@ -278,7 +271,6 @@ namespace CoinPr.Service
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
                     liquid.Mode = (int)ELiquidMode.BanNguocChieu;
                     liquid.Rsi_5 = (decimal)rsi5;
-                    liquid.Rsi_15 = (decimal)rsi15;
                     liquid.Top_1 = top1;
                     liquid.Top_2 = top2;
                     liquid.Bot_1 = bot1;
@@ -298,7 +290,7 @@ namespace CoinPr.Service
             return null;
         }
 
-        private TradingResponse LiquidSell_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, double rsi15, decimal top1, decimal top2, decimal bot1, decimal bot2)
+        private TradingResponse LiquidSell_Inverse(BinanceFuturesStreamLiquidation msg, IEnumerable<List<decimal>> lLiquid, int flag, decimal avgPrice, CoinAnk_LiquidValue dat, double rsi5, decimal top1, decimal top2, decimal bot1, decimal bot2)
         {
             try
             {
@@ -326,7 +318,6 @@ namespace CoinPr.Service
                     liquid.Mode = (int)ELiquidMode.MuaNguocChieu;
                     liquid.PriceAtLiquid = priceAtMaxLiquid;
                     liquid.Rsi_5 = (decimal)rsi5;
-                    liquid.Rsi_15 = (decimal)rsi15;
                     liquid.Top_1 = top1;
                     liquid.Top_2 = top2;
                     liquid.Bot_1 = bot1;
@@ -379,15 +370,12 @@ namespace CoinPr.Service
                 var bot1 = lBot?.LastOrDefault()?.Value ?? 0;
                 var bot2 = lBot?.SkipLast(1).LastOrDefault()?.Value ?? 0;
                 Thread.Sleep(200);
-                var lData15M = await _apiService.GetData(msg.Symbol, EExchange.Binance, EInterval.M15);
-                var lRsi15M = lData15M.GetRsi();
-                var lTopBot15M = lData15M.GetTopBottom_H(0);
 
                 var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280 && x.ElementAt(0) <= 286);
                 var lLiquidLast = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) == 288);
                 if (msg.AveragePrice >= avgPrice)
                 {
-                    var res = LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
+                    var res = LiquidBuy_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
 
                     if(res != null)
                     {
@@ -399,7 +387,7 @@ namespace CoinPr.Service
                 }
                 else
                 {
-                    var res = LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, lRsi15M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
+                    var res = LiquidSell_Inverse(msg, lLiquid, flag, avgPrice, dat, lRsi5M.LastOrDefault()?.Rsi ?? 0, top1, top2, bot1, bot2);
                     
                     if (res != null)
                     {
