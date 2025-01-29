@@ -214,8 +214,8 @@ namespace CoinPr.Service
                             //tp
                             TP_2 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - avgPrice) / 3,
                             TP_3 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - avgPrice) / 2,
-                            TP25 = cur * (1 - 25 / 100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value),
-                            SL25 = cur * (1 + 25 / 100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value),
+                            TP25 = cur * (1 - (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
+                            SL25 = cur * (1 + (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
                             SL_2 = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3)
                         };
                         return liquid;
@@ -258,8 +258,8 @@ namespace CoinPr.Service
                             //tp
                             TP_2 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - avgPrice) / 3,
                             TP_3 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - avgPrice) / 2,
-                            TP25 = cur * (1 + 25 / 100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value),
-                            SL25 = cur * (1 - 25 / 100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value),
+                            TP25 = cur * (1 + (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
+                            SL25 = cur * (1 - (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
                             SL_2 = msg.AveragePrice - Math.Abs((priceAtMaxLiquid - avgPrice) / 3)
                         };
                         return liquid;
