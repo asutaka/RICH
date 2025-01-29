@@ -109,8 +109,8 @@ namespace CoinPr.Service
 
                 var sideText =  liquid.Side == Binance.Net.Enums.OrderSide.Buy ? "Long" : "Short";
 
-                mes = $"|LIQUID|{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}|ENTRY: {liquid.Entry}|TP: {liquid.TP25}|SL: {liquid.SL25}\n" +
-                    $"Cur: {liquid.CurrentPrice}|Avg: {liquid.AvgPrice}|Liquid: {liquid.Liquid}|Rsi: {liquid.Rsi}|Vol: {liquid.RateVol}";
+                mes = $"{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}|ENTRY: {liquid.Entry}|TP: {liquid.TP25}|SL: {liquid.SL25}\n" +
+                    $"Cur: {liquid.CurrentPrice}|Avg: {liquid.AvgPrice}|Liquid: {liquid.Liquid}|Rsi: {liquid.Rsi}";
                 _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
                     key = Guid.NewGuid().ToString(),
@@ -190,7 +190,7 @@ namespace CoinPr.Service
                         return null;
 
                     if(rsi >= 80 ||
-                       (rsi >=  70 && rateVol < 1))
+                       (rsi >=  68 && rateVol < 1))
                     {
                         var liquid = new TradingResponse
                         {
@@ -234,7 +234,7 @@ namespace CoinPr.Service
                         return null;
 
                     if (rsi <= 20 ||
-                       (rsi <= 30 && rateVol < 1))
+                       (rsi <= 32 && rateVol < 1))
                     {
                         var liquid = new TradingResponse
                         {
