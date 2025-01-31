@@ -40,3 +40,5 @@ msbuild.wrn
 
 appsettings.Development.json
 appsettings.json
+/CoinPr/appsettings.Development.json
+/CoinPr/appsettings.json
