@@ -99,7 +99,7 @@ namespace CoinPr.Service
             }
         }
 
-        private static Task Client_OnUpdates(UpdatesBase updates)
+        private async Task Client_OnUpdates(UpdatesBase updates)
         {
             foreach (var update in updates.UpdateList)
             {
@@ -109,13 +109,12 @@ namespace CoinPr.Service
                     if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
                         continue;
 
+                    await SendMessage(1066022551, $"{val.message.Peer.ID}|{val.message}");
                     Console.WriteLine($"{val.message.Peer.ID}|{val.message}");
                     continue;
                 }
                 Console.WriteLine(update.GetType().Name);
             }    
-               
-            return Task.CompletedTask;
         }
     }
 }
