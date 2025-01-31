@@ -179,6 +179,7 @@ namespace CoinPr.Utils
             {1526873198, "Tradingview Ideas" },
             {1528935807, "Binance New Feed" },
             {1312176687, "Binance Whale Tracker" },
+            {1513485204, "VN Wall Street" },
         };
     }
 }
