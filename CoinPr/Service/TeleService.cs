@@ -1,6 +1,9 @@
-﻿using Telegram.Bot;
+﻿using CoinPr.Utils;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using TL;
+using WTelegram;
 
 namespace CoinPr.Service
 {
@@ -12,15 +15,22 @@ namespace CoinPr.Service
     {
         private readonly ILogger<TeleService> _logger;
         private readonly IMessageService _messageService;
-        private TelegramBotClient _bot = new TelegramBotClient("7783423206:AAGnpRM_8xnxr44sbgOX-ktIHXQEsyMxH6A");
+        private readonly IConfiguration _config;
+        private TelegramBotClient _bot;
+        private Client _client;
         public TeleService(ILogger<TeleService> logger,
-            IMessageService messageService)
+            IMessageService messageService,
+            IConfiguration config)
         {
             _logger = logger;
+            _config = config;
             _messageService = messageService;
+
+            _bot = new TelegramBotClient(config["Telegram:bot"]);
             _bot.OnMessage += OnMessage;
+            InitSession().GetAwaiter().GetResult();
         }
-        async Task OnMessage(Message msg, UpdateType type)
+        async Task OnMessage(Telegram.Bot.Types.Message msg, UpdateType type)
         {
             try
             {
@@ -61,6 +71,51 @@ namespace CoinPr.Service
             {
                 _logger.LogError(ex, $"TeleService.SendMessage|EXCEPTION| {ex.Message}");
             }
+        }
+
+        private async Task InitSession()
+        {
+            try
+            {
+                _client = new WTelegram.Client(Config);
+                _client.OnUpdates += Client_OnUpdates;
+                await _client.LoginUserIfNeeded();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TeleService.InitSession|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private string Config(string what)
+        {
+            switch (what)
+            {
+                case "api_id": return _config["Telegram:api_id"];
+                case "api_hash": return _config["Telegram:api_hash"];
+                case "phone_number": return _config["Telegram:phone"];
+                case "verification_code": return _config["Telegram:code"];
+                default: return null;                  // let WTelegramClient decide the default config
+            }
+        }
+
+        private static Task Client_OnUpdates(UpdatesBase updates)
+        {
+            foreach (var update in updates.UpdateList)
+            {
+                if (update.GetType().Name.Equals("UpdateNewChannelMessage", StringComparison.OrdinalIgnoreCase))
+                {
+                    var val = update as UpdateNewChannelMessage;
+                    if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
+                        continue;
+
+                    Console.WriteLine($"{val.message.Peer.ID}|{val.message}");
+                    continue;
+                }
+                Console.WriteLine(update.GetType().Name);
+            }    
+               
+            return Task.CompletedTask;
         }
     }
 }

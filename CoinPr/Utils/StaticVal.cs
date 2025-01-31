@@ -173,5 +173,12 @@ namespace CoinPr.Utils
             {"HIGHUSDT",7 },
             {"STMXUSDT", 7 }
         };
+
+        public static Dictionary<long, string> _dicChannel = new Dictionary<long, string>
+        {
+            {1526873198, "Tradingview Ideas" },
+            {1528935807, "Binance New Feed" },
+            {1312176687, "Binance Whale Tracker" },
+        };
     }
 }
