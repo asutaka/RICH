@@ -13,29 +13,9 @@ namespace StockPr.Service
             try
             {
                 var lStock = _stockRepo.GetAll();
-                var lStockFilter = lStock.Where(x => x.status == 1 && x.cat.Any(x => x.ty == (int)EStockType.BanLe
-                                                                                || x.ty == (int)EStockType.CangBien
-                                                                                || x.ty == (int)EStockType.CaoSu
-                                                                                || x.ty == (int)EStockType.Go
-                                                                                || x.ty == (int)EStockType.Nhua
-                                                                                || x.ty == (int)EStockType.PhanBon
-                                                                                || x.ty == (int)EStockType.Than
-                                                                                || x.ty == (int)EStockType.Thep
-                                                                                || x.ty == (int)EStockType.ThuySan
-                                                                                || x.ty == (int)EStockType.XiMang
-                                                                                || x.ty == (int)EStockType.Oto
-                                                                                || x.ty == (int)EStockType.OtoTai
-                                                                                || x.ty == (int)EStockType.VanTaiBien
-                                                                                || x.ty == (int)EStockType.Logistic
-                                                                                || x.ty == (int)EStockType.DienGio
-                                                                                || x.ty == (int)EStockType.DienKhi
-                                                                                || x.ty == (int)EStockType.DienMatTroi
-                                                                                || x.ty == (int)EStockType.DienThan
-                                                                                || x.ty == (int)EStockType.ThuyDien
-                                                                                || x.ty == (int)EStockType.DetMay
-                                                                                || x.ty == (int)EStockType.DauKhi
-                                                                                || x.ty == (int)EStockType.HangKhong
-                                                                                || x.ty == (int)EStockType.NangLuong)).Select(x => x.s);
+                var lStockFilter = lStock.Where(x => x.status == 1 && !x.cat.Any(x => x.ty == (int)EStockType.NganHang
+                                                                                    || x.ty == (int)EStockType.ChungKhoan
+                                                                                    || x.ty == (int)EStockType.BDS)).Select(x => x.s);
                 foreach (var item in lStockFilter)
                 {
                     await SyncBCTC_KQKD(item, onlyLast);
