@@ -427,7 +427,7 @@ namespace StockPr.Service
                 {
                     return;
                 }
-                lReportID.data = lReportID.data.TakeLast(4).ToList();
+                lReportID.data = lReportID.data.TakeLast(5).ToList();
                 Thread.Sleep(1000);
                 if (!lReportID.data.Any())
                     return;
@@ -556,7 +556,7 @@ namespace StockPr.Service
                 _lSubCDKT.Clear();
                 var batchCount = 8;
                 var lReportID = await _apiService.VietStock_CDKT_GetListReportData(code);
-                lReportID.data = lReportID.data.TakeLast(4).ToList();
+                lReportID.data = lReportID.data.TakeLast(5).ToList();
                 Thread.Sleep(1000);
                 if (!lReportID.data.Any())
                     return;

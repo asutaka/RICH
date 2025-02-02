@@ -42,7 +42,6 @@ namespace StockPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;

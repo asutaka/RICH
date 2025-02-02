@@ -44,8 +44,6 @@ namespace StockPr.Service
                     return null;
 
                 var lStream = new List<Stream>();
-                var streamDoanhThu = await Chart_DoanhThu_LoiNhuan(lFinancial.Select(x => new BaseFinancialDTO { d = x.d, rv = x.rv, pf = x.pf }).ToList(), input);
-                lStream.Add(streamDoanhThu);
 
                 if (stock.IsTonKho())
                 {
@@ -86,6 +84,9 @@ namespace StockPr.Service
                 {
                     lStream.AddRange(await Chart_ChungKhoan(input));
                 }
+
+                var streamDoanhThu = await Chart_DoanhThu_LoiNhuan(lFinancial.Select(x => new BaseFinancialDTO { d = x.d, rv = x.rv, pf = x.pf }).ToList(), input);
+                lStream.Add(streamDoanhThu);
 
                 lRes = lStream.Select(x => InputFile.FromStream(x)).ToList();
             }
@@ -467,11 +468,9 @@ namespace StockPr.Service
             var streamTangTruongTinDung = await Chart_NganHang_TangTruongTinDung(lFinancial, code);
             var streamNoXau = await Chart_NganHang_NoXau(lFinancial, code);
             var streamNim = await Chart_NganHang_NimCasaChiPhiVon(lFinancial, code);
-            var streamDoanhThu = await Chart_DoanhThu_LoiNhuan(lFinancial.Select(x => new BaseFinancialDTO { d = x.d, rv = x.rv, pf = x.pf }).ToList(), code);
             lOutput.Add(streamTangTruongTinDung);
             lOutput.Add(streamNoXau);
             lOutput.Add(streamNim);
-            lOutput.Add(streamDoanhThu);
             return lOutput;
         }
         private async Task<Stream> Chart_NganHang_TangTruongTinDung(List<Financial> lFinancial, string code)
