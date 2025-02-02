@@ -108,7 +108,7 @@ namespace CoinPr.Service
                     var val = update as UpdateNewChannelMessage;
                     if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
                     {
-                        await SendMessage(1066022551, $"{val.message.Peer.ID}|{val.message}");
+                        await SendMessage(1066022551, $"{val.message}");
                         continue;
                     }
 
