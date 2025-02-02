@@ -637,9 +637,9 @@ namespace StockPr.Service
                     {
                         data = lNim.TakeLast(StaticVal._TAKE),
                         name = "NIM",
-                        type = "column",
+                        type = "spline",
                         dataLabels = new HighChartDataLabel{ enabled = true, format = "{point.y:.1f}%" },
-                        color = "#012060"
+                        color = "rgba(158, 159, 163, 0.5)"
                     },
                     new HighChartSeries_BasicColumn
                     {
@@ -648,7 +648,7 @@ namespace StockPr.Service
                         type = "spline",
                         dataLabels = new HighChartDataLabel{ enabled = true, format = "{point.y:.1f}%" },
                         color = "#C00000",
-                        yAxis = 1,
+                        //yAxis = 1,
                     },
                     new HighChartSeries_BasicColumn
                     {
@@ -657,19 +657,19 @@ namespace StockPr.Service
                         type = "spline",
                         dataLabels = new HighChartDataLabel{ enabled = true, format = "{point.y:.1f}%" },
                         color = "#ffbf00",
-                        yAxis = 1,
+                        //yAxis = 1,
                     },
-                    new HighChartSeries_BasicColumn
-                    {
-                        data = lChiPhiVon.TakeLast(StaticVal._TAKE),
-                        name = "Tăng trưởng chi phí vốn",
-                        type = "spline",
-                        dataLabels = new HighChartDataLabel{ enabled = true, format = "{point.y:.1f}%" },
-                        color = "rgba(158, 159, 163, 0.5)",
-                        yAxis = 1
-                    }
+                    //new HighChartSeries_BasicColumn
+                    //{
+                    //    data = lChiPhiVon.TakeLast(StaticVal._TAKE),
+                    //    name = "Tăng trưởng chi phí vốn",
+                    //    type = "spline",
+                    //    dataLabels = new HighChartDataLabel{ enabled = true, format = "{point.y:.1f}%" },
+                    //    color = "rgba(158, 159, 163, 0.5)",
+                    //    yAxis = 1
+                    //}
                 };
-                return await Chart_BasicBase($"{code} - NIM, CASA, CIR, Chi phí vốn Quý {time.Item3}/{time.Item2}", lFinancial.TakeLast(StaticVal._TAKE).Select(x => x.d.GetNameQuarter()).ToList(), lSeries, "(NIM: %)");
+                return await Chart_BasicBase($"{code} - NIM, CASA, CIR Quý {time.Item3}/{time.Item2}", lFinancial.TakeLast(StaticVal._TAKE).Select(x => x.d.GetNameQuarter()).ToList(), lSeries, "(NIM: %)");
             }
             catch (Exception ex)
             {

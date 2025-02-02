@@ -309,7 +309,7 @@ namespace StockPr.Service
                 var NoNhom5 = lData?.data.FirstOrDefault(x => x.ReportNormNoteID == (int)EReportNormId.NoNhom5);
                 var TienGuiKH = lData?.data.FirstOrDefault(x => x.ReportNormNoteID == (int)EReportNormId.TienGuiKhachHang);
                 var TienGuiKhongKyHan = lData?.data.FirstOrDefault(x => x.ReportNormNoteID == (int)EReportNormId.TienGuiKhongKyHan);
-                var casa = Math.Round((TienGuiKhongKyHan?.Value1?? 0) / (TienGuiKH?.Value1?? 1), 1);
+                var casa = Math.Round((TienGuiKhongKyHan?.Value1?? 0) * 100 / (TienGuiKH?.Value1?? 1), 1);
 
                 entity.casa_r = casa;
 
