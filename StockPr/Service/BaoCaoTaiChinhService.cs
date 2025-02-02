@@ -9,6 +9,10 @@ namespace StockPr.Service
     {
         Task<bool> CheckVietStockToken();
         Task SyncBCTC();
+
+        //
+        Task BCTC_FixData(string code);
+        Task BCTC_FixData_DoanhThuLoiNhuan();
     }
     public partial class BaoCaoTaiChinhService : IBaoCaoTaiChinhService
     {
