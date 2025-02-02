@@ -109,9 +109,9 @@ namespace CoinPr.Service
                     if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
                         continue;
 
-                    await SendMessage(1066022551, $"{val.message.Peer.ID}|{val.message}");
-                    Console.WriteLine($"{val.message.Peer.ID}|{val.message}");
-                    continue;
+                    //await SendMessage(1066022551, $"{val.message.Peer.ID}|{val.message}");
+                    //Console.WriteLine($"{val.message.Peer.ID}|{val.message}");
+                    //continue;
                 }
                 Console.WriteLine(update.GetType().Name);
             }    
