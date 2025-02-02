@@ -1422,7 +1422,7 @@ namespace StockPr.Service
                 requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
                 var responseMessage = await client.SendAsync(requestMessage);
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     var responseStr = await responseMessage.Content.ReadAsStringAsync();
                     var responseModel = JsonConvert.DeserializeObject<ReportDataDetailValue_BCTTResponse>(responseStr);
