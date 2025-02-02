@@ -14,7 +14,6 @@ namespace StockPr.Service
         /// Nim, Tăng trưởng tín dụng, Giảm chi phí vốn, trích lập dự phòng lấy từ bảng cân đối kế toán và kết quả kinh doanh 
         /// 
         /// Casa tự tính trên BCTC
-        /// Ngày công bố: Nhập tay từ trang(https://congbothongtin.ssc.gov.vn/) hoặc syn tự động từ trang(https://finance.vietstock.vn/)
 
 
         /// Nợ xấu các mức tự nhập trên BCTC(tỉ lệ nợ xấu, tăng trưởng nợ xấu)
