@@ -358,7 +358,22 @@ namespace StockPr.Utils
         [Display(Name = "Tài sản cho vay")]
         TaiSanChoVay = 5373,
         [Display(Name = "Vốn chủ sở hữu")]
-        VonChuSoHuuCK = 4478
+        VonChuSoHuuCK = 4478,
+
+        [Display(Name = "Nợ nhóm 1")]
+        NoNhom1 = 747,
+        [Display(Name = "Nợ nhóm 2")]
+        NoNhom2 = 748,
+        [Display(Name = "Nợ nhóm 3")]
+        NoNhom3 = 749,
+        [Display(Name = "Nợ nhóm 4")]
+        NoNhom4 = 750,
+        [Display(Name = "Nợ nhóm 5")]
+        NoNhom5 = 751,
+        [Display(Name = "Tiền gửi khách hàng")]
+        TienGuiKhachHang = 1056,
+        [Display(Name = "Tiền gửi không kỳ hạn")]
+        TienGuiKhongKyHan = 1057
     }
 
     public enum EFinanceIndex

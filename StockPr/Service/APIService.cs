@@ -49,6 +49,8 @@ namespace StockPr.Service
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(string body);
         Task<ReportTempIDResponse> VietStock_CSTC_GetListTempID(string code);
         Task<TempDetailValue_CSTCResponse> VietStock_GetFinanceIndexDataValue_CSTC_ByListTerms(string body);
+        Task<ReportDataIDResponse> VietStock_TM_GetListReportData(string code);
+        Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body);
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
 
         Task<BCPT_Crawl_Data> VinaCapital_Portfolio(int mode = 0);
@@ -1304,6 +1306,18 @@ namespace StockPr.Service
         {
             var url = "https://finance.vietstock.vn/data/GetFinanceIndexDataValue_CSTC_ByListTerms";
             return await GetFinanceIndexDataValue(body, url);
+        }
+
+        public async Task<ReportDataIDResponse> VietStock_TM_GetListReportData(string code)
+        {
+            var url = "https://finance.vietstock.vn/data/TM_GetListReportData";
+            return await VietStock_GetListReportData(code, url);
+        }
+
+        public async Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body)
+        {
+            var url = "https://finance.vietstock.vn/data/GetReportDataDetailValue_TM_ByReportDataIds";
+            return await VietStock_GetReportDataDetailValue(body, url);
         }
 
         public async Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page)

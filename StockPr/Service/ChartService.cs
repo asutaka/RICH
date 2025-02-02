@@ -559,7 +559,7 @@ namespace StockPr.Service
                         //}
                         if (prev.debt2 > 0)
                         {
-                            tangTruongNoNhom2 = Math.Round(100 * (-1 + (float)item.debt2 / prev.debt2), 1);
+                            tangTruongNoNhom2 = Math.Round(100 * (-1 + (double)item.debt2 / prev.debt2), 1);
                         }
                     }
 

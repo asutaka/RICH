@@ -32,6 +32,7 @@
     public class ReportDataDetailValue_BCTTDetailResponse
     {
         public int ReportnormId { get; set; }
+        public int ReportNormNoteID { get; set; }
         public double? Value1 { get; set; }
         public double? Value2 { get; set; }
         public double? Value3 { get; set; }

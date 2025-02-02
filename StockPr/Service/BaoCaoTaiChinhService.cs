@@ -81,7 +81,7 @@ namespace StockPr.Service
         {
             try
             {
-                await SyncBCTC_NganHang(true);
+                await SyncBCTC_NganHang(false);
                 await SyncBCTC_ChungKhoan(true);
                 await SyncBCTC_BatDongSan(true);
                 await SyncBCTC(true);
