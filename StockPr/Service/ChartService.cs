@@ -48,31 +48,46 @@ namespace StockPr.Service
                 if (stock.IsTonKho())
                 {
                     var stream = await Chart_TonKho(lFinancial, input);
-                    lStream.Add(stream);
+                    if(stream != null)
+                    {
+                        lStream.Add(stream);
+                    }
                 }
 
                 if (stock.IsNguoiMua())
                 {
                     var stream = await Chart_NguoiMua(lFinancial, input);
-                    lStream.Add(stream);
+                    if (stream != null)
+                    {
+                        lStream.Add(stream);
+                    }
                 }
 
                 if (stock.IsFDI())
                 {
                     var stream = await Chart_FDI();
-                    lStream.Add(stream);
+                    if (stream != null)
+                    {
+                        lStream.Add(stream);
+                    }
                 }
 
                 if (stock.IsXNK())
                 {
                     var stream = await Chart_XNK(stock);
-                    lStream.Add(stream);
+                    if (stream != null)
+                    {
+                        lStream.Add(stream);
+                    }
                 }
 
                 if (stock.IsBanLe())
                 {
                     var stream = await Chart_ThongKe_BanLe();
-                    lStream.Add(stream);
+                    if (stream != null)
+                    {
+                        lStream.Add(stream);
+                    }
                 }
 
                 if (stock.IsNganHang())
@@ -316,6 +331,8 @@ namespace StockPr.Service
             }
 
             var lThongKe = _thongkeRepo.GetByFilter(Builders<ThongKe>.Filter.Eq(x => x.key, (int)eThongKe)).OrderBy(x => x.d);
+            if (!lThongKe.Any())
+                return null;
 
             var lastThongKe = lThongKe?.LastOrDefault() ?? new ThongKe();
             var yearThongKe = lastThongKe.d / 100;
