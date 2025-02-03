@@ -689,8 +689,6 @@ namespace StockPr.Service
             var lOutput = new List<Stream>();
 
             lFinancial = lFinancial.OrderBy(x => x.d).ToList();
-            var streamDoanhThu = await Chart_DoanhThu_LoiNhuan(lFinancial.Select(x => new BaseFinancialDTO { d = x.d, rv = x.rv, pf = x.pf }).ToList(), code);
-            lOutput.Add(streamDoanhThu);
 
             var streamTangTruongTinDung = await Chart_CK_TangTruongTinDung_RoomTinDung(lFinancial, code);
             lOutput.Add(streamTangTruongTinDung);
