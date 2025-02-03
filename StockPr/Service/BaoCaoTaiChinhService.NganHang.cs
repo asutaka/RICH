@@ -46,8 +46,8 @@ namespace StockPr.Service
         {
             try
             {
-                var lNganHang = StaticVal._lStock.Where(x => x.status == 1 && x.cat.Any(x => x.ty == (int)EStockType.NganHang)).Select(x => x.s);
-                foreach (var item in lNganHang)
+                var lStockFilter = StaticVal._lStock.Where(x => x.status == 1 && x.cat.Any(x => x.ty == (int)EStockType.NganHang)).Select(x => x.s);
+                foreach (var item in lStockFilter)
                 {
                     FilterDefinition<Financial> filter = null;
                     var builder = Builders<Financial>.Filter;
@@ -101,51 +101,6 @@ namespace StockPr.Service
                 if (last is null)
                     return;
 
-                if (last.BasePeriodBegin / 100 > time.Item2)
-                {
-                    var div = last.ReportTermID - time.Item3;
-                    foreach (var item in lReportID.data)
-                    {
-                        var term = item.ReportTermID - div;
-                        if (term == 0)
-                        {
-                            term = 4;
-                            item.YearPeriod -= 1;
-                        }
-                        var monthFix = 0;
-                        if (term == 1)
-                        {
-                            monthFix = 1;
-                        }
-                        else if (term == 2)
-                        {
-                            monthFix = 4;
-                        }
-                        else if (term == 3)
-                        {
-                            monthFix = 7;
-                        }
-                        else if (term == 4)
-                        {
-                            monthFix = 10;
-                        }
-
-                        item.BasePeriodBegin = int.Parse($"{item.YearPeriod}{monthFix.To2Digit()}");
-                    }
-                }
-
-                var strBuilder = new StringBuilder();
-                strBuilder.Append($"StockCode={code}&");
-                strBuilder.Append($"Unit=1000000000&");
-                strBuilder.Append($"__RequestVerificationToken={StaticVal._VietStock_Token}&");
-                strBuilder.Append($"listReportDataIds[0][ReportDataId]={last.ReportDataID}&");
-                strBuilder.Append($"listReportDataIds[0][YearPeriod]={last.BasePeriodBegin / 100}");
-                var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
-                var lData = await _apiService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
-                Thread.Sleep(1000);
-                if (!(lData?.data?.Any() ?? false))
-                    return;
-
                 var year = last.BasePeriodBegin / 100;
                 var month = last.BasePeriodBegin - year * 100;
                 var quarter = 1;
@@ -162,10 +117,27 @@ namespace StockPr.Service
                     quarter = 2;
                 }
 
+                //check day
+                var d = int.Parse($"{year}{quarter}");
+                if (d < StaticVal._curQuarter)
+                    return;
+
+                var strBuilder = new StringBuilder();
+                strBuilder.Append($"StockCode={code}&");
+                strBuilder.Append($"Unit=1000000000&");
+                strBuilder.Append($"__RequestVerificationToken={StaticVal._VietStock_Token}&");
+                strBuilder.Append($"listReportDataIds[0][ReportDataId]={last.ReportDataID}&");
+                strBuilder.Append($"listReportDataIds[0][YearPeriod]={last.BasePeriodBegin / 100}");
+                var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
+                var lData = await _apiService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
+                Thread.Sleep(1000);
+                if (!(lData?.data?.Any() ?? false))
+                    return;
+
                 //insert
                 var entity = new Financial
                 {
-                    d = int.Parse($"{year}{quarter}"),
+                    d = d,
                     s = code,
                     t = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                 };
@@ -595,7 +567,7 @@ namespace StockPr.Service
                         item.BasePeriodBegin = int.Parse($"{item.YearPeriod}{month.To2Digit()}");
                     }
                 }
-                lReportID.data = lReportID.data.Where(x => (x.Isunited == 0 || x.Isunited == 1) && x.BasePeriodBegin >= 201901).ToList();
+                lReportID.data = lReportID.data.Where(x => (x.Isunited == 0 || x.Isunited == 1) && x.BasePeriodBegin >= 202001).ToList();
                 var lBatch = new List<List<ReportDataIDDetailResponse>>();
                 var lSub = new List<ReportDataIDDetailResponse>();
                 for (int i = 0; i < lReportID.data.Count; i++)
