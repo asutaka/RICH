@@ -18,11 +18,19 @@ namespace StockPr.Service
                                                                                     || x.ty == (int)EStockType.BDS)).Select(x => x.s);
                 foreach (var item in lStockFilter)
                 {
+
+                    var d = StaticVal._curQuarter;
+                    var fix = StaticVal._dicMa.FirstOrDefault(x => x.Key == item);
+                    if (fix.Key != null)
+                    {
+                        d = d.AddQuarter(-fix.Value);
+                    }
+
                     FilterDefinition<Financial> filter = null;
                     var builder = Builders<Financial>.Filter;
                     var lFilter = new List<FilterDefinition<Financial>>()
                     {
-                        builder.Gte(x => x.d, StaticVal._curQuarter),
+                        builder.Gte(x => x.d, d),
                         builder.Eq(x => x.s, item),
                     };
                     foreach (var itemFilter in lFilter)
@@ -102,6 +110,12 @@ namespace StockPr.Service
 
                 //check day
                 var d = int.Parse($"{year}{quarter}");
+                var fix = StaticVal._dicMa.FirstOrDefault(x => x.Key == code);
+                if(fix.Key != null)
+                {
+                    d = d.AddQuarter(-fix.Value);
+                }    
+
                 if (d < StaticVal._curQuarter)
                     return;
 

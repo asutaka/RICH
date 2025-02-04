@@ -25,6 +25,17 @@ namespace StockPr.Utils
                 .Replace("9", "")
                 .Replace("0", "");
         }
+        //fix Lỗi trong khi hiển thị báo cáo tài chính của một số mã
+        public static int AddQuarter(this int val, int num)
+        {
+            var year = val / 10;
+            var quarter = val - year * 10;
+
+            var quarterNext = quarter + num;
+            var yearNext = year + quarterNext / 4;
+            quarterNext = quarterNext % 4;
+            return int.Parse($"{yearNext}{quarterNext}");
+        }
 
         public static long GetYoyQuarter(this int time)
         {

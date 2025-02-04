@@ -26,5 +26,19 @@ namespace StockPr.Utils
             new DateTime(2025,9,1),
             new DateTime(2025,9,2),
         };
+
+        public static Dictionary<string, int> _dicMa = new Dictionary<string, int>
+        {
+            {"CTD",2 },
+            {"SLS",2 },
+            {"KTS",2 },
+            {"IDV",1 },
+            {"CAP",1 },
+            {"TIX",1 },
+            {"SFC",1 },
+            {"HSG",1 },
+            {"FIR",1 },
+            {"SJ1",1 },
+        };
     }
 }
