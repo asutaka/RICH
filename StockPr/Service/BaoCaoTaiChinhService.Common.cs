@@ -20,12 +20,6 @@ namespace StockPr.Service
                 {
 
                     var d = StaticVal._curQuarter;
-                    var fix = StaticVal._dicMa.FirstOrDefault(x => x.Key == item);
-                    if (fix.Key != null)
-                    {
-                        d = d.AddQuarter(-fix.Value);
-                    }
-
                     FilterDefinition<Financial> filter = null;
                     var builder = Builders<Financial>.Filter;
                     var lFilter = new List<FilterDefinition<Financial>>()
@@ -113,7 +107,7 @@ namespace StockPr.Service
                 var fix = StaticVal._dicMa.FirstOrDefault(x => x.Key == code);
                 if(fix.Key != null)
                 {
-                    d = d.AddQuarter(-fix.Value);
+                    d = int.Parse($"{year}{last.ReportTermID - 1}").AddQuarter(-fix.Value);
                 }    
 
                 if (d < StaticVal._curQuarter)

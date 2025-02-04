@@ -37,8 +37,8 @@ namespace StockPr.Utils
             {"TIX",1 },
             {"SFC",1 },
             {"HSG",1 },
-            {"FIR",1 },
-            {"SJ1",1 },
+            {"FIR",1 },//
+            {"SJ1",4 },
         };
     }
 }

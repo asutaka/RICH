@@ -42,6 +42,7 @@ namespace StockPr.Service
                 var lFinancial = _financialRepo.GetByFilter(Builders<Financial>.Filter.Eq(x => x.s, input));
                 if (!lFinancial.Any())
                     return null;
+                lFinancial = lFinancial.OrderBy(x => x.d).ToList();
 
                 var lStream = new List<Stream>();
 
