@@ -32,8 +32,10 @@ namespace StockPr.Utils
             var quarter = val - year * 10;
 
             var quarterNext = quarter + num;
-            var yearNext = year + quarterNext / 4;
-            quarterNext = quarterNext % 4;
+            if (quarterNext == 0)
+                quarterNext = 4;
+
+            var yearNext = year - quarterNext / 4;
             return int.Parse($"{yearNext}{quarterNext}");
         }
 
