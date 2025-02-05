@@ -70,7 +70,7 @@ namespace StockPr.Service
                     {
                         if(ghide)
                         {
-                            _financialRepo.DeleteOne(filter);
+                            _financialRepo.DeleteMany(filter);
                         }
                         else
                         {

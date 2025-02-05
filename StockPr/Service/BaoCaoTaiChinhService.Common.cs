@@ -2,6 +2,7 @@
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
+using System;
 using System.Text;
 
 namespace StockPr.Service
@@ -41,7 +42,7 @@ namespace StockPr.Service
                     {
                         if (ghide)
                         {
-                            _financialRepo.DeleteOne(filter);
+                            _financialRepo.DeleteMany(filter);
                         }
                         else
                         {
@@ -58,13 +59,42 @@ namespace StockPr.Service
             }
         }
 
-        private async Task SyncBCTC_BatDongSan(bool onlyLast = false)
+        private async Task SyncBCTC_BatDongSan(bool ghide = false)
         {
             try
             {
-                var lBDS = StaticVal._lStock.Where(x => x.status == 1 && x.cat.Any(x => x.ty == (int)EStockType.BDS)).Select(x => x.s);
-                foreach (var item in lBDS)
+                var lStockFilter = StaticVal._lStock.Where(x => x.status == 1 && x.cat.Any(x => x.ty == (int)EStockType.BDS)).Select(x => x.s);
+                foreach (var item in lStockFilter)
                 {
+                    var d = StaticVal._curQuarter;
+                    FilterDefinition<Financial> filter = null;
+                    var builder = Builders<Financial>.Filter;
+                    var lFilter = new List<FilterDefinition<Financial>>()
+                    {
+                        builder.Gte(x => x.d, d),
+                        builder.Eq(x => x.s, item),
+                    };
+                    foreach (var itemFilter in lFilter)
+                    {
+                        if (filter is null)
+                        {
+                            filter = itemFilter;
+                            continue;
+                        }
+                        filter &= itemFilter;
+                    }
+                    var exists = _financialRepo.GetEntityByFilter(filter);
+                    if (exists != null)
+                    {
+                        if (ghide)
+                        {
+                            _financialRepo.DeleteMany(filter);
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
                     await SyncBCTC_KQKD(item);
                     await SyncBCTC_CDKT(item, ECDKTType.BDS);
                 }
