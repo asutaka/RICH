@@ -177,9 +177,9 @@ namespace CoinPr.Utils
         public static Dictionary<long, string> _dicChannel = new Dictionary<long, string>
         {
             {1526873198, "Tradingview Ideas" },
-            {1528935807, "Binance New Feed" },
+            //{1528935807, "Binance New Feed" },
             {1312176687, "Binance Whale Tracker" },
-            {1513485204, "VN Wall Street" },
+            //{1513485204, "VN Wall Street" },
             {2088766055, "Token Unlocks" },
         };
     }
