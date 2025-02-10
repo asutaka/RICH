@@ -339,7 +339,7 @@ namespace StockPr.Service
                                 YTD = item.YTD
                             });
                         }
-                        else if (item.Code.Equals(EPrice.kraftpulp.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
+                        else if (item.Code.Replace("-", "").Replace(" ", "").Equals(EPrice.kraftpulp.GetDisplayName().Replace("-","").Replace(" ", ""), StringComparison.CurrentCultureIgnoreCase))
                         {
                             lTraceGia.Add(new TraceGiaModel
                             {
