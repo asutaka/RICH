@@ -11,6 +11,7 @@ namespace TestPr.Service
     {
         Task MethodTest();
         Task MethodTestEntry();
+        Task MethodTestTokenUnlock();
     }
     public class TestService : ITestService
     {
@@ -263,6 +264,33 @@ namespace TestPr.Service
             {
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
+        }
+
+        public async Task MethodTestTokenUnlock()
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestTokenUnlock|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private List<TokenUnlock> _lTokenUnlock = new List<TokenUnlock>
+        {
+            new TokenUnlock{ s = "ZTX", time = 20241012 }
+        };
+
+
+        public class TokenUnlock
+        {
+            public string s { get; set; }
+            public long noti_time { get; set; }
+            public long time { get; set; }
+            public decimal cap { get; set; }
+            public decimal value { get; set; }
         }
     }
 }
