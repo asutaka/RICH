@@ -1,6 +1,6 @@
-﻿using CoinPr.Utils;
+﻿using CoinPr.DAL;
+using CoinPr.Utils;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using TL;
 using WTelegram;
@@ -15,17 +15,20 @@ namespace CoinPr.Service
     {
         private readonly ILogger<TeleService> _logger;
         private readonly IMessageService _messageService;
+        private readonly ISignalRepo _signalRepo;
         private readonly IConfiguration _config;
         private TelegramBotClient _bot;
         private Client _client;
+        private const long _idUser = 1066022551;
         public TeleService(ILogger<TeleService> logger,
             IMessageService messageService,
+            ISignalRepo signalRepo,
             IConfiguration config)
         {
             _logger = logger;
             _config = config;
             _messageService = messageService;
-
+            _signalRepo = signalRepo;
             _bot = new TelegramBotClient(config["Telegram:bot"]);
             _bot.OnMessage += OnMessage;
             InitSession().GetAwaiter().GetResult();
@@ -108,7 +111,13 @@ namespace CoinPr.Service
                     var val = update as UpdateNewChannelMessage;
                     if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
                     {
-                        await SendMessage(1066022551, $"{val.message}");
+                        _signalRepo.InsertOne(new DAL.Entity.Signal
+                        {
+                            Date = DateTime.Now,
+                            Channel = val.message.Peer.ID,
+                            Content = val.message.ToString()
+                        });
+                        await SendMessage(_idUser, $"{val.message}");
                         continue;
                     }
 

@@ -9,6 +9,7 @@
             services.AddSingleton<ICoinRepo, CoinRepo>();
             services.AddSingleton<IBlackListRepo, BlackListRepo>();
             services.AddSingleton<ITradingRepo, TradingRepo>();
+            services.AddSingleton<ISignalRepo, SignalRepo>();
         }
     }
 }

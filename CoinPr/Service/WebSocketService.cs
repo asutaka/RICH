@@ -19,15 +19,17 @@ namespace CoinPr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ITradingRepo _tradingRepo;
+        private readonly ISignalRepo _signalRepo;
         private const int MIN_VALUE = 10000;
         private static Dictionary<string, DateTime> _dicRes = new Dictionary<string, DateTime>();
         
-        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo)
+        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo, ISignalRepo signalRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _tradingRepo = tradingRepo;
+            _signalRepo = signalRepo;
         }
 
         public void BinanceLiquid()
@@ -65,6 +67,12 @@ namespace CoinPr.Service
                     if (string.IsNullOrWhiteSpace(mes))
                         return;
 
+                    _signalRepo.InsertOne(new DAL.Entity.Signal
+                    {
+                        Date = DateTime.Now,
+                        Channel = 0,
+                        Content = mes
+                    });
                     _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
                 });
             }
