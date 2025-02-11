@@ -270,7 +270,34 @@ namespace TestPr.Service
         {
             try
             {
+                var lSym = _lTokenUnlock.Select(x => x.s).Distinct();
+                foreach (var item in lSym)
+                {
+                    var lData = await _apiService.GetData($"{item}USDT", EInterval.D1);
+                    Thread.Sleep(1000);
 
+                    if (!lData.Any())
+                        continue;
+
+                    var lVal = _lTokenUnlock.Where(x => x.s == item);
+                    foreach (var itemVal in lVal)
+                    {
+                        var timeStart = itemVal.noti_time.longToDateTime();
+                        var timeEnd = itemVal.release_time.longToDateTime();
+                        var lDat = lData.Where(x => x.Date >= timeStart && x.Date <= timeEnd.AddDays(3));
+                        if (!lDat.Any())
+                            continue;
+
+                        var cur = lDat.FirstOrDefault();
+                        var max = lDat.MaxBy(x => x.High);
+                        var min = lDat.MinBy(x => x.Low);
+
+                        var numMax = (max.Date - cur.Date).TotalDays;
+                        var numMin = (min.Date - cur.Date).TotalDays;
+                        var mes = $"{item}|Cur({cur.Open})|MaxAt: {numMax}|MaxRate: {Math.Round(100 * (-1 + max.High/cur.Open))}%|MinAt: {numMin}|MinRate: {Math.Round(100 * (-1 + cur.Open / min.Low))}%";
+                        Console.WriteLine(mes);
+                    }
+                }
             }
             catch (Exception ex)
             {
