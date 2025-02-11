@@ -266,6 +266,7 @@ namespace TestPr.Service
             }
         }
 
+        decimal total = 0;
         public async Task MethodTestTokenUnlock()
         {
             try
@@ -282,31 +283,32 @@ namespace TestPr.Service
                     var lVal = _lTokenUnlock.Where(x => x.s == item);
                     foreach (var itemVal in lVal)
                     {
-                        var timeStart = itemVal.noti_time.longToDateTime();
                         var timeEnd = itemVal.release_time.longToDateTime();
-                        var lDatBefore = lData.Where(x => x.Date >= timeStart && x.Date <= timeEnd);
-                        var lDatAfter = lData.Where(x => x.Date >= timeEnd && x.Date <= timeEnd.AddDays(5));
-                        if (!lDatBefore.Any() || !lDatAfter.Any())
+                        var end = lData.LastOrDefault(x => x.Date <= timeEnd);
+                        if (end is null)
                             continue;
 
-                        var start = lDatBefore.First();
-                        var end = lDatBefore.Last();
-                        var maxBefore = lDatBefore.MaxBy(x => x.High);
-                        var minBefore = lDatBefore.MinBy(x => x.Low);
-                        var minAfter = lDatAfter.MinBy(x => x.Low);
-                        
-                        var numMaxBefore = (maxBefore.Date - start.Date).TotalDays;
-                        var numMinBefore = (minBefore.Date - start.Date).TotalDays;
-                        var numMinAfter = (minAfter.Date - end.Date).TotalDays;
+                        var checkSL = Math.Abs(Math.Round(100 * (-1 + end.Open / end.High), 1));
+                        if (checkSL >= (decimal)1.6)
+                        {
+                            var valSL = Math.Round(15 * 5 * 0.016, 1);
+                            total += (decimal)valSL;
+                            var mesSL = $"{item}|SL|-1.6%|{valSL}";
+                            Console.WriteLine(mesSL);
+                            continue;
+                        }
+
+                        var rate = Math.Round(100 * (-1 + end.Open / end.Close), 1);
+                        var valTP = Math.Round(15 * 5 * rate / 100, 1);
+                        total += valTP;
+                        var mesTP = $"{item}|TP|{rate}%|{valTP}";
+                        Console.WriteLine(mesTP);
                         //Open High <1.6 -> short và chốt cuối ngày(margin x6) - start 15usd - ngày 2 lệnh
-                        var mes = $"{item}|End: {end.Date.ToString("dd/MM/yyyy")}|{Math.Round(100 * (-1 + end.Open / end.High), 1)}|{Math.Round(100 * (-1 + end.Close / end.Open), 1)}|RATE: {Math.Round(itemVal.value / itemVal.cap, 2)}%";
-                        //var mes = $"{item}|MaxAt: {numMaxBefore}|MaxRate: {Math.Round(100 * (-1 + maxBefore.High/ start.Open), 1)}%" +
-                        //    $"|MinAt: {numMinBefore}|MinRate: {Math.Round(100 * (-1 + minBefore.Low / start.Open), 1)}%" +
-                        //    $"|MinAfterAt: {numMinAfter}|MinAfterRate: {Math.Round(100 * (-1 + minAfter.Low / start.Open), 1)}%" +
-                        //    $"|UD: {Math.Round(100* (-1 + start.Open/end.Open), 1)}|RATE: {Math.Round(itemVal.value/ itemVal.cap, 2)}%";
-                        Console.WriteLine(mes);
+                        //var mes = $"{item}|End: {end.Date.ToString("dd/MM/yyyy")}|{Math.Round(100 * (-1 + end.Open / end.High), 1)}|{Math.Round(100 * (-1 + end.Close / end.Open), 1)}|RATE: {Math.Round(itemVal.value / itemVal.cap, 2)}%";
+                        //Console.WriteLine(mes);
                     }
                 }
+                Console.WriteLine($"Tong: {total}");
             }
             catch (Exception ex)
             {
