@@ -11,9 +11,9 @@
 
         public static DateTime longToDateTime(this long val)
         {
-            var year = val / 1000;
+            var year = val / 10000;
             var day = val % 100;
-            var month = (val % 1000) / 100;
+            var month = (val % 10000) / 100;
             return new DateTime((int)year, (int)month, (int)day);
         }
     }
