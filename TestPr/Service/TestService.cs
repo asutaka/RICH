@@ -298,7 +298,8 @@ namespace TestPr.Service
                         var numMaxBefore = (maxBefore.Date - start.Date).TotalDays;
                         var numMinBefore = (minBefore.Date - start.Date).TotalDays;
                         var numMinAfter = (minAfter.Date - end.Date).TotalDays;
-                        var mes = $"{item}|{Math.Round(100 * (-1 + end.Open / end.Close), 1)}|RATE: {Math.Round(itemVal.value / itemVal.cap, 2)}%";
+                        //Open High <1.6 -> short và chốt cuối ngày(margin x6) - start 15usd - ngày 2 lệnh
+                        var mes = $"{item}|End: {end.Date.ToString("dd/MM/yyyy")}|{Math.Round(100 * (-1 + end.Open / end.High), 1)}|{Math.Round(100 * (-1 + end.Close / end.Open), 1)}|RATE: {Math.Round(itemVal.value / itemVal.cap, 2)}%";
                         //var mes = $"{item}|MaxAt: {numMaxBefore}|MaxRate: {Math.Round(100 * (-1 + maxBefore.High/ start.Open), 1)}%" +
                         //    $"|MinAt: {numMinBefore}|MinRate: {Math.Round(100 * (-1 + minBefore.Low / start.Open), 1)}%" +
                         //    $"|MinAfterAt: {numMinAfter}|MinAfterRate: {Math.Round(100 * (-1 + minAfter.Low / start.Open), 1)}%" +
