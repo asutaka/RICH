@@ -281,19 +281,19 @@ namespace TestPr.Service
                     if (_lBlacKList.Contains(item.s))
                         continue;
 
-                    //if(item.release_time == checkTime)
-                    //{
-                    //    checkMax++;
-                    //}
-                    //else
-                    //{
-                    //    checkMax = 1;
-                    //    checkTime = item.release_time;
-                    //}
-                    //if(checkMax > 5)
-                    //{
-                    //    continue;
-                    //}
+                    if (item.release_time == checkTime)
+                    {
+                        checkMax++;
+                    }
+                    else
+                    {
+                        checkMax = 1;
+                        checkTime = item.release_time;
+                    }
+                    if (checkMax > 5)
+                    {
+                        continue;
+                    }
 
                     var lData = await _apiService.GetData($"{item.s}USDT", EInterval.D1);
                     Thread.Sleep(1000);
