@@ -266,56 +266,66 @@ namespace TestPr.Service
             }
         }
 
-        decimal total = 0;
-        int totalWin = 0;
-        int totalLoss = 0;
         public async Task MethodTestTokenUnlock()
         {
             try
             {
-                var lSym = _lTokenUnlock.Select(x => x.s).Distinct();
+                var lSym = _lTokenUnlock.OrderBy(x => x.release_time);
+                decimal asset = 100;
+                var step = 15;
+                var margin = 10;
+                var checkMax = 1;
+                long checkTime = 0;
                 foreach (var item in lSym)
                 {
-                    if (_lBlacKList.Contains(item))
+                    if (_lBlacKList.Contains(item.s))
                         continue;
 
-                    var lData = await _apiService.GetData($"{item}USDT", EInterval.D1);
+                    //if(item.release_time == checkTime)
+                    //{
+                    //    checkMax++;
+                    //}
+                    //else
+                    //{
+                    //    checkMax = 1;
+                    //    checkTime = item.release_time;
+                    //}
+                    //if(checkMax > 5)
+                    //{
+                    //    continue;
+                    //}
+
+                    var lData = await _apiService.GetData($"{item.s}USDT", EInterval.D1);
                     Thread.Sleep(1000);
 
                     if (!lData.Any())
                         continue;
 
-                    var lVal = _lTokenUnlock.Where(x => x.s == item);
-                    foreach (var itemVal in lVal)
+                    var timeEnd = item.release_time.longToDateTime();
+                    var end = lData.LastOrDefault(x => x.Date <= timeEnd);
+                    if (end is null)
+                        continue;
+
+                    var checkSL = Math.Abs(Math.Round(100 * (-1 + end.Open / end.High), 1));
+                    if (checkSL >= (decimal)1.6)
                     {
-                        var timeEnd = itemVal.release_time.longToDateTime();
-                        var end = lData.LastOrDefault(x => x.Date <= timeEnd);
-                        if (end is null)
-                            continue;
-
-                        var checkSL = Math.Abs(Math.Round(100 * (-1 + end.Open / end.High), 1));
-                        if (checkSL >= (decimal)1.6)
-                        {
-                            var valSL = Math.Round(15 * 5 * 0.016, 1);
-                            total -= (decimal)valSL;
-                            totalLoss++;
-                            var mesSL = $"{item}|SL|-1.6%|{valSL}";
-                            Console.WriteLine(mesSL);
-                            continue;
-                        }
-
-                        var rate = Math.Round(100 * (-1 + end.Open / end.Close), 1);
-                        var valTP = Math.Round(15 * 5 * rate / 100, 1);
-                        total += valTP;
-                        totalWin++;
-                        var mesTP = $"{item}|TP|{rate}%|{valTP}";
-                        Console.WriteLine(mesTP);
-                        //Open High <1.6 -> short và chốt cuối ngày(margin x6) - start 15usd - ngày 2 lệnh
-                        //var mes = $"{item}|End: {end.Date.ToString("dd/MM/yyyy")}|{Math.Round(100 * (-1 + end.Open / end.High), 1)}|{Math.Round(100 * (-1 + end.Close / end.Open), 1)}|RATE: {Math.Round(itemVal.value / itemVal.cap, 2)}%";
-                        //Console.WriteLine(mes);
+                        var valSL = Math.Round(step * margin * 0.016, 1);
+                        asset -= (decimal)valSL;
+                        totalLoss++;
+                        var mesSL = $"{item.s}|SL|-1.6%|{valSL}";
+                        Console.WriteLine(mesSL);
+                        continue;
                     }
+
+                    var rate = Math.Round(100 * (-1 + end.Open / end.Close), 1);
+                    var valTP = Math.Round(step * margin * rate / 100, 1);
+                    asset += valTP;
+                    totalWin++;
+                    var mesTP = $"{item.s}|TP|{rate}%|{valTP}";
+                    Console.WriteLine(mesTP);
+                    //Open High <1.6 -> short và chốt cuối ngày(margin x10) - start 15usd - ngày 2 lệnh
                 }
-                Console.WriteLine($"Tong: {total}");
+                Console.WriteLine($"Tong: {asset}");
                 Console.WriteLine($"Tong Lenh Win: {totalWin}/{totalLoss}");
             }
             catch (Exception ex)
@@ -323,6 +333,62 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestTokenUnlock|EXCEPTION| {ex.Message}");
             }
         }
+
+        decimal total = 0;
+        int totalWin = 0;
+        int totalLoss = 0;
+        //public async Task MethodTestTokenUnlock()
+        //{
+        //    try
+        //    {
+        //        var lSym = _lTokenUnlock.Select(x => x.s).Distinct();
+        //        foreach (var item in lSym)
+        //        {
+        //            if (_lBlacKList.Contains(item))
+        //                continue;
+
+        //            var lData = await _apiService.GetData($"{item}USDT", EInterval.D1);
+        //            Thread.Sleep(1000);
+
+        //            if (!lData.Any())
+        //                continue;
+
+        //            var lVal = _lTokenUnlock.Where(x => x.s == item);
+        //            foreach (var itemVal in lVal)
+        //            {
+        //                var timeEnd = itemVal.release_time.longToDateTime();
+        //                var end = lData.LastOrDefault(x => x.Date <= timeEnd);
+        //                if (end is null)
+        //                    continue;
+
+        //                var checkSL = Math.Abs(Math.Round(100 * (-1 + end.Open / end.High), 1));
+        //                if (checkSL >= (decimal)1.6)
+        //                {
+        //                    var valSL = Math.Round(15 * 10 * 0.016, 1);
+        //                    total -= (decimal)valSL;
+        //                    totalLoss++;
+        //                    var mesSL = $"{item}|SL|-1.6%|{valSL}";
+        //                    Console.WriteLine(mesSL);
+        //                    continue;
+        //                }
+
+        //                var rate = Math.Round(100 * (-1 + end.Open / end.Close), 1);
+        //                var valTP = Math.Round(15 * 10 * rate / 100, 1);
+        //                total += valTP;
+        //                totalWin++;
+        //                var mesTP = $"{item}|TP|{rate}%|{valTP}";
+        //                Console.WriteLine(mesTP);
+        //                //Open High <1.6 -> short và chốt cuối ngày(margin x10) - start 15usd - ngày 2 lệnh
+        //            }
+        //        }
+        //        Console.WriteLine($"Tong: {total}");
+        //        Console.WriteLine($"Tong Lenh Win: {totalWin}/{totalLoss}");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, $"TestService.MethodTestTokenUnlock|EXCEPTION| {ex.Message}");
+        //    }
+        //}
 
         private List<string> _lBlacKList = new List<string>
         {
