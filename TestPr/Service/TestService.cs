@@ -267,6 +267,8 @@ namespace TestPr.Service
         }
 
         decimal total = 0;
+        int totalWin = 0;
+        int totalLoss = 0;
         public async Task MethodTestTokenUnlock()
         {
             try
@@ -274,6 +276,9 @@ namespace TestPr.Service
                 var lSym = _lTokenUnlock.Select(x => x.s).Distinct();
                 foreach (var item in lSym)
                 {
+                    if (_lBlacKList.Contains(item))
+                        continue;
+
                     var lData = await _apiService.GetData($"{item}USDT", EInterval.D1);
                     Thread.Sleep(1000);
 
@@ -292,7 +297,8 @@ namespace TestPr.Service
                         if (checkSL >= (decimal)1.6)
                         {
                             var valSL = Math.Round(15 * 5 * 0.016, 1);
-                            total += (decimal)valSL;
+                            total -= (decimal)valSL;
+                            totalLoss++;
                             var mesSL = $"{item}|SL|-1.6%|{valSL}";
                             Console.WriteLine(mesSL);
                             continue;
@@ -301,6 +307,7 @@ namespace TestPr.Service
                         var rate = Math.Round(100 * (-1 + end.Open / end.Close), 1);
                         var valTP = Math.Round(15 * 5 * rate / 100, 1);
                         total += valTP;
+                        totalWin++;
                         var mesTP = $"{item}|TP|{rate}%|{valTP}";
                         Console.WriteLine(mesTP);
                         //Open High <1.6 -> short và chốt cuối ngày(margin x6) - start 15usd - ngày 2 lệnh
@@ -309,12 +316,31 @@ namespace TestPr.Service
                     }
                 }
                 Console.WriteLine($"Tong: {total}");
+                Console.WriteLine($"Tong Lenh Win: {totalWin}/{totalLoss}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"TestService.MethodTestTokenUnlock|EXCEPTION| {ex.Message}");
             }
         }
+
+        private List<string> _lBlacKList = new List<string>
+        {
+            "TORN",
+            "LAZIO",
+            "RAD",
+            "OGN",
+            "DAR",
+            "CGPT",
+            "VOXEL",
+            "SEI",
+            "PORTO",
+            "JUV",
+            "CFX",
+            "SANTOS",
+            "ATM",
+            "ASR",
+        };
 
         private List<TokenUnlock> _lTokenUnlock = new List<TokenUnlock>
         {
