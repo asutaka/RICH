@@ -264,7 +264,9 @@ namespace StockPr.Utils
         [Display(Name = "DXY")]
         DXY = 18,//Chỉ số đô la
         [Display(Name = "kraft-pulp")]
-        kraftpulp = 98
+        kraftpulp = 98,
+        [Display(Name = "Cotton")]
+        Cotton = 97//Giá bông
     }
 
     public enum EReportNormId

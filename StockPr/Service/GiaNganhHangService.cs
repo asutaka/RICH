@@ -495,6 +495,18 @@ namespace StockPr.Service
                                 YTD = item.YTD
                             });
                         }
+                        else if (item.Code.Equals(EPrice.Cotton.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            lTraceGia.Add(new TraceGiaModel
+                            {
+                                content = "Bông",
+                                description = "STK,ADS,HTG,PPH",
+                                weekly = item.Weekly,
+                                monthly = item.Monthly,
+                                yearly = item.YoY,
+                                YTD = item.YTD
+                            });
+                        }
                     }
                 }
             }
