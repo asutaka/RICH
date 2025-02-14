@@ -844,7 +844,8 @@ namespace StockPr.Service
                     EPrice.polyvinyl.GetDisplayName(), //Ống nhựa PVC--
                     EPrice.Nickel.GetDisplayName(), //Niken
                     EPrice.milk.GetDisplayName(),//Sữa
-                    EPrice.kraftpulp.GetDisplayName()//Bột giấy
+                    EPrice.kraftpulp.GetDisplayName(),//Bột giấy
+                    EPrice.Cotton.GetDisplayName(),//Bông
                 };
 
                 var lResult = new List<TradingEconomics_Data>();
