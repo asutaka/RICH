@@ -16,6 +16,7 @@ namespace CoinPr.Service
         private readonly ILogger<TeleService> _logger;
         private readonly IMessageService _messageService;
         private readonly ISignalRepo _signalRepo;
+        private readonly ITokenUnlockRepo _tokenUnlockRepo;
         private readonly IConfiguration _config;
         private TelegramBotClient _bot;
         private Client _client;
@@ -23,12 +24,14 @@ namespace CoinPr.Service
         public TeleService(ILogger<TeleService> logger,
             IMessageService messageService,
             ISignalRepo signalRepo,
+            ITokenUnlockRepo tokenUnlockRepo,
             IConfiguration config)
         {
             _logger = logger;
             _config = config;
             _messageService = messageService;
             _signalRepo = signalRepo;
+            _tokenUnlockRepo = tokenUnlockRepo;
             _bot = new TelegramBotClient(config["Telegram:bot"]);
             _bot.OnMessage += OnMessage;
             InitSession().GetAwaiter().GetResult();
@@ -109,23 +112,48 @@ namespace CoinPr.Service
                 if (update.GetType().Name.Equals("UpdateNewChannelMessage", StringComparison.OrdinalIgnoreCase))
                 {
                     var val = update as UpdateNewChannelMessage;
-                    if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
+                    if (val.message.Peer.ID == 2088766055) //Token Unlocks
                     {
-                        _signalRepo.InsertOne(new DAL.Entity.Signal
+                        try
                         {
-                            Date = DateTime.Now,
-                            Channel = val.message.Peer.ID,
-                            Content = val.message.ToString()
-                        });
-                        await SendMessage(_idUser, $"{val.message}");
-                        continue;
-                    }
+                            var dt = DateTime.Now;
+                            var content = val.message.ToString();
+                            var indexNext = content.IndexOf("in next") + 7;
+                            var indexDays = content.IndexOf("days");
+                            var indexOf = content.IndexOf("#");
+                            if (indexNext <= 0 || indexDays <= 0 || indexOf <= 0
+                                || indexDays <= indexNext || indexOf <= indexDays)
+                                return;
 
-                    //await SendMessage(1066022551, $"{val.message.Peer.ID}|{val.message}");
-                    //Console.WriteLine($"{val.message.Peer.ID}|{val.message}");
-                    //continue;
+                            var dayStr = content.Substring(indexNext, indexDays - indexNext);
+                            var isInt = int.TryParse(dayStr, out var day);
+                            if (!isInt)
+                                return;
+
+                            var time = new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(day).ToUnixTimeSeconds();
+                            var s = content.Substring(indexDays + 4, indexOf - (indexDays + 4)).Trim();
+
+                            _tokenUnlockRepo.InsertOne(new DAL.Entity.TokenUnlock
+                            {
+                                s = s,
+                                time = (int)time
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"TeleService.Client_OnUpdates|EXCEPTION| {ex.Message}");
+                        }
+                    }
+                    //if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
+                    //{
+                    //    _signalRepo.InsertOne(new DAL.Entity.Signal
+                    //    {
+                    //        Date = DateTime.Now,
+                    //        Channel = val.message.Peer.ID,
+                    //        Content = val.message.ToString()
+                    //    });
+                    //}
                 }
-                //Console.WriteLine(update.GetType().Name);
             }    
         }
     }

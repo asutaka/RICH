@@ -10,6 +10,7 @@
             services.AddSingleton<IBlackListRepo, BlackListRepo>();
             services.AddSingleton<ITradingRepo, TradingRepo>();
             services.AddSingleton<ISignalRepo, SignalRepo>();
+            services.AddSingleton<ITokenUnlockRepo, TokenUnlockRepo>();
         }
     }
 }

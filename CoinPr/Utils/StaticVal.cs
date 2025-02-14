@@ -180,7 +180,7 @@ namespace CoinPr.Utils
             //{1528935807, "Binance New Feed" },
             {1312176687, "Binance Whale Tracker" },
             //{1513485204, "VN Wall Street" },
-            {2088766055, "Token Unlocks" },
+            //{2088766055, "Token Unlocks" },
         };
     }
 }
