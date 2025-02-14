@@ -7,5 +7,6 @@ namespace CoinPr.DAL.Entity
     {
         public string s { get; set; }
         public int time { get; set; }
+        public int status { get; set; }//0: insert, 1: đã thực hiện
     }
 }
