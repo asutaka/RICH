@@ -60,10 +60,11 @@ namespace TradePr.Service
                 //if (lCache?.Any() != null)
                 //    return lCache;
 
-                lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext);
+                //lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext);
+               
+                lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext
+                                                                                                                   && !StaticVal._lTokenUnlockBlackList.Contains(x.s));
                 return lCache;
-                //lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext
-                //                                                                                                   && !StaticVal._lTokenUnlockBlackList.Contains(x.s));
                 _cache.Set(key, lCache, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1)

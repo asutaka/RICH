@@ -228,6 +228,8 @@ namespace TradePr.Service
                 double totalVal = 0;
                 int totalTP = 0;
                 int totalSL = 0;
+                int totalRSI70 = 0;
+                int totalRSI30 = 0;
                 var val = 150;
                 var dt = new DateTime(2024, 9, 30);
                 do
@@ -241,17 +243,31 @@ namespace TradePr.Service
                     {
                         long fromTime = item.time - 60;
                         var dat = await _apiService.GetData($"{item.s}USDT", EInterval.M1, fromTime * 1000);
-                        Thread.Sleep(1000);
+                        Thread.Sleep(200);
                         if (!dat.Any())
                             continue;
                         var entityEntry = dat.First();
                         var dat1D = await _apiService.GetData($"{item.s}USDT", EInterval.D1);
                         var lRsi = dat1D.GetRsi();
-                        Thread.Sleep(1000);
+                        Thread.Sleep(200);
                         var entityTP = dat.FirstOrDefault(x => x.Date >= dt.AddDays(1));
                         if (entityTP is null)
                             continue;
-                        var rsi = lRsi.First(x => x.Date == entityTP.Date);
+                        var rsi = lRsi.FirstOrDefault(x => x.Date == entityTP.Date);
+                        var rsiStr = string.Empty;
+                        if(rsi != null)
+                        {
+                            if ((rsi?.Rsi ?? 0) >= 70) 
+                            {
+                                totalRSI70++;
+                                rsiStr = $"(> 70)";
+                            }
+                            else if ((rsi?.Rsi ?? 0) <= 30)
+                            {
+                                totalRSI30++;
+                                rsiStr = $"(< 30)";
+                            }
+                        }
 
                         var checkSL = Math.Abs(Math.Round(100 * (-1 + entityTP.High / entityEntry.Open), 1));
                         if (checkSL >= (decimal)1.6)
@@ -259,19 +275,19 @@ namespace TradePr.Service
                             var SL = Math.Round(val * 0.016, 1);
                             totalVal -= SL;
                             totalSL++;
-                            Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|SL(RSI: {Math.Round(rsi.Rsi ?? 0, 1)})|{item.s}|-{SL}");
+                            Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|SL{rsiStr}|{item.s}|-{SL}");
                             continue;
                         }
 
                         var TP = Math.Round(val * (-1 + entityEntry.Open / entityTP.Close), 1);
                         totalVal += (double)TP;
                         totalTP++;
-                        Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|TP(RSI: {Math.Round(rsi.Rsi ?? 0, 1)})|{item.s}|{TP}");
+                        Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|TP{rsiStr}|{item.s}|{TP}");
                     }
                 }
                 while (dt < DateTime.Now);
 
-                Console.WriteLine($"Tong: {totalVal}|TP/SL: {totalTP}/{totalSL}");
+                Console.WriteLine($"Tong: {totalVal}|TP/SL: {totalTP}/{totalSL}|RSI70/RSI30:{totalRSI70}/{totalRSI30}");
             }
             catch (Exception ex)
             {
