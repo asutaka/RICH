@@ -20,13 +20,15 @@ namespace TradePr.Service
         private readonly string _api_key = string.Empty;
         private readonly string _api_secret = string.Empty;
         private readonly IActionTradeRepo _actionRepo;
-        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo) 
+        private readonly IAPIService _apiService;
+        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo, IAPIService apiService) 
         { 
             _logger = logger;
             _api_key = config["Account:API_KEY"];
             _api_secret = config["Account:SECRET_KEY"];
             _cacheService = cacheService;
             _actionRepo = actionRepo;
+            _apiService = apiService;
         }
 
         public async Task GetAccountInfo()
@@ -222,23 +224,48 @@ namespace TradePr.Service
         {
             try
             {
-                //TP
-                var dt = DateTime.Now;
-                if (dt.Hour == 23 && dt.Minute == 58)
+                double totalVal = 0;
+                int totalTP = 0;
+                int totalSL = 0;
+                var dt = new DateTime(2024, 9, 30);
+                do
                 {
-                    //action  
+                    dt = dt.AddDays(1);
+                    var tokens = _cacheService.GetTokenUnlock(dt);
+                    if (!tokens.Any())
+                        continue;
 
+                    foreach (var item in tokens)
+                    {
+                        long fromTime = item.time - 60;
+                        var dat = await _apiService.GetData($"{item.s}USDT", EInterval.M1, fromTime * 1000);
+                        Thread.Sleep(1000);
+                        if (!dat.Any())
+                            continue;
+                        var entityEntry = dat.First();
+                        var entityTP = dat.FirstOrDefault(x => x.Date >= dt.AddDays(1));
+                        if (entityTP is null)
+                            continue;
+
+                        var checkSL = Math.Abs(Math.Round(100 * (-1 + entityTP.High / entityEntry.Open), 1));
+                        if (checkSL >= (decimal)1.6)
+                        {
+                            var SL = Math.Round(100 * 0.016, 1);
+                            totalVal -= SL;
+                            totalSL++;
+                            Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|SL|{item.s}|-{SL}");
+                            continue;
+                        }
+
+                        var TP = Math.Round(100 * (-1 + entityEntry.Open / entityTP.Close), 1);
+                        totalVal += (double)TP;
+                        totalTP++;
+                        Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|TP|{item.s}|{TP}");
+                    }
                 }
+                while (dt < DateTime.Now);
 
-                var tokens = _cacheService.GetTokenUnlock(dt);
-                if (!tokens.Any())
-                    return;
-
-                if (dt.Hour == 23 && dt.Minute == 59)
-                {
-                    //action  
-
-                }
+                Console.WriteLine($"Tong: {totalVal}|TP/SL: {totalTP}/{totalSL}");
             }
             catch (Exception ex)
             {

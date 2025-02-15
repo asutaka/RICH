@@ -6,6 +6,7 @@
         {
             services.AddSingleton<IBinanceService, BinanceService>();
             services.AddSingleton<ICacheService, CacheService>();
+            services.AddSingleton<IAPIService, APIService>();
         }
     }
 }

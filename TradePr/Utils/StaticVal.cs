@@ -95,20 +95,20 @@ namespace TradePr.Utils
 
         public static List<string> _lTokenUnlockBlackList = new List<string>
         {
-            "TORN",
-            "LAZIO",
-            "RAD",
-            "OGN",
-            "DAR",
-            "CGPT",
-            "VOXEL",
-            "SEI",
-            "PORTO",
-            "JUV",
-            "CFX",
-            "SANTOS",
-            "ATM",
-            "ASR",
+            //"TORN",
+            //"LAZIO",
+            //"RAD",
+            //"OGN",
+            //"DAR",
+            //"CGPT",
+            //"VOXEL",
+            //"SEI",
+            //"PORTO",
+            //"JUV",
+            //"CFX",
+            //"SANTOS",
+            //"ATM",
+            //"ASR",
         };
     }
 }

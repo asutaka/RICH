@@ -57,11 +57,13 @@ namespace TradePr.Service
             var timeNext = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(2).ToUnixTimeSeconds();
             try
             {
-                if (lCache?.Any() != null)
-                    return lCache;
+                //if (lCache?.Any() != null)
+                //    return lCache;
 
-                lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext 
-                                                                                                                    && !StaticVal._lTokenUnlockBlackList.Contains(x.s));
+                lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext);
+                return lCache;
+                //lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext
+                //                                                                                                   && !StaticVal._lTokenUnlockBlackList.Contains(x.s));
                 _cache.Set(key, lCache, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1)
