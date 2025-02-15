@@ -8,7 +8,7 @@ namespace TradePr.Service
     public interface ICacheService
     {
         IEnumerable<Trading> GetListTrading();
-        IEnumerable<TokenUnlock> GetTokenUnlock();
+        IEnumerable<TokenUnlock> GetTokenUnlock(DateTime dt);
     }
     public class CacheService : ICacheService
     {
@@ -48,11 +48,10 @@ namespace TradePr.Service
             return lCache;
         }
 
-        public IEnumerable<TokenUnlock> GetTokenUnlock()
+        public IEnumerable<TokenUnlock> GetTokenUnlock(DateTime dt)
         {
             var key = "lTokenUnlockCache";
             var lCache = _cache.Get<IEnumerable<TokenUnlock>>(key);
-            var dt = DateTime.Now;
             var time = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(1).ToUnixTimeSeconds();
             var timeNext = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(2).ToUnixTimeSeconds();
             try
@@ -63,7 +62,7 @@ namespace TradePr.Service
                 lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext);
                 _cache.Set(key, lCache, new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1)
                 });
             }
             catch (Exception ex)
