@@ -1,5 +1,7 @@
-﻿using MongoDB.Driver.Linq;
+﻿using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Newtonsoft.Json;
+using SharpCompress.Common;
 using Skender.Stock.Indicators;
 using TestPr.DAL;
 using TestPr.Model;
@@ -18,11 +20,15 @@ namespace TestPr.Service
         private readonly ILogger<TestService> _logger;
         private readonly IAPIService _apiService;
         private readonly ITradingRepo _tradingRepo;
-        public TestService(ILogger<TestService> logger, IAPIService apiService, ITradingRepo tradingRepo)
+        private readonly ITokenUnlockRepo _tokenRepo;
+        private readonly ISignalRepo _signalRepo;
+        public TestService(ILogger<TestService> logger, IAPIService apiService, ITradingRepo tradingRepo, ITokenUnlockRepo tokenrepo, ISignalRepo signalRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _tradingRepo = tradingRepo;
+            _tokenRepo = tokenrepo;
+            _signalRepo = signalRepo;
         }
 
         public async Task MethodTest()
