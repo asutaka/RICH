@@ -8,17 +8,20 @@ namespace TradePr.Service
     public interface ICacheService
     {
         IEnumerable<Trading> GetListTrading();
+        IEnumerable<TokenUnlock> GetTokenUnlock();
     }
     public class CacheService : ICacheService
     {
         private readonly ILogger<CacheService> _logger;
         private readonly IMemoryCache _cache;
         private readonly ITradingRepo _tradingRepo;
-        public CacheService(ILogger<CacheService> logger, IMemoryCache memoryCache, ITradingRepo tradingRepo)
+        private readonly ITokenUnlockRepo _tokenUnlockRepo;
+        public CacheService(ILogger<CacheService> logger, IMemoryCache memoryCache, ITradingRepo tradingRepo, ITokenUnlockRepo tokenUnlockRepo)
         {
             _logger = logger;
             _cache = memoryCache;
             _tradingRepo = tradingRepo;
+            _tokenUnlockRepo = tokenUnlockRepo;
         }
 
         public IEnumerable<Trading> GetListTrading()
@@ -40,6 +43,32 @@ namespace TradePr.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"CacheService.GetListTrading|EXCEPTION| {ex.Message}");
+            }
+
+            return lCache;
+        }
+
+        public IEnumerable<TokenUnlock> GetTokenUnlock()
+        {
+            var key = "lTokenUnlockCache";
+            var lCache = _cache.Get<IEnumerable<TokenUnlock>>(key);
+            var dt = DateTime.Now;
+            var time = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(1).ToUnixTimeSeconds();
+            var timeNext = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(2).ToUnixTimeSeconds();
+            try
+            {
+                if (lCache?.Any() != null)
+                    return lCache;
+
+                lCache = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Gte(x => x.time, time)).Where(x => x.time < timeNext);
+                _cache.Set(key, lCache, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CacheService.GetTokenUnlock|EXCEPTION| {ex.Message}");
             }
 
             return lCache;
