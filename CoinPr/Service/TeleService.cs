@@ -1,5 +1,7 @@
 ﻿using CoinPr.DAL;
+using CoinPr.DAL.Entity;
 using CoinPr.Utils;
+using MongoDB.Driver;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using TL;
@@ -123,21 +125,43 @@ namespace CoinPr.Service
                             var indexOf = content.IndexOf("#");
                             if (indexNext <= 0 || indexDays <= 0 || indexOf <= 0
                                 || indexDays <= indexNext || indexOf <= indexDays)
-                                return;
+                                continue;
 
                             var dayStr = content.Substring(indexNext, indexDays - indexNext);
                             var isInt = int.TryParse(dayStr, out var day);
                             if (!isInt)
-                                return;
+                                continue;
 
                             var time = new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(day).ToUnixTimeSeconds();
                             var s = content.Substring(indexDays + 4, indexOf - (indexDays + 4)).Trim();
-
-                            _tokenUnlockRepo.InsertOne(new DAL.Entity.TokenUnlock
+                            var entity = new DAL.Entity.TokenUnlock
                             {
                                 s = s,
                                 time = (int)time
-                            });
+                            };
+
+                            FilterDefinition<TokenUnlock> filter = null;
+                            var builder = Builders<TokenUnlock>.Filter;
+                            var lFilter = new List<FilterDefinition<TokenUnlock>>()
+                            {
+                                builder.Eq(x => x.s, entity.s),
+                                builder.Eq(x => x.time, entity.time),
+                            };
+                            foreach (var item in lFilter)
+                            {
+                                if (filter is null)
+                                {
+                                    filter = item;
+                                    continue;
+                                }
+                                filter &= item;
+                            }
+
+                            var exist = _tokenUnlockRepo.GetEntityByFilter(filter);
+                            if (exist != null)
+                                continue;
+
+                            _tokenUnlockRepo.InsertOne(entity);
                         }
                         catch (Exception ex)
                         {
