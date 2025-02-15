@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using Newtonsoft.Json;
+using Skender.Stock.Indicators;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -227,6 +228,7 @@ namespace TradePr.Service
                 double totalVal = 0;
                 int totalTP = 0;
                 int totalSL = 0;
+                var val = 150;
                 var dt = new DateTime(2024, 9, 30);
                 do
                 {
@@ -243,24 +245,28 @@ namespace TradePr.Service
                         if (!dat.Any())
                             continue;
                         var entityEntry = dat.First();
+                        var dat1D = await _apiService.GetData($"{item.s}USDT", EInterval.D1);
+                        var lRsi = dat1D.GetRsi();
+                        Thread.Sleep(1000);
                         var entityTP = dat.FirstOrDefault(x => x.Date >= dt.AddDays(1));
                         if (entityTP is null)
                             continue;
+                        var rsi = lRsi.First(x => x.Date == entityTP.Date);
 
                         var checkSL = Math.Abs(Math.Round(100 * (-1 + entityTP.High / entityEntry.Open), 1));
                         if (checkSL >= (decimal)1.6)
                         {
-                            var SL = Math.Round(100 * 0.016, 1);
+                            var SL = Math.Round(val * 0.016, 1);
                             totalVal -= SL;
                             totalSL++;
-                            Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|SL|{item.s}|-{SL}");
+                            Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|SL(RSI: {Math.Round(rsi.Rsi ?? 0, 1)})|{item.s}|-{SL}");
                             continue;
                         }
 
-                        var TP = Math.Round(100 * (-1 + entityEntry.Open / entityTP.Close), 1);
+                        var TP = Math.Round(val * (-1 + entityEntry.Open / entityTP.Close), 1);
                         totalVal += (double)TP;
                         totalTP++;
-                        Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|TP|{item.s}|{TP}");
+                        Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|TP(RSI: {Math.Round(rsi.Rsi ?? 0, 1)})|{item.s}|{TP}");
                     }
                 }
                 while (dt < DateTime.Now);
