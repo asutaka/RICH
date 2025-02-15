@@ -11,6 +11,7 @@ namespace TradePr.Service
         Task GetAccountInfo();
         Task TradeAction();
         Task TradeTokenUnlock();
+        Task TradeTokenUnlockTest();
     }
     public class BinanceService : IBinanceService
     {
@@ -206,6 +207,34 @@ namespace TradePr.Service
                     return;
                
                 if(dt.Hour == 23 && dt.Minute == 59)
+                {
+                    //action  
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BinanceService.TradeTokenUnlock|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task TradeTokenUnlockTest()
+        {
+            try
+            {
+                //TP
+                var dt = DateTime.Now;
+                if (dt.Hour == 23 && dt.Minute == 58)
+                {
+                    //action  
+
+                }
+
+                var tokens = _cacheService.GetTokenUnlock(dt);
+                if (!tokens.Any())
+                    return;
+
+                if (dt.Hour == 23 && dt.Minute == 59)
                 {
                     //action  
 

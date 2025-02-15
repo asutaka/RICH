@@ -20,7 +20,7 @@ namespace TradePr
             while (!stoppingToken.IsCancellationRequested)
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await _binnanceService.TradeTokenUnlock();
+                await _binnanceService.TradeTokenUnlockTest();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }

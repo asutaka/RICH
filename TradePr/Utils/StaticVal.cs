@@ -92,5 +92,23 @@ namespace TradePr.Utils
             "HIGHUSDT",
             "STMXUSDT"
         };
+
+        public static List<string> _lTokenUnlockBlackList = new List<string>
+        {
+            "TORN",
+            "LAZIO",
+            "RAD",
+            "OGN",
+            "DAR",
+            "CGPT",
+            "VOXEL",
+            "SEI",
+            "PORTO",
+            "JUV",
+            "CFX",
+            "SANTOS",
+            "ATM",
+            "ASR",
+        };
     }
 }
