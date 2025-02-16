@@ -230,7 +230,7 @@ namespace TradePr.Service
                 int totalSL = 0;
                 int totalRSI70 = 0;
                 int totalRSI30 = 0;
-                var val = 150;
+                var val = 100;
                 var dt = new DateTime(2024, 9, 30);
                 var lMes = new List<string>();
                 do
