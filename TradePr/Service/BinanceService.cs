@@ -232,6 +232,7 @@ namespace TradePr.Service
                 int totalRSI30 = 0;
                 var val = 150;
                 var dt = new DateTime(2024, 9, 30);
+                var lMes = new List<string>();
                 do
                 {
                     dt = dt.AddDays(1);
@@ -260,12 +261,12 @@ namespace TradePr.Service
                             if ((rsi?.Rsi ?? 0) >= 70) 
                             {
                                 totalRSI70++;
-                                rsiStr = $"(> 70)";
+                                rsiStr = $"({rsi?.Rsi})";
                             }
                             else if ((rsi?.Rsi ?? 0) <= 30)
                             {
                                 totalRSI30++;
-                                rsiStr = $"(< 30)";
+                                rsiStr = $"({rsi?.Rsi})";
                             }
                         }
 
@@ -275,18 +276,24 @@ namespace TradePr.Service
                             var SL = Math.Round(val * 0.016, 1);
                             totalVal -= SL;
                             totalSL++;
-                            Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|SL{rsiStr}|{item.s}|-{SL}");
+                            var mesSL = $"{dt.ToString("dd/MM/yyyy")}|SL{rsiStr}|{item.s}|-{SL}";
+                            lMes.Add(mesSL);
                             continue;
                         }
 
                         var TP = Math.Round(val * (-1 + entityEntry.Open / entityTP.Close), 1);
                         totalVal += (double)TP;
                         totalTP++;
-                        Console.WriteLine($"{dt.ToString("dd/MM/yyyy")}|TP{rsiStr}|{item.s}|{TP}");
+                        var mesTP = $"{dt.ToString("dd/MM/yyyy")}|TP{rsiStr}|{item.s}|{TP}";
+                        lMes.Add(mesTP);
                     }
                 }
                 while (dt < DateTime.Now);
 
+                foreach (var me in lMes)
+                {
+                    Console.WriteLine(me);
+                }
                 Console.WriteLine($"Tong: {totalVal}|TP/SL: {totalTP}/{totalSL}|RSI70/RSI30:{totalRSI70}/{totalRSI30}");
             }
             catch (Exception ex)
