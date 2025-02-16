@@ -251,7 +251,7 @@ namespace TradePr.Service
                         var dat1D = await _apiService.GetData($"{item.s}USDT", EInterval.D1);
                         var lRsi = dat1D.GetRsi();
                         Thread.Sleep(200);
-                        var entityTP = dat.FirstOrDefault(x => x.Date >= dt.AddDays(1));
+                        var entityTP = dat1D.FirstOrDefault(x => x.Date >= dt.AddDays(1));
                         if (entityTP is null)
                             continue;
                         var rsi = lRsi.FirstOrDefault(x => x.Date == entityTP.Date);
@@ -281,10 +281,11 @@ namespace TradePr.Service
                             continue;
                         }
 
+                        var rate = Math.Round(100 * (-1 + entityEntry.Open / entityTP.Close), 1);
                         var TP = Math.Round(val * (-1 + entityEntry.Open / entityTP.Close), 1);
                         totalVal += (double)TP;
                         totalTP++;
-                        var mesTP = $"{dt.ToString("dd/MM/yyyy")}|TP{rsiStr}|{item.s}|{TP}";
+                        var mesTP = $"{dt.ToString("dd/MM/yyyy")}|TP{rsiStr}|{item.s}|{rate}%|{TP}";
                         lMes.Add(mesTP);
                     }
                 }

@@ -282,6 +282,7 @@ namespace TestPr.Service
                 var margin = 10;
                 var checkMax = 1;
                 long checkTime = 0;
+                var lmes = new List<string>();
                 foreach (var item in lSym)
                 {
                     if (_lBlacKList.Contains(item.s))
@@ -318,8 +319,9 @@ namespace TestPr.Service
                         var valSL = Math.Round(step * margin * 0.016, 1);
                         asset -= (decimal)valSL;
                         totalLoss++;
-                        var mesSL = $"{item.s}|SL|-1.6%|{valSL}";
-                        Console.WriteLine(mesSL);
+                        var mesSL = $"{timeEnd}|{item.s}|SL|-1.6%|{valSL}";
+                        lmes.Add(mesSL);
+                        //Console.WriteLine(mesSL);
                         continue;
                     }
 
@@ -327,9 +329,14 @@ namespace TestPr.Service
                     var valTP = Math.Round(step * margin * rate / 100, 1);
                     asset += valTP;
                     totalWin++;
-                    var mesTP = $"{item.s}|TP|{rate}%|{valTP}";
-                    Console.WriteLine(mesTP);
+                    var mesTP = $"{timeEnd}|{item.s}|TP|{rate}%|{valTP}";
+                    lmes.Add(mesTP);
+                    //Console.WriteLine(mesTP);
                     //Open High <1.6 -> short và chốt cuối ngày(margin x10) - start 15usd - ngày 2 lệnh
+                }
+                foreach (var item in lmes)
+                {
+                    Console.WriteLine(item);
                 }
                 Console.WriteLine($"Tong: {asset}");
                 Console.WriteLine($"Tong Lenh Win: {totalWin}/{totalLoss}");
