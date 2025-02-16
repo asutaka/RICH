@@ -128,7 +128,7 @@ namespace CoinPr.Service
                                 || indexOf <= indexDays)
                                 continue;
 
-                            var dayStr = content.Substring(indexOfDate, indexOfAmount - indexOfDate)?.Trim()?.Split(' ')?.FirstOrDefault();
+                            var dayStr = content.Substring(indexOfDate, indexOfAmount - indexOfDate)?.Replace("Date", "").Trim()?.Split(' ')?.FirstOrDefault();
                             if (string.IsNullOrWhiteSpace(dayStr))
                                 continue;
                             var arrDay = dayStr.Split('/');
