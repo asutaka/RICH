@@ -266,7 +266,7 @@ namespace TradePr.Service
                             var SL = Math.Round(val * 0.016, 1);
                             totalVal -= SL;
                             totalSL++;
-                            var mesSL = $"{dt.ToString("dd/MM/yyyy")}|SL|{item.s}|-{SL}";
+                            var mesSL = $"{dt.AddDays(1).ToString("dd/MM/yyyy")}|SL|{item.s}|-{SL}";
                             lMes.Add(mesSL);
                             continue;
                         }
@@ -275,7 +275,7 @@ namespace TradePr.Service
                         var TP = Math.Round(val * (-1 + entityEntry.Open / entityTP.Close), 1);
                         totalVal += (double)TP;
                         totalTP++;
-                        var mesTP = $"{dt.ToString("dd/MM/yyyy")}|TP|{item.s}|{rate}%|{TP}";
+                        var mesTP = $"{dt.AddDays(1).ToString("dd/MM/yyyy")}|TP|{item.s}|{rate}%|{TP}";
                         lMes.Add(mesTP);
                     }
                 }
