@@ -120,21 +120,24 @@ namespace CoinPr.Service
                         {
                             var dt = DateTime.Now;
                             var content = val.message.ToString();
-                            var indexNext = content.IndexOf("in next") + 7;
                             var indexDays = content.IndexOf("days");
                             var indexOf = content.IndexOf("#");
-                            if (indexNext <= 0 || indexDays <= 0 || indexOf <= 0
-                                || indexDays <= indexNext || indexOf <= indexDays)
+                            var indexOfDate = content.IndexOf("Date");
+                            var indexOfAmount = content.IndexOf("Amount");
+                            if (indexOfDate <= 0 || indexOfAmount <= 0 || indexDays <= 0 || indexOf <= 0
+                                || indexOf <= indexDays)
                                 continue;
 
-                            var dayStr = content.Substring(indexNext, indexDays - indexNext);
-                            var isInt = int.TryParse(dayStr, out var day);
-                            if (!isInt)
+                            var dayStr = content.Substring(indexOfDate, indexOfAmount - indexOfDate)?.Trim()?.Split(' ')?.FirstOrDefault();
+                            if (string.IsNullOrWhiteSpace(dayStr))
+                                continue;
+                            var arrDay = dayStr.Split('/');
+                            if (arrDay.Length != 3)
                                 continue;
 
-                            var time = new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(day).ToUnixTimeSeconds();
+                            var time = new DateTimeOffset(int.Parse(arrDay[2]), int.Parse(arrDay[0]), int.Parse(arrDay[1]), 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
                             var s = content.Substring(indexDays + 4, indexOf - (indexDays + 4)).Trim();
-                            var entity = new DAL.Entity.TokenUnlock
+                            var entity = new TokenUnlock
                             {
                                 s = s,
                                 time = (int)time
