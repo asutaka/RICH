@@ -38,6 +38,7 @@ namespace TradePr.Service
             {
                 var tmp = await StaticVal.BinanceInstance(_api_key, _api_secret).SpotApi.Account.GetAccountInfoAsync();
                 var tmp2 = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Account.GetBalancesAsync();
+                //var tmp2 = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.CommonFuturesClient
                 var tmp1 = 1;
             }
             catch (Exception ex)
@@ -197,6 +198,7 @@ namespace TradePr.Service
         {
             try
             {
+                //await GetAccountInfo();
                 //TP
                 var dt = DateTime.Now;
                 if (dt.Hour == 23 && dt.Minute == 58)
