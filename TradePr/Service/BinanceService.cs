@@ -254,20 +254,10 @@ namespace TradePr.Service
                         var entityTP = dat1D.FirstOrDefault(x => x.Date >= dt.AddDays(1));
                         if (entityTP is null)
                             continue;
-                        var rsi = lRsi.FirstOrDefault(x => x.Date == entityTP.Date);
-                        var rsiStr = string.Empty;
-                        if(rsi != null)
+                        var rsi = lRsi.LastOrDefault(x => x.Date < entityTP.Date);
+                        if ((rsi?.Rsi ?? 0) <= 30)
                         {
-                            if ((rsi?.Rsi ?? 0) >= 70) 
-                            {
-                                totalRSI70++;
-                                rsiStr = $"({rsi?.Rsi})";
-                            }
-                            else if ((rsi?.Rsi ?? 0) <= 30)
-                            {
-                                totalRSI30++;
-                                rsiStr = $"({rsi?.Rsi})";
-                            }
+                            continue;
                         }
 
                         var checkSL = Math.Abs(Math.Round(100 * (-1 + entityTP.High / entityEntry.Open), 1));
@@ -276,7 +266,7 @@ namespace TradePr.Service
                             var SL = Math.Round(val * 0.016, 1);
                             totalVal -= SL;
                             totalSL++;
-                            var mesSL = $"{dt.ToString("dd/MM/yyyy")}|SL{rsiStr}|{item.s}|-{SL}";
+                            var mesSL = $"{dt.ToString("dd/MM/yyyy")}|SL|{item.s}|-{SL}";
                             lMes.Add(mesSL);
                             continue;
                         }
@@ -285,7 +275,7 @@ namespace TradePr.Service
                         var TP = Math.Round(val * (-1 + entityEntry.Open / entityTP.Close), 1);
                         totalVal += (double)TP;
                         totalTP++;
-                        var mesTP = $"{dt.ToString("dd/MM/yyyy")}|TP{rsiStr}|{item.s}|{rate}%|{TP}";
+                        var mesTP = $"{dt.ToString("dd/MM/yyyy")}|TP|{item.s}|{rate}%|{TP}";
                         lMes.Add(mesTP);
                     }
                 }
