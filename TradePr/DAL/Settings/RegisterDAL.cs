@@ -7,6 +7,7 @@
             services.AddSingleton<ITradingRepo, TradingRepo>();
             services.AddSingleton<IActionTradeRepo, ActionTradeRepo>();
             services.AddSingleton<ITokenUnlockRepo, TokenUnlockRepo>();
+            services.AddSingleton<ITokenUnlockTradeRepo, TokenUnlockTradeRepo>();
         }
     }
 }

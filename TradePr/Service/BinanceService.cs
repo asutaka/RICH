@@ -21,8 +21,9 @@ namespace TradePr.Service
         private readonly string _api_key = string.Empty;
         private readonly string _api_secret = string.Empty;
         private readonly IActionTradeRepo _actionRepo;
+        private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
         private readonly IAPIService _apiService;
-        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo, IAPIService apiService) 
+        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo) 
         { 
             _logger = logger;
             _api_key = config["Account:API_KEY"];
@@ -30,6 +31,7 @@ namespace TradePr.Service
             _cacheService = cacheService;
             _actionRepo = actionRepo;
             _apiService = apiService;
+            _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
         }
 
         public async Task GetAccountInfo()
