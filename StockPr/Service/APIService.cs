@@ -1481,7 +1481,7 @@ namespace StockPr.Service
             }
 
             var dt = DateTime.Now;
-            var dFormat = $"{dt.Day.To2Digit()}/{dt.Month.To2Digit()}/{dt.Year}";
+            var dFormat = $"{dt.Month.To2Digit()}/{dt.Year}";
 
             try
             {
