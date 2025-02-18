@@ -38,7 +38,7 @@ namespace StockPr.Service
                     }
                 }
                
-                if(dt.Day >= 28 || dt.Day <= 10)
+                if(dt.Day >= 28 || dt.Day <= 20)
                 {
                     //Dragon Capital + Pyn Elite
                     var dc = await DragonCapital();
