@@ -30,7 +30,7 @@ namespace TradePr.Service
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
         private const decimal _unit = 30;
-        private const decimal _margin = 10;
+        private const decimal _margin = 2;
         public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo, ITeleService teleService) 
         { 
             _logger = logger;
@@ -109,6 +109,23 @@ namespace TradePr.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
+            }
+            return false;
+        }
+
+        private async Task<bool> PlaceOrderCloseAll(string coin, decimal quan)
+        {
+            try
+            {
+                var res = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.PlaceOrderAsync($"{coin}USDT",
+                                                                                                                        side: Binance.Net.Enums.OrderSide.Buy,
+                                                                                                                        type: Binance.Net.Enums.FuturesOrderType.Market,
+                                                                                                                        quantity: quan);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BinanceService.PlaceOrderCloseAll|EXCEPTION| {ex.Message}");
             }
             return false;
         }
@@ -264,27 +281,29 @@ namespace TradePr.Service
         {
             try
             {
+                //var zz = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.GetPositionsAsync();
+                //var tmp = await PlaceOrderCloseAll("ETH");
                 //TP
-                var dt = DateTime.Now;
+                //var dt = DateTime.Now;
                 //if (dt.Hour == 23 && dt.Minute == 57)
                 //{
-                    //action  
-                   
-
-                var resOrder = await PlaceOrder("ETH");
-                var res1 = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.GetPositionsAsync("ETHUSDT");
-                var tmp = JsonConvert.SerializeObject(res1);
+                //    //action
+                //    var resPosition = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.GetPositionsAsync();
+                //    if (resPosition?.Data?.Any() ?? false) 
+                //    {
+                //        //close all
+                //    }    
                 //}
 
-                var tokens = _cacheService.GetTokenUnlock(dt);
-                if (!tokens.Any())
-                    return;
+                //var tokens = _cacheService.GetTokenUnlock(dt);
+                //if (!tokens.Any())
+                //    return;
                
-                if(dt.Hour == 23 && dt.Minute == 59)
-                {
-                    //action  
-
-                }
+                //if(dt.Hour == 23 && dt.Minute == 59)
+                //{
+                //    //action  
+                //    //var resOrder = await PlaceOrder("ETH");
+                //}
             }
             catch (Exception ex)
             {
