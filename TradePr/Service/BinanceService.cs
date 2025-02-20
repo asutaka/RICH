@@ -1,4 +1,8 @@
-﻿using MongoDB.Driver;
+﻿using Binance.Net.Objects.Models.Futures;
+using Binance.Net.Objects.Models.Spot.IsolatedMargin;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using TradePr.DAL;
@@ -9,7 +13,7 @@ namespace TradePr.Service
 {
     public interface IBinanceService
     {
-        Task GetAccountInfo();
+        //Task GetAccountInfo();
         Task TradeAction();
         Task TradeTokenUnlock();
         Task TradeTokenUnlockTest();
@@ -23,7 +27,11 @@ namespace TradePr.Service
         private readonly IActionTradeRepo _actionRepo;
         private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
         private readonly IAPIService _apiService;
-        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo) 
+        private readonly ITeleService _teleService;
+        private const long _idUser = 1066022551;
+        private const decimal _unit = 30;
+        private const decimal _margin = 10;
+        public BinanceService(ILogger<BinanceService> logger, IConfiguration config, ICacheService cacheService, IActionTradeRepo actionRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo, ITeleService teleService) 
         { 
             _logger = logger;
             _api_key = config["Account:API_KEY"];
@@ -31,27 +39,78 @@ namespace TradePr.Service
             _cacheService = cacheService;
             _actionRepo = actionRepo;
             _apiService = apiService;
+            _teleService = teleService;
             _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
         }
 
-        public async Task GetAccountInfo()
+        private async Task<BinanceUsdFuturesAccountBalance> GetAccountInfo()
         {
             try
             {
-                //var tmp = await StaticVal.BinanceInstance(_api_key, _api_secret).SpotApi.Account.GetAccountInfoAsync();
-                //var tmp2 = await StaticVal.BinanceInstance(_api_key, "abcd").UsdFuturesApi.Account.GetBalancesAsync();
-                var tmp2 = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Account.GetBalancesAsync();
-                //var res = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.PlaceOrderAsync("BTCUSDT", side: Binance.Net.Enums.OrderSide.Buy, type: Binance.Net.Enums.FuturesOrderType.Market,
-                //                                                                                               quantity: 1);
-
-                //var res1 = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.GetPositionsAsync("BTCUSDT");
-                //var tmp2 = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.CommonFuturesClient
-                var tmp1 = 1;
+                var resAPI = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Account.GetBalancesAsync();
+                return resAPI?.Data?.FirstOrDefault(x => x.Asset == "USDT");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
             }
+            return null;
+        }
+
+        private async Task<decimal> GetPrice(string coin)
+        {
+            try
+            {
+                var res = await _apiService.GetData($"{coin}USDT", EInterval.M15);
+                return res?.LastOrDefault()?.Close ?? 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BinanceService.GetPrice|EXCEPTION| {ex.Message}");
+            }
+            return 0;
+        }
+
+        private async Task<bool> PlaceOrder(string coin)
+        {
+            try
+            {
+                var curPrice = await GetPrice(coin);
+                if (curPrice <= 0)
+                    return false;
+
+                var account = await GetAccountInfo();
+                if (account == null)
+                {
+                    await _teleService.SendMessage(_idUser, "[ERROR] Không lấy được thông tin tài khoản");
+                    return false;
+                }
+
+                if (account.AvailableBalance * _margin <= _unit)
+                    return false;
+
+                var quan = _unit / curPrice;
+                if(curPrice < 1)
+                {
+                    quan = Math.Round(quan);
+                }
+                else
+                {
+                    var checkLenght = curPrice.ToString().Split('.').First().Length;
+                    quan = Math.Round(quan, checkLenght - 1);
+                }
+
+                var res = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.PlaceOrderAsync($"{coin}USDT", 
+                                                                                                                        side: Binance.Net.Enums.OrderSide.Sell, 
+                                                                                                                        type: Binance.Net.Enums.FuturesOrderType.Market,
+                                                                                                                        quantity: (decimal)0.035);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
+            }
+            return false;
         }
 
         public async Task TradeAction()
@@ -205,14 +264,17 @@ namespace TradePr.Service
         {
             try
             {
-                await GetAccountInfo();
                 //TP
                 var dt = DateTime.Now;
-                if (dt.Hour == 23 && dt.Minute == 58)
-                {
+                //if (dt.Hour == 23 && dt.Minute == 57)
+                //{
                     //action  
+                   
 
-                }
+                var resOrder = await PlaceOrder("ETH");
+                var res1 = await StaticVal.BinanceInstance(_api_key, _api_secret).UsdFuturesApi.Trading.GetPositionsAsync("ETHUSDT");
+                var tmp = JsonConvert.SerializeObject(res1);
+                //}
 
                 var tokens = _cacheService.GetTokenUnlock(dt);
                 if (!tokens.Any())
