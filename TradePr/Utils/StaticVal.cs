@@ -8,13 +8,16 @@ namespace TradePr.Utils
         private static BinanceRestClient _binance;
         private static BinanceSocketClient _binanceSocket;
 
-        public static BinanceRestClient BinanceInstance(string key, string secret)
+        public static string _api_key;
+        public static string _api_secret;
+
+        public static BinanceRestClient BinanceInstance()
         {
             if (_binance == null)
             {
                 BinanceRestClient.SetDefaultOptions(options =>
                 {
-                    options.ApiCredentials = new ApiCredentials(key, secret);
+                    options.ApiCredentials = new ApiCredentials(_api_key, _api_secret);
                 });
                 _binance = new BinanceRestClient();
             }
