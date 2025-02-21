@@ -106,7 +106,8 @@ namespace TradePr.Service
                 {
                     foreach (var item in resPosition.Data)
                     {
-                        var checkLenght = item.EntryPrice.ToString().Split('.').Last().Length;
+                        //var checkLenght = item.EntryPrice.ToString().Split('.').Last().Length;
+                        var checkLenght = 2;
                         var sl = Math.Round(item.EntryPrice * (decimal)1.016, checkLenght);
                         res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(item.Symbol,
                                                                                                 side: Binance.Net.Enums.OrderSide.Buy,
