@@ -53,11 +53,11 @@ namespace TradePr.Service
             return null;
         }
 
-        private async Task<decimal> GetPrice(string coin)
+        private async Task<decimal> GetPrice(string symbol)
         {
             try
             {
-                var res = await _apiService.GetData($"{coin}USDT", EInterval.M15);
+                var res = await _apiService.GetData(symbol, EInterval.M15);
                 return res?.LastOrDefault()?.Close ?? 0;
             }
             catch (Exception ex)
@@ -67,11 +67,11 @@ namespace TradePr.Service
             return 0;
         }
 
-        private async Task<bool> PlaceOrder(string coin)
+        private async Task<bool> PlaceOrder(string symbol)
         {
             try
             {
-                var curPrice = await GetPrice(coin);
+                var curPrice = await GetPrice(symbol);
                 if (curPrice <= 0)
                     return false;
 
@@ -96,10 +96,25 @@ namespace TradePr.Service
                     quan = Math.Round(quan, checkLenght - 1);
                 }
 
-                var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync($"{coin}USDT", 
+                var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(symbol, 
                                                                                                     side: Binance.Net.Enums.OrderSide.Sell, 
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.Market,
-                                                                                                    quantity: (decimal)0.035);
+                                                                                                    quantity: (decimal)0.03);
+
+                var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(symbol);
+                if (resPosition.Data.Any())
+                {
+                    foreach (var item in resPosition.Data)
+                    {
+                        var checkLenght = item.EntryPrice.ToString().Split('.').Last().Length;
+                        var sl = Math.Round(item.EntryPrice * (decimal)1.016, checkLenght);
+                        res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(item.Symbol,
+                                                                                                side: Binance.Net.Enums.OrderSide.Buy,
+                                                                                                type: Binance.Net.Enums.FuturesOrderType.StopMarket,
+                                                                                                quantity: (decimal)0.03,
+                                                                                                stopPrice: sl);
+                    }
+                }
                 return true;
             }
             catch (Exception ex)
@@ -277,6 +292,9 @@ namespace TradePr.Service
         {
             try
             {
+                var zzz = await PlaceOrder($"ETHUSDT");
+
+
                 //TP
                 var dt = DateTime.UtcNow;
                 if (dt.Hour == 23 && dt.Minute == 57)
