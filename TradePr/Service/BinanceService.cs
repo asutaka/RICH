@@ -85,34 +85,36 @@ namespace TradePr.Service
                 if (account.AvailableBalance * _margin <= _unit)
                     return false;
 
+                var near = 2;
                 var quan = _unit / curPrice;
                 if(curPrice < 1)
                 {
-                    quan = Math.Round(quan);
+                    near = 0;
                 }
-                else
-                {
-                    var checkLenght = curPrice.ToString().Split('.').First().Length;
-                    quan = Math.Round(quan, checkLenght - 1);
-                }
+                quan = Math.Round(quan, near);
 
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(symbol, 
                                                                                                     side: Binance.Net.Enums.OrderSide.Sell, 
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.Market,
-                                                                                                    quantity: (decimal)0.03);
+                                                                                                    quantity: quan);
 
                 var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(symbol);
                 if (resPosition.Data.Any())
                 {
                     foreach (var item in resPosition.Data)
                     {
-                        //var checkLenght = item.EntryPrice.ToString().Split('.').Last().Length;
-                        var checkLenght = 2;
-                        var sl = Math.Round(item.EntryPrice * (decimal)1.016, checkLenght);
+                        if(curPrice < 1)
+                        {
+                            var price = curPrice.ToString().Split('.').Last();
+                            price.Reverse();
+                            near = long.Parse(price).ToString().Length;
+                        }
+                        var checkLenght = curPrice.ToString().Split('.').Last();
+                        var sl = Math.Round(item.EntryPrice * (decimal)1.016, near);
                         res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(item.Symbol,
                                                                                                 side: Binance.Net.Enums.OrderSide.Buy,
                                                                                                 type: Binance.Net.Enums.FuturesOrderType.StopMarket,
-                                                                                                quantity: (decimal)0.03,
+                                                                                                quantity: quan,
                                                                                                 stopPrice: sl);
                     }
                 }
