@@ -3,6 +3,7 @@ using Binance.Net.Objects.Models.Futures;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
+using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -69,25 +70,25 @@ namespace TradePr.Service
             return 0;
         }
 
-        private async Task<bool> PlaceOrder(TokenUnlock token)
+        private async Task<TokenUnlockTrade> PlaceOrder(TokenUnlock token)
         {
             try
             {
                 var symbol = $"{token.s}USDT";
                 var curPrice = await GetPrice(symbol);
                 if (curPrice <= 0)
-                    return false;
+                    return null;
 
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                 var account = await GetAccountInfo();
                 if (account == null)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR] Không lấy được thông tin tài khoản");
-                    return false;
+                    return null;
                 }
 
                 if (account.AvailableBalance * _margin <= _unit)
-                    return false;
+                    return null;
 
                 var near = 2; if (curPrice < 1)
                 {
@@ -109,7 +110,7 @@ namespace TradePr.Service
                         action = (int)EAction.Short,
                         des = $"side: {Binance.Net.Enums.OrderSide.Sell.ToString()}, type: {Binance.Net.Enums.FuturesOrderType.Market.ToString()}, quantity: {soluong}"
                     });
-                    return false;
+                    return null;
                 }
 
                 var trade = new TokenUnlockTrade
@@ -132,7 +133,7 @@ namespace TradePr.Service
                         action = (int)EAction.GetPosition
                     });
                    
-                    return false;
+                    return null;
                 }
 
                 if (resPosition.Data.Any())
@@ -166,7 +167,7 @@ namespace TradePr.Service
                             des = $"side: {Binance.Net.Enums.OrderSide.Buy.ToString()}, type: {Binance.Net.Enums.FuturesOrderType.StopMarket.ToString()}, quantity: {soluong}, stopPrice: {sl}"
                         });
                         
-                        return false;
+                        return null;
                     }
 
                     trade.timeStoploss = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -174,16 +175,16 @@ namespace TradePr.Service
 
                     _tokenUnlockTradeRepo.InsertOne(trade);
                 }
-                return true;
+                return trade;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
             }
-            return false;
+            return null;
         }
 
-        private async Task<bool> PlaceOrderCloseAll(string symbol, decimal quan)
+        private async Task<TokenUnlockTrade> PlaceOrderCloseAll(string symbol, decimal quan)
         {
             try
             {
@@ -194,7 +195,7 @@ namespace TradePr.Service
                 if (!res.Success)
                 {
                     await _teleService.SendMessage(_idUser, $"[ERROR] Không thể đóng lệnh {symbol}!");
-                    return false;
+                    return null;
                 }
                 var dt = DateTime.UtcNow;
                 var time = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(1).ToUnixTimeSeconds();
@@ -226,13 +227,13 @@ namespace TradePr.Service
                     _tokenUnlockTradeRepo.Update(entity);
                 }
 
-                return true;
+                return entity;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"BinanceService.PlaceOrderCloseAll|EXCEPTION| {ex.Message}");
             }
-            return false;
+            return null;
         }
 
         public async Task TradeAction()
@@ -386,24 +387,28 @@ namespace TradePr.Service
         {
             try
             {
-                //TP
                 var dt = DateTime.UtcNow;
-                if (dt.Hour == 23 && dt.Minute == 57)
+                if (dt.Hour == 23 && dt.Minute == 58)
                 {
-                    //action
+                    var sBuilder = new StringBuilder();
+                    #region Đóng vị thế
                     var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                     if (resPosition?.Data?.Any() ?? false)
                     {
                         //close all
                         foreach (var position in resPosition.Data)
                         {
-                            await PlaceOrderCloseAll(position.Symbol, Math.Abs(position.PositionAmt));
+                            var res = await PlaceOrderCloseAll(position.Symbol, Math.Abs(position.PositionAmt));
+                            if(res != null)
+                            {
+                                var mes = $"[Đóng vị thế] {res.s}|Giá đóng: {res.priceClose}|Rate: {res.rate}%";
+                                sBuilder.AppendLine(mes);
+                            }
                         }
-                    }
-                }
+                    } 
+                    #endregion
 
-                if (dt.Hour == 23 && dt.Minute == 59)
-                {
+                    #region Mở vị thế
                     var tokens = _cacheService.GetTokenUnlock(dt);
                     if (!tokens.Any())
                         return;
@@ -432,8 +437,19 @@ namespace TradePr.Service
                         if (entity != null)
                             continue;
 
-                        await PlaceOrder(item);
-                    }
+                        var res = await PlaceOrder(item);
+                        if (res != null)
+                        {
+                            var mes = $"[Mở vị thế] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            sBuilder.AppendLine(mes);
+                        }
+                    } 
+                    #endregion
+
+                    if(sBuilder.Length > 0)
+                    {
+                        await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                    }    
                 }
             }
             catch (Exception ex)
