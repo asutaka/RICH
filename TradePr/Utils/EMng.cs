@@ -27,4 +27,16 @@ namespace TradePr.Utils
         [Display(Name = "5m")]
         M5 = 7
     }
+
+    public enum ETypeBot
+    {
+        TokenUnlock = 1
+    }
+
+    public enum EAction
+    {
+        Short = 1,
+        Short_SL = 2,
+        GetPosition = 3
+    }
 }

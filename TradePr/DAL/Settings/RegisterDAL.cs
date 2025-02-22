@@ -8,6 +8,7 @@
             services.AddSingleton<IActionTradeRepo, ActionTradeRepo>();
             services.AddSingleton<ITokenUnlockRepo, TokenUnlockRepo>();
             services.AddSingleton<ITokenUnlockTradeRepo, TokenUnlockTradeRepo>();
+            services.AddSingleton<IErrorPartnerRepo, ErrorPartnerRepo>();
         }
     }
 }

@@ -6,12 +6,13 @@ namespace TradePr.DAL.Entity
     public class TokenUnlockTrade : BaseDTO
     {
         public string s { get; set; }
-        public int time { get; set; }
-        public double entry { get; set; }
-        public double priceSell { get; set; }
+        public int timeUnlock { get; set; }//Ngày unlock
+        public int timeShort { get; set; }
+        public int timeStoploss { get; set; }
+        public int timeClose { get; set; }
+        public double priceEntry { get; set; }
+        public double priceStoploss { get; set; }
+        public double priceClose { get; set; }
         public double rate { get; set; }
-        public double vithe { get; set; }
-        public double lailo { get; set; }
-        public bool isTP { get; set; }
     }
 }

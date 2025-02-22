@@ -26,14 +26,14 @@ namespace TradePr.DAL
                 builder.Eq(x => x.date, content.date),
                 builder.Eq(x => x.symbol, content.symbol),
             };
-            foreach (var item in lFilter)
+            foreach (var itemFilter in lFilter)
             {
                 if (filter is null)
                 {
-                    filter = item;
+                    filter = itemFilter;
                     continue;
                 }
-                filter &= item;
+                filter &= itemFilter;
             }
          */
         //Example: FilterDefinition<StockPr> filter = Builders<StockPr>.Filter.Eq(x => x.s, itemMa.symbol);
