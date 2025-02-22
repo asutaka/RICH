@@ -27,7 +27,7 @@ namespace TradePr.Service
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
         private const decimal _unit = 30;
-        private const decimal _margin = 2;
+        private const decimal _margin = 10;
         public BinanceService(ILogger<BinanceService> logger, ICacheService cacheService, 
                             IActionTradeRepo actionRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo, 
                             ITeleService teleService, IErrorPartnerRepo errRepo) 
@@ -143,7 +143,7 @@ namespace TradePr.Service
                     if (curPrice < 1)
                     {
                         var price = curPrice.ToString().Split('.').Last();
-                        price.Reverse();
+                        price = price.ReverseString();
                         near = long.Parse(price).ToString().Length;
                     }
                     var checkLenght = curPrice.ToString().Split('.').Last();
@@ -204,7 +204,7 @@ namespace TradePr.Service
                 var lFilter = new List<FilterDefinition<TokenUnlockTrade>>()
                         {
                             builder.Eq(x => x.timeUnlock, time),
-                            builder.Eq(x => x.s, symbol.Replace("USDT","")),
+                            builder.Eq(x => x.s, symbol),
                         };
                 foreach (var itemFilter in lFilter)
                 {
@@ -221,7 +221,7 @@ namespace TradePr.Service
                     entity.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                     entity.priceClose = (double)(await GetPrice(symbol));
 
-                    var rate = Math.Round(100 * (-1 + entity.priceClose / entity.priceEntry), 1);
+                    var rate = -1 * Math.Round(100 * (-1 + entity.priceClose / entity.priceEntry), 1);
                     entity.rate = rate;
                     _tokenUnlockTradeRepo.Update(entity);
                 }
@@ -417,7 +417,7 @@ namespace TradePr.Service
                         var lFilter = new List<FilterDefinition<TokenUnlockTrade>>()
                         {
                             builder.Eq(x => x.timeUnlock, item.time),
-                            builder.Eq(x => x.s, item.s),
+                            builder.Eq(x => x.s, $"{item.s}USDT"),
                         };
                         foreach (var itemFilter in lFilter)
                         {
