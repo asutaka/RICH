@@ -98,6 +98,8 @@ namespace TradePr.Service
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(symbol, 
                                                                                                     side: Binance.Net.Enums.OrderSide.Sell, 
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.Market,
+                                                                                                    positionSide: Binance.Net.Enums.PositionSide.Both,
+                                                                                                    reduceOnly: false,
                                                                                                     quantity: soluong);
                 //nếu lỗi return
                 if (!res.Success)
@@ -152,7 +154,11 @@ namespace TradePr.Service
                     res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
                                                                                             side: Binance.Net.Enums.OrderSide.Buy,
                                                                                             type: Binance.Net.Enums.FuturesOrderType.StopMarket,
+                                                                                            positionSide: Binance.Net.Enums.PositionSide.Both,
                                                                                             quantity: soluong,
+                                                                                            timeInForce: Binance.Net.Enums.TimeInForce.GoodTillExpiredOrCanceled,
+                                                                                            reduceOnly: true,
+                                                                                            workingType: Binance.Net.Enums.WorkingType.Mark,
                                                                                             stopPrice: sl);
                     if (!res.Success)
                     {
