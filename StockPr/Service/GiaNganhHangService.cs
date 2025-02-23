@@ -440,7 +440,7 @@ namespace StockPr.Service
                             lTraceGia.Add(new TraceGiaModel
                             {
                                 content = "Đường",
-                                description = "SLS,LSS,SBT,QNS",
+                                description = "SLS,LSS,SBT,QNS,CBS",
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
@@ -452,7 +452,7 @@ namespace StockPr.Service
                             lTraceGia.Add(new TraceGiaModel
                             {
                                 content = "U rê",
-                                description = "DPM,DCM",
+                                description = "DPM,DCM,DHB",
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
