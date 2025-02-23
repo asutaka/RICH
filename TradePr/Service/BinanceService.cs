@@ -101,6 +101,7 @@ namespace TradePr.Service
                                                                                                     positionSide: Binance.Net.Enums.PositionSide.Both,
                                                                                                     reduceOnly: false,
                                                                                                     quantity: soluong);
+                Thread.Sleep(500);
                 //nếu lỗi return
                 if (!res.Success)
                 {
@@ -123,6 +124,7 @@ namespace TradePr.Service
                 };
 
                 var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(symbol);
+                Thread.Sleep(500);
                 if (!resPosition.Success)
                 {
                     _tokenUnlockTradeRepo.InsertOne(trade);
@@ -160,6 +162,7 @@ namespace TradePr.Service
                                                                                             reduceOnly: true,
                                                                                             workingType: Binance.Net.Enums.WorkingType.Mark,
                                                                                             stopPrice: sl);
+                    Thread.Sleep(500);
                     if (!res.Success)
                     {
                         _tokenUnlockTradeRepo.InsertOne(trade);
@@ -198,6 +201,7 @@ namespace TradePr.Service
                                                                                                     side: Binance.Net.Enums.OrderSide.Buy,
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.Market,
                                                                                                     quantity: quan);
+                Thread.Sleep(500);
                 if (!res.Success)
                 {
                     await _teleService.SendMessage(_idUser, $"[ERROR] Không thể đóng lệnh {symbol}!");
