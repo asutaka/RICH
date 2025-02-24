@@ -12,7 +12,7 @@ namespace TradePr.Service
     public class TeleService : ITeleService
     {
         private readonly ILogger<TeleService> _logger;
-        private TelegramBotClient _bot = new TelegramBotClient("7422438658:AAEPzAwq-5rA-5dLEFRpPrdOBt9yMfnkBxA");
+        private TelegramBotClient _bot = new TelegramBotClient("7783423206:AAGnpRM_8xnxr44sbgOX-ktIHXQEsyMxH6A");
         public TeleService(ILogger<TeleService> logger)
         {
             _logger = logger;
