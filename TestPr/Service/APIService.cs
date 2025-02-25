@@ -8,7 +8,7 @@ namespace TestPr.Service
 {
     public interface IAPIService
     {
-        Task<List<Quote>> GetData(string symbol, EInterval interval);
+        Task<List<Quote>> GetData(string symbol, EInterval interval, long fromTime = 0);
     }
     public class APIService : IAPIService
     {
@@ -21,7 +21,7 @@ namespace TestPr.Service
             _client = httpClientFactory;
         }
 
-        public async Task<List<Quote>> GetData(string symbol, EInterval interval)
+        public async Task<List<Quote>> GetData(string symbol, EInterval interval, long fromTime = 0)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace TestPr.Service
                 {
                     intervalStr = "1m";
                 }
-                var lDataBinance = await GetCoinData_Binance(symbol, intervalStr, 0);
+                var lDataBinance = await GetCoinData_Binance(symbol, intervalStr, fromTime);
 
                 return lDataBinance;
             }

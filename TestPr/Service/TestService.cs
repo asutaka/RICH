@@ -13,6 +13,7 @@ namespace TestPr.Service
     {
         Task MethodTest();
         Task MethodTestEntry();
+        Task MethodTestEntry_2502();
         Task MethodTestTokenUnlock();
     }
     public class TestService : ITestService
@@ -263,6 +264,155 @@ namespace TestPr.Service
                                 }
                             }
                         }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task MethodTestEntry_2502()
+        {
+            try
+            {
+                var lTrading = _tradingRepo.GetAll();
+                var lSymbol = lTrading.Select(x => x.s).Distinct();
+                foreach (var item in lSymbol)
+                {
+                    var lMes = new List<string>();
+                    var lval = lTrading.Where(x => x.s == item);
+                    foreach (var val in lval)
+                    {
+                        var lData1M = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        var lData1H = await _apiService.GetData(item, EInterval.H1, new DateTimeOffset(val.Date.AddHours(-10)).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        var lRsi1H = lData1H.GetRsi();
+                        var rsi1h = lRsi1H.LastOrDefault(x => x.Date <= val.Date);
+                        //foreach (var item1H in lData1H)
+                        //{
+                        //    item1H.Close = item1H.Volume;
+                        //}
+
+                        var lCheck_12H = lData1M.Where(x => x.Date > val.Date).Take(720).ToList();//12 tieng
+                        var lCheck_10H = lData1M.Where(x => x.Date > val.Date).Take(600).ToList();//10 tieng
+                        var lCheck_5H = lData1M.Where(x => x.Date > val.Date).Take(300).ToList();//5 tieng
+                        var lCheck_4H = lData1M.Where(x => x.Date > val.Date).Take(240).ToList();//4 tieng
+                        var lCheck_1H = lData1M.Where(x => x.Date > val.Date).Take(60).ToList();//1 tieng
+                        var lCheck_30p = lData1M.Where(x => x.Date > val.Date).Take(30).ToList();//30p
+                        //check 30p + 1h + 4h + 5h + 10h + 12h
+                        //30p
+                        var max_30p = lCheck_30p.MaxBy(x => x.High);
+                        var min_30p = lCheck_30p.MinBy(x => x.Low);
+                        var indexMax_30p = lCheck_30p.IndexOf(max_30p);
+                        var indexMin_30p = lCheck_30p.IndexOf(min_30p);
+                        var rateMax_30p = Math.Round(100 * (-1 + max_30p.High / (decimal)val.Entry), 2);
+                        var rateMin_30p = Math.Round(100 * (-1 + min_30p.Low / (decimal)val.Entry), 2);
+                        ////1h
+                        //var max_1H = lCheck_1H.MaxBy(x => x.High);
+                        //var min_1H = lCheck_1H.MinBy(x => x.Low);
+                        //var indexMax_1H = lCheck_1H.IndexOf(max_1H);
+                        //var indexMin_1H = lCheck_1H.IndexOf(min_1H);
+                        //var rateMax_1H = Math.Round(100 * (-1 + max_1H.High / (decimal)val.Entry), 2);
+                        //var rateMin_1H = Math.Round(100 * (-1 + min_1H.Low / (decimal)val.Entry), 2);
+                        ////4h
+                        //var max_4H = lCheck_4H.MaxBy(x => x.High);
+                        //var min_4H = lCheck_4H.MinBy(x => x.Low);
+                        //var indexMax_4H = lCheck_4H.IndexOf(max_4H);
+                        //var indexMin_4H = lCheck_4H.IndexOf(min_4H);
+                        //var rateMax_4H = Math.Round(100 * (-1 + max_4H.High / (decimal)val.Entry), 2);
+                        //var rateMin_4H = Math.Round(100 * (-1 + min_4H.Low / (decimal)val.Entry), 2);
+                        ////5H
+                        //var max_5H = lCheck_5H.MaxBy(x => x.High);
+                        //var min_5H = lCheck_5H.MinBy(x => x.Low);
+                        //var indexMax_5H = lCheck_5H.IndexOf(max_5H);
+                        //var indexMin_5H = lCheck_5H.IndexOf(min_5H);
+                        //var rateMax_5H = Math.Round(100 * (-1 + max_5H.High / (decimal)val.Entry), 2);
+                        //var rateMin_5H = Math.Round(100 * (-1 + min_5H.Low / (decimal)val.Entry), 2);
+                        ////10H
+                        //var max_10H = lCheck_10H.MaxBy(x => x.High);
+                        //var min_10H = lCheck_10H.MinBy(x => x.Low);
+                        //var indexMax_10H = lCheck_10H.IndexOf(max_10H);
+                        //var indexMin_10H = lCheck_10H.IndexOf(min_10H);
+                        //var rateMax_10H = Math.Round(100 * (-1 + max_10H.High / (decimal)val.Entry), 2);
+                        //var rateMin_10H = Math.Round(100 * (-1 + min_10H.Low / (decimal)val.Entry), 2);
+                        ////12H
+                        //var max_12H = lCheck_12H.MaxBy(x => x.High);
+                        //var min_12H = lCheck_12H.MinBy(x => x.Low);
+                        //var indexMax_12H = lCheck_12H.IndexOf(max_12H);
+                        //var indexMin_12H = lCheck_12H.IndexOf(min_12H);
+
+                        string WinLoss = "";
+                        if (((Binance.Net.Enums.OrderSide)val.Side) == Binance.Net.Enums.OrderSide.Buy)
+                        {
+                            WinLoss = (indexMax_30p <= indexMin_30p)? "W": "L";
+                        }
+                        else
+                        {
+                            WinLoss = (indexMax_30p <= indexMin_30p) ? "L" : "W";
+                        }
+                        var mes = $"{WinLoss}|{val.s}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|";
+                        mes += $"MAX {rateMax_30p}%({indexMax_30p})|MIN {rateMin_30p}%({indexMin_30p})";
+                        lMes.Add(mes);
+                        //Console.WriteLine(mes);
+
+
+                        //var lVisible = lData.Where(x => new DateTimeOffset(x.Date).ToUnixTimeSeconds() > val.d);
+                        //if (!lVisible.Any())
+                        //    continue;
+                        //if (val.Side == 1)
+                        //{
+                        //    var first = lVisible.FirstOrDefault(x => x.High >= (decimal)val.Entry);
+                        //    if (first is null)
+                        //        continue;
+
+                        //    var lLast = lVisible.Where(x => x.Date > first.Date);
+                        //    foreach (var itemlast in lLast)
+                        //    {
+                        //        if (itemlast.Low <= (decimal)val.SL)
+                        //        {
+                        //            //Loss
+                        //            Console.WriteLine($"|LOSS| {JsonConvert.SerializeObject(val)}");
+                        //            break;
+                        //        }
+                        //        else if (itemlast.High >= (decimal)val.TP)
+                        //        {
+                        //            //Win
+                        //            Console.WriteLine($"|WIN| {JsonConvert.SerializeObject(val)}");
+                        //            break;
+                        //        }
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    var first = lVisible.FirstOrDefault(x => x.Low <= (decimal)val.Entry);
+                        //    if (first is null)
+                        //        continue;
+
+                        //    var lLast = lVisible.Where(x => x.Date > first.Date);
+                        //    foreach (var itemlast in lLast)
+                        //    {
+                        //        if (itemlast.High >= (decimal)val.SL)
+                        //        {
+                        //            //Loss
+                        //            Console.WriteLine($"|LOSS| {JsonConvert.SerializeObject(val)}");
+                        //            break;
+                        //        }
+                        //        else if (itemlast.Low <= (decimal)val.TP)
+                        //        {
+                        //            //Win
+                        //            Console.WriteLine($"|WIN| {JsonConvert.SerializeObject(val)}");
+                        //            break;
+                        //        }
+                        //    }
+                        //}
+                    }
+
+                    foreach (var mes in lMes)
+                    {
+                        Console.WriteLine(mes);
                     }
                 }
             }
