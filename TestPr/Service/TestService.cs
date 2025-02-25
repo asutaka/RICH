@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using SharpCompress.Common;
 using Skender.Stock.Indicators;
 using TestPr.DAL;
+using TestPr.DAL.Entity;
 using TestPr.Model;
 using TestPr.Utils;
 
@@ -14,6 +15,7 @@ namespace TestPr.Service
         Task MethodTest();
         Task MethodTestEntry();
         Task MethodTestEntry_2502();
+        Task MethodTestEntry_2602();
         Task MethodTestTokenUnlock();
     }
     public class TestService : ITestService
@@ -408,6 +410,95 @@ namespace TestPr.Service
                         //        }
                         //    }
                         //}
+                    }
+
+                    foreach (var mes in lMes)
+                    {
+                        Console.WriteLine(mes);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task MethodTestEntry_2602()
+        {
+            try
+            {
+                var lTrading = _tradingRepo.GetAll();
+                var lSymbol = lTrading.Select(x => x.s).Distinct();
+                foreach (var item in lSymbol)
+                {
+                    var lMes = new List<string>();
+                    var lval = lTrading.Where(x => x.s == item);
+                    var isCheck = false;
+                    Trading prev = null;
+                    foreach (var val in lval)
+                    {
+                        if(prev is null)
+                        {
+                            prev = val;
+                            continue;
+                        }
+                        var divTime = (val.Date - prev.Date).TotalMinutes;
+                        if(divTime <= 15)
+                        {
+                            if(isCheck)
+                            {
+                                //MP
+                                var lData1M = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
+                                Thread.Sleep(200);
+                                var lData15m = await _apiService.GetData(item, EInterval.M15, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
+                                Thread.Sleep(200);
+                                prev = null;
+                                isCheck = false;
+                                var eEntry = lData1M.First(x => x.Date > val.Date);
+                                var eClose = lData15m.First(x => x.Date > val.Date.AddHours(1));
+                                var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Open), 1);
+                                var lRange = lData1M.Where(x => x.Date >= eEntry.Date && x.Date <= eClose.Date);
+                                var maxH = lRange.Max(x => x.High);
+                                var minL = lRange.Min(x => x.Low);
+
+                                var winloss = "W";
+                                if ((val.Side == (int)Binance.Net.Enums.OrderSide.Buy && rate <= 0)
+                                    || (val.Side == (int)Binance.Net.Enums.OrderSide.Sell && rate >= 0))
+                                    winloss = "L";
+                                if(winloss == "W")
+                                {
+                                    rate = Math.Abs(rate);
+                                }
+                                else
+                                {
+                                    rate = - Math.Abs(rate);
+                                }
+
+                                decimal maxTP = 0, maxSL = 0;
+                                if(val.Side == (int)Binance.Net.Enums.OrderSide.Buy)
+                                {
+                                    maxTP = Math.Round(100 * (-1 + maxH/ eEntry.Open), 1);
+                                    maxSL = Math.Round(100 * (-1 + minL/ eEntry.Open), 1);
+                                }
+                                else
+                                {
+                                    maxTP = Math.Round(100 * (-1 + eEntry.Open / minL), 1);
+                                    maxSL = Math.Round(100 * (-1 + eEntry.Open / maxH), 1);
+                                }
+
+                                var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                                lMes.Add(mes);
+                            }
+                            else
+                            {
+                                isCheck = true;
+                            }
+                        }
+                        else
+                        {
+                            prev = val;
+                        }
                     }
 
                     foreach (var mes in lMes)
