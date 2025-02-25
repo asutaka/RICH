@@ -27,7 +27,7 @@ namespace TradePr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
-        private const decimal _unit = 30;
+        private const decimal _unit = 50;
         private const decimal _margin = 10;
         public BinanceService(ILogger<BinanceService> logger, ICacheService cacheService, 
                             IActionTradeRepo actionRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo, 
