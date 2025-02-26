@@ -567,7 +567,7 @@ namespace TestPr.Service
 
                             var rate = Math.Round(100 * (-1 + close.Close / first.Low), 1);
 
-                            var lRange = lData15m.Where(x => x.Date > first.Date && x.Date <= close.Date);
+                            var lRange = lData15m.Where(x => x.Date >= first.Date && x.Date <= close.Date);
                             var maxH = lRange.Max(x => x.High);
                             var minL = lRange.Min(x => x.Low);
                             decimal maxTP = 0, maxSL = 0;
@@ -601,7 +601,7 @@ namespace TestPr.Service
                                 continue;
 
                             var rate = Math.Round(100 * (-1 + first.High / close.Close), 1);
-                            var lRange = lData15m.Where(x => x.Date > first.Date && x.Date <= close.Date);
+                            var lRange = lData15m.Where(x => x.Date >= first.Date && x.Date <= close.Date);
                             var maxH = lRange.Max(x => x.High);
                             var minL = lRange.Min(x => x.Low);
                             decimal maxTP = 0, maxSL = 0;
