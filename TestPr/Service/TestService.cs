@@ -3,6 +3,7 @@ using MongoDB.Driver.Linq;
 using Newtonsoft.Json;
 using SharpCompress.Common;
 using Skender.Stock.Indicators;
+using System.Runtime.InteropServices;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 using TestPr.Model;
@@ -16,6 +17,7 @@ namespace TestPr.Service
         Task MethodTestEntry();
         Task MethodTestEntry_2502();
         Task MethodTestEntry_2602();
+        Task MethodTestEntry_2702();
         Task MethodTestTokenUnlock();
     }
     public class TestService : ITestService
@@ -424,14 +426,19 @@ namespace TestPr.Service
             }
         }
 
+        //very good
         public async Task MethodTestEntry_2602()
         {
             try
             {
                 var lTrading = _tradingRepo.GetAll();
                 var lSymbol = lTrading.Select(x => x.s).Distinct();
+                var lMesAll = new List<string>();
                 foreach (var item in lSymbol)
                 {
+                    if (StaticVal._lIgnoreThreeSignal.Contains(item))
+                        continue;
+
                     var lMes = new List<string>();
                     var lval = lTrading.Where(x => x.s == item);
                     var isCheck = false;
@@ -501,10 +508,127 @@ namespace TestPr.Service
                         }
                     }
 
-                    foreach (var mes in lMes)
+                    lMesAll.AddRange(lMes);
+                    //foreach (var mes in lMes)
+                    //{
+                    //    Console.WriteLine(mes);
+                    //}
+                }
+
+                foreach (var mes in lMesAll)
+                {
+                    Console.WriteLine(mes);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task MethodTestEntry_2702()
+        {
+            try
+            {
+                var lTrading = _tradingRepo.GetAll();
+                var lSymbol = lTrading.Select(x => x.s).Distinct();
+                var lMesAll = new List<string>();
+                foreach (var item in lSymbol)
+                {
+                    //if (StaticVal._lIgnoreThreeSignal.Contains(item))
+                    //    continue;
+
+                    var lMes = new List<string>();
+                    var lval = lTrading.Where(x => x.s == item);
+                    foreach (var val in lval)
                     {
-                        Console.WriteLine(mes);
+                        //MP
+                        var lData15m = await _apiService.GetData(item, EInterval.M15, new DateTimeOffset(val.Date.AddMinutes(-30)).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        var first = lData15m.First(x => x.Date >= val.Date.AddMinutes(-15));
+                        var second = lData15m.Where(x => x.Date >= val.Date.AddMinutes(-15)).Skip(1).First();
+
+                        if (val.Side == (int)Binance.Net.Enums.OrderSide.Buy)
+                        {
+                            if (first.Low > second.Low)
+                                continue;
+
+                            var next = lData15m.Where(x => x.Date > first.Date).FirstOrDefault(x => x.Low < first.Low);
+                            if (next is null)
+                                continue;
+
+                            var time = (next.Date - first.Date).TotalMinutes;
+                            if (time < 60 || time > 180)
+                                continue;
+                            //
+                            var close = lData15m.FirstOrDefault(x => x.Date >= next.Date.AddHours(1));
+                            if (close is null)
+                                continue;
+
+                            var rate = Math.Round(100 * (-1 + close.Close / first.Low), 1);
+
+                            var lRange = lData15m.Where(x => x.Date >= first.Date && x.Date <= close.Date);
+                            var maxH = lRange.Max(x => x.High);
+                            var minL = lRange.Min(x => x.Low);
+                            decimal maxTP = 0, maxSL = 0;
+                            maxTP = Math.Round(100 * (-1 + maxH / first.Low), 1);
+                            maxSL = Math.Round(100 * (-1 + minL / first.Low), 1);
+
+                            var winloss = "W";
+                            if(rate <= 0)
+                            {
+                                winloss = "L";
+                            }
+
+                            var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            lMes.Add(mes);
+                        }
+                        else
+                        {
+                            if (first.High < second.High)
+                                continue;
+
+                            var next = lData15m.Where(x => x.Date > first.Date).FirstOrDefault(x => x.High > first.High);
+                            if (next is null)
+                                continue;
+
+                            var time = (next.Date - first.Date).TotalMinutes;
+                            if (time < 60 || time > 180)
+                                continue;
+                            //
+                            var close = lData15m.FirstOrDefault(x => x.Date >= next.Date.AddHours(1));
+                            if (close is null)
+                                continue;
+
+                            var rate = Math.Round(100 * (-1 + first.High / close.Close), 1);
+                            var lRange = lData15m.Where(x => x.Date >= first.Date && x.Date <= close.Date);
+                            var maxH = lRange.Max(x => x.High);
+                            var minL = lRange.Min(x => x.Low);
+                            decimal maxTP = 0, maxSL = 0;
+                            maxTP = Math.Round(100 * (-1 + first.High / minL), 1);
+                            maxSL = Math.Round(100 * (-1 + first.High / maxH), 1);
+                            
+                            var winloss = "W";
+                            if (rate <= 0)
+                            {
+                                winloss = "L";
+                            }
+
+                            var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            lMes.Add(mes);
+                        }
                     }
+
+                    lMesAll.AddRange(lMes);
+                    //foreach (var mes in lMes)
+                    //{
+                    //    Console.WriteLine(mes);
+                    //}
+                }
+
+                foreach (var mes in lMesAll)
+                {
+                    Console.WriteLine(mes);
                 }
             }
             catch (Exception ex)

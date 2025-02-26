@@ -23,5 +23,12 @@ namespace TestPr.Utils
             }
             return _binanceSocket;
         }
+
+        public static List<string> _lIgnoreThreeSignal = new List<string>
+        {
+            "BTCUSDT",
+            "ETHUSDT",
+            "XRPUSDT"
+        };
     }
 }
