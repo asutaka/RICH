@@ -12,7 +12,7 @@ namespace TradePr.Service
 {
     public interface IBinanceService
     {
-        //Task GetAccountInfo();
+        Task<BinanceUsdFuturesAccountBalance> GetAccountInfo();
         Task TradeAction();
         Task TradeTokenUnlock();
         Task TradeTokenUnlockTest();
@@ -42,7 +42,7 @@ namespace TradePr.Service
             _errRepo = errRepo;
         }
 
-        private async Task<BinanceUsdFuturesAccountBalance> GetAccountInfo()
+        public async Task<BinanceUsdFuturesAccountBalance> GetAccountInfo()
         {
             try
             {
