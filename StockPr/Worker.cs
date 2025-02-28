@@ -17,6 +17,7 @@ namespace StockPr
         private readonly ITuDoanhService _tudoanhService;
         private readonly IBaoCaoTaiChinhService _bctcService;
         private readonly IPortfolioService _portfolioService;
+        private readonly IEPSRankService _epsService;
 
         private const long _idGroup = -4237476810;
         private const long _idChannel = -1002247826353;
@@ -24,7 +25,7 @@ namespace StockPr
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService)
+                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -37,6 +38,7 @@ namespace StockPr
 
             _stockRepo = stockRepo;
             _portfolioService = portfolioService;
+            _epsService = epsService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

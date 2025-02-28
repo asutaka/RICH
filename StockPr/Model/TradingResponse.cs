@@ -116,6 +116,26 @@ namespace StockPr.Model
         public IEnumerable<decimal> v { get; set; }
     }
 
+    public class SSI_DataFinanceResponse
+    {
+        public IEnumerable<SSI_DataFinanceDetailResponse> data { get; set; }
+    }
+
+    public class SSI_DataFinanceDetailResponse
+    {
+        public decimal eps { get; set; }
+    }
+
+    public class SSI_ShareholderResponse
+    {
+        public IEnumerable<SSI_ShareholderDetailResponse> data { get; set; }
+    }
+
+    public class SSI_ShareholderDetailResponse
+    {
+        public decimal percentage { get; set; }
+    }
+
     public class ReportPTKT
     {
         public string s { get; set; }

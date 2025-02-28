@@ -39,6 +39,10 @@ namespace StockPr.Service
         Task<Stream> TuDoanhHSX(DateTime dt);
 
         Task<List<Quote>> SSI_GetDataStock(string code);
+        Task<decimal> SSI_GetFinanceStock(string code);
+        Task<decimal> SSI_GetFreefloatStock(string code);
+
+
         Task<List<Money24h_PTKTResponse>> Money24h_GetMaTheoChiBao(string chibao);
         Task<List<Money24h_ForeignResponse>> Money24h_GetForeign(EExchange mode, EMoney24hTimeType type);
         Task<Money24h_NhomNganhResponse> Money24h_GetNhomNganh(EMoney24hTimeType type);
@@ -1270,6 +1274,58 @@ namespace StockPr.Service
             }
             Thread.Sleep(200);
             return lOutput;
+        }
+
+        public async Task<decimal> SSI_GetFinanceStock(string code)
+        {
+            var lOutput = new List<Quote>();
+            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/financial-indicator?symbol={0}&page=1&pageSize=1";
+            try
+            {
+                var url = string.Format(urlBase, code);
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<SSI_DataFinanceResponse>(resultArray);
+                if (responseModel.data.Any())
+                {
+                    return responseModel.data.First().eps;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.SSI_GetFinanceStock|EXCEPTION| {ex.Message}");
+            }
+            Thread.Sleep(200);
+            return 0;
+        }
+
+        public async Task<decimal> SSI_GetFreefloatStock(string code)
+        {
+            var lOutput = new List<Quote>();
+            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/financial-indicator?symbol={0}&page=1&pageSize=1";
+            try
+            {
+                var url = string.Format(urlBase, code);
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<SSI_ShareholderResponse>(resultArray);
+                if (responseModel.data.Any())
+                {
+                    return Math.Round(100 * (1 - responseModel.data.Sum(x => x.percentage)));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.SSI_GetFreeloadStock|EXCEPTION| {ex.Message}");
+            }
+            Thread.Sleep(200);
+            return 0;
         }
 
         #region Báo cáo tài chính

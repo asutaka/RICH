@@ -24,7 +24,8 @@ namespace StockPr.Utils
         CurrentTime = 50,
         TraceGia = 60,
         CheckVietStockToken = 61,
-        MacroMicro = 62
+        MacroMicro = 62,
+        EPS = 63
     }
 
     public enum EStockType
