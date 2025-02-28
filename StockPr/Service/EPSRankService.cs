@@ -46,7 +46,7 @@ namespace StockPr.Service
                     try
                     {
                         var eps = await _apiService.SSI_GetFinanceStock(item.s);
-                        if(eps > 1000)
+                        if(eps >= 5000)
                         {
                             lEPS.Add((item.s, eps));
                         }

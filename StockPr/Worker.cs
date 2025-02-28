@@ -44,6 +44,8 @@ namespace StockPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
+            var tmp = await _epsService.RankEPS(DateTime.Now);
+            return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;

@@ -1287,6 +1287,7 @@ namespace StockPr.Service
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                Thread.Sleep(100);
                 var resultArray = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<SSI_DataFinanceResponse>(resultArray);
                 if (responseModel.data.Any())
@@ -1298,14 +1299,13 @@ namespace StockPr.Service
             {
                 _logger.LogError($"APIService.SSI_GetFinanceStock|EXCEPTION| {ex.Message}");
             }
-            Thread.Sleep(200);
             return 0;
         }
 
         public async Task<decimal> SSI_GetFreefloatStock(string code)
         {
             var lOutput = new List<Quote>();
-            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/financial-indicator?symbol={0}&page=1&pageSize=1";
+            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/shareholders?symbol={0}&language=vn&page=1&pageSize=100";
             try
             {
                 var url = string.Format(urlBase, code);
@@ -1313,6 +1313,7 @@ namespace StockPr.Service
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                Thread.Sleep(100);
                 var resultArray = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<SSI_ShareholderResponse>(resultArray);
                 if (responseModel.data.Any())
@@ -1324,7 +1325,6 @@ namespace StockPr.Service
             {
                 _logger.LogError($"APIService.SSI_GetFreeloadStock|EXCEPTION| {ex.Message}");
             }
-            Thread.Sleep(200);
             return 0;
         }
 
