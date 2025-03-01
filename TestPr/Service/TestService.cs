@@ -534,14 +534,22 @@ namespace TestPr.Service
         //        var lTrading = _tradingRepo.GetAll();
         //        var lSymbol = lTrading.Select(x => x.s).Distinct();
         //        var lMesAll = new List<string>();
+        //        var lRate = new List<double>();
+        //        var win = 0;
+        //        var loss = 0;
         //        foreach (var item in lSymbol)
         //        {
         //            if (StaticVal._lIgnoreSignal.Contains(item))
         //                continue;
+
+
+        //            //if (item != "DYDXUSDT")
+        //            //    continue;
         //            //sl: 1.6, nếu vị thế giảm dưới 1% -> tạo lệnh TP khi lãi 1%
 
         //            var lMes = new List<string>();
         //            var lval = lTrading.Where(x => x.s == item);
+
         //            foreach (var val in lval)
         //            {
         //                //MP
@@ -555,69 +563,160 @@ namespace TestPr.Service
         //                    if (first.Low > second.Low)
         //                        continue;
 
-        //                    var next = lData15m.Where(x => x.Date > first.Date).FirstOrDefault(x => x.Low < first.Low);
-        //                    if (next is null)
+        //                    var lData1m = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date).ToUnixTimeMilliseconds());
+
+        //                    //var checkValid = lData1m.Skip(1).Take(59).Any(x => x.Low < first.Low);
+        //                    //if (checkValid)
+        //                    //    continue;
+
+        //                    var lData1mCondition1 = lData1m.Skip(60).Take(120);
+        //                    var next1m = lData1mCondition1.FirstOrDefault(x => x.Low < first.Low);
+        //                    if (next1m is null)
         //                        continue;
-
-        //                    var time = (next.Date - first.Date).TotalMinutes;
-        //                    if (time < 60 || time > 180)
+        //                    var lData1mCondition2 = lData1m.Where(x => x.Date > next1m.Date).Take(15);
+        //                    var next2m = lData1mCondition2.FirstOrDefault(x => x.High >= first.Low);
+        //                    if (next2m is null)
         //                        continue;
-        //                    //
-        //                    var close = lData15m.FirstOrDefault(x => x.Date >= next.Date.AddHours(2));
-        //                    if (close is null)
-        //                        continue;
+        //                    var lData1mCondition3 = lData1m.Where(x => x.Date > next2m.Date).Take(120);
 
-        //                    var rate = Math.Round(100 * (-1 + close.Close / first.Low), 1);
+        //                    var maxH = lData1mCondition3.Max(x => x.High);
+        //                    var minL = lData1mCondition3.Min(x => x.Low);
+        //                    var maxTP = Math.Round(100 * (-1 + maxH / first.Low), 1);
+        //                    var maxSL = Math.Round(100 * (-1 + minL / first.Low), 1);
 
-        //                    var lRange = lData15m.Where(x => x.Date >= first.Date && x.Date <= close.Date);
-        //                    var maxH = lRange.Max(x => x.High);
-        //                    var minL = lRange.Min(x => x.Low);
-        //                    decimal maxTP = 0, maxSL = 0;
-        //                    maxTP = Math.Round(100 * (-1 + maxH / first.Low), 1);
-        //                    maxSL = Math.Round(100 * (-1 + minL / first.Low), 1);
-
-        //                    var winloss = "W";
-        //                    if(rate <= 0)
+        //                    var sl = first.Low * (decimal)(1 - 0.016);
+        //                    var tp = first.Low * (decimal)(1 + 0.01);
+        //                    var sl_enable = first.Low * (decimal)(1 - 0.01);
+        //                    var flagTP = false;
+        //                    var isComplete = false;
+        //                    foreach ( var itemPrice in lData1mCondition3)
         //                    {
-        //                        winloss = "L";
+        //                        if(itemPrice.Low < sl)
+        //                        {
+        //                            var mes = $"{val.s}|SL|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|-1.6%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+        //                            lMes.Add(mes);
+        //                            lRate.Add(-1.6);
+        //                            loss++;
+        //                            isComplete = true;
+        //                            break;
+        //                        }
+        //                        else if(itemPrice.Low < sl_enable)
+        //                        {
+        //                            flagTP = true;
+        //                            continue;
+        //                        }
+        //                        else if(flagTP)
+        //                        {
+        //                            if(itemPrice.High >= tp)
+        //                            {
+        //                                var mes = $"{val.s}|TP|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|1%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+        //                                lMes.Add(mes);
+        //                                lRate.Add(1);
+        //                                win++;
+        //                                isComplete = true;
+        //                                break;
+        //                            }
+        //                        }
         //                    }
-
-        //                    var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
-        //                    lMes.Add(mes);
+        //                    if(!isComplete)
+        //                    {
+        //                        var last = lData1mCondition3.Last();
+        //                        var rate = Math.Round(100 * (-1 + last.Close / first.Low), 1);
+        //                        var winloss = "W";
+        //                        if (rate <= 0)
+        //                        {
+        //                            winloss = "L";
+        //                            loss++;
+        //                        }
+        //                        else
+        //                        {
+        //                            win++;
+        //                        }
+        //                        var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+        //                        lMes.Add(mes);
+        //                        lRate.Add((double)rate);
+        //                    }
         //                }
         //                else
         //                {
         //                    if (first.High < second.High)
         //                        continue;
 
-        //                    var next = lData15m.Where(x => x.Date > first.Date).FirstOrDefault(x => x.High > first.High);
-        //                    if (next is null)
+        //                    var lData1m = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date).ToUnixTimeMilliseconds());
+
+        //                    //var checkValid = lData1m.Skip(1).Take(59).Any(x => x.Low < first.Low);
+        //                    //if (checkValid)
+        //                    //    continue;
+
+        //                    var lData1mCondition1 = lData1m.Skip(60).Take(120);
+        //                    var next1m = lData1mCondition1.FirstOrDefault(x => x.High < first.High);
+        //                    if (next1m is null)
+        //                        continue;
+        //                    var lData1mCondition2 = lData1m.Where(x => x.Date > next1m.Date).Take(15);
+        //                    var next2m = lData1mCondition2.FirstOrDefault(x => x.Low <= first.High);
+        //                    if (next2m is null)
         //                        continue;
 
-        //                    var time = (next.Date - first.Date).TotalMinutes;
-        //                    if (time < 60 || time > 180)
-        //                        continue;
-        //                    //
-        //                    var close = lData15m.FirstOrDefault(x => x.Date >= next.Date.AddHours(2));
-        //                    if (close is null)
-        //                        continue;
+        //                    var lData1mCondition3 = lData1m.Where(x => x.Date > next2m.Date).Take(120);
 
-        //                    var rate = Math.Round(100 * (-1 + first.High / close.Close), 1);
-        //                    var lRange = lData15m.Where(x => x.Date >= first.Date && x.Date <= close.Date);
-        //                    var maxH = lRange.Max(x => x.High);
-        //                    var minL = lRange.Min(x => x.Low);
-        //                    decimal maxTP = 0, maxSL = 0;
-        //                    maxTP = Math.Round(100 * (-1 + first.High / minL), 1);
-        //                    maxSL = Math.Round(100 * (-1 + first.High / maxH), 1);
-                            
-        //                    var winloss = "W";
-        //                    if (rate <= 0)
+        //                    var maxH = lData1mCondition3.Max(x => x.High);
+        //                    var minL = lData1mCondition3.Min(x => x.Low);
+        //                    var maxTP = Math.Round(100 * (-1 + first.High / minL), 1);
+        //                    var maxSL = Math.Round(100 * (-1 + first.High / maxH), 1);
+
+        //                    var sl = first.High * (decimal)(1 + 0.016);
+        //                    var tp = first.High * (decimal)(1 - 0.01);
+        //                    var sl_enable = first.High * (decimal)(1 + 0.01);
+        //                    var flagTP = false;
+        //                    var isComplete = false;
+        //                    foreach (var itemPrice in lData1mCondition3)
         //                    {
-        //                        winloss = "L";
+        //                        if (itemPrice.High > sl)
+        //                        {
+        //                            var mes = $"{val.s}|SL|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|-1.6%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+        //                            lMes.Add(mes);
+        //                            lRate.Add(-1.6);
+        //                            loss++;
+        //                            isComplete = true;
+        //                            break;
+        //                        }
+        //                        else if (itemPrice.High > sl_enable)
+        //                        {
+        //                            flagTP = true;
+        //                            continue;
+        //                        }
+        //                        else if (flagTP)
+        //                        {
+        //                            if (itemPrice.Low <= tp)
+        //                            {
+        //                                var mes = $"{val.s}|TP|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|1%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+        //                                lMes.Add(mes);
+        //                                lRate.Add(1);
+        //                                win++;
+        //                                isComplete = true;
+        //                                break;
+        //                            }
+        //                        }
         //                    }
 
-        //                    var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
-        //                    lMes.Add(mes);
+        //                    if (!isComplete)
+        //                    {
+        //                        var last = lData1mCondition3.Last();
+        //                        var rate = Math.Round(100 * (-1 + first.High / last.Close), 1);
+        //                        var winloss = "W";
+        //                        if (rate <= 0)
+        //                        {
+        //                            winloss = "L";
+        //                            loss++;
+        //                        }
+        //                        else
+        //                        {
+        //                            win++;
+        //                        }
+        //                        var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+        //                        lMes.Add(mes);
+        //                        lRate.Add((double)rate);
+        //                    }
         //                }
         //            }
 
@@ -632,6 +731,9 @@ namespace TestPr.Service
         //        {
         //            Console.WriteLine(mes);
         //        }
+
+        //        var total = lRate.Sum();
+        //        Console.WriteLine($"TotalRate: {total}%|Win/Loss: {win}/{loss}");
         //    }
         //    catch (Exception ex)
         //    {
@@ -661,30 +763,37 @@ namespace TestPr.Service
 
                     var lMes = new List<string>();
                     var lval = lTrading.Where(x => x.s == item);
-                   
+
                     foreach (var val in lval)
                     {
                         //MP
                         var lData15m = await _apiService.GetData(item, EInterval.M15, new DateTimeOffset(val.Date.AddMinutes(-30)).ToUnixTimeMilliseconds());
                         Thread.Sleep(200);
-                        var first = lData15m.First(x => x.Date >= val.Date.AddMinutes(-15));
+                        var start = lData15m.First(x => x.Date >= val.Date.AddMinutes(-15));
                         var second = lData15m.Where(x => x.Date >= val.Date.AddMinutes(-15)).Skip(1).First();
 
                         if (val.Side == (int)Binance.Net.Enums.OrderSide.Buy)
                         {
-                            if (first.Low > second.Low)
-                                continue;
+                            //if (start.Low > second.Low)
+                            //    continue;
 
                             var lData1m = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date).ToUnixTimeMilliseconds());
-                            var lData1mCondition1 = lData1m.Skip(60).Take(120);
-                            var next1m = lData1mCondition1.FirstOrDefault(x => x.Low < first.Low);
-                            if (next1m is null)
-                                continue;
-                            var lData1mCondition2 = lData1m.Where(x => x.Date > next1m.Date).Take(15);
-                            var next2m = lData1mCondition2.FirstOrDefault(x => x.High >= first.Low);
-                            if (next2m is null)
-                                continue;
-                            var lData1mCondition3 = lData1m.Where(x => x.Date > next2m.Date).Take(120);
+                            var first = lData15m.Where(x => x.Date >= val.Date.AddMinutes(-15)).Skip(1).First();
+                            //var first = lData15m.Where(x => x.Date >= val.Date.AddMinutes(-15)).Skip(2).First();
+
+                            ////var checkValid = lData1m.Skip(1).Take(59).Any(x => x.Low < first.Low);
+                            ////if (checkValid)
+                            ////    continue;
+
+                            //var lData1mCondition1 = lData1m.Skip(60).Take(120);
+                            //var next1m = lData1mCondition1.FirstOrDefault(x => x.Low < first.Low);
+                            //if (next1m is null)
+                            //    continue;
+                            //var lData1mCondition2 = lData1m.Where(x => x.Date > next1m.Date).Take(15);
+                            //var next2m = lData1mCondition2.FirstOrDefault(x => x.High >= first.Low);
+                            //if (next2m is null)
+                            //    continue;
+                            var lData1mCondition3 = lData1m.Where(x => x.Date > first.Date).Take(120);
 
                             var maxH = lData1mCondition3.Max(x => x.High);
                             var minL = lData1mCondition3.Min(x => x.Low);
@@ -696,27 +805,27 @@ namespace TestPr.Service
                             var sl_enable = first.Low * (decimal)(1 - 0.01);
                             var flagTP = false;
                             var isComplete = false;
-                            foreach ( var itemPrice in lData1mCondition3)
+                            foreach (var itemPrice in lData1mCondition3)
                             {
-                                if(itemPrice.Low < sl)
+                                if (itemPrice.Low < sl)
                                 {
-                                    var mes = $"{val.s}|SL|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|-1.6%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                                    var mes = $"{val.s}|SL|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{first.Date.ToString("dd/MM/yyyy HH:mm")}|-1.6%|TPMax: {maxTP}%|SLMax: {maxSL}%";
                                     lMes.Add(mes);
                                     lRate.Add(-1.6);
                                     loss++;
                                     isComplete = true;
                                     break;
                                 }
-                                else if(itemPrice.Low < sl_enable)
+                                else if (itemPrice.Low < sl_enable)
                                 {
                                     flagTP = true;
                                     continue;
                                 }
-                                else if(flagTP)
+                                else if (flagTP)
                                 {
-                                    if(itemPrice.High >= tp)
+                                    if (itemPrice.High >= tp)
                                     {
-                                        var mes = $"{val.s}|TP|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|1%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                                        var mes = $"{val.s}|TP|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{first.Date.ToString("dd/MM/yyyy HH:mm")}|1%|TPMax: {maxTP}%|SLMax: {maxSL}%";
                                         lMes.Add(mes);
                                         lRate.Add(1);
                                         win++;
@@ -725,7 +834,7 @@ namespace TestPr.Service
                                     }
                                 }
                             }
-                            if(!isComplete)
+                            if (!isComplete)
                             {
                                 var last = lData1mCondition3.Last();
                                 var rate = Math.Round(100 * (-1 + last.Close / first.Low), 1);
@@ -739,86 +848,92 @@ namespace TestPr.Service
                                 {
                                     win++;
                                 }
-                                var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                                var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{first.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
                                 lMes.Add(mes);
                                 lRate.Add((double)rate);
                             }
                         }
                         else
                         {
-                            if (first.High < second.High)
-                                continue;
+                            //continue;
+                            //if (first.High < second.High)
+                            //    continue;
 
-                            var lData1m = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date).ToUnixTimeMilliseconds());
-                            var lData1mCondition1 = lData1m.Skip(60).Take(120);
-                            var next1m = lData1mCondition1.FirstOrDefault(x => x.High < first.High);
-                            if (next1m is null)
-                                continue;
-                            var lData1mCondition2 = lData1m.Where(x => x.Date > next1m.Date).Take(15);
-                            var next2m = lData1mCondition2.FirstOrDefault(x => x.Low <= first.High);
-                            if (next2m is null)
-                                continue;
+                            //var lData1m = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date).ToUnixTimeMilliseconds());
 
-                            var lData1mCondition3 = lData1m.Where(x => x.Date > next2m.Date).Take(120);
+                            ////var checkValid = lData1m.Skip(1).Take(59).Any(x => x.Low < first.Low);
+                            ////if (checkValid)
+                            ////    continue;
 
-                            var maxH = lData1mCondition3.Max(x => x.High);
-                            var minL = lData1mCondition3.Min(x => x.Low);
-                            var maxTP = Math.Round(100 * (-1 + first.High / minL), 1);
-                            var maxSL = Math.Round(100 * (-1 + first.High / maxH), 1);
+                            //var lData1mCondition1 = lData1m.Skip(60).Take(120);
+                            //var next1m = lData1mCondition1.FirstOrDefault(x => x.High < first.High);
+                            //if (next1m is null)
+                            //    continue;
+                            //var lData1mCondition2 = lData1m.Where(x => x.Date > next1m.Date).Take(15);
+                            //var next2m = lData1mCondition2.FirstOrDefault(x => x.Low <= first.High);
+                            //if (next2m is null)
+                            //    continue;
 
-                            var sl = first.High * (decimal)(1 + 0.016);
-                            var tp = first.High * (decimal)(1 - 0.01);
-                            var sl_enable = first.High * (decimal)(1 + 0.01);
-                            var flagTP = false;
-                            var isComplete = false;
-                            foreach (var itemPrice in lData1mCondition3)
-                            {
-                                if (itemPrice.High > sl)
-                                {
-                                    var mes = $"{val.s}|SL|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|-1.6%|TPMax: {maxTP}%|SLMax: {maxSL}%";
-                                    lMes.Add(mes);
-                                    lRate.Add(-1.6);
-                                    loss++;
-                                    isComplete = true;
-                                    break;
-                                }
-                                else if (itemPrice.High > sl_enable)
-                                {
-                                    flagTP = true;
-                                    continue;
-                                }
-                                else if (flagTP)
-                                {
-                                    if (itemPrice.Low <= tp)
-                                    {
-                                        var mes = $"{val.s}|TP|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|1%|TPMax: {maxTP}%|SLMax: {maxSL}%";
-                                        lMes.Add(mes);
-                                        lRate.Add(1);
-                                        win++;
-                                        isComplete = true;
-                                        break;
-                                    }
-                                }
-                            }
+                            //var lData1mCondition3 = lData1m.Where(x => x.Date > next2m.Date).Take(120);
 
-                            if (!isComplete)
-                            {
-                                var last = lData1mCondition3.Last();
-                                var rate = Math.Round(100 * (-1 + first.High / last.Close), 1);
-                                var winloss = "W";
-                                if (rate <= 0)
-                                {
-                                    winloss = "L";
-                                    loss++;
-                                }
-                                else
-                                {
-                                    win++;
-                                }
-                                var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
-                                lMes.Add(mes);
-                                lRate.Add((double)rate);
-                            }
+                            //var maxH = lData1mCondition3.Max(x => x.High);
+                            //var minL = lData1mCondition3.Min(x => x.Low);
+                            //var maxTP = Math.Round(100 * (-1 + first.High / minL), 1);
+                            //var maxSL = Math.Round(100 * (-1 + first.High / maxH), 1);
+
+                            //var sl = first.High * (decimal)(1 + 0.016);
+                            //var tp = first.High * (decimal)(1 - 0.01);
+                            //var sl_enable = first.High * (decimal)(1 + 0.01);
+                            //var flagTP = false;
+                            //var isComplete = false;
+                            //foreach (var itemPrice in lData1mCondition3)
+                            //{
+                            //    if (itemPrice.High > sl)
+                            //    {
+                            //        var mes = $"{val.s}|SL|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|-1.6%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            //        lMes.Add(mes);
+                            //        lRate.Add(-1.6);
+                            //        loss++;
+                            //        isComplete = true;
+                            //        break;
+                            //    }
+                            //    else if (itemPrice.High > sl_enable)
+                            //    {
+                            //        flagTP = true;
+                            //        continue;
+                            //    }
+                            //    else if (flagTP)
+                            //    {
+                            //        if (itemPrice.Low <= tp)
+                            //        {
+                            //            var mes = $"{val.s}|TP|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|1%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            //            lMes.Add(mes);
+                            //            lRate.Add(1);
+                            //            win++;
+                            //            isComplete = true;
+                            //            break;
+                            //        }
+                            //    }
+                            //}
+
+                            //if (!isComplete)
+                            //{
+                            //    var last = lData1mCondition3.Last();
+                            //    var rate = Math.Round(100 * (-1 + first.High / last.Close), 1);
+                            //    var winloss = "W";
+                            //    if (rate <= 0)
+                            //    {
+                            //        winloss = "L";
+                            //        loss++;
+                            //    }
+                            //    else
+                            //    {
+                            //        win++;
+                            //    }
+                            //    var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{next1m.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            //    lMes.Add(mes);
+                            //    lRate.Add((double)rate);
+                            //}
                         }
                     }
 
