@@ -40,6 +40,7 @@ namespace StockPr.Service
                 }
 
                 var strOutput = new StringBuilder();
+                strOutput.AppendLine("[Thống kê EPS]");
                 var lEPS = new List<(string, decimal)>();
                 foreach (var item in StaticVal._lStock)
                 {
@@ -48,7 +49,7 @@ namespace StockPr.Service
                         var eps = await _apiService.SSI_GetFinanceStock(item.s);
                         if(eps >= 5000)
                         {
-                            lEPS.Add((item.s, eps));
+                            lEPS.Add((item.s, Math.Round(eps)));
                         }
                     }
                     catch (Exception ex)
@@ -60,8 +61,16 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lEPS)
                 {
+                    string mes = string.Empty;
                     var freefloat = await _apiService.SSI_GetFreefloatStock(item.Item1);
-                    var mes = $"{index++}. {item.Item1}|EPS: {item.Item2}(Freefloat: {freefloat}%)";
+                    if(freefloat <= 10)
+                    {
+                        mes = $"{index++}. {item.Item1}(eps: {item.Item2.ToString("#,##0")})";
+                    }
+                    else
+                    {
+                        mes = $"{index++}. {item.Item1}(eps: {item.Item2.ToString("#,##0")} - freefloat: {freefloat}%)";
+                    }
                     strOutput.AppendLine(mes);
                 }
 
@@ -75,7 +84,7 @@ namespace StockPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError($"AnalyzeService.RankEPS|EXCEPTION| {ex.Message}");
+                _logger.LogError($"EPSRankService.RankEPS|EXCEPTION| {ex.Message}");
             }
 
             return (0, null);

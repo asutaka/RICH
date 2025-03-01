@@ -44,8 +44,6 @@ namespace StockPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
-            var tmp = await _epsService.RankEPS(DateTime.Now);
-            return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
@@ -60,6 +58,16 @@ namespace StockPr
                 {
                     await _teleService.SendMessage(_idGroup, bcpt);
                 }
+
+                if(dt.DayOfWeek == DayOfWeek.Monday)
+                {
+                    var eps = await _epsService.RankEPS(DateTime.Now);
+                    if (eps.Item1 > 0)
+                    {
+                        await _teleService.SendMessage(_idGroup, eps.Item2);
+                    }
+                }
+
                 //Quỹ đầu tư
                 var portfolio = await _portfolioService.Portfolio();
                 if (!string.IsNullOrWhiteSpace(portfolio))
