@@ -654,6 +654,9 @@ namespace TestPr.Service
                     if (StaticVal._lIgnoreSignal.Contains(item))
                         continue;
 
+
+                    //if (item != "DYDXUSDT")
+                    //    continue;
                     //sl: 1.6, nếu vị thế giảm dưới 1% -> tạo lệnh TP khi lãi 1%
 
                     var lMes = new List<string>();
@@ -673,7 +676,7 @@ namespace TestPr.Service
                                 continue;
 
                             var lData1m = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date).ToUnixTimeMilliseconds());
-                            var lData1mCondition1 = lData15m.Skip(60).Take(120);
+                            var lData1mCondition1 = lData1m.Skip(60).Take(120);
                             var next1m = lData1mCondition1.FirstOrDefault(x => x.Low < first.Low);
                             if (next1m is null)
                                 continue;
@@ -747,7 +750,7 @@ namespace TestPr.Service
                                 continue;
 
                             var lData1m = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date).ToUnixTimeMilliseconds());
-                            var lData1mCondition1 = lData15m.Skip(60).Take(120);
+                            var lData1mCondition1 = lData1m.Skip(60).Take(120);
                             var next1m = lData1mCondition1.FirstOrDefault(x => x.High < first.High);
                             if (next1m is null)
                                 continue;
