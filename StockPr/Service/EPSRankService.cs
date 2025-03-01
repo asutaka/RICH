@@ -65,11 +65,11 @@ namespace StockPr.Service
                     var freefloat = await _apiService.SSI_GetFreefloatStock(item.Item1);
                     if(freefloat <= 10)
                     {
-                        mes = $"{index++}. {item.Item1}(eps: {item.Item2.ToString("#,##0")})";
+                        mes = $"{index++}. {item.Item1} (eps: {item.Item2.ToString("#,##0")})";
                     }
                     else
                     {
-                        mes = $"{index++}. {item.Item1}(eps: {item.Item2.ToString("#,##0")} - freefloat: {freefloat}%)";
+                        mes = $"{index++}. {item.Item1} (eps: {item.Item2.ToString("#,##0")} - freefloat: {freefloat}%)";
                     }
                     strOutput.AppendLine(mes);
                 }
