@@ -30,5 +30,10 @@ namespace TestPr.Utils
             "ETHUSDT",
             "XRPUSDT"
         };
+
+        public static List<string> _lIgnoreSignal = new List<string>
+        {
+            "BTCUSDT",
+        };
     }
 }
