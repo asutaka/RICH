@@ -1,5 +1,7 @@
 ﻿using Binance.Net.Objects.Models.Futures;
+using CryptoExchange.Net.CommonObjects;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -11,6 +13,7 @@ namespace TradePr.Service
     {
         Task<BinanceUsdFuturesAccountBalance> GetAccountInfo();
         Task TradeTokenUnlock();
+        Task TradeThreeSignal();
         Task MarketAction();
     }
     public class BinanceService : IBinanceService
@@ -19,6 +22,7 @@ namespace TradePr.Service
         private readonly ICacheService _cacheService;
         private readonly ITradingRepo _tradingRepo;
         private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
+        private readonly IThreeSignalTradeRepo _threeSignalTradeRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
@@ -26,8 +30,8 @@ namespace TradePr.Service
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         public BinanceService(ILogger<BinanceService> logger, ICacheService cacheService,
-                            ITradingRepo tradingRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo, 
-                            ITeleService teleService, IErrorPartnerRepo errRepo) 
+                            ITradingRepo tradingRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo,
+                            IThreeSignalTradeRepo threeSignalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo) 
         { 
             _logger = logger;
             _cacheService = cacheService;
@@ -35,6 +39,7 @@ namespace TradePr.Service
             _apiService = apiService;
             _teleService = teleService;
             _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
+            _threeSignalTradeRepo = threeSignalTradeRepo;
             _errRepo = errRepo;
         }
 
@@ -184,17 +189,17 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BinanceService.PlaceOrder|EXCEPTION| {ex.Message}");
             }
             return null;
         }
 
-        private async Task<TokenUnlockTrade> PlaceOrderCloseAll(string symbol, decimal quan)
+        private async Task<TokenUnlockTrade> PlaceOrderCloseAll(string symbol, decimal quan, Binance.Net.Enums.OrderSide side = Binance.Net.Enums.OrderSide.Buy)
         {
             try
             {
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(symbol,
-                                                                                                    side: Binance.Net.Enums.OrderSide.Buy,
+                                                                                                    side: side,
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.Market,
                                                                                                     quantity: quan);
                 Thread.Sleep(500);
@@ -321,6 +326,7 @@ namespace TradePr.Service
         {
             try
             {
+                var sBuilder = new StringBuilder();
                 var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
                 if (lTrade?.Any() ?? false)
@@ -336,7 +342,7 @@ namespace TradePr.Service
                             if (resPosition?.Data?.Any() ?? false)
                             {
                                 //close all
-                                var sBuilder = new StringBuilder();
+                               
                                 foreach (var position in resPosition.Data)
                                 {
                                     if (lTokenUnlockTrade.Any(x => x.s != position.Symbol))
@@ -357,12 +363,262 @@ namespace TradePr.Service
                             }
                         }
                     }
+
+                    if(sBuilder.Length > 0)
+                    {
+                        await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                        sBuilder.Clear();
+                    }
+                }
+
+                //Check Close ThreeSignal
+                var timeThreeActionTrade = DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds();
+                var timeThreeActionTradeClose = DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
+                var lThreeActionTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeThreeActionTrade));
+                if(lThreeActionTrade is null)
+                {
+                    lThreeActionTrade = new List<Trading>();
+                }
+                lThreeActionTrade = lThreeActionTrade.Where(x => x.d <= timeThreeActionTradeClose).ToList();
+                if (!lThreeActionTrade.Any())
+                    return;
+
+                foreach (var trading in lThreeActionTrade)
+                {
+                    try
+                    {
+                        #region Đóng vị thế
+                        var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+                        if (resPosition?.Data?.Any() ?? false)
+                        {
+                            //close all
+                            foreach (var position in resPosition.Data)
+                            {
+                                if (position.Symbol != trading.s)
+                                    continue;
+
+                                var side = Binance.Net.Enums.OrderSide.Buy;
+                                if ((Binance.Net.Enums.OrderSide)trading.Side == Binance.Net.Enums.OrderSide.Buy)
+                                {
+                                    side = Binance.Net.Enums.OrderSide.Sell;
+                                }
+
+                                var res = await PlaceOrderCloseAll(position.Symbol, Math.Abs(position.PositionAmt), side);
+                                if (res != null)
+                                {
+                                    var mes = $"[Đóng vị thế] {res.s}|Giá đóng: {res.priceClose}|Rate: {res.rate}%";
+                                    sBuilder.AppendLine(mes);
+                                }
+                            }
+                        }
+                        #endregion
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"BinanceService.MarketAction|EXCEPTION|INPUT: {JsonConvert.SerializeObject(trading)}| {ex.Message}");
+                    }
+                   
+                }
+                if (sBuilder.Length > 0)
+                {
+                    await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                    sBuilder.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"BinanceService.MarketAction|EXCEPTION| {ex.Message}");
             }
+        }
+
+        public async Task TradeThreeSignal()
+        {
+            try
+            {
+                var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
+                var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
+                if(!(lTrade?.Any() ?? false))
+                    return;
+
+                var lGroup = lTrade.GroupBy(c => new
+                {
+                    c.s,
+                    c.Side
+                })
+                .Select(gcs => new
+                {
+                    gcs.Key.s,
+                    gcs.Key.Side,
+                    Count = gcs.Count(),
+                })
+                .Where(x => x.Count >= 3);
+
+                if (!lGroup.Any())
+                    return;
+
+                var timeFlag = (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds();
+                var lThreeSignal = _threeSignalTradeRepo.GetByFilter(Builders<ThreeSignalTrade>.Filter.Gte(x => x.timeFlag, timeFlag));
+                if (lThreeSignal is null)
+                    lThreeSignal = new List<ThreeSignalTrade>();
+
+                var sBuilder = new StringBuilder();
+                foreach (var item in lGroup)
+                {
+                    try
+                    {
+                        if (lThreeSignal.Any(x => x.s == item.s && x.Side == item.Side))
+                            continue;
+
+                        var res = await PlaceOrder(new ThreeSignalTrade
+                        {
+                            s = item.s,
+                            Side = item.Side
+                        });
+                        if (res != null)
+                        {
+                            var mes = $"[Mở vị thế - ThreeSignal] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            sBuilder.AppendLine(mes);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        _logger.LogError(ex, $"BinanceService.TradeThreeSignal|EXCEPTION|INPUT: {JsonConvert.SerializeObject(item)}| {ex.Message}");
+                    }
+                }
+
+                if (sBuilder.Length > 0)
+                {
+                    await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"BinanceService.TradeThreeSignal|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private async Task<ThreeSignalTrade> PlaceOrder(ThreeSignalTrade token)
+        {
+            try
+            {
+                var curPrice = await GetPrice(token.s);
+                if (curPrice <= 0)
+                    return null;
+
+                var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                var account = await GetAccountInfo();
+                if (account == null)
+                {
+                    await _teleService.SendMessage(_idUser, "[ERROR] Không lấy được thông tin tài khoản");
+                    return null;
+                }
+
+                if (account.AvailableBalance * _margin <= _unit)
+                    return null;
+
+                var near = 2; if (curPrice < 1)
+                {
+                    near = 0;
+                }
+                var soluong = Math.Round(_unit / curPrice, near);
+                var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(token.s,
+                                                                                                    side: (Binance.Net.Enums.OrderSide)token.Side,
+                                                                                                    type: Binance.Net.Enums.FuturesOrderType.Market,
+                                                                                                    positionSide: Binance.Net.Enums.PositionSide.Both,
+                                                                                                    reduceOnly: false,
+                                                                                                    quantity: soluong);
+                Thread.Sleep(500);
+                //nếu lỗi return
+                if (!res.Success)
+                {
+                    _errRepo.InsertOne(new ErrorPartner
+                    {
+                        s = token.s,
+                        time = curTime,
+                        ty = (int)ETypeBot.ThreeSignal,
+                        action = token.Side,
+                        des = $"side: {((Binance.Net.Enums.OrderSide)token.Side).ToString()}, type: {Binance.Net.Enums.FuturesOrderType.Market.ToString()}, quantity: {soluong}"
+                    });
+                    return null;
+                }
+
+                token.timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(token.s);
+                Thread.Sleep(500);
+                if (!resPosition.Success)
+                {
+                    _threeSignalTradeRepo.InsertOne(token);
+
+                    _errRepo.InsertOne(new ErrorPartner
+                    {
+                        s = token.s,
+                        time = curTime,
+                        ty = (int)ETypeBot.ThreeSignal,
+                        action = (int)EAction.GetPosition
+                    });
+
+                    return null;
+                }
+
+                if (resPosition.Data.Any())
+                {
+                    var first = resPosition.Data.First();
+                    token.priceEntry = (double)first.EntryPrice;
+
+                    if (curPrice < 1)
+                    {
+                        var price = curPrice.ToString().Split('.').Last();
+                        price = price.ReverseString();
+                        near = long.Parse(price).ToString().Length;
+                    }
+                    var checkLenght = curPrice.ToString().Split('.').Last();
+                    var side = Binance.Net.Enums.OrderSide.Buy;
+                    var sl = Math.Round(first.EntryPrice * (decimal)(1 + 0.016), near);
+
+                    if((Binance.Net.Enums.OrderSide)token.Side == Binance.Net.Enums.OrderSide.Buy)
+                    {
+                        side = Binance.Net.Enums.OrderSide.Sell;
+                        sl = Math.Round(first.EntryPrice * (decimal)(1 - 0.016), near);
+                    }
+
+                    res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
+                                                                                            side: side,
+                                                                                            type: Binance.Net.Enums.FuturesOrderType.StopMarket,
+                                                                                            positionSide: Binance.Net.Enums.PositionSide.Both,
+                                                                                            quantity: soluong,
+                                                                                            timeInForce: Binance.Net.Enums.TimeInForce.GoodTillExpiredOrCanceled,
+                                                                                            reduceOnly: true,
+                                                                                            workingType: Binance.Net.Enums.WorkingType.Mark,
+                                                                                            stopPrice: sl);
+                    Thread.Sleep(500);
+                    if (!res.Success)
+                    {
+                        _threeSignalTradeRepo.InsertOne(token);
+
+                        _errRepo.InsertOne(new ErrorPartner
+                        {
+                            s = token.s,
+                            time = curTime,
+                            ty = (int)ETypeBot.ThreeSignal,
+                            action = (int)EAction.Short_SL,
+                            des = $"side: {((Binance.Net.Enums.OrderSide)token.Side).ToString()}, type: {Binance.Net.Enums.FuturesOrderType.StopMarket.ToString()}, quantity: {soluong}, stopPrice: {sl}"
+                        });
+
+                        return null;
+                    }
+
+                    token.timeStoploss = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                    token.priceStoploss = (double)sl;
+
+                    _threeSignalTradeRepo.InsertOne(token);
+                }
+                return token;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BinanceService.PlaceOrder|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
     }
 }

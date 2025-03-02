@@ -30,11 +30,13 @@ namespace TradePr.Utils
 
     public enum ETypeBot
     {
-        TokenUnlock = 1
+        TokenUnlock = 1,
+        ThreeSignal = 2
     }
 
     public enum EAction
     {
+        Long = 0,
         Short = 1,
         Short_SL = 2,
         GetPosition = 3

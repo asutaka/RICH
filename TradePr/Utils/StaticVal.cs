@@ -115,5 +115,12 @@ namespace TradePr.Utils
             "VOXEL",
             "SEI",
         };
+
+        public static List<string> _lIgnoreThreeSignal = new List<string>
+        {
+            "BTCUSDT",
+            "ETHUSDT",
+            "XRPUSDT"
+        };
     }
 }
