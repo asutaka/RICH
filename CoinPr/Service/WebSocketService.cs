@@ -21,6 +21,7 @@ namespace CoinPr.Service
         private readonly ITradingRepo _tradingRepo;
         private readonly ISignalRepo _signalRepo;
         private const int MIN_VALUE = 10000;
+        private const decimal STOP_LOSS = (decimal)0.016;
         private static Dictionary<string, DateTime> _dicRes = new Dictionary<string, DateTime>();
         
         public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo, ISignalRepo signalRepo)
@@ -107,18 +108,13 @@ namespace CoinPr.Service
                 
                 liquid.Entry = Math.Round(liquid.Entry, dot);
                 liquid.TP = Math.Round(liquid.TP, dot);
-                liquid.TP_2 = Math.Round(liquid.TP_2, dot);
-                liquid.TP_3 = Math.Round(liquid.TP_3, dot);
-                liquid.TP25 = Math.Round(liquid.TP25, dot);
                 liquid.SL = Math.Round(liquid.SL, dot);
-                liquid.SL_2 = Math.Round(liquid.SL_2, dot);
-                liquid.SL25 = Math.Round(liquid.SL25, dot);
                 liquid.Rsi = Math.Round(liquid.Rsi, dot);
 
                 var sideText =  liquid.Side == Binance.Net.Enums.OrderSide.Buy ? "Long" : "Short";
 
-                mes = $"{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}|ENTRY: {liquid.Entry}|TP: {liquid.TP25}|SL: {liquid.SL25}\n" +
-                    $"Cur: {liquid.CurrentPrice}|Avg: {liquid.AvgPrice}|Liquid: {liquid.Liquid}|Rsi: {liquid.Rsi}";
+                mes = $"{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}\n" +
+                    $"Liquid: {liquid.Liquid}|Rsi: {liquid.Rsi}";
                 _tradingRepo.InsertOne(new DAL.Entity.Trading
                 {
                     key = Guid.NewGuid().ToString(),
@@ -128,22 +124,10 @@ namespace CoinPr.Service
                     Entry = (double)liquid.Entry,
                     TP = (double)liquid.TP,
                     SL = (double)liquid.SL,
-                    Focus = (double)liquid.Focus,
-                    AvgPrice = (double)liquid.AvgPrice,
                     Liquid = (double)liquid.Liquid,
-                    CurrentPrice = (double)liquid.CurrentPrice,
                     Date = liquid.Date,
                     Rsi = (double)liquid.Rsi,
-                    TopFirst = (double)liquid.TopFirst,
-                    TopNext = (double)liquid.TopNext,
-                    BotFirst = (double)liquid.BotFirst,
-                    BotNext = (double)liquid.BotNext,
                     RateVol = (double)liquid.RateVol,
-                    TP_2 = (double)liquid.TP_2,
-                    TP_3 = (double)liquid.TP_3,
-                    TP25 = (double)liquid.TP25,
-                    SL_2 = (double)liquid.SL_2,
-                    SL25 = (double)liquid.SL25,
                 });
             }
             catch (Exception ex)
@@ -164,13 +148,13 @@ namespace CoinPr.Service
                 if (rsi > 30 && rsi < 70)
                     return null;
 
-                var lTopBot5M = lData5M.GetTopBottom_H(0);
-                var lTop = lTopBot5M.Where(x => x.IsTop);
-                var lBot = lTopBot5M.Where(x => x.IsBot);
-                var topFirst = lTop?.LastOrDefault()?.Value ?? 0;
-                var topNext = lTop?.SkipLast(1).LastOrDefault()?.Value ?? 0;
-                var botFirst = lBot?.LastOrDefault()?.Value ?? 0;
-                var botNext = lBot?.SkipLast(1).LastOrDefault()?.Value ?? 0;
+                //var lTopBot5M = lData5M.GetTopBottom_H(0);
+                //var lTop = lTopBot5M.Where(x => x.IsTop);
+                //var lBot = lTopBot5M.Where(x => x.IsBot);
+                //var topFirst = lTop?.LastOrDefault()?.Value ?? 0;
+                //var topNext = lTop?.SkipLast(1).LastOrDefault()?.Value ?? 0;
+                //var botFirst = lBot?.LastOrDefault()?.Value ?? 0;
+                //var botNext = lBot?.SkipLast(1).LastOrDefault()?.Value ?? 0;
 
                 var avgVol = lData5M.SkipLast(2).TakeLast(5).Select(x => x.Volume).Average();
                 var rateVol = Math.Round(lData5M.SkipLast(1).Last().Volume / avgVol, 2);
@@ -200,31 +184,18 @@ namespace CoinPr.Service
                     if(rsi >= 80 ||
                        (rsi >=  68 && rateVol < 1))
                     {
+                        var sl = cur * (1 + STOP_LOSS);
                         var liquid = new TradingResponse
                         {
                             s = msg.Symbol,
                             Date = DateTime.Now,
                             Side = Binance.Net.Enums.OrderSide.Sell,
-                            Focus = cur,
                             Entry = cur,
-                            TP = priceAtMaxLiquid - Math.Abs((cur - avgPrice) / 3),
-                            SL = msg.AveragePrice + Math.Abs((cur - avgPrice) / 3),
-                            //for test
-                            CurrentPrice = cur,
-                            AvgPrice = avgPrice,
+                            TP = cur * (1 - ((decimal)25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
+                            SL = sl,
                             Liquid = priceAtMaxLiquid,
                             Rsi = rsi,
-                            TopFirst = topFirst,
-                            TopNext = topNext,
-                            BotFirst = botFirst,
-                            BotNext = botNext,
                             RateVol = rateVol,
-                            //tp
-                            TP_2 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - avgPrice) / 3,
-                            TP_3 = priceAtMaxLiquid - Math.Abs(priceAtMaxLiquid - avgPrice) / 2,
-                            TP25 = cur * (1 - ((decimal)25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
-                            SL25 = cur * (1 + ((decimal)25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
-                            SL_2 = msg.AveragePrice + Math.Abs((priceAtMaxLiquid - avgPrice) / 3)
                         };
                         return liquid;
                     }
@@ -244,31 +215,18 @@ namespace CoinPr.Service
                     if (rsi <= 20 ||
                        (rsi <= 32 && rateVol < 1))
                     {
+                        var sl = cur * (1 - STOP_LOSS);
                         var liquid = new TradingResponse
                         {
                             s = msg.Symbol,
                             Date = DateTime.Now,
                             Side = Binance.Net.Enums.OrderSide.Buy,
-                            Focus = cur,
                             Entry = cur,
-                            TP = priceAtMaxLiquid + Math.Abs((cur - avgPrice) / 3),
-                            SL = msg.AveragePrice - Math.Abs((cur - avgPrice) / 3),
-                            //for test
-                            CurrentPrice = cur,
-                            AvgPrice = avgPrice,
+                            TP = cur * (1 + (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
+                            SL = sl,
                             Liquid = priceAtMaxLiquid,
                             Rsi = rsi,
-                            TopFirst = topFirst,
-                            TopNext = topNext,
-                            BotFirst = botFirst,
-                            BotNext = botNext,
                             RateVol = rateVol,
-                            //tp
-                            TP_2 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - avgPrice) / 3,
-                            TP_3 = priceAtMaxLiquid + Math.Abs(priceAtMaxLiquid - avgPrice) / 2,
-                            TP25 = cur * (1 + (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
-                            SL25 = cur * (1 - (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
-                            SL_2 = msg.AveragePrice - Math.Abs((priceAtMaxLiquid - avgPrice) / 3)
                         };
                         return liquid;
                     }
