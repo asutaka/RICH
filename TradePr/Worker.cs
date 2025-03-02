@@ -21,6 +21,7 @@ namespace TradePr
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 await _binnanceService.TradeTokenUnlock();
+                await _binnanceService.MarketAction();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }

@@ -1,8 +1,5 @@
-﻿using Binance.Net.Interfaces.Clients;
-using Binance.Net.Objects.Models.Futures;
+﻿using Binance.Net.Objects.Models.Futures;
 using MongoDB.Driver;
-using Newtonsoft.Json;
-using Skender.Stock.Indicators;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -13,15 +10,14 @@ namespace TradePr.Service
     public interface IBinanceService
     {
         Task<BinanceUsdFuturesAccountBalance> GetAccountInfo();
-        //Task TradeAction();
         Task TradeTokenUnlock();
-        Task TradeTokenUnlockTest();
+        Task MarketAction();
     }
     public class BinanceService : IBinanceService
     {
         private readonly ILogger<BinanceService> _logger;
         private readonly ICacheService _cacheService;
-        private readonly IActionTradeRepo _actionRepo;
+        private readonly ITradingRepo _tradingRepo;
         private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IAPIService _apiService;
@@ -29,13 +25,13 @@ namespace TradePr.Service
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
-        public BinanceService(ILogger<BinanceService> logger, ICacheService cacheService, 
-                            IActionTradeRepo actionRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo, 
+        public BinanceService(ILogger<BinanceService> logger, ICacheService cacheService,
+                            ITradingRepo tradingRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo, 
                             ITeleService teleService, IErrorPartnerRepo errRepo) 
         { 
             _logger = logger;
             _cacheService = cacheService;
-            _actionRepo = actionRepo;
+            _tradingRepo = tradingRepo;
             _apiService = apiService;
             _teleService = teleService;
             _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
@@ -246,153 +242,6 @@ namespace TradePr.Service
             return null;
         }
 
-        //public async Task TradeAction()
-        //{
-        //    try
-        //    {
-        //        var liquid = StaticVal.BinanceSocketInstance().UsdFuturesApi.ExchangeData.SubscribeToMiniTickerUpdatesAsync(StaticVal._lCoinAnk, (data) =>
-        //        {
-        //            var lTrading = _cacheService.GetListTrading();
-        //            var lSymbol = lTrading.Select(x => x.s).Distinct();
-        //            if (!lSymbol.Any(x => x == data.Symbol))
-        //                return;
-
-        //            FilterDefinition<ActionTrade> filter = null;
-        //            var builder = Builders<ActionTrade>.Filter;
-        //            var lFilter = new List<FilterDefinition<ActionTrade>>()
-        //            {
-        //                builder.Eq(x => x.IsFinish, false),
-        //                builder.Eq(x => x.s, data.Symbol),
-        //            };
-        //            foreach (var item in lFilter)
-        //            {
-        //                if (filter is null)
-        //                {
-        //                    filter = item;
-        //                    continue;
-        //                }
-        //                filter &= item;
-        //            }
-        //            var lProcessing = _actionRepo.GetByFilter(filter);
-        //            var lTradingClean = lTrading.Where(x => x.s == data.Symbol);
-        //            foreach ( var item in lTradingClean)
-        //            {
-        //                if (lProcessing.Any(x => x.key == item.key))
-        //                    continue;
-
-        //                if(item.Mode == (int)ELiquidMode.BanNguocChieu
-        //                   || item.Mode == (int)ELiquidMode.MuaNguocChieu)
-        //                {
-        //                    //Buy, Sell imediate 
-        //                    _actionRepo.InsertOne(new ActionTrade
-        //                    {
-        //                        key = item.key,
-        //                        s = item.s,
-        //                        Mode = item.Mode,
-        //                        dbuy = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-        //                        Entry = item.Entry,
-        //                        TP = item.TP,
-        //                        SL = item.SL,
-        //                        IsFinish = false
-        //                    });
-        //                    Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}: {JsonConvert.SerializeObject(data)}");
-        //                }
-        //                else if(item.Mode == (int)ELiquidMode.MuaCungChieu)
-        //                {
-        //                    if(data.Data.LastPrice >= (decimal)item.Entry && data.Data.LastPrice < (decimal)(item.Entry + Math.Abs(item.TP - item.Entry)/3))
-        //                    {
-        //                        _actionRepo.InsertOne(new ActionTrade
-        //                        {
-        //                            key = item.key,
-        //                            s = item.s,
-        //                            Mode = item.Mode,
-        //                            dbuy = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-        //                            Entry = item.Entry,
-        //                            TP = item.TP,
-        //                            SL = item.SL,
-        //                            IsFinish = false
-        //                        });
-        //                        Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}: {JsonConvert.SerializeObject(data)}");
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    if (data.Data.LastPrice <= (decimal)item.Entry && data.Data.LastPrice > (decimal)(item.Entry - Math.Abs(item.TP - item.Entry) / 3))
-        //                    {
-        //                        _actionRepo.InsertOne(new ActionTrade
-        //                        {
-        //                            key = item.key,
-        //                            s = item.s,
-        //                            Mode = item.Mode,
-        //                            dbuy = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-        //                            Entry = item.Entry,
-        //                            TP = item.TP,
-        //                            SL = item.SL,
-        //                            IsFinish = false
-        //                        });
-        //                        Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}: {JsonConvert.SerializeObject(data)}");
-        //                    }
-        //                }
-        //            }
-
-        //            if(lProcessing.Any())
-        //            {
-        //                var now = DateTimeOffset.Now.ToUnixTimeSeconds();
-        //                foreach(var item in lProcessing)
-        //                {
-        //                    if(item.Mode == (int)ELiquidMode.MuaCungChieu 
-        //                    || item.Mode == (int)ELiquidMode.MuaNguocChieu)
-        //                    {
-        //                        if(data.Data.LastPrice >= (decimal)item.TP)
-        //                        {
-        //                            item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-        //                            item.IsFinish = true;
-        //                            item.IsWin = 1;
-        //                            _actionRepo.Update(item);
-        //                        }
-        //                        else if(data.Data.LastPrice <= (decimal)item.SL)
-        //                        {
-        //                            item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-        //                            item.IsFinish = true;
-        //                            item.IsWin = 2;
-        //                            _actionRepo.Update(item);
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        if (data.Data.LastPrice <= (decimal)item.TP)
-        //                        {
-        //                            item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-        //                            item.IsFinish = true;
-        //                            item.IsWin = 1;
-        //                            _actionRepo.Update(item);
-        //                        }
-        //                        else if (data.Data.LastPrice >= (decimal)item.SL)
-        //                        {
-        //                            item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-        //                            item.IsFinish = true;
-        //                            item.IsWin = 2;
-        //                            _actionRepo.Update(item);
-        //                        }
-        //                    }
-
-        //                    if(Math.Abs(now - item.dbuy) >= 7200)
-        //                    {
-        //                        item.dsell = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-        //                        item.IsFinish = true;
-        //                        item.IsWin = 3;
-        //                        _actionRepo.Update(item);
-        //                    }
-        //                }
-        //            }
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, $"BinanceService.TradeAction|EXCEPTION| {ex.Message}");
-        //    }
-        //}
-
         public async Task TradeTokenUnlock()
         {
             try
@@ -468,75 +317,51 @@ namespace TradePr.Service
             }
         }
 
-        public async Task TradeTokenUnlockTest()
+        public async Task MarketAction()
         {
             try
             {
-                double totalVal = 0;
-                int totalTP = 0;
-                int totalSL = 0;
-                int totalRSI70 = 0;
-                int totalRSI30 = 0;
-                var val = 100;
-                var dt = new DateTime(2024, 9, 30);
-                var lMes = new List<string>();
-                do
+                var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
+                var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
+                if (lTrade?.Any() ?? false)
                 {
-                    dt = dt.AddDays(1);
-                    var tokens = _cacheService.GetTokenUnlock(dt);
-                    if (!tokens.Any())
-                        continue;
-
-                    foreach (var item in tokens)
+                    var lSym = lTrade.Select(x => x.s).Distinct();
+                    if(lSym.Count() >= 3)
                     {
-                        long fromTime = item.time - 60;
-                        var dat = await _apiService.GetData($"{item.s}USDT", EInterval.M1, fromTime * 1000);
-                        Thread.Sleep(200);
-                        if (!dat.Any())
-                            continue;
-                        var entityEntry = dat.First();
-                        var dat1D = await _apiService.GetData($"{item.s}USDT", EInterval.D1);
-                        var lRsi = dat1D.GetRsi();
-                        Thread.Sleep(200);
-                        var entityTP = dat1D.FirstOrDefault(x => x.Date >= dt.AddDays(1));
-                        if (entityTP is null)
-                            continue;
-                        var rsi = lRsi.LastOrDefault(x => x.Date < entityTP.Date);
-                        if ((rsi?.Rsi ?? 0) <= 30)
+                        var timeUnlockTrade = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                        var lTokenUnlockTrade = _tokenUnlockTradeRepo.GetByFilter(Builders<TokenUnlockTrade>.Filter.Gte(x => x.timeUnlock, timeUnlockTrade));
+                        if (lTokenUnlockTrade?.Any() ?? false) 
                         {
-                            continue;
-                        }
+                            var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+                            if (resPosition?.Data?.Any() ?? false)
+                            {
+                                //close all
+                                var sBuilder = new StringBuilder();
+                                foreach (var position in resPosition.Data)
+                                {
+                                    if (lTokenUnlockTrade.Any(x => x.s != position.Symbol))
+                                        continue;
 
-                        var checkSL = Math.Abs(Math.Round(100 * (-1 + entityTP.High / entityEntry.Open), 1));
-                        if (checkSL >= (decimal)1.6)
-                        {
-                            var SL = Math.Round(val * 0.016, 1);
-                            totalVal -= SL;
-                            totalSL++;
-                            var mesSL = $"{dt.AddDays(1).ToString("dd/MM/yyyy")}|SL|{item.s}|-{SL}";
-                            lMes.Add(mesSL);
-                            continue;
-                        }
+                                    var res = await PlaceOrderCloseAll(position.Symbol, Math.Abs(position.PositionAmt));
+                                    if (res != null)
+                                    {
+                                        var mes = $"[Đóng vị thế] {res.s}|Giá đóng: {res.priceClose}|Rate: {res.rate}%";
+                                        sBuilder.AppendLine(mes);
+                                    }
+                                }
 
-                        var rate = Math.Round(100 * (-1 + entityEntry.Open / entityTP.Close), 1);
-                        var TP = Math.Round(val * (-1 + entityEntry.Open / entityTP.Close), 1);
-                        totalVal += (double)TP;
-                        totalTP++;
-                        var mesTP = $"{dt.AddDays(1).ToString("dd/MM/yyyy")}|TP|{item.s}|{rate}%|{TP}";
-                        lMes.Add(mesTP);
+                                if (sBuilder.Length > 0)
+                                {
+                                    await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                                }
+                            }
+                        }
                     }
                 }
-                while (dt < DateTime.Now);
-
-                foreach (var me in lMes)
-                {
-                    Console.WriteLine(me);
-                }
-                Console.WriteLine($"Tong: {totalVal}|TP/SL: {totalTP}/{totalSL}|RSI70/RSI30:{totalRSI70}/{totalRSI30}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BinanceService.TradeTokenUnlock|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BinanceService.MarketAction|EXCEPTION| {ex.Message}");
             }
         }
     }
