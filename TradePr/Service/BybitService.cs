@@ -1,5 +1,8 @@
 ﻿using Bybit.Net.Objects.Models.V5;
+using MongoDB.Driver;
+using System.Linq;
 using TradePr.DAL;
+using TradePr.DAL.Entity;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -7,9 +10,7 @@ namespace TradePr.Service
     public interface IBybitService
     {
         Task<BybitAssetBalance> GetAccountInfo();
-        Task TradeTokenUnlock();
-        Task TradeThreeSignal();
-        Task MarketAction();
+        Task TradeSignal();
     }
     public class BybitService : IBybitService
     {
@@ -21,12 +22,13 @@ namespace TradePr.Service
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
+        private readonly IConfigDataRepo _configRepo;
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         public BybitService(ILogger<BybitService> logger, ICacheService cacheService,
                             ITradingRepo tradingRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo,
-                            IThreeSignalTradeRepo threeSignalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo)
+                            IThreeSignalTradeRepo threeSignalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo, IConfigDataRepo configRepo)
         {
             _logger = logger;
             _cacheService = cacheService;
@@ -36,6 +38,7 @@ namespace TradePr.Service
             _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
             _threeSignalTradeRepo = threeSignalTradeRepo;
             _errRepo = errRepo;
+            _configRepo = configRepo;
         }
         public async Task<BybitAssetBalance> GetAccountInfo()
         {
@@ -46,24 +49,40 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BinanceService.GetAccountInfo|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.GetAccountInfo|EXCEPTION| {ex.Message}");
             }
             return null;
         }
-
-        public Task MarketAction()
+        public async Task TradeSignal()
         {
-            throw new NotImplementedException();
-        }
+            try
+            {
+                var time = (int)DateTimeOffset.Now.AddMinutes(-90).ToUnixTimeSeconds();
+                var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
+                if (!(lTrade?.Any() ?? false))
+                    return;
 
-        public Task TradeThreeSignal()
-        {
-            throw new NotImplementedException();
-        }
+                var lSym = lTrade.Select(x => x.s).Distinct();
+                foreach (var item in lSym)
+                {
+                    var lTradeSym = lTrade.Where(x => x.s == item).OrderByDescending(x => x.d);
+                    if (lTradeSym.Count() < 2)
+                        continue;
 
-        public Task TradeTokenUnlock()
-        {
-            throw new NotImplementedException();
+                    var first = lTradeSym.First();
+                    var second = lTradeSym.Skip(1).First();
+                    var divTime = (first.Date - second.Date).TotalMinutes;
+                    if (divTime > 15)
+                        continue;
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BybitService.TradeSignal|EXCEPTION| {ex.Message}");
+            }
+            return;
         }
     }
 }
