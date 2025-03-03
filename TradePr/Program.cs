@@ -6,8 +6,11 @@ using TradePr.Utils;
 IConfiguration configuration = new ConfigurationBuilder()
                             .AddJsonFile("appsettings.json")
                             .Build();
-StaticVal._api_key = configuration["Account:API_KEY"];
-StaticVal._api_secret = configuration["Account:SECRET_KEY"];
+StaticVal._binance_key = configuration["Binance:API_KEY"];
+StaticVal._binance_secret = configuration["Binance:SECRET_KEY"];
+StaticVal._bybit_key = configuration["ByBit:API_KEY"];
+StaticVal._bybit_secret = configuration["ByBit:SECRET_KEY"];
+
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
