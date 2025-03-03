@@ -5,6 +5,7 @@
         public static void ServiceDependencies(this IServiceCollection services)
         {
             services.AddSingleton<IBinanceService, BinanceService>();
+            services.AddSingleton<IBybitService, BybitService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddSingleton<IAPIService, APIService>();
             services.AddSingleton<ITeleService, TeleService>();

@@ -1,5 +1,4 @@
 ﻿using Binance.Net.Objects.Models.Futures;
-using CryptoExchange.Net.CommonObjects;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using System.Text;

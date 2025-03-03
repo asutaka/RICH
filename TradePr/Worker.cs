@@ -6,15 +6,18 @@ namespace TradePr
     {
         private readonly ILogger<Worker> _logger;
         private readonly IBinanceService _binnanceService;
+        private readonly IBybitService _bybitService;
 
-        public Worker(ILogger<Worker> logger, IBinanceService binanceService)
+        public Worker(ILogger<Worker> logger, IBinanceService binanceService, IBybitService bybitService)
         {
             _logger = logger;
             _binnanceService = binanceService;
+            _bybitService = bybitService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            //await _bybitService.GetAccountInfo();
             //await _binnanceService.GetAccountInfo();
             //await _binnanceService.TradeAction();
             while (!stoppingToken.IsCancellationRequested)
