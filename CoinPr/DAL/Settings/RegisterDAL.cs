@@ -5,11 +5,8 @@
         public static void DALDependencies(this IServiceCollection services)
         {
             services.AddSingleton<IUserMessageRepo, UserMessageRepo>();
-            services.AddSingleton<IOrderBlockRepo, OrderBlockRepo>();
             services.AddSingleton<ICoinRepo, CoinRepo>();
-            services.AddSingleton<IBlackListRepo, BlackListRepo>();
             services.AddSingleton<ITradingRepo, TradingRepo>();
-            services.AddSingleton<ISignalRepo, SignalRepo>();
             services.AddSingleton<ITokenUnlockRepo, TokenUnlockRepo>();
         }
     }

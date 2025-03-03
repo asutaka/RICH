@@ -17,7 +17,6 @@ namespace CoinPr.Service
     {
         private readonly ILogger<TeleService> _logger;
         private readonly IMessageService _messageService;
-        private readonly ISignalRepo _signalRepo;
         private readonly ITokenUnlockRepo _tokenUnlockRepo;
         private readonly IConfiguration _config;
         private TelegramBotClient _bot;
@@ -25,14 +24,12 @@ namespace CoinPr.Service
         private const long _idUser = 1066022551;
         public TeleService(ILogger<TeleService> logger,
             IMessageService messageService,
-            ISignalRepo signalRepo,
             ITokenUnlockRepo tokenUnlockRepo,
             IConfiguration config)
         {
             _logger = logger;
             _config = config;
             _messageService = messageService;
-            _signalRepo = signalRepo;
             _tokenUnlockRepo = tokenUnlockRepo;
             _bot = new TelegramBotClient(config["Telegram:bot"]);
             _bot.OnMessage += OnMessage;
@@ -171,15 +168,6 @@ namespace CoinPr.Service
                             _logger.LogError($"TeleService.Client_OnUpdates|EXCEPTION| {ex.Message}");
                         }
                     }
-                    //if (StaticVal._dicChannel.Any(x => x.Key == val.message.Peer.ID))
-                    //{
-                    //    _signalRepo.InsertOne(new DAL.Entity.Signal
-                    //    {
-                    //        Date = DateTime.Now,
-                    //        Channel = val.message.Peer.ID,
-                    //        Content = val.message.ToString()
-                    //    });
-                    //}
                 }
             }    
         }
