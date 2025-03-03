@@ -19,6 +19,7 @@ namespace TestPr.Service
         Task MethodTestEntry_2502();
         Task MethodTestEntry_2602();
         Task MethodTestEntry_2702();
+        Task MethodTestEntry_0303();
         Task MethodTestTokenUnlock();
     }
     public class TestService : ITestService
@@ -503,6 +504,112 @@ namespace TestPr.Service
                             {
                                 isCheck = true;
                             }
+                        }
+                        else
+                        {
+                            prev = val;
+                        }
+                    }
+
+                    lMesAll.AddRange(lMes);
+                    //foreach (var mes in lMes)
+                    //{
+                    //    Console.WriteLine(mes);
+                    //}
+                }
+
+                foreach (var mes in lMesAll)
+                {
+                    Console.WriteLine(mes);
+                }
+                Console.WriteLine($"Tong: {lRate.Sum()}%");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task MethodTestEntry_0303()
+        {
+            try
+            {
+                var lTrading = _tradingRepo.GetAll();
+                var lSymbol = lTrading.Select(x => x.s).Distinct();
+                var lMesAll = new List<string>();
+                var lRate = new List<decimal>();
+                foreach (var item in lSymbol)
+                {
+                    if (StaticVal._lIgnoreThreeSignal.Contains(item))
+                        continue;
+
+                    var lMes = new List<string>();
+                    var lval = lTrading.Where(x => x.s == item);
+                    Trading prev = null;
+                    foreach (var val in lval)
+                    {
+                        if (prev is null)
+                        {
+                            prev = val;
+                            continue;
+                        }
+                        var divTime = (val.Date - prev.Date).TotalMinutes;
+                        if (divTime <= 15)
+                        {
+                            //MP
+                            //var lData1M = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            var lData15m = await _apiService.GetData(item, EInterval.M15, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            prev = null;
+
+                            var first = lData15m.FirstOrDefault(x => x.Date >= val.Date.AddMinutes(-15) && x.Date <= val.Date.AddMinutes(30) && x.Close > x.Open);
+                            if(first is null)
+                            {
+                                continue;
+                            }
+
+                            var eEntry = first;
+                            var eClose = lData15m.First(x => x.Date >= eEntry.Date.AddHours(2));
+                            var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
+                            var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
+                            var maxH = lRange.Max(x => x.High);
+                            var minL = lRange.Min(x => x.Low);
+
+                            var winloss = "W";
+                            if ((val.Side == (int)Binance.Net.Enums.OrderSide.Buy && rate <= 0)
+                                || (val.Side == (int)Binance.Net.Enums.OrderSide.Sell && rate >= 0))
+                                winloss = "L";
+                            if (winloss == "W")
+                            {
+                                rate = Math.Abs(rate);
+                            }
+                            else
+                            {
+                                rate = -Math.Abs(rate);
+                            }
+
+                            decimal maxTP = 0, maxSL = 0;
+                            if (val.Side == (int)Binance.Net.Enums.OrderSide.Buy)
+                            {
+                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
+                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
+                            }
+                            else
+                            {
+                                maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
+                                maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
+                            }
+                            
+                            if(maxSL <= (decimal)-1.7)
+                            {
+                                rate = (decimal)-1.7;
+                                winloss = "L";
+                            }
+
+                            lRate.Add(rate);
+                            var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            lMes.Add(mes);
                         }
                         else
                         {
