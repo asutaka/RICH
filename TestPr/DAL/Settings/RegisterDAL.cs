@@ -6,7 +6,6 @@
         {
             services.AddSingleton<ITradingRepo, TradingRepo>();
             services.AddSingleton<ITokenUnlockRepo, TokenUnlockRepo>();
-            services.AddSingleton<ISignalRepo, SignalRepo>();
         }
     }
 }

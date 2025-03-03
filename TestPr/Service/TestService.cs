@@ -18,14 +18,12 @@ namespace TestPr.Service
         private readonly IAPIService _apiService;
         private readonly ITradingRepo _tradingRepo;
         private readonly ITokenUnlockRepo _tokenRepo;
-        private readonly ISignalRepo _signalRepo;
-        public TestService(ILogger<TestService> logger, IAPIService apiService, ITradingRepo tradingRepo, ITokenUnlockRepo tokenrepo, ISignalRepo signalRepo)
+        public TestService(ILogger<TestService> logger, IAPIService apiService, ITradingRepo tradingRepo, ITokenUnlockRepo tokenrepo)
         {
             _logger = logger;
             _apiService = apiService;
             _tradingRepo = tradingRepo;
             _tokenRepo = tokenrepo;
-            _signalRepo = signalRepo;
         }
 
         //very good
