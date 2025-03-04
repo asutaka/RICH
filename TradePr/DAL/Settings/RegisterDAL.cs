@@ -9,6 +9,7 @@
             services.AddSingleton<ITokenUnlockTradeRepo, TokenUnlockTradeRepo>();
             services.AddSingleton<IErrorPartnerRepo, ErrorPartnerRepo>();
             services.AddSingleton<IThreeSignalTradeRepo, ThreeSignalTradeRepo>();
+            services.AddSingleton<ISignalTradeRepo, SignalTradeRepo>();
             services.AddSingleton<IConfigDataRepo, ConfigDataRepo>();
         }
     }
