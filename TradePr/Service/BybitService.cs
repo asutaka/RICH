@@ -2,7 +2,6 @@
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
-using System.Collections.Generic;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -15,6 +14,7 @@ namespace TradePr.Service
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
         Task Bybit_TradeSignal();
         Task Bybit_TradeThreeSignal();
+        Task Bybit_TradeTokenUnlock();
         Task Bybit_MarketAction();
     }
     public class BybitService : IBybitService
@@ -120,7 +120,7 @@ namespace TradePr.Service
                     {
                         res.ex = _exchange;
                         _signalTradeRepo.InsertOne(res);
-                        var mes = $"[Mở vị thế - Signal] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                        var mes = $"[Mở vị thế - Signal] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                         await _teleService.SendMessage(_idUser, mes);
                     }
                 }
@@ -198,7 +198,7 @@ namespace TradePr.Service
                             };
                             _threeSignalTradeRepo.InsertOne(model);
 
-                            var mes = $"[Mở vị thế - ThreeSignal] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[Mở vị thế - ThreeSignal] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             await _teleService.SendMessage(_idUser, mes);
                         }
                     }
@@ -218,6 +218,10 @@ namespace TradePr.Service
         {
             try
             {
+                var config = _configRepo.GetAll();
+                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit && x.op == (int)EOption.Unlock && x.status > 0) is null)
+                    return;
+
                 var dt = DateTime.UtcNow;
                 if (dt.Hour == 23 && dt.Minute == 58)
                 {
@@ -306,7 +310,7 @@ namespace TradePr.Service
                             };
                             _tokenUnlockTradeRepo.InsertOne(model);
 
-                            var mes = $"[Mở vị thế SHORT] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[Mở vị thế SHORT] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             sBuilder.AppendLine(mes);
                         }
                     }
