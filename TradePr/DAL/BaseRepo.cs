@@ -37,11 +37,10 @@ namespace TradePr.DAL
             }
          */
 
-        //var builder = Builders<twitter_user_crawl>.Filter;
-        //var lUserCrawl = await _twitterUserCrawlRepo.GetWithFilterAsync(1, builder.And(
-        //    builder.Eq(x => x.type, 1),
-        //    builder.Eq(x => x.status, 1),
-        //    builder.Eq(x => x.crawl_post_complete_at, 0)
+        //var builder = Builders<SignalTrade>.Filter;
+        //var lSignal = _signalTradeRepo.GetByFilter(builder.And(
+        //    builder.Eq(x => x.ex, _exchange),
+        //    builder.Gte(x => x.timeFlag, time)
         //));
 
 

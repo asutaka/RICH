@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
+using System.Collections.Generic;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -33,20 +34,19 @@ namespace TradePr.Service
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         private readonly int _exchange = (int)EExchange.Bybit;
-        public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, IAPIService apiService,
-                            ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo, 
-                            IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo, 
-                            ITokenUnlockTradeRepo tokenUnlockTradeRepo, ICacheService cacheService)
+        public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, ISignalTradeRepo signalTradeRepo, IErrorPartnerRepo errRepo,
+                            IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo, ITokenUnlockTradeRepo tokenUnlockTradeRepo,
+                            IAPIService apiService, ITeleService teleService, ICacheService cacheService)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
-            _apiService = apiService;
-            _teleService = teleService;
             _signalTradeRepo = signalTradeRepo;
             _errRepo = errRepo;
             _configRepo = configRepo;
             _threeSignalTradeRepo = threeSignalTradeRepo;
             _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
+            _apiService = apiService;
+            _teleService = teleService;
             _cacheService = cacheService;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
@@ -76,7 +76,11 @@ namespace TradePr.Service
                 if (!(lTrade?.Any() ?? false))
                     return;
 
-                var lSignal = _signalTradeRepo.GetByFilter(Builders<SignalTrade>.Filter.Gte(x => x.timeFlag, time));
+                var builder = Builders<SignalTrade>.Filter;
+                var lSignal = _signalTradeRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, _exchange),
+                    builder.Gte(x => x.timeFlag, time)
+                ));
                 var lSym = lTrade.Select(x => x.s).Distinct();
                 foreach (var item in lSym)
                 {
@@ -105,20 +109,27 @@ namespace TradePr.Service
                     if (itemCheck.Open >= itemCheck.Close)
                         continue;
 
-                    //Save Record
-                    var entity = new SignalTrade
+                    //Trade
+                    var res = await PlaceOrder(new SignalBase
                     {
                         s = item,
+                        ex = _exchange,
                         Side = first.Side,
                         timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                    };
+                    }, lData15m.Last());
 
-                    //Trade
-                    var res = await PlaceOrder(entity, lData15m.Last());
                     if(res != null)
                     {
-                        res.ex = _exchange;
-                        _signalTradeRepo.InsertOne(res);
+                        _signalTradeRepo.InsertOne(new SignalTrade
+                        {
+                            s = res.s,
+                            ex = res.ex,
+                            Side = res.Side,
+                            timeFlag = res.timeFlag,
+                            timeStoploss = res.timeStoploss,
+                            priceEntry = res.priceEntry,
+                            priceStoploss = res.priceStoploss,
+                        });
                         var mes = $"[SIGNAL][Mở vị thế {((Bybit.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                         await _teleService.SendMessage(_idUser, mes);
                     }
@@ -161,7 +172,11 @@ namespace TradePr.Service
                     return;
 
                 var timeFlag = (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds();
-                var lThreeSignal = _threeSignalTradeRepo.GetByFilter(Builders<ThreeSignalTrade>.Filter.Gte(x => x.timeFlag, timeFlag));
+                var builder = Builders<ThreeSignalTrade>.Filter;
+                var lThreeSignal = _threeSignalTradeRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, _exchange),
+                    builder.Gte(x => x.timeFlag, timeFlag)
+                ));
                 if (lThreeSignal is null)
                     lThreeSignal = new List<ThreeSignalTrade>();
 
@@ -173,30 +188,25 @@ namespace TradePr.Service
                             continue;
 
                         var lData15m = await _apiService.GetData(item.s, EInterval.M15);
-                        var entity = new SignalTrade
+                        var res = await PlaceOrder(new SignalBase
                         {
                             s = item.s,
+                            ex = _exchange,
                             Side = item.Side,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                        };
-                        var res = await PlaceOrder(entity, lData15m.Last());
+                        }, lData15m.Last());
                         if (res != null)
                         {
-                            var model = new ThreeSignalTrade
+                            _threeSignalTradeRepo.InsertOne(new ThreeSignalTrade
                             {
                                 s = res.s,
-                                ex = _exchange,
+                                ex = res.ex,
                                 Side = res.Side,
                                 timeFlag = res.timeFlag,
-                                timeClose = res.timeClose,
                                 timeStoploss = res.timeStoploss,
                                 priceEntry = res.priceEntry,
-                                priceClose = res.priceClose,
-                                priceStoploss = res.priceStoploss,
-                                rate = res.rate
-                            };
-                            _threeSignalTradeRepo.InsertOne(model);
-
+                                priceStoploss = res.priceStoploss
+                            });
                             var mes = $"[THREE][Mở vị thế {((Bybit.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             await _teleService.SendMessage(_idUser, mes);
                         }
@@ -236,7 +246,11 @@ namespace TradePr.Service
                             if (res)
                             {
                                 var time = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
-                                var first = _tokenUnlockTradeRepo.GetEntityByFilter(Builders<TokenUnlockTrade>.Filter.Eq(x => x.timeUnlock, time));
+                                var builder = Builders<TokenUnlockTrade>.Filter;
+                                var first = _tokenUnlockTradeRepo.GetEntityByFilter(builder.And(
+                                    builder.Eq(x => x.ex, _exchange),
+                                    builder.Eq(x => x.timeUnlock, time)
+                                ));
                                 if (first is null)
                                 {
                                     var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}";
@@ -263,51 +277,35 @@ namespace TradePr.Service
                     //action  
                     foreach (var item in tokens)
                     {
-
-                        FilterDefinition<TokenUnlockTrade> filter = null;
                         var builder = Builders<TokenUnlockTrade>.Filter;
-                        var lFilter = new List<FilterDefinition<TokenUnlockTrade>>()
-                        {
-                            builder.Eq(x => x.timeUnlock, item.time),
-                            builder.Eq(x => x.s, $"{item.s}USDT"),
-                        };
-                        foreach (var itemFilter in lFilter)
-                        {
-                            if (filter is null)
-                            {
-                                filter = itemFilter;
-                                continue;
-                            }
-                            filter &= itemFilter;
-                        }
-                        var entityCheck = _tokenUnlockTradeRepo.GetEntityByFilter(filter);
+                        var entityCheck = _tokenUnlockTradeRepo.GetEntityByFilter(builder.And(
+                                    builder.Eq(x => x.ex, _exchange),
+                                    builder.Eq(x => x.timeUnlock, item.time),
+                                    builder.Eq(x => x.s, $"{item.s}USDT")
+                                )); 
                         if (entityCheck != null)
                             continue;
 
                         var lData15m = await _apiService.GetData(item.s, EInterval.M15);
-                        var entity = new SignalTrade
+                        var res = await PlaceOrder(new SignalBase
                         {
                             s = item.s,
+                            ex = _exchange,
                             Side = (int)Bybit.Net.Enums.PositionSide.Sell,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                        };
-
-                        var res = await PlaceOrder(entity, lData15m.Last());
+                        }, lData15m.Last());
                         if (res != null)
                         {
-                            var model = new TokenUnlockTrade
+                            _tokenUnlockTradeRepo.InsertOne(new TokenUnlockTrade
                             {
                                 s = res.s,
-                                ex = _exchange,
+                                ex = res.ex,
                                 timeUnlock = item.time,
                                 timeShort = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
                                 timeStoploss = res.timeStoploss,
                                 priceEntry = res.priceEntry,
-                                priceClose = res.priceClose,
-                                priceStoploss = res.priceStoploss,
-                                rate = res.rate
-                            };
-                            _tokenUnlockTradeRepo.InsertOne(model);
+                                priceStoploss = res.priceStoploss
+                            });
 
                             var mes = $"[UNLOCK][Mở vị thế SHORT] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             sBuilder.AppendLine(mes);
@@ -332,44 +330,65 @@ namespace TradePr.Service
             try
             {
                 var sBuilder = new StringBuilder();
-                var time = (int)DateTimeOffset.Now.AddHours(3).ToUnixTimeSeconds();
-                var timeLeft = (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds();
-                var lTrade = _signalTradeRepo.GetByFilter(Builders<SignalTrade>.Filter.Gte(x => x.timeFlag, time));
-                lTrade = lTrade.Where(x => x.timeFlag >= timeLeft && x.status == 0).ToList();
-                if (!(lTrade?.Any() ?? false))
-                    return;
 
                 var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear);
                 if (!resPosition.Data.List.Any())
                     return;
-
-                var mes = await MarketActionStr(resPosition.Data.List, lTrade);
-                if(!string.IsNullOrWhiteSpace(mes))
-                {
-                    sBuilder.AppendLine(mes);
-                }
 
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
                 var countForceSell = lForce.Count(x => x.Side == (int)Bybit.Net.Enums.PositionSide.Sell);
                 var countForceBuy = lForce.Count(x => x.Side == (int)Bybit.Net.Enums.PositionSide.Buy);
-                if(countForceSell >= 5)
+                if (countForceSell >= 5)
                 {
                     var lSell = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Buy);
-                    var mesSell = await MarketActionStr(lSell, lTrade);
+                    var mesSell = await ForceMarket(lSell);
                     if (!string.IsNullOrWhiteSpace(mesSell))
                     {
                         sBuilder.AppendLine(mesSell);
                     }
                 }
-                if(countForceBuy >= 5)
+                if (countForceBuy >= 5)
                 {
                     var lBuy = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Sell);
-                    var mesBuy = await MarketActionStr(lBuy, lTrade);
+                    var mesBuy = await ForceMarket(lBuy);
                     if (!string.IsNullOrWhiteSpace(mesBuy))
                     {
                         sBuilder.AppendLine(mesBuy);
+                    }
+                }
+
+                //Signal
+                var builderSignal = Builders<SignalTrade>.Filter;
+                var lSignal = _signalTradeRepo.GetByFilter(builderSignal.And(
+                                   builderSignal.Eq(x => x.ex, _exchange),
+                                   builderSignal.Gte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(3).ToUnixTimeSeconds()),
+                                   builderSignal.Lte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds()),
+                                   builderSignal.Eq(x => x.status, 0)
+                               ));
+                if (lSignal?.Any() ?? false)
+                {
+                    var mes = await ForceMarket(resPosition.Data.List);
+                    if (!string.IsNullOrWhiteSpace(mes))
+                    {
+                        sBuilder.AppendLine(mes);
+                    }
+                }
+                //Three
+                var builderThree = Builders<ThreeSignalTrade>.Filter;
+                var lThree = _threeSignalTradeRepo.GetByFilter(builderThree.And(
+                                   builderThree.Eq(x => x.ex, _exchange),
+                                   builderThree.Gte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(3).ToUnixTimeSeconds()),
+                                   builderThree.Lte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds()),
+                                   builderThree.Eq(x => x.status, 0)
+                               ));
+                if (lThree?.Any() ?? false)
+                {
+                    var mes = await ForceMarket(resPosition.Data.List);
+                    if (!string.IsNullOrWhiteSpace(mes))
+                    {
+                        sBuilder.AppendLine(mes);
                     }
                 }
 
@@ -384,44 +403,31 @@ namespace TradePr.Service
             }
         }
 
-        private async Task<string> MarketActionStr(IEnumerable<BybitPosition> lData, List<SignalTrade> lTrade)
+        private async Task<string> ForceMarket(IEnumerable<BybitPosition> lData)
         {
             var sBuilder = new StringBuilder();
             try
             {
                 foreach (var item in lData)
                 {
-                    var first = lTrade.FirstOrDefault(x => x.s == item.Symbol);
-                    if (first is null && (DateTime.Now - item.CreateTime.Value).TotalHours < 24)
-                        continue;
-
                     var side = (item.Side == Bybit.Net.Enums.PositionSide.Buy) ? Bybit.Net.Enums.PositionSide.Sell : Bybit.Net.Enums.PositionSide.Buy;
                     var res = await PlaceOrderClose(item.Symbol, item.Quantity, side);
                     if (!res)
                         continue;
 
-                    if (first is null)
-                        continue;
-
-                    first.priceClose = (double)item.MarkPrice.Value;
-                    first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                    first.rate = Math.Round(100 * (-1 + first.priceClose / first.priceEntry), 1);
-                    first.status = 1;
-                    _signalTradeRepo.Update(first);
-
-                    var mes = $"[Đóng vị thế {item.Side}] {first.s}|Giá đóng: {first.priceClose}|Rate: {first.rate}%";
+                    var mes = $"[Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}";
                     sBuilder.AppendLine(mes);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.MarketActionStr|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.ForceMarket|EXCEPTION| {ex.Message}");
             }
 
             return sBuilder.ToString();
         }
 
-        private async Task<SignalTrade> PlaceOrder(SignalTrade entity, Quote quote)
+        private async Task<SignalBase> PlaceOrder(SignalBase entity, Quote quote)
         {
             try
             {

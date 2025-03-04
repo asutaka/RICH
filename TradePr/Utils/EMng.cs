@@ -44,8 +44,8 @@ namespace TradePr.Utils
 
     public enum EExchange
     {
-        Binance = 1,
-        Bybit = 2
+        Binance = 0,
+        Bybit = 1
     }
 
     public enum EOption
