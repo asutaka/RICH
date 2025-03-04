@@ -86,7 +86,18 @@ namespace TradePr.Service
                     if (divTime > 15)
                         continue;
 
+                    //gia
+                    var lData15m = await _apiService.GetData(item, EInterval.M15);
+                    var itemCheck = lData15m.SkipLast(1).Last();
+                    //if (itemCheck.Open >= itemCheck.Close)
+                    //    continue;
 
+                    ////Action
+                    //var entity = new SignalTrade
+                    //{
+                    //    s = item,
+                    //    timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                    //}
                 }
             }
             catch (Exception ex)

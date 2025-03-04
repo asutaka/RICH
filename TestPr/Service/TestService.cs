@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Skender.Stock.Indicators;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 using TestPr.Utils;
@@ -162,7 +163,7 @@ namespace TestPr.Service
                             prev = null;
 
                             var first = lData15m.FirstOrDefault(x => x.Date >= val.Date.AddMinutes(-15) && x.Date <= val.Date.AddMinutes(30) && x.Close > x.Open);
-                            if(first is null)
+                            if (first is null)
                             {
                                 continue;
                             }
