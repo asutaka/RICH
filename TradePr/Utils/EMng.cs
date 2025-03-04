@@ -41,4 +41,17 @@ namespace TradePr.Utils
         Short_SL = 2,
         GetPosition = 3
     }
+
+    public enum EExchange
+    {
+        Binance = 1,
+        Bybit = 2
+    }
+
+    public enum EOption
+    {
+        Unlock = 1,
+        Signal = 2,
+        ThreeSignal = 3
+    }
 }

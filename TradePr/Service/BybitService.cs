@@ -20,13 +20,14 @@ namespace TradePr.Service
         private readonly ITradingRepo _tradingRepo;
         private readonly ISignalTradeRepo _signalTradeRepo;
         private readonly IErrorPartnerRepo _errRepo;
+        private readonly IConfigDataRepo _configRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, IAPIService apiService,
-                            ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo)
+                            ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo, IConfigDataRepo configRepo)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
@@ -34,6 +35,7 @@ namespace TradePr.Service
             _teleService = teleService;
             _signalTradeRepo = signalTradeRepo;
             _errRepo = errRepo;
+            _configRepo = configRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -53,6 +55,10 @@ namespace TradePr.Service
         {
             try
             {
+                var config = _configRepo.GetAll();
+                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit && x.op == (int)EOption.Signal && x.status > 0) is null)
+                    return;
+
                 var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
                 var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
                 if (!(lTrade?.Any() ?? false))
@@ -115,6 +121,12 @@ namespace TradePr.Service
         {
             try
             {
+                var config = _configRepo.GetAll();
+                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit 
+                                        && (x.op == (int)EOption.Signal || x.op == (int)EOption.ThreeSignal) 
+                                        && x.status > 0) is null)
+                    return;
+
                 var sBuilder = new StringBuilder();
                 var time = (int)DateTimeOffset.Now.AddHours(3).ToUnixTimeSeconds();
                 var timeLeft = (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds();
