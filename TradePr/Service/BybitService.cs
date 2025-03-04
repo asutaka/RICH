@@ -240,16 +240,60 @@ namespace TradePr.Service
                 if (!(lTrade?.Any() ?? false))
                     return;
 
-                //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
-
                 var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear);
                 if (!resPosition.Data.List.Any())
                     return;
 
-                foreach (var item in resPosition.Data.List)
+                var mes = await MarketActionStr(resPosition.Data.List, lTrade);
+                if(!string.IsNullOrWhiteSpace(mes))
+                {
+                    sBuilder.AppendLine(mes);
+                }
+
+                //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
+                var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
+                var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
+                var countForceSell = lForce.Count(x => x.Side != 0);
+                var countForceBuy = lForce.Count(x => x.Side == 0);
+                if(countForceSell >= 5)
+                {
+                    var lSell = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Buy);
+                    var mesSell = await MarketActionStr(lSell, lTrade);
+                    if (!string.IsNullOrWhiteSpace(mesSell))
+                    {
+                        sBuilder.AppendLine(mesSell);
+                    }
+                }
+                if(countForceBuy >= 5)
+                {
+                    var lBuy = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Sell);
+                    var mesBuy = await MarketActionStr(lBuy, lTrade);
+                    if (!string.IsNullOrWhiteSpace(mesBuy))
+                    {
+                        sBuilder.AppendLine(mesBuy);
+                    }
+                }
+
+                if (sBuilder.Length > 0)
+                {
+                    await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BybitService.MarketAction|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task<string> MarketActionStr(IEnumerable<BybitPosition> lData, List<SignalTrade> lTrade)
+        {
+            var sBuilder = new StringBuilder();
+            try
+            {
+                foreach (var item in lData)
                 {
                     var first = lTrade.FirstOrDefault(x => x.s == item.Symbol);
-                    if (first is null && (DateTime.Now - item.CreateTime.Value).TotalHours < 24) 
+                    if (first is null && (DateTime.Now - item.CreateTime.Value).TotalHours < 24)
                         continue;
 
                     var side = (item.Side == Bybit.Net.Enums.PositionSide.Buy) ? Bybit.Net.Enums.PositionSide.Sell : Bybit.Net.Enums.PositionSide.Buy;
@@ -268,16 +312,13 @@ namespace TradePr.Service
                     var mes = $"[Đóng vị thế {item.Side}] {first.s}|Giá đóng: {first.priceClose}|Rate: {first.rate}%";
                     sBuilder.AppendLine(mes);
                 }
-
-                if (sBuilder.Length > 0)
-                {
-                    await _teleService.SendMessage(_idUser, sBuilder.ToString());
-                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.MarketAction|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.MarketActionStr|EXCEPTION| {ex.Message}");
             }
+
+            return sBuilder.ToString();
         }
 
         private async Task<bool> PlaceOrderClose(string symbol, decimal quan, Bybit.Net.Enums.PositionSide side)
