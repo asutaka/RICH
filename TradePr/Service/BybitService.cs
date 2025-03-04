@@ -1,7 +1,7 @@
 ﻿using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
-using System.Linq;
+using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -10,38 +10,32 @@ namespace TradePr.Service
 {
     public interface IBybitService
     {
-        Task<BybitAssetBalance> GetAccountInfo();
-        Task TradeSignal();
+        Task<BybitAssetBalance> Bybit_GetAccountInfo();
+        Task Bybit_TradeSignal();
+        Task Bybit_MarketAction();
     }
     public class BybitService : IBybitService
     {
         private readonly ILogger<BybitService> _logger;
-        private readonly ICacheService _cacheService;
         private readonly ITradingRepo _tradingRepo;
-        private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
         private readonly ISignalTradeRepo _signalTradeRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
-        private readonly IConfigDataRepo _configRepo;
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
-        public BybitService(ILogger<BybitService> logger, ICacheService cacheService,
-                            ITradingRepo tradingRepo, IAPIService apiService, ITokenUnlockTradeRepo tokenUnlockTradeRepo,
-                            ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo, IConfigDataRepo configRepo)
+        public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, IAPIService apiService,
+                            ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo)
         {
             _logger = logger;
-            _cacheService = cacheService;
             _tradingRepo = tradingRepo;
             _apiService = apiService;
             _teleService = teleService;
-            _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
             _signalTradeRepo = signalTradeRepo;
             _errRepo = errRepo;
-            _configRepo = configRepo;
         }
-        public async Task<BybitAssetBalance> GetAccountInfo()
+        public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
             try
             {
@@ -54,7 +48,7 @@ namespace TradePr.Service
             }
             return null;
         }
-        public async Task TradeSignal()
+        public async Task Bybit_TradeSignal()
         {
             try
             {
@@ -101,10 +95,12 @@ namespace TradePr.Service
                         timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                     };
 
-                    _signalTradeRepo.InsertOne(entity);
-
                     //Trade
                     var res = await PlaceOrder(entity, lData15m.Last());
+                    if(res != null)
+                    {
+                        _signalTradeRepo.InsertOne(res);
+                    }
                 }
             }
             catch (Exception ex)
@@ -114,122 +110,195 @@ namespace TradePr.Service
             return;
         }
 
-        private async Task<TokenUnlockTrade> PlaceOrder(SignalTrade entity, Quote quote)
+        private async Task<SignalTrade> PlaceOrder(SignalTrade entity, Quote quote)
         {
             try
             {
+                var SL_RATE = 0.017;
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                var account = await GetAccountInfo();
+                var account = await Bybit_GetAccountInfo();
                 if (account == null)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR] Không lấy được thông tin tài khoản");
                     return null;
                 }
 
-                //if (account.AvailableBalance * _margin <= _unit)
-                //    return null;
+                if (account.AvailableToWithdraw * _margin <= _unit)
+                    return null;
 
-                //var near = 2; if (quote.Close < 1)
-                //{
-                //    near = 0;
-                //}
-                //var soluong = Math.Round(_unit / quote.Close, near);
-                //var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
-                //                                                                                    side: Binance.Net.Enums.OrderSide.Sell,
-                //                                                                                    type: Binance.Net.Enums.FuturesOrderType.Market,
-                //                                                                                    positionSide: Binance.Net.Enums.PositionSide.Both,
-                //                                                                                    reduceOnly: false,
-                //                                                                                    quantity: soluong);
-                //Thread.Sleep(500);
-                ////nếu lỗi return
-                //if (!res.Success)
-                //{
-                //    _errRepo.InsertOne(new ErrorPartner
-                //    {
-                //        s = entity.s,
-                //        time = curTime,
-                //        ty = (int)ETypeBot.TokenUnlock,
-                //        action = (int)EAction.Short,
-                //        des = $"side: {Binance.Net.Enums.OrderSide.Sell.ToString()}, type: {Binance.Net.Enums.FuturesOrderType.Market.ToString()}, quantity: {soluong}"
-                //    });
-                //    return null;
-                //}
 
-                //var trade = new TokenUnlockTrade
-                //{
-                //    s = entity.s,
-                //    timeUnlock = token.time,
-                //    timeShort = curTime,
-                //};
+                var side = (Bybit.Net.Enums.OrderSide)entity.Side;
+                var SL_side = side == Bybit.Net.Enums.OrderSide.Buy ? Bybit.Net.Enums.OrderSide.Sell : Bybit.Net.Enums.OrderSide.Buy;
 
-                //var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(entity.s);
-                //Thread.Sleep(500);
-                //if (!resPosition.Success)
-                //{
-                //    _tokenUnlockTradeRepo.InsertOne(trade);
+                var near = 2; if (quote.Close < 1)
+                {
+                    near = 0;
+                }
+                var soluong = Math.Round(_unit / quote.Close, near);
+                var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Bybit.Net.Enums.Category.Linear,
+                                                                                        entity.s,
+                                                                                        side: side,
+                                                                                        type: Bybit.Net.Enums.NewOrderType.Market,
+                                                                                        reduceOnly: false,
+                                                                                        quantity: soluong);
+                Thread.Sleep(500);
+                //nếu lỗi return
+                if (!res.Success)
+                {
+                    _errRepo.InsertOne(new ErrorPartner
+                    {
+                        s = entity.s,
+                        time = curTime,
+                        ty = (int)ETypeBot.TokenUnlock,
+                        action = (int)EAction.Short,
+                        des = $"side: {side}, type: {Bybit.Net.Enums.NewOrderType.Market}, quantity: {soluong}"
+                    });
+                    return null;
+                }
 
-                //    _errRepo.InsertOne(new ErrorPartner
-                //    {
-                //        s = entity.s,
-                //        time = curTime,
-                //        ty = (int)ETypeBot.TokenUnlock,
-                //        action = (int)EAction.GetPosition
-                //    });
+                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear, entity.s);
+                Thread.Sleep(500);
+                if (!resPosition.Success)
+                {
+                    _errRepo.InsertOne(new ErrorPartner
+                    {
+                        s = entity.s,
+                        time = curTime,
+                        ty = (int)ETypeBot.TokenUnlock,
+                        action = (int)EAction.GetPosition
+                    });
 
-                //    return null;
-                //}
+                    return entity;
+                }
 
-                //if (resPosition.Data.Any())
-                //{
-                //    var first = resPosition.Data.First();
-                //    trade.priceEntry = (double)first.EntryPrice;
+                if (resPosition.Data.List.Any())
+                {
+                    var first = resPosition.Data.List.First();
+                    entity.priceEntry = (double)first.MarkPrice;
 
-                //    if (quote.Close < 1)
-                //    {
-                //        var price = quote.Close.ToString().Split('.').Last();
-                //        price = price.ReverseString();
-                //        near = long.Parse(price).ToString().Length;
-                //    }
-                //    var checkLenght = quote.Close.ToString().Split('.').Last();
-                //    var sl = Math.Round(first.EntryPrice * (decimal)1.016, near);
-                //    res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
-                //                                                                            side: Binance.Net.Enums.OrderSide.Buy,
-                //                                                                            type: Binance.Net.Enums.FuturesOrderType.StopMarket,
-                //                                                                            positionSide: Binance.Net.Enums.PositionSide.Both,
-                //                                                                            quantity: soluong,
-                //                                                                            timeInForce: Binance.Net.Enums.TimeInForce.GoodTillExpiredOrCanceled,
-                //                                                                            reduceOnly: true,
-                //                                                                            workingType: Binance.Net.Enums.WorkingType.Mark,
-                //                                                                            stopPrice: sl);
-                //    Thread.Sleep(500);
-                //    if (!res.Success)
-                //    {
-                //        _tokenUnlockTradeRepo.InsertOne(trade);
+                    if (quote.Close < 1)
+                    {
+                        var price = quote.Close.ToString().Split('.').Last();
+                        price = price.ReverseString();
+                        near = long.Parse(price).ToString().Length;
+                    }
+                    var checkLenght = quote.Close.ToString().Split('.').Last();
+                    decimal sl = 0;
+                    if(side == Bybit.Net.Enums.OrderSide.Buy)
+                    {
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - SL_RATE), near);
+                    }
+                    else
+                    {
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + SL_RATE), near);
+                    }
 
-                //        _errRepo.InsertOne(new ErrorPartner
-                //        {
-                //            s = entity.s,
-                //            time = curTime,
-                //            ty = (int)ETypeBot.TokenUnlock,
-                //            action = (int)EAction.Short_SL,
-                //            des = $"side: {Binance.Net.Enums.OrderSide.Buy.ToString()}, type: {Binance.Net.Enums.FuturesOrderType.StopMarket.ToString()}, quantity: {soluong}, stopPrice: {sl}"
-                //        });
+                    res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(    Bybit.Net.Enums.Category.Linear,
+                                                                                            first.Symbol,
+                                                                                            side: SL_side,
+                                                                                            type: Bybit.Net.Enums.NewOrderType.Market,
+                                                                                            quantity: soluong,
+                                                                                            timeInForce: Bybit.Net.Enums.TimeInForce.GoodTillCanceled,
+                                                                                            reduceOnly: true,
+                                                                                            stopLossLimitPrice: sl);
+                    Thread.Sleep(500);
+                    if (!res.Success)
+                    {
+                        _errRepo.InsertOne(new ErrorPartner
+                        {
+                            s = entity.s,
+                            time = curTime,
+                            ty = (int)ETypeBot.TokenUnlock,
+                            action = (int)EAction.Short_SL,
+                            des = $"side: {SL_side}, type: {Bybit.Net.Enums.NewOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
+                        });
 
-                //        return null;
-                //    }
+                        return null;
+                    }
 
-                //    trade.timeStoploss = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                //    trade.priceStoploss = (double)sl;
-
-                //    _tokenUnlockTradeRepo.InsertOne(trade);
-                //}
-                //return trade;
+                    entity.timeStoploss = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                    entity.priceStoploss = (double)sl;
+                }
+                return entity;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"BybitService.PlaceOrder|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public async Task Bybit_MarketAction()
+        {
+            try
+            {
+                var sBuilder = new StringBuilder();
+                var time = (int)DateTimeOffset.Now.AddHours(3).ToUnixTimeSeconds();
+                var timeLeft = (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds();
+                var lTrade = _signalTradeRepo.GetByFilter(Builders<SignalTrade>.Filter.Gte(x => x.timeFlag, time));
+                lTrade = lTrade.Where(x => x.timeFlag >= timeLeft && x.status == 0).ToList();
+                if (!(lTrade?.Any() ?? false))
+                    return;
+
+                //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
+
+                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear);
+                if (!resPosition.Data.List.Any())
+                    return;
+
+                foreach (var item in resPosition.Data.List)
+                {
+                    var first = lTrade.FirstOrDefault(x => x.s == item.Symbol);
+                    if (first is null && (DateTime.Now - item.CreateTime.Value).TotalHours < 24) 
+                        continue;
+
+                    var side = (item.Side == Bybit.Net.Enums.PositionSide.Buy) ? Bybit.Net.Enums.PositionSide.Sell : Bybit.Net.Enums.PositionSide.Buy;
+                    var res = await PlaceOrderClose(item.Symbol, item.Quantity, side);
+                    if (!res)
+                        continue;
+
+                    if (first is null)
+                        continue;
+
+                    first.priceClose = (double)item.MarkPrice.Value;
+                    first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                    first.rate = Math.Round(100 * (-1 + first.priceClose / first.priceEntry), 1);
+                    _signalTradeRepo.Update(first);
+
+                    var mes = $"[Đóng vị thế {item.Side}] {first.s}|Giá đóng: {first.priceClose}|Rate: {first.rate}%";
+                    sBuilder.AppendLine(mes);
+                }
+
+                if (sBuilder.Length > 0)
+                {
+                    await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BybitService.MarketAction|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private async Task<bool> PlaceOrderClose(string symbol, decimal quan, Bybit.Net.Enums.PositionSide side)
+        {
+            try
+            {
+                var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Bybit.Net.Enums.Category.Linear,
+                                                                                        symbol,
+                                                                                        side: (Bybit.Net.Enums.OrderSide)((int)side),
+                                                                                        type: Bybit.Net.Enums.NewOrderType.Market,
+                                                                                        quantity: quan);
+                if (res.Success)
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BybitService.PlaceOrderCloseAll|EXCEPTION| {ex.Message}");
+            }
+
+            await _teleService.SendMessage(_idUser, $"[ERROR] Không thể đóng lệnh {side}: {symbol}!");
+            return false;
         }
     }
 }

@@ -19,13 +19,15 @@ namespace TradePr
         {
             //await _bybitService.GetAccountInfo();
             //await _binnanceService.GetAccountInfo();
-            //await _binnanceService.TradeAction();
             while (!stoppingToken.IsCancellationRequested)
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 await _binnanceService.TradeTokenUnlock();
                 await _binnanceService.TradeThreeSignal();
                 await _binnanceService.MarketAction();
+
+                await _bybitService.Bybit_TradeSignal();
+                await _bybitService.Bybit_MarketAction();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }
