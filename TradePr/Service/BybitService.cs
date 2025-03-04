@@ -307,6 +307,7 @@ namespace TradePr.Service
                     first.priceClose = (double)item.MarkPrice.Value;
                     first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                     first.rate = Math.Round(100 * (-1 + first.priceClose / first.priceEntry), 1);
+                    first.status = 1;
                     _signalTradeRepo.Update(first);
 
                     var mes = $"[Đóng vị thế {item.Side}] {first.s}|Giá đóng: {first.priceClose}|Rate: {first.rate}%";
