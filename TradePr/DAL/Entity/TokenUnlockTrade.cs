@@ -6,6 +6,7 @@ namespace TradePr.DAL.Entity
     public class TokenUnlockTrade : BaseDTO
     {
         public string s { get; set; }
+        public int ex { get; set; }
         public int timeUnlock { get; set; }//Ngày unlock
         public int timeShort { get; set; }
         public int timeStoploss { get; set; }

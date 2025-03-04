@@ -23,16 +23,20 @@ namespace TradePr.Service
         private readonly ITradingRepo _tradingRepo;
         private readonly ISignalTradeRepo _signalTradeRepo;
         private readonly IThreeSignalTradeRepo _threeSignalTradeRepo;
+        private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IConfigDataRepo _configRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
+        private readonly ICacheService _cacheService;
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
+        private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, IAPIService apiService,
                             ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo, 
-                            IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo)
+                            IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo, 
+                            ITokenUnlockTradeRepo tokenUnlockTradeRepo, ICacheService cacheService)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
@@ -42,6 +46,8 @@ namespace TradePr.Service
             _errRepo = errRepo;
             _configRepo = configRepo;
             _threeSignalTradeRepo = threeSignalTradeRepo;
+            _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
+            _cacheService = cacheService;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -112,6 +118,7 @@ namespace TradePr.Service
                     var res = await PlaceOrder(entity, lData15m.Last());
                     if(res != null)
                     {
+                        res.ex = _exchange;
                         _signalTradeRepo.InsertOne(res);
                         var mes = $"[Mở vị thế - Signal] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                         await _teleService.SendMessage(_idUser, mes);
@@ -179,6 +186,7 @@ namespace TradePr.Service
                             var model = new ThreeSignalTrade
                             {
                                 s = res.s,
+                                ex = _exchange,
                                 Side = res.Side,
                                 timeFlag = res.timeFlag,
                                 timeClose = res.timeClose,
@@ -196,13 +204,123 @@ namespace TradePr.Service
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"BinanceService.TradeThreeSignal|EXCEPTION|INPUT: {JsonConvert.SerializeObject(item)}| {ex.Message}");
+                        _logger.LogError(ex, $"BybitService.TradeThreeSignal|EXCEPTION|INPUT: {JsonConvert.SerializeObject(item)}| {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BinanceService.Bybit_TradeThreeSignal|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.Bybit_TradeThreeSignal|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task Bybit_TradeTokenUnlock()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                if (dt.Hour == 23 && dt.Minute == 58)
+                {
+                    var sBuilder = new StringBuilder();
+                    #region Đóng vị thế
+                    var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear);
+                    if (resPosition?.Data?.List?.Any()?? false)
+                    {
+                        //close all
+                        foreach (var position in resPosition.Data.List)
+                        {
+                            var res = await PlaceOrderClose(position.Symbol, Math.Abs(position.Quantity), Bybit.Net.Enums.PositionSide.Buy);
+                            if (res)
+                            {
+                                var time = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+                                var first = _tokenUnlockTradeRepo.GetEntityByFilter(Builders<TokenUnlockTrade>.Filter.Eq(x => x.timeUnlock, time));
+                                if (first is null)
+                                {
+                                    var mes = $"[Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}";
+                                    sBuilder.AppendLine(mes);
+                                }
+                                else
+                                {
+                                    first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
+                                    first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                                    _tokenUnlockTradeRepo.Update(first);
+                                    var mes = $"[Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
+                                    sBuilder.AppendLine(mes);
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+
+                    #region Mở vị thế
+                    var tokens = _cacheService.GetTokenUnlock(dt);
+                    if (!tokens.Any())
+                        return;
+
+                    //action  
+                    foreach (var item in tokens)
+                    {
+
+                        FilterDefinition<TokenUnlockTrade> filter = null;
+                        var builder = Builders<TokenUnlockTrade>.Filter;
+                        var lFilter = new List<FilterDefinition<TokenUnlockTrade>>()
+                        {
+                            builder.Eq(x => x.timeUnlock, item.time),
+                            builder.Eq(x => x.s, $"{item.s}USDT"),
+                        };
+                        foreach (var itemFilter in lFilter)
+                        {
+                            if (filter is null)
+                            {
+                                filter = itemFilter;
+                                continue;
+                            }
+                            filter &= itemFilter;
+                        }
+                        var entityCheck = _tokenUnlockTradeRepo.GetEntityByFilter(filter);
+                        if (entityCheck != null)
+                            continue;
+
+                        var lData15m = await _apiService.GetData(item.s, EInterval.M15);
+                        var entity = new SignalTrade
+                        {
+                            s = item.s,
+                            Side = (int)Bybit.Net.Enums.PositionSide.Sell,
+                            timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                        };
+
+                        var res = await PlaceOrder(entity, lData15m.Last());
+                        if (res != null)
+                        {
+                            var model = new TokenUnlockTrade
+                            {
+                                s = res.s,
+                                ex = _exchange,
+                                timeUnlock = item.time,
+                                timeShort = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                timeStoploss = res.timeStoploss,
+                                priceEntry = res.priceEntry,
+                                priceClose = res.priceClose,
+                                priceStoploss = res.priceStoploss,
+                                rate = res.rate
+                            };
+                            _tokenUnlockTradeRepo.InsertOne(model);
+
+                            var mes = $"[Mở vị thế SHORT] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            sBuilder.AppendLine(mes);
+                        }
+                    }
+                    #endregion
+
+                    if (sBuilder.Length > 0)
+                    {
+                        await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BybitService.Bybit_TradeTokenUnlock|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -210,12 +328,6 @@ namespace TradePr.Service
         {
             try
             {
-                var config = _configRepo.GetAll();
-                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit 
-                                        && (x.op == (int)EOption.Signal || x.op == (int)EOption.ThreeSignal) 
-                                        && x.status > 0) is null)
-                    return;
-
                 var sBuilder = new StringBuilder();
                 var time = (int)DateTimeOffset.Now.AddHours(3).ToUnixTimeSeconds();
                 var timeLeft = (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds();

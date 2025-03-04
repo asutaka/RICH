@@ -6,6 +6,7 @@ namespace TradePr.DAL.Entity
     public class ThreeSignalTrade : BaseDTO
     {
         public string s { get; set; }
+        public int ex { get; set; }
         public int Side { get; set; }
         public int timeFlag { get; set; }
         public int timeStoploss { get; set; }
