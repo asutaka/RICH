@@ -230,7 +230,7 @@ namespace TradePr.Service
                     return null;
                 }
 
-                if (account.AvailableToWithdraw * _margin <= _unit)
+                if (account.WalletBalance * _margin <= _unit)
                     return null;
 
 
