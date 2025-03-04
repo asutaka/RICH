@@ -1,6 +1,8 @@
 ﻿using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using Skender.Stock.Indicators;
+using System.Collections.Generic;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -12,6 +14,7 @@ namespace TradePr.Service
     {
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
         Task Bybit_TradeSignal();
+        Task Bybit_TradeThreeSignal();
         Task Bybit_MarketAction();
     }
     public class BybitService : IBybitService
@@ -19,6 +22,7 @@ namespace TradePr.Service
         private readonly ILogger<BybitService> _logger;
         private readonly ITradingRepo _tradingRepo;
         private readonly ISignalTradeRepo _signalTradeRepo;
+        private readonly IThreeSignalTradeRepo _threeSignalTradeRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IConfigDataRepo _configRepo;
         private readonly IAPIService _apiService;
@@ -27,7 +31,8 @@ namespace TradePr.Service
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, IAPIService apiService,
-                            ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo, IConfigDataRepo configRepo)
+                            ISignalTradeRepo signalTradeRepo, ITeleService teleService, IErrorPartnerRepo errRepo, 
+                            IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
@@ -36,6 +41,7 @@ namespace TradePr.Service
             _signalTradeRepo = signalTradeRepo;
             _errRepo = errRepo;
             _configRepo = configRepo;
+            _threeSignalTradeRepo = threeSignalTradeRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -46,7 +52,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.GetAccountInfo|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.Bybit_GetAccountInfo|EXCEPTION| {ex.Message}");
             }
             return null;
         }
@@ -107,14 +113,97 @@ namespace TradePr.Service
                     if(res != null)
                     {
                         _signalTradeRepo.InsertOne(res);
+                        var mes = $"[Mở vị thế - Signal] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                        await _teleService.SendMessage(_idUser, mes);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.TradeSignal|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.Bybit_TradeSignal|EXCEPTION| {ex.Message}");
             }
             return;
+        }
+
+        public async Task Bybit_TradeThreeSignal()
+        {
+            try
+            {
+                var config = _configRepo.GetAll();
+                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit && x.op == (int)EOption.ThreeSignal && x.status > 0) is null)
+                    return;
+
+                var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
+                var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
+                if (!(lTrade?.Any() ?? false))
+                    return;
+
+                var lGroup = lTrade.GroupBy(c => new
+                {
+                    c.s,
+                    c.Side
+                })
+                .Select(gcs => new
+                {
+                    gcs.Key.s,
+                    gcs.Key.Side,
+                    Count = gcs.Count(),
+                })
+                .Where(x => x.Count >= 3);
+
+                if (!lGroup.Any())
+                    return;
+
+                var timeFlag = (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds();
+                var lThreeSignal = _threeSignalTradeRepo.GetByFilter(Builders<ThreeSignalTrade>.Filter.Gte(x => x.timeFlag, timeFlag));
+                if (lThreeSignal is null)
+                    lThreeSignal = new List<ThreeSignalTrade>();
+
+                foreach (var item in lGroup)
+                {
+                    try
+                    {
+                        if (lThreeSignal.Any(x => x.s == item.s && x.Side == item.Side))
+                            continue;
+
+                        var lData15m = await _apiService.GetData(item.s, EInterval.M15);
+                        var entity = new SignalTrade
+                        {
+                            s = item.s,
+                            Side = item.Side,
+                            timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                        };
+                        var res = await PlaceOrder(entity, lData15m.Last());
+                        if (res != null)
+                        {
+                            var model = new ThreeSignalTrade
+                            {
+                                s = res.s,
+                                Side = res.Side,
+                                timeFlag = res.timeFlag,
+                                timeClose = res.timeClose,
+                                timeStoploss = res.timeStoploss,
+                                priceEntry = res.priceEntry,
+                                priceClose = res.priceClose,
+                                priceStoploss = res.priceStoploss,
+                                rate = res.rate
+                            };
+                            _threeSignalTradeRepo.InsertOne(model);
+
+                            var mes = $"[Mở vị thế - ThreeSignal] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            await _teleService.SendMessage(_idUser, mes);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"BinanceService.TradeThreeSignal|EXCEPTION|INPUT: {JsonConvert.SerializeObject(item)}| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"BinanceService.Bybit_TradeThreeSignal|EXCEPTION| {ex.Message}");
+            }
         }
 
         public async Task Bybit_MarketAction()
@@ -176,7 +265,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.MarketAction|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.Bybit_MarketAction|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -237,7 +326,8 @@ namespace TradePr.Service
                 var side = (Bybit.Net.Enums.OrderSide)entity.Side;
                 var SL_side = side == Bybit.Net.Enums.OrderSide.Buy ? Bybit.Net.Enums.OrderSide.Sell : Bybit.Net.Enums.OrderSide.Buy;
 
-                var near = 2; if (quote.Close < 1)
+                var near = 2; 
+                if (quote.Close < 1)
                 {
                     near = 0;
                 }
