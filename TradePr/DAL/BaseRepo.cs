@@ -36,6 +36,15 @@ namespace TradePr.DAL
                 filter &= itemFilter;
             }
          */
+
+        //var builder = Builders<twitter_user_crawl>.Filter;
+        //var lUserCrawl = await _twitterUserCrawlRepo.GetWithFilterAsync(1, builder.And(
+        //    builder.Eq(x => x.type, 1),
+        //    builder.Eq(x => x.status, 1),
+        //    builder.Eq(x => x.crawl_post_complete_at, 0)
+        //));
+
+
         //Example: FilterDefinition<StockPr> filter = Builders<StockPr>.Filter.Eq(x => x.s, itemMa.symbol);
         List<T> GetByFilter(FilterDefinition<T> filter, int offset = 0, int limit = 0);
         T GetEntityByFilter(FilterDefinition<T> filter);

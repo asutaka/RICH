@@ -77,7 +77,6 @@ namespace TradePr.Service
                     return;
 
                 var lSignal = _signalTradeRepo.GetByFilter(Builders<SignalTrade>.Filter.Gte(x => x.timeFlag, time));
-
                 var lSym = lTrade.Select(x => x.s).Distinct();
                 foreach (var item in lSym)
                 {
@@ -120,7 +119,7 @@ namespace TradePr.Service
                     {
                         res.ex = _exchange;
                         _signalTradeRepo.InsertOne(res);
-                        var mes = $"[Mở vị thế - Signal] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                        var mes = $"[SIGNAL][Mở vị thế {((Bybit.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                         await _teleService.SendMessage(_idUser, mes);
                     }
                 }
@@ -198,7 +197,7 @@ namespace TradePr.Service
                             };
                             _threeSignalTradeRepo.InsertOne(model);
 
-                            var mes = $"[Mở vị thế - ThreeSignal] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side).ToString()}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[THREE][Mở vị thế {((Bybit.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             await _teleService.SendMessage(_idUser, mes);
                         }
                     }
@@ -240,7 +239,7 @@ namespace TradePr.Service
                                 var first = _tokenUnlockTradeRepo.GetEntityByFilter(Builders<TokenUnlockTrade>.Filter.Eq(x => x.timeUnlock, time));
                                 if (first is null)
                                 {
-                                    var mes = $"[Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}";
+                                    var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}";
                                     sBuilder.AppendLine(mes);
                                 }
                                 else
@@ -248,7 +247,7 @@ namespace TradePr.Service
                                     first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
                                     first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                                     _tokenUnlockTradeRepo.Update(first);
-                                    var mes = $"[Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
+                                    var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
                                     sBuilder.AppendLine(mes);
                                 }
                             }
@@ -310,7 +309,7 @@ namespace TradePr.Service
                             };
                             _tokenUnlockTradeRepo.InsertOne(model);
 
-                            var mes = $"[Mở vị thế SHORT] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[UNLOCK][Mở vị thế SHORT] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             sBuilder.AppendLine(mes);
                         }
                     }
