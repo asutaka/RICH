@@ -2,7 +2,6 @@
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
-using System.Collections.Generic;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -13,10 +12,7 @@ namespace TradePr.Service
     public interface IBybitService
     {
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
-        Task Bybit_TradeSignal();
-        Task Bybit_TradeThreeSignal();
-        Task Bybit_TradeTokenUnlock();
-        Task Bybit_MarketAction();
+        Task Bybit_Trade();
     }
     public class BybitService : IBybitService
     {
@@ -63,14 +59,40 @@ namespace TradePr.Service
             return null;
         }
 
-        public async Task Bybit_TradeSignal()
+        public async Task Bybit_Trade()
         {
             try
             {
-                var config = _configRepo.GetAll();
-                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit && x.op == (int)EOption.Signal && x.status > 0) is null)
-                    return;
+                var builder = Builders<ConfigData>.Filter;
+                var lSignal = _configRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, _exchange),
+                    builder.Eq(x => x.status, 1)
+                ));
 
+                if(lSignal.Any(x => x.op == (int)EOption.Signal))
+                {
+                    await Bybit_TradeSignal();
+                }
+                if (lSignal.Any(x => x.op == (int)EOption.ThreeSignal))
+                {
+                    await Bybit_TradeThreeSignal();
+                }
+                if (lSignal.Any(x => x.op == (int)EOption.Unlock))
+                {
+                    await Bybit_TradeTokenUnlock();
+                }
+                await Bybit_MarketAction();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"BybitService.Bybit_Trade|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private async Task Bybit_TradeSignal()
+        {
+            try
+            {
                 var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
                 var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
                 if (!(lTrade?.Any() ?? false))
@@ -142,14 +164,10 @@ namespace TradePr.Service
             return;
         }
 
-        public async Task Bybit_TradeThreeSignal()
+        private async Task Bybit_TradeThreeSignal()
         {
             try
             {
-                var config = _configRepo.GetAll();
-                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit && x.op == (int)EOption.ThreeSignal && x.status > 0) is null)
-                    return;
-
                 var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
                 if (!(lTrade?.Any() ?? false))
@@ -223,14 +241,10 @@ namespace TradePr.Service
             }
         }
 
-        public async Task Bybit_TradeTokenUnlock()
+        private async Task Bybit_TradeTokenUnlock()
         {
             try
             {
-                var config = _configRepo.GetAll();
-                if (config.FirstOrDefault(x => x.ex == (int)EExchange.Bybit && x.op == (int)EOption.Unlock && x.status > 0) is null)
-                    return;
-
                 var dt = DateTime.UtcNow;
                 if (dt.Hour == 23 && dt.Minute == 58)
                 {
@@ -325,7 +339,7 @@ namespace TradePr.Service
             }
         }
 
-        public async Task Bybit_MarketAction()
+        private async Task Bybit_MarketAction()
         {
             try
             {
