@@ -26,8 +26,8 @@ namespace TradePr
                 await _binnanceService.TradeThreeSignal();
                 await _binnanceService.MarketAction();
 
-                await _bybitService.Bybit_TradeSignal();
-                await _bybitService.Bybit_MarketAction();
+                //await _bybitService.Bybit_TradeSignal();
+                //await _bybitService.Bybit_MarketAction();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }
