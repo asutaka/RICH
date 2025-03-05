@@ -21,18 +21,18 @@ namespace TradePr.Service
         private readonly ISignalTradeRepo _signalTradeRepo;
         private readonly IThreeSignalTradeRepo _threeSignalTradeRepo;
         private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
+        private readonly ITokenUnlockRepo _tokenUnlockRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IConfigDataRepo _configRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
-        private readonly ICacheService _cacheService;
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, ISignalTradeRepo signalTradeRepo, IErrorPartnerRepo errRepo,
-                            IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo, ITokenUnlockTradeRepo tokenUnlockTradeRepo,
-                            IAPIService apiService, ITeleService teleService, ICacheService cacheService)
+                            IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo, ITokenUnlockTradeRepo tokenUnlockTradeRepo, ITokenUnlockRepo tokenUnlockRepo,
+                            IAPIService apiService, ITeleService teleService)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
@@ -41,9 +41,9 @@ namespace TradePr.Service
             _configRepo = configRepo;
             _threeSignalTradeRepo = threeSignalTradeRepo;
             _tokenUnlockTradeRepo = tokenUnlockTradeRepo;
+            _tokenUnlockRepo = tokenUnlockRepo;
             _apiService = apiService;
             _teleService = teleService;
-            _cacheService = cacheService;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -109,10 +109,12 @@ namespace TradePr.Service
                     if (StaticVal._lIgnoreThreeSignal.Contains(item))
                         continue;
 
+                    //Trong 1 tiếng tồn tại ít nhất 2 tín hiệu
                     var lTradeSym = lTrade.Where(x => x.s == item).OrderByDescending(x => x.d);
                     if (lTradeSym.Count() < 2)
                         continue;                  
 
+                    //2 tín hiệu cùng chiều
                     var first = lTradeSym.First();
                     var second = lTradeSym.FirstOrDefault(x => x.Date < first.Date && x.Side == first.Side);
                     if (second is null)
@@ -256,35 +258,33 @@ namespace TradePr.Service
                         //close all
                         foreach (var position in resPosition.Data.List)
                         {
+                            var time = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+                            var builder = Builders<TokenUnlockTrade>.Filter;
+                            var first = _tokenUnlockTradeRepo.GetEntityByFilter(builder.And(
+                                builder.Eq(x => x.ex, _exchange),
+                                builder.Eq(x => x.s, position.Symbol),
+                                builder.Eq(x => x.timeUnlock, time)
+                            ));
+
+                            if (first is null)
+                                continue;
+
                             var res = await PlaceOrderClose(position.Symbol, Math.Abs(position.Quantity), Bybit.Net.Enums.PositionSide.Buy);
                             if (res)
                             {
-                                var time = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
-                                var builder = Builders<TokenUnlockTrade>.Filter;
-                                var first = _tokenUnlockTradeRepo.GetEntityByFilter(builder.And(
-                                    builder.Eq(x => x.ex, _exchange),
-                                    builder.Eq(x => x.timeUnlock, time)
-                                ));
-                                if (first is null)
-                                {
-                                    var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}";
-                                    sBuilder.AppendLine(mes);
-                                }
-                                else
-                                {
-                                    first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
-                                    first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                                    _tokenUnlockTradeRepo.Update(first);
-                                    var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
-                                    sBuilder.AppendLine(mes);
-                                }
+                                first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
+                                first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                                _tokenUnlockTradeRepo.Update(first);
+                                var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
+                                sBuilder.AppendLine(mes);
                             }
                         }
                     }
                     #endregion
 
                     #region Mở vị thế
-                    var tokens = _cacheService.GetTokenUnlock(dt);
+                    var timeUnlock = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).AddDays(1).ToUnixTimeSeconds();
+                    var tokens = _tokenUnlockRepo.GetByFilter(Builders<TokenUnlock>.Filter.Eq(x => x.time, timeUnlock)).Where(x => !StaticVal._lTokenUnlockBlackList.Contains(x.s));
                     if (!tokens.Any())
                         return;
 
@@ -349,6 +349,7 @@ namespace TradePr.Service
                 if (!resPosition.Data.List.Any())
                     return;
 
+                var lRes = new List<BybitPosition>();
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
@@ -357,20 +358,12 @@ namespace TradePr.Service
                 if (countForceSell >= 5)
                 {
                     var lSell = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Buy);
-                    var mesSell = await ForceMarket(lSell);
-                    if (!string.IsNullOrWhiteSpace(mesSell))
-                    {
-                        sBuilder.AppendLine(mesSell);
-                    }
+                    lRes = await ForceMarket(lSell);
                 }
                 if (countForceBuy >= 5)
                 {
                     var lBuy = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Sell);
-                    var mesBuy = await ForceMarket(lBuy);
-                    if (!string.IsNullOrWhiteSpace(mesBuy))
-                    {
-                        sBuilder.AppendLine(mesBuy);
-                    }
+                    lRes = await ForceMarket(lBuy);
                 }
 
                 //Signal
@@ -381,14 +374,6 @@ namespace TradePr.Service
                                    builderSignal.Lte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds()),
                                    builderSignal.Eq(x => x.status, 0)
                                ));
-                if (lSignal?.Any() ?? false)
-                {
-                    var mes = await ForceMarket(resPosition.Data.List);
-                    if (!string.IsNullOrWhiteSpace(mes))
-                    {
-                        sBuilder.AppendLine(mes);
-                    }
-                }
                 //Three
                 var builderThree = Builders<ThreeSignalTrade>.Filter;
                 var lThree = _threeSignalTradeRepo.GetByFilter(builderThree.And(
@@ -397,11 +382,160 @@ namespace TradePr.Service
                                    builderThree.Lte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(2).ToUnixTimeSeconds()),
                                    builderThree.Eq(x => x.status, 0)
                                ));
+                //Unlock 
+                var dt = DateTime.UtcNow;
+                var timeUnlock = (int)new DateTimeOffset(dt.Year, dt.Month, dt.Day, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+                var builderUnlock = Builders<TokenUnlockTrade>.Filter;
+                var lUnlock = _tokenUnlockTradeRepo.GetByFilter(builderUnlock.And(
+                            builderUnlock.Eq(x => x.ex, _exchange),
+                            builderUnlock.Eq(x => x.timeUnlock, timeUnlock)
+                        ));
+                if (lRes.Any())
+                {
+                    foreach (var item in lRes)
+                    {
+                        var priceClose = (double)item.MarkPrice.Value;
+                        var signal = lSignal.FirstOrDefault(x => x.s == item.Symbol);
+                        if(signal != null)
+                        {
+                            var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / signal.priceEntry), 1));
+                            if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                            {
+                                if (priceClose < signal.priceEntry)
+                                    rate = -rate;
+                            }
+                            else
+                            {
+                                if (priceClose > signal.priceEntry)
+                                    rate = -rate;
+                            }
+
+                            signal.priceClose = priceClose;
+                            signal.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                            signal.rate = rate;
+                            _signalTradeRepo.Update(signal);
+
+                            var mes = $"[Signal][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            sBuilder.AppendLine(mes);
+                            continue;
+                        }
+
+                        var three = lThree.FirstOrDefault(x => x.s == item.Symbol);
+                        if (three != null)
+                        {
+                            var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / three.priceEntry), 1));
+                            if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                            {
+                                if (priceClose < three.priceEntry)
+                                    rate = -rate;
+                            }
+                            else
+                            {
+                                if (priceClose > three.priceEntry)
+                                    rate = -rate;
+                            }
+
+                            three.priceClose = priceClose;
+                            three.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                            three.rate = rate;
+                            _threeSignalTradeRepo.Update(three);
+
+                            var mes = $"[Three][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            sBuilder.AppendLine(mes);
+                            continue;
+                        }
+
+                        var unlock = lUnlock.FirstOrDefault(x => x.s == item.Symbol);
+                        if (unlock != null)
+                        {
+                            var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / unlock.priceEntry), 1));
+                            if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                            {
+                                if (priceClose < unlock.priceEntry)
+                                    rate = -rate;
+                            }
+                            else
+                            {
+                                if (priceClose > unlock.priceEntry)
+                                    rate = -rate;
+                            }
+
+                            unlock.priceClose = priceClose;
+                            unlock.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                            unlock.rate = rate;
+                            _tokenUnlockTradeRepo.Update(unlock);
+
+                            var mes = $"[Three][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            sBuilder.AppendLine(mes);
+                            continue;
+                        }
+
+                        var mesOther = $"[Three][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}";
+                        sBuilder.AppendLine(mesOther);
+                    }
+
+                    if (sBuilder.Length > 0)
+                    {
+                        await _teleService.SendMessage(_idUser, sBuilder.ToString());
+                    }
+                    return;
+                }
+
+                //Signal
+                if (lSignal?.Any() ?? false)
+                {
+                    lRes = await ForceMarket(resPosition.Data.List.Where(x => lSignal.Any(y => y.s == x.Symbol)));
+                    foreach (var item in lRes)
+                    {
+                        var priceClose = (double)item.MarkPrice.Value;
+                        var first = lSignal.First(x => x.s == item.Symbol);
+                        var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / first.priceEntry), 1));
+                        if(item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                        {
+                            if (priceClose < first.priceEntry)
+                                rate = -rate;
+                        }
+                        else
+                        {
+                            if (priceClose > first.priceEntry)
+                                rate = -rate;
+                        }
+
+                        first.priceClose = priceClose;
+                        first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                        first.rate = rate;
+                        _signalTradeRepo.Update(first);
+
+                        var mes = $"[Signal][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                        sBuilder.AppendLine(mes);
+                    }
+                }
+                //Three
                 if (lThree?.Any() ?? false)
                 {
-                    var mes = await ForceMarket(resPosition.Data.List);
-                    if (!string.IsNullOrWhiteSpace(mes))
+                    lRes = await ForceMarket(resPosition.Data.List.Where(x => lThree.Any(y => y.s == x.Symbol)));
+                    foreach (var item in lRes)
                     {
+                        var priceClose = (double)item.MarkPrice.Value;
+                        var first = lThree.First(x => x.s == item.Symbol);
+                        var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / first.priceEntry), 1));
+                        if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                        {
+                            if (priceClose < first.priceEntry)
+                                rate = -rate;
+                        }
+                        else
+                        {
+                            if (priceClose > first.priceEntry)
+                                rate = -rate;
+                        }
+
+                        first.priceClose = priceClose;
+                        first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                        first.rate = rate;
+                        _threeSignalTradeRepo.Update(first);
+
+                        var mes = $"[Three][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                         sBuilder.AppendLine(mes);
                     }
                 }
@@ -417,9 +551,9 @@ namespace TradePr.Service
             }
         }
 
-        private async Task<string> ForceMarket(IEnumerable<BybitPosition> lData)
+        private async Task<List<BybitPosition>> ForceMarket(IEnumerable<BybitPosition> lData)
         {
-            var sBuilder = new StringBuilder();
+            var lRes = new List<BybitPosition>();
             try
             {
                 foreach (var item in lData)
@@ -429,8 +563,7 @@ namespace TradePr.Service
                     if (!res)
                         continue;
 
-                    var mes = $"[Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}";
-                    sBuilder.AppendLine(mes);
+                    lRes.Add(item);
                 }
             }
             catch (Exception ex)
@@ -438,7 +571,7 @@ namespace TradePr.Service
                 _logger.LogError(ex, $"BybitService.ForceMarket|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lRes;
         }
 
         private async Task<SignalBase> PlaceOrder(SignalBase entity, Quote quote)
@@ -574,7 +707,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.PlaceOrderCloseAll|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"BybitService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
 
             await _teleService.SendMessage(_idUser, $"[ERROR] Không thể đóng lệnh {side}: {symbol}!");
