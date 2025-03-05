@@ -22,12 +22,8 @@ namespace TradePr
             while (!stoppingToken.IsCancellationRequested)
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await _binnanceService.TradeTokenUnlock();
-                await _binnanceService.TradeThreeSignal();
-                await _binnanceService.MarketAction();
-
-                //await _bybitService.Bybit_TradeSignal();
-                //await _bybitService.Bybit_MarketAction();
+                await _binnanceService.Binance_Trade();
+                await _bybitService.Bybit_Trade();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }

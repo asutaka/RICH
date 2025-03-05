@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Service\BinanceService1.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Binance.Net" Version="10.16.1" />
     <PackageReference Include="Bybit.Net" Version="4.3.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.3" />
