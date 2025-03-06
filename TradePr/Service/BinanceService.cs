@@ -308,7 +308,7 @@ namespace TradePr.Service
                         {
                             s = $"{item.s}USDT",
                             ex = _exchange,
-                            Side = (int)Binance.Net.Enums.OrderSide,
+                            Side = (int)Binance.Net.Enums.OrderSide.Sell,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                         }, lData15m.Last());
                         if (res != null)
@@ -561,7 +561,7 @@ namespace TradePr.Service
             {
                 foreach (var item in lData)
                 {
-                    var side = (item.PositionSide == Binance.Net.Enums.PositionSide.Long) ? Binance.Net.Enums.PositionSide.Short : Binance.Net.Enums.PositionSide.Long;
+                    var side = (item.PositionSide == Binance.Net.Enums.PositionSide.Long) ? Binance.Net.Enums.OrderSide.Buy : Binance.Net.Enums.OrderSide.Sell;
                     var res = await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), side);
                     if (!res)
                         continue;
