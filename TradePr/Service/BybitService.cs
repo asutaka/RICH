@@ -665,10 +665,14 @@ namespace TradePr.Service
                     res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Bybit.Net.Enums.Category.Linear,
                                                                                             first.Symbol,
                                                                                             side: SL_side,
-                                                                                            type: Bybit.Net.Enums.NewOrderType.Market,
+                                                                                            type: Bybit.Net.Enums.NewOrderType.Limit,
+                                                                                            price: sl,
                                                                                             quantity: soluong,
                                                                                             timeInForce: Bybit.Net.Enums.TimeInForce.GoodTillCanceled,
                                                                                             reduceOnly: true,
+                                                                                            stopLossOrderType: Bybit.Net.Enums.OrderType.Limit,
+                                                                                            stopLossTakeProfitMode: Bybit.Net.Enums.StopLossTakeProfitMode.Partial,
+                                                                                            stopLossTriggerBy: Bybit.Net.Enums.TriggerType.LastPrice,
                                                                                             stopLossLimitPrice: sl);
                     Thread.Sleep(500);
                     if (!res.Success)
