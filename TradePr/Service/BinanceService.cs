@@ -666,7 +666,7 @@ namespace TradePr.Service
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.StopMarket,
                                                                                                     positionSide: Binance.Net.Enums.PositionSide.Both,
                                                                                                     quantity: soluong,
-                                                                                                    timeInForce: Binance.Net.Enums.TimeInForce.GoodTillCanceled,
+                                                                                                    timeInForce: Binance.Net.Enums.TimeInForce.GoodTillExpiredOrCanceled,
                                                                                                     reduceOnly: true,
                                                                                                     workingType: Binance.Net.Enums.WorkingType.Mark,
                                                                                                     stopPrice: sl);
