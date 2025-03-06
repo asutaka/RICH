@@ -269,7 +269,7 @@ namespace TradePr.Service
                             if (first is null)
                                 continue;
 
-                            var res = await PlaceOrderClose(position.Symbol, Math.Abs(position.PositionAmt), Binance.Net.Enums.PositionSide.Long);
+                            var res = await PlaceOrderClose(position.Symbol, Math.Abs(position.PositionAmt), Binance.Net.Enums.OrderSide.Buy);
                             if (res)
                             {
                                 first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice), 1);
@@ -308,7 +308,7 @@ namespace TradePr.Service
                         {
                             s = $"{item.s}USDT",
                             ex = _exchange,
-                            Side = (int)Binance.Net.Enums.PositionSide.Short,
+                            Side = (int)Binance.Net.Enums.OrderSide,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                         }, lData15m.Last());
                         if (res != null)
@@ -356,8 +356,8 @@ namespace TradePr.Service
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
-                var countForceSell = lForce.Count(x => x.Side == (int)Binance.Net.Enums.PositionSide.Short);
-                var countForceBuy = lForce.Count(x => x.Side == (int)Binance.Net.Enums.PositionSide.Long);
+                var countForceSell = lForce.Count(x => x.Side == (int)Binance.Net.Enums.OrderSide.Sell);
+                var countForceBuy = lForce.Count(x => x.Side == (int)Binance.Net.Enums.OrderSide.Buy);
                 if (countForceSell >= 5)
                 {
                     var lSell = resPosition.Data.Where(x => x.PositionSide == Binance.Net.Enums.PositionSide.Long);
@@ -697,7 +697,7 @@ namespace TradePr.Service
             return null;
         }
 
-        private async Task<bool> PlaceOrderClose(string symbol, decimal quan, Binance.Net.Enums.PositionSide side)
+        private async Task<bool> PlaceOrderClose(string symbol, decimal quan, Binance.Net.Enums.OrderSide side)
         {
             try
             {
