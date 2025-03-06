@@ -1,7 +1,7 @@
-﻿using Bybit.Net.Objects.Models.V5;
+﻿using Bybit.Net.Enums;
+using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using Skender.Stock.Indicators;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -49,7 +49,7 @@ namespace TradePr.Service
         {
             try
             {
-                var resAPI = await StaticVal.ByBitInstance().V5Api.Account.GetBalancesAsync( Bybit.Net.Enums.AccountType.Unified);
+                var resAPI = await StaticVal.ByBitInstance().V5Api.Account.GetBalancesAsync( AccountType.Unified);
                 return resAPI?.Data?.List?.FirstOrDefault().Assets.FirstOrDefault(x => x.Asset == "USDT");
             }
             catch (Exception ex)
@@ -128,9 +128,14 @@ namespace TradePr.Service
                         continue;
 
                     //gia
-                    var lData15m = await _apiService.GetData(item, EInterval.M15);
-                    var itemCheck = lData15m.SkipLast(1).Last();
-                    if (itemCheck.Open >= itemCheck.Close)
+                    var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}USDT", KlineInterval.ThirtyMinutes);
+                    if (lData15m.Data is null
+                        || !lData15m.Data.List.Any())
+                        continue;
+
+                    var last = lData15m.Data.List.Last();
+                    var itemCheck = lData15m.Data.List.SkipLast(1).Last();
+                    if (itemCheck.OpenPrice >= itemCheck.ClosePrice)
                         continue;
 
                     //Trade
@@ -140,7 +145,7 @@ namespace TradePr.Service
                         ex = _exchange,
                         Side = first.Side,
                         timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                    }, lData15m.Last());
+                    }, last);
 
                     if(res != null)
                     {
@@ -154,7 +159,7 @@ namespace TradePr.Service
                             priceEntry = res.priceEntry,
                             priceStoploss = res.priceStoploss,
                         });
-                        var mes = $"[SIGNAL][Mở vị thế {((Bybit.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                        var mes = $"[SIGNAL][Mở vị thế {((OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                         await _teleService.SendMessage(_idUser, mes);
                     }
                 }
@@ -207,14 +212,19 @@ namespace TradePr.Service
                         if (lThreeSignal.Any(x => x.s == item.s && x.Side == item.Side))
                             continue;
 
-                        var lData15m = await _apiService.GetData(item.s, EInterval.M15);
+                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item.s}USDT", KlineInterval.ThirtyMinutes);
+                        if (lData15m.Data is null
+                            || !lData15m.Data.List.Any())
+                            continue;
+
+                        var last = lData15m.Data.List.Last();
                         var res = await PlaceOrder(new SignalBase
                         {
                             s = item.s,
                             ex = _exchange,
                             Side = item.Side,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                        }, lData15m.Last());
+                        }, last);
                         if (res != null)
                         {
                             _threeSignalTradeRepo.InsertOne(new ThreeSignalTrade
@@ -227,7 +237,7 @@ namespace TradePr.Service
                                 priceEntry = res.priceEntry,
                                 priceStoploss = res.priceStoploss
                             });
-                            var mes = $"[THREE][Mở vị thế {((Bybit.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[THREE][Mở vị thế {((OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             await _teleService.SendMessage(_idUser, mes);
                         }
                     }
@@ -248,12 +258,11 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.UtcNow;
-                if (true)
-                //if (dt.Hour == 23 && dt.Minute == 58)
+                if (dt.Hour == 23 && dt.Minute == 58)
                 {
                     var sBuilder = new StringBuilder();
                     #region Đóng vị thế
-                    var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Option);
+                    var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Option);
                     if (resPosition?.Data?.List?.Any()?? false)
                     {
                         //close all
@@ -270,7 +279,7 @@ namespace TradePr.Service
                             if (first is null)
                                 continue;
 
-                            var res = await PlaceOrderClose(position.Symbol, Math.Abs(position.Quantity), Bybit.Net.Enums.PositionSide.Buy);
+                            var res = await PlaceOrderClose(position.Symbol, Math.Abs(position.Quantity), PositionSide.Buy);
                             if (res)
                             {
                                 first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
@@ -301,17 +310,19 @@ namespace TradePr.Service
                         if (entityCheck != null)
                             continue;
 
-                        var lData15m = await _apiService.GetData_Bybit($"{item.s}USDT", EInterval.M15);
-                        if (!lData15m.Any())
+                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item.s}USDT", KlineInterval.ThirtyMinutes);
+                        if (lData15m.Data is null
+                            || !lData15m.Data.List.Any())
                             continue;
 
+                        var last = lData15m.Data.List.Last();
                         var res = await PlaceOrder(new SignalBase
                         {
                             s = $"{item.s}USDT",
                             ex = _exchange,
-                            Side = (int)Bybit.Net.Enums.PositionSide.Sell,
+                            Side = (int)PositionSide.Sell,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                        }, lData15m.Last());
+                        }, last);
                         if (res != null)
                         {
                             _tokenUnlockTradeRepo.InsertOne(new TokenUnlockTrade
@@ -325,7 +336,7 @@ namespace TradePr.Service
                                 priceStoploss = res.priceStoploss
                             });
 
-                            var mes = $"[UNLOCK][Mở vị thế SHORT] {res.s}|{((Bybit.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[UNLOCK][Mở vị thế SHORT] {res.s}|{((OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             sBuilder.AppendLine(mes);
                         }
                     }
@@ -349,7 +360,7 @@ namespace TradePr.Service
             {
                 var sBuilder = new StringBuilder();
 
-                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear);
+                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Option);
                 if (!resPosition.Data.List.Any())
                     return;
 
@@ -357,16 +368,16 @@ namespace TradePr.Service
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
-                var countForceSell = lForce.Count(x => x.Side == (int)Bybit.Net.Enums.PositionSide.Sell);
-                var countForceBuy = lForce.Count(x => x.Side == (int)Bybit.Net.Enums.PositionSide.Buy);
+                var countForceSell = lForce.Count(x => x.Side == (int)PositionSide.Sell);
+                var countForceBuy = lForce.Count(x => x.Side == (int)PositionSide.Buy);
                 if (countForceSell >= 5)
                 {
-                    var lSell = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Buy);
+                    var lSell = resPosition.Data.List.Where(x => x.Side == PositionSide.Buy);
                     lRes = await ForceMarket(lSell);
                 }
                 if (countForceBuy >= 5)
                 {
-                    var lBuy = resPosition.Data.List.Where(x => x.Side == Bybit.Net.Enums.PositionSide.Sell);
+                    var lBuy = resPosition.Data.List.Where(x => x.Side == PositionSide.Sell);
                     lRes = await ForceMarket(lBuy);
                 }
 
@@ -403,7 +414,7 @@ namespace TradePr.Service
                         if(signal != null)
                         {
                             var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / signal.priceEntry), 1));
-                            if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                            if (item.Side == PositionSide.Buy)
                             {
                                 if (priceClose < signal.priceEntry)
                                     rate = -rate;
@@ -428,7 +439,7 @@ namespace TradePr.Service
                         if (three != null)
                         {
                             var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / three.priceEntry), 1));
-                            if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                            if (item.Side == PositionSide.Buy)
                             {
                                 if (priceClose < three.priceEntry)
                                     rate = -rate;
@@ -453,7 +464,7 @@ namespace TradePr.Service
                         if (unlock != null)
                         {
                             var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / unlock.priceEntry), 1));
-                            if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                            if (item.Side == PositionSide.Buy)
                             {
                                 if (priceClose < unlock.priceEntry)
                                     rate = -rate;
@@ -494,7 +505,7 @@ namespace TradePr.Service
                         var priceClose = (double)item.MarkPrice.Value;
                         var first = lSignal.First(x => x.s == item.Symbol);
                         var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / first.priceEntry), 1));
-                        if(item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                        if(item.Side == PositionSide.Buy)
                         {
                             if (priceClose < first.priceEntry)
                                 rate = -rate;
@@ -523,7 +534,7 @@ namespace TradePr.Service
                         var priceClose = (double)item.MarkPrice.Value;
                         var first = lThree.First(x => x.s == item.Symbol);
                         var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / first.priceEntry), 1));
-                        if (item.Side == Bybit.Net.Enums.PositionSide.Buy)
+                        if (item.Side == PositionSide.Buy)
                         {
                             if (priceClose < first.priceEntry)
                                 rate = -rate;
@@ -562,7 +573,7 @@ namespace TradePr.Service
             {
                 foreach (var item in lData)
                 {
-                    var side = (item.Side == Bybit.Net.Enums.PositionSide.Buy) ? Bybit.Net.Enums.PositionSide.Sell : Bybit.Net.Enums.PositionSide.Buy;
+                    var side = (item.Side == PositionSide.Buy) ? PositionSide.Sell : PositionSide.Buy;
                     var res = await PlaceOrderClose(item.Symbol, item.Quantity, side);
                     if (!res)
                         continue;
@@ -578,7 +589,7 @@ namespace TradePr.Service
             return lRes;
         }
 
-        private async Task<SignalBase> PlaceOrder(SignalBase entity, Quote quote)
+        private async Task<SignalBase> PlaceOrder(SignalBase entity, BybitBasicKline quote)
         {
             try
             {
@@ -595,19 +606,20 @@ namespace TradePr.Service
                     return null;
 
 
-                var side = (Bybit.Net.Enums.OrderSide)entity.Side;
-                var SL_side = side == Bybit.Net.Enums.OrderSide.Buy ? Bybit.Net.Enums.OrderSide.Sell : Bybit.Net.Enums.OrderSide.Buy;
+                var side = (OrderSide)entity.Side;
+                var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
+                var direction = side == OrderSide.Buy ? TriggerDirection.Fall : TriggerDirection.Rise;
 
                 var near = 2; 
-                if (quote.Close < 5)
+                if (quote.ClosePrice < 5)
                 {
                     near = 0;
                 }
-                var soluong = Math.Round(_unit / quote.Close, near);
-                var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Bybit.Net.Enums.Category.Linear,
+                var soluong = Math.Round(_unit / quote.ClosePrice, near);
+                var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                         entity.s,
                                                                                         side: side,
-                                                                                        type: Bybit.Net.Enums.NewOrderType.Market,
+                                                                                        type: NewOrderType.Market,
                                                                                         reduceOnly: false,
                                                                                         quantity: soluong);
                 Thread.Sleep(500);
@@ -620,12 +632,12 @@ namespace TradePr.Service
                         time = curTime,
                         ty = (int)ETypeBot.TokenUnlock,
                         action = (int)EAction.Short,
-                        des = $"side: {side}, type: {Bybit.Net.Enums.NewOrderType.Market}, quantity: {soluong}"
+                        des = $"side: {side}, type: {NewOrderType.Market}, quantity: {soluong}"
                     });
                     return null;
                 }
 
-                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear, entity.s);
+                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, entity.s);
                 Thread.Sleep(500);
                 if (!resPosition.Success)
                 {
@@ -645,15 +657,15 @@ namespace TradePr.Service
                     var first = resPosition.Data.List.First();
                     entity.priceEntry = (double)first.MarkPrice;
 
-                    if (quote.Close < 5)
+                    if (quote.ClosePrice < 5)
                     {
-                        var price = quote.Close.ToString().Split('.').Last();
+                        var price = quote.ClosePrice.ToString().Split('.').Last();
                         price = price.ReverseString();
                         near = long.Parse(price).ToString().Length;
                     }
-                    var checkLenght = quote.Close.ToString().Split('.').Last();
+                    var checkLenght = quote.ClosePrice.ToString().Split('.').Last();
                     decimal sl = 0;
-                    if (side == Bybit.Net.Enums.OrderSide.Buy)
+                    if (side == OrderSide.Buy)
                     {
                         sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - SL_RATE), near);
                     }
@@ -661,18 +673,19 @@ namespace TradePr.Service
                     {
                         sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + SL_RATE), near);
                     }
-
-                    res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Bybit.Net.Enums.Category.Linear,
+                    res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                             first.Symbol,
                                                                                             side: SL_side,
-                                                                                            type: Bybit.Net.Enums.NewOrderType.Limit,
-                                                                                            price: sl,
+                                                                                            type: NewOrderType.Market,
+                                                                                            triggerPrice: sl,
+                                                                                            triggerDirection: direction,
+                                                                                            triggerBy: TriggerType.LastPrice,
                                                                                             quantity: soluong,
-                                                                                            timeInForce: Bybit.Net.Enums.TimeInForce.GoodTillCanceled,
+                                                                                            timeInForce: TimeInForce.GoodTillCanceled,
                                                                                             reduceOnly: true,
-                                                                                            stopLossOrderType: Bybit.Net.Enums.OrderType.Limit,
-                                                                                            stopLossTakeProfitMode: Bybit.Net.Enums.StopLossTakeProfitMode.Partial,
-                                                                                            stopLossTriggerBy: Bybit.Net.Enums.TriggerType.LastPrice,
+                                                                                            stopLossOrderType: OrderType.Limit,
+                                                                                            stopLossTakeProfitMode: StopLossTakeProfitMode.Partial,
+                                                                                            stopLossTriggerBy: TriggerType.LastPrice,
                                                                                             stopLossLimitPrice: sl);
                     Thread.Sleep(500);
                     if (!res.Success)
@@ -683,7 +696,7 @@ namespace TradePr.Service
                             time = curTime,
                             ty = (int)ETypeBot.TokenUnlock,
                             action = (int)EAction.Short_SL,
-                            des = $"side: {SL_side}, type: {Bybit.Net.Enums.NewOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
+                            des = $"side: {SL_side}, type: {NewOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
                         });
 
                         return null;
@@ -701,14 +714,14 @@ namespace TradePr.Service
             return null;
         }
 
-        private async Task<bool> PlaceOrderClose(string symbol, decimal quan, Bybit.Net.Enums.PositionSide side)
+        private async Task<bool> PlaceOrderClose(string symbol, decimal quan, PositionSide side)
         {
             try
             {
-                var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Bybit.Net.Enums.Category.Linear,
+                var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                         symbol,
-                                                                                        side: (Bybit.Net.Enums.OrderSide)((int)side),
-                                                                                        type: Bybit.Net.Enums.NewOrderType.Market,
+                                                                                        side: (OrderSide)((int)side),
+                                                                                        type: NewOrderType.Market,
                                                                                         quantity: quan);
                 if (res.Success)
                     return true;
