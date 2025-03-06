@@ -248,11 +248,12 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.UtcNow;
-                if (dt.Hour == 23 && dt.Minute == 58)
+                if (true)
+                //if (dt.Hour == 23 && dt.Minute == 58)
                 {
                     var sBuilder = new StringBuilder();
                     #region Đóng vị thế
-                    var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Linear);
+                    var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Bybit.Net.Enums.Category.Option);
                     if (resPosition?.Data?.List?.Any()?? false)
                     {
                         //close all
@@ -300,10 +301,13 @@ namespace TradePr.Service
                         if (entityCheck != null)
                             continue;
 
-                        var lData15m = await _apiService.GetData(item.s, EInterval.M15);
+                        var lData15m = await _apiService.GetData_Bybit($"{item.s}USDT", EInterval.M15);
+                        if (!lData15m.Any())
+                            continue;
+
                         var res = await PlaceOrder(new SignalBase
                         {
-                            s = item.s,
+                            s = $"{item.s}USDT",
                             ex = _exchange,
                             Side = (int)Bybit.Net.Enums.PositionSide.Sell,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
@@ -595,7 +599,7 @@ namespace TradePr.Service
                 var SL_side = side == Bybit.Net.Enums.OrderSide.Buy ? Bybit.Net.Enums.OrderSide.Sell : Bybit.Net.Enums.OrderSide.Buy;
 
                 var near = 2; 
-                if (quote.Close < 1)
+                if (quote.Close < 5)
                 {
                     near = 0;
                 }
@@ -641,7 +645,7 @@ namespace TradePr.Service
                     var first = resPosition.Data.List.First();
                     entity.priceEntry = (double)first.MarkPrice;
 
-                    if (quote.Close < 1)
+                    if (quote.Close < 5)
                     {
                         var price = quote.Close.ToString().Split('.').Last();
                         price = price.ReverseString();
