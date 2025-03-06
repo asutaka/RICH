@@ -598,7 +598,7 @@ namespace TradePr.Service
                 var SL_side = side == Binance.Net.Enums.OrderSide.Buy ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy;
 
                 var near = 2;
-                if (quote.Close < 1)
+                if (quote.Close < 5)
                 {
                     near = 0;
                 }
