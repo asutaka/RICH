@@ -300,10 +300,13 @@ namespace TradePr.Service
                         if (entityCheck != null)
                             continue;
 
-                        var lData15m = await _apiService.GetData(item.s, EInterval.M15);
+                        var lData15m = await _apiService.GetData($"{item.s}USDT", EInterval.M15);
+                        if (!lData15m.Any())
+                            continue;
+
                         var res = await PlaceOrder(new SignalBase
                         {
-                            s = item.s,
+                            s = $"{item.s}USDT",
                             ex = _exchange,
                             Side = (int)Binance.Net.Enums.PositionSide.Short,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
@@ -660,7 +663,7 @@ namespace TradePr.Service
 
                     res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
                                                                                                     side: SL_side,
-                                                                                                    type: Binance.Net.Enums.FuturesOrderType.Market,
+                                                                                                    type: Binance.Net.Enums.FuturesOrderType.StopMarket,
                                                                                                     positionSide: Binance.Net.Enums.PositionSide.Both,
                                                                                                     quantity: soluong,
                                                                                                     timeInForce: Binance.Net.Enums.TimeInForce.GoodTillCanceled,
