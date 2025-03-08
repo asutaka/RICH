@@ -644,7 +644,7 @@ namespace TradePr.Service
                     var first = resPosition.Data.First();
                     entity.priceEntry = (double)first.MarkPrice;
 
-                    if (quote.Close < 1)
+                    if (quote.Close < 5)
                     {
                         var price = quote.Close.ToString().Split('.').Last();
                         price = price.ReverseString();
