@@ -54,7 +54,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.Bybit_GetAccountInfo|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_GetAccountInfo|EXCEPTION| {ex.Message}");
             }
             return null;
         }
@@ -85,7 +85,7 @@ namespace TradePr.Service
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.Bybit_Trade|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Trade|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -166,7 +166,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.Bybit_TradeSignal|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeSignal|EXCEPTION| {ex.Message}");
             }
             return;
         }
@@ -243,13 +243,13 @@ namespace TradePr.Service
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"BybitService.TradeThreeSignal|EXCEPTION|INPUT: {JsonConvert.SerializeObject(item)}| {ex.Message}");
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.TradeThreeSignal|EXCEPTION|INPUT: {JsonConvert.SerializeObject(item)}| {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.Bybit_TradeThreeSignal|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeThreeSignal|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -350,7 +350,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.Bybit_TradeTokenUnlock|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeTokenUnlock|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -360,7 +360,7 @@ namespace TradePr.Service
             {
                 var sBuilder = new StringBuilder();
 
-                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Option);
+                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (!resPosition.Data.List.Any())
                     return;
 
@@ -368,8 +368,8 @@ namespace TradePr.Service
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
-                var countForceSell = lForce.Count(x => x.Side == (int)PositionSide.Sell);
-                var countForceBuy = lForce.Count(x => x.Side == (int)PositionSide.Buy);
+                var countForceSell = lForce.Count(x => x.Side == (int)OrderSide.Sell);
+                var countForceBuy = lForce.Count(x => x.Side == (int)OrderSide.Buy);
                 if (countForceSell >= 5)
                 {
                     var lSell = resPosition.Data.List.Where(x => x.Side == PositionSide.Buy);
@@ -562,7 +562,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.Bybit_MarketAction|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_MarketAction|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -583,7 +583,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.ForceMarket|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.ForceMarket|EXCEPTION| {ex.Message}");
             }
 
             return lRes;
@@ -648,7 +648,7 @@ namespace TradePr.Service
                         ty = (int)ETypeBot.TokenUnlock,
                         action = (int)EAction.GetPosition
                     });
-
+                    await _teleService.SendMessage(_idUser, $"[ERROR] |{entity.s}|{res.Error.Message}");
                     return entity;
                 }
 
@@ -698,7 +698,7 @@ namespace TradePr.Service
                             action = (int)EAction.Short_SL,
                             des = $"side: {SL_side}, type: {NewOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
                         });
-
+                        await _teleService.SendMessage(_idUser, $"[ERROR] |{entity.s}|{res.Error.Message}");
                         return null;
                     }
 
@@ -709,7 +709,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.PlaceOrder|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.PlaceOrder|EXCEPTION| {ex.Message}");
             }
             return null;
         }
@@ -728,7 +728,7 @@ namespace TradePr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"BybitService.PlaceOrderClose|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
 
             await _teleService.SendMessage(_idUser, $"[ERROR] Không thể đóng lệnh {side}: {symbol}!");
