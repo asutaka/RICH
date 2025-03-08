@@ -725,7 +725,10 @@ namespace TradePr.Service
                                                                                         type: NewOrderType.Market,
                                                                                         quantity: quan);
                 if (res.Success)
+                {
+                    var resCancel = await StaticVal.ByBitInstance().V5Api.Trading.CancelAllOrderAsync(Category.Linear, symbol);
                     return true;
+                }
             }
             catch (Exception ex)
             {
