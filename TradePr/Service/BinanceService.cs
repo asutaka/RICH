@@ -610,6 +610,20 @@ namespace TradePr.Service
                                                                                                     reduceOnly: false,
                                                                                                     quantity: soluong);
                 Thread.Sleep(500);
+                if (!res.Success)
+                {
+                    if(res.Error.Code == -1111)
+                    {
+                        soluong = Math.Round(soluong, 1);
+                        res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
+                                                                                                    side: side,
+                                                                                                    type: Binance.Net.Enums.FuturesOrderType.Market,
+                                                                                                    positionSide: Binance.Net.Enums.PositionSide.Both,
+                                                                                                    reduceOnly: false,
+                                                                                                    quantity: soluong);
+                        Thread.Sleep(500);
+                    }
+                }
                 //nếu lỗi return
                 if (!res.Success)
                 {
@@ -621,6 +635,7 @@ namespace TradePr.Service
                         action = (int)EAction.Short,
                         des = $"side: {side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}"
                     });
+                    await _teleService.SendMessage(_idUser, $"[ERROR] |{entity.s}|{res.Error.Message}");
                     return null;
                 }
 
@@ -673,6 +688,23 @@ namespace TradePr.Service
                     Thread.Sleep(500);
                     if (!res.Success)
                     {
+                        if (res.Error.Code == -1111)
+                        {
+                            sl = Math.Round(soluong, 1);
+                            res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
+                                                                                                    side: SL_side,
+                                                                                                    type: Binance.Net.Enums.FuturesOrderType.StopMarket,
+                                                                                                    positionSide: Binance.Net.Enums.PositionSide.Both,
+                                                                                                    quantity: soluong,
+                                                                                                    timeInForce: Binance.Net.Enums.TimeInForce.GoodTillExpiredOrCanceled,
+                                                                                                    reduceOnly: true,
+                                                                                                    workingType: Binance.Net.Enums.WorkingType.Mark,
+                                                                                                    stopPrice: sl);
+                            Thread.Sleep(500);
+                        }
+                    }
+                    if (!res.Success)
+                    {
                         _errRepo.InsertOne(new ErrorPartner
                         {
                             s = entity.s,
@@ -681,7 +713,7 @@ namespace TradePr.Service
                             action = (int)EAction.Short_SL,
                             des = $"side: {SL_side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
                         });
-
+                        await _teleService.SendMessage(_idUser, $"[ERROR] |{entity.s}|{res.Error.Message}");
                         return null;
                     }
 
