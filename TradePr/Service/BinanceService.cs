@@ -324,7 +324,7 @@ namespace TradePr.Service
                                 priceStoploss = res.priceStoploss
                             });
 
-                            var mes = $"[UNLOCK][Mở vị thế SHORT] {res.s}|{((Binance.Net.Enums.OrderSide)res.Side)}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[UNLOCK][Mở vị thế SHORT] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             sBuilder.AppendLine(mes);
                         }
                     }
