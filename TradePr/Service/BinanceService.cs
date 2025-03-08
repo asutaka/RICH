@@ -360,12 +360,12 @@ namespace TradePr.Service
                 var countForceBuy = lForce.Count(x => x.Side == (int)Binance.Net.Enums.OrderSide.Buy);
                 if (countForceSell >= 5)
                 {
-                    var lSell = resPosition.Data.Where(x => x.PositionSide == Binance.Net.Enums.PositionSide.Long);
+                    var lSell = resPosition.Data.Where(x => x.PositionAmt < 0);
                     lRes = await ForceMarket(lSell);
                 }
                 if (countForceBuy >= 5)
                 {
-                    var lBuy = resPosition.Data.Where(x => x.PositionSide == Binance.Net.Enums.PositionSide.Short);
+                    var lBuy = resPosition.Data.Where(x => x.PositionAmt > 0);
                     lRes = await ForceMarket(lBuy);
                 }
 
@@ -561,7 +561,9 @@ namespace TradePr.Service
             {
                 foreach (var item in lData)
                 {
-                    var side = (item.PositionSide == Binance.Net.Enums.PositionSide.Long) ? Binance.Net.Enums.OrderSide.Buy : Binance.Net.Enums.OrderSide.Sell;
+                    var side = (item.PositionAmt < 0) ? Binance.Net.Enums.OrderSide.Buy : Binance.Net.Enums.OrderSide.Sell;
+                    var pos = (item.PositionAmt < 0) ? Binance.Net.Enums.PositionSide.Short : Binance.Net.Enums.PositionSide.Long;
+                    item.PositionSide = pos;
                     var res = await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), side);
                     if (!res)
                         continue;
@@ -734,7 +736,7 @@ namespace TradePr.Service
             try
             {
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(symbol,
-                                                                                                    side: (Binance.Net.Enums.OrderSide)((int)side),
+                                                                                                    side: side,
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.Market,
                                                                                                     positionSide: Binance.Net.Enums.PositionSide.Both,
                                                                                                     reduceOnly: false,
