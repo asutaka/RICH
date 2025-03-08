@@ -75,7 +75,7 @@ namespace StockPr
                     await _teleService.SendMessage(_idChannel, $"[Quỹ Đầu Tư]\n{portfolio}");
                 }
                 //Tổng cục thống kê
-                if (dt.Day == 6)
+                if (dt.Day == 6 && dt.Hour >= 7)
                 {
                     var res = await _tongcucService.TongCucThongKe(dt);
                     if (res.Item1 > 0)
