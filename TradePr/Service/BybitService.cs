@@ -258,11 +258,12 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.UtcNow;
+                //if (true)
                 if (dt.Hour == 23 && dt.Minute == 58)
                 {
                     var sBuilder = new StringBuilder();
                     #region Đóng vị thế
-                    var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Option);
+                    var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                     if (resPosition?.Data?.List?.Any()?? false)
                     {
                         //close all
