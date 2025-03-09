@@ -30,6 +30,7 @@ namespace TradePr.Service
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         private readonly int _exchange = (int)EExchange.Bybit;
+        private readonly int _forceSell = 4;
         public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, ISignalTradeRepo signalTradeRepo, IErrorPartnerRepo errRepo,
                             IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo, ITokenUnlockTradeRepo tokenUnlockTradeRepo, ITokenUnlockRepo tokenUnlockRepo,
                             IAPIService apiService, ITeleService teleService)
@@ -371,12 +372,12 @@ namespace TradePr.Service
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
                 var countForceSell = lForce.Count(x => x.Side == (int)OrderSide.Sell);
                 var countForceBuy = lForce.Count(x => x.Side == (int)OrderSide.Buy);
-                if (countForceSell >= 5)
+                if (countForceSell >= _forceSell)
                 {
                     var lSell = resPosition.Data.List.Where(x => x.Side == PositionSide.Buy);
                     lRes = await ForceMarket(lSell);
                 }
-                if (countForceBuy >= 5)
+                if (countForceBuy >= _forceSell)
                 {
                     var lBuy = resPosition.Data.List.Where(x => x.Side == PositionSide.Sell);
                     lRes = await ForceMarket(lBuy);
