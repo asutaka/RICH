@@ -387,7 +387,7 @@ namespace TradePr.Service
                 var builderSignal = Builders<SignalTrade>.Filter;
                 var lSignal = _signalTradeRepo.GetByFilter(builderSignal.And(
                                    builderSignal.Eq(x => x.ex, _exchange),
-                                   builderSignal.Gte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds()),
+                                   //builderSignal.Gte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds()),
                                    builderSignal.Lte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds()),
                                    builderSignal.Eq(x => x.status, 0)
                                ));
@@ -395,7 +395,7 @@ namespace TradePr.Service
                 var builderThree = Builders<ThreeSignalTrade>.Filter;
                 var lThree = _threeSignalTradeRepo.GetByFilter(builderThree.And(
                                    builderThree.Eq(x => x.ex, _exchange),
-                                   builderThree.Gte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds()),
+                                   //builderThree.Gte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds()),
                                    builderThree.Lte(x => x.timeFlag, (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds()),
                                    builderThree.Eq(x => x.status, 0)
                                ));
