@@ -1,12 +1,14 @@
 ﻿using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StockPr.Service
 {
     public interface ITeleService
     {
-        Task SendMessage(long id, string mes);
+        Task SendMessage(long id, string mes, Dictionary<string, string> dLink = null);
+        Task SendMessage(long id, string mes, string link);
         Task SendPhoto(long id, InputFileStream stream);
 
     }
@@ -53,11 +55,41 @@ namespace StockPr.Service
             }
         }
 
-        public async Task SendMessage(long id, string mes)
+        public async Task SendMessage(long id, string mes, string link)
         {
             try
             {
-                await _bot.SendMessage(id, mes);
+                var message = $"[{mes}]({link})";
+                await _bot.SendMessage(id, message, ParseMode.Markdown, linkPreviewOptions: new LinkPreviewOptions
+                {
+                    IsDisabled = true,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TeleService.SendMessage|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task SendMessage(long id, string mes, Dictionary<string, string> dLink = null)
+        {
+            try
+            {
+                InlineKeyboardMarkup inline = null;
+                if (dLink?.Any() ?? false)
+                {
+                    var lInlineKeyboard = new List<InlineKeyboardButton>();
+                    foreach (var item in dLink)
+                    {
+                        lInlineKeyboard.Add(InlineKeyboardButton.WithUrl(item.Key, item.Value)); 
+                    }
+                    inline = new InlineKeyboardMarkup(lInlineKeyboard);
+                }
+
+                await _bot.SendMessage(id, mes, ParseMode.Markdown, replyMarkup: inline, linkPreviewOptions: new LinkPreviewOptions
+                {
+                    IsDisabled = true,
+                });
             }
             catch (Exception ex) 
             {
