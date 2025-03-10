@@ -145,6 +145,10 @@
         public string path { get; set; }
     }
 
-
+    public class BaoCaoPhanTichModel
+    {
+        public string content { get; set; }
+        public string link { get; set; }
+    }
 
 }

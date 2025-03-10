@@ -1,15 +1,15 @@
 ﻿using MongoDB.Driver;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
+using StockPr.Model.BCPT;
 using StockPr.Utils;
-using System.Text;
 using System.Web;
 
 namespace StockPr.Service
 {
     public interface IBaoCaoPhanTichService
     {
-        Task<string> BaoCaoPhanTich();
+        Task<List<BaoCaoPhanTichModel>> BaoCaoPhanTich();
     }
     public class BaoCaoPhanTichService : IBaoCaoPhanTichService
     {
@@ -25,10 +25,9 @@ namespace StockPr.Service
             _bcptRepo = bcptRepo;
         }
 
-        public async Task<string> BaoCaoPhanTich()
+        public async Task<List<BaoCaoPhanTichModel>> BaoCaoPhanTich()
         {
-            var sBuilder = new StringBuilder();
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var ssi_COM = await SSI(false);
@@ -163,32 +162,18 @@ namespace StockPr.Service
                 {
                     lMes.AddRange(cafef);
                 }
-
-                var count = lMes.Count();
-                if (count > 1)
-                {
-                    var index = 1;
-                    foreach (var item in lMes)
-                    {
-                        sBuilder.AppendLine($"{index++}. {item}");
-                    }
-                }
-                else if(count == 1)
-                {
-                    sBuilder.Append(lMes.First());
-                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"MessageService.BaoCaoPhanTich|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<List<string>> DSC()
+        private async Task<List<BaoCaoPhanTichModel>> DSC()
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
@@ -234,14 +219,24 @@ namespace StockPr.Service
                             ty = (int)ESource.DSC
                         });
 
+                        var title = string.Empty;
                         if (itemValid.attributes.category_id.data.attributes.slug.Equals("phan-tich-doanh-nghiep"))
                         {
                             var code = itemValid.attributes.slug.Split('-').First().ToUpper();
-                            lMes.Add($"[[DSC - Phân tích cổ phiếu] - {code}:{itemValid.attributes.title}](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
+                            title = $"|DSC - Cổ phiếu {code}| {itemValid.attributes.title}";
                         }
                         else if (!itemValid.attributes.category_id.data.attributes.slug.Contains("beat"))
                         {
-                            lMes.Add($"[DSC - Báo cáo phân tích](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
+                            title = $"|DSC - Báo cáo phân tích| {itemValid.attributes.title}";
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(title))
+                        {
+                            lMes.Add(new BaoCaoPhanTichModel
+                            {
+                                content = title,
+                                link = $"www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug}"
+                            });
                         }
                     }
                 }
@@ -254,9 +249,9 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> VinaCapital()
+        private async Task<List<BaoCaoPhanTichModel>> VinaCapital()
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
@@ -302,7 +297,11 @@ namespace StockPr.Service
                             ty = (int)ESource.VinaCapital
                         });
 
-                        lMes.Add($"[[VinaCapital] - {itemValid.title}]({itemValid.path})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"|VinaCapital| {itemValid.title}",
+                            link = itemValid.path
+                        });
                     }
                 }
             }
@@ -314,9 +313,9 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> VNDirect(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> VNDirect(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var lRes = await _apiService.VNDirect_GetPost(mode);
@@ -326,7 +325,7 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[VNDirect - Báo cáo ngành]" : "[VNDirect - Phân tích cổ phiếu]";
+                var title = mode ? "|VNDirect - Báo cáo ngành|" : "|VNDirect - Cổ phiếu|";
                 var commonlink = mode ? "https://dstock.vndirect.com.vn/trung-tam-phan-tich/bao-cao-nganh" 
                                     : "https://dstock.vndirect.com.vn/trung-tam-phan-tich/bao-cao-phan-tich-dn";
 
@@ -365,7 +364,11 @@ namespace StockPr.Service
                         });
 
                         var link = itemValid.attachments.Any() ? $"https://www.vndirect.com.vn/cmsupload/beta/{itemValid.attachments.First().name}" : $"{commonlink}";
-                        lMes.Add($"[{title} {itemValid.newsTitle}]({link})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"{title} {itemValid.newsTitle}",
+                            link = link
+                        });
                     }
                 }
             }
@@ -377,9 +380,9 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> MigrateAsset()
+        private async Task<List<BaoCaoPhanTichModel>> MigrateAsset()
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var lRes = await _apiService.MigrateAsset_GetPost();
@@ -423,15 +426,16 @@ namespace StockPr.Service
                             ty = (int)ESource.MigrateAsset
                         });
 
-
+                        var title = $"|MigrateAsset - Báo cáo phân tích| {itemValid.title}";
                         if (itemValid.stock_related.Length == 3)
                         {
-                            lMes.Add($"[[MigrateAsset - Phân tích cổ phiếu] {itemValid.stock_related}:{itemValid.title}](https://masvn.com/api{itemValid.file_path})");
+                            title = $"|MigrateAsset - Cổ phiếu {itemValid.stock_related}| {itemValid.title}";
                         }
-                        else
+                        lMes.Add(new BaoCaoPhanTichModel
                         {
-                            lMes.Add($"[[MigrateAsset - Báo cáo phân tích] {itemValid.title}](https://masvn.com/api{itemValid.file_path})");
-                        }
+                            content = title,
+                            link = $"https://masvn.com/api{itemValid.file_path}"
+                        });
                     }
                 }
             }
@@ -442,15 +446,15 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> Agribank(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> Agribank(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[Agribank - Báo cáo ngành]" : "[Agribank - Phân tích cổ phiếu]";
+                var title = mode ? "|Agribank - Báo cáo ngành|" : "|Agribank - Phân tích cổ phiếu|";
 
                 var lRes = await _apiService.Agribank_GetPost(mode);
                 if (lRes is null)
@@ -491,7 +495,11 @@ namespace StockPr.Service
 
                         if (itemValid.Title.Contains("AGR Snapshot"))
                         {
-                            lMes.Add($"[{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim()}](https://agriseco.com.vn/Report/ReportFile/{itemValid.ReportID})");
+                            lMes.Add(new BaoCaoPhanTichModel
+                            {
+                                content = $"{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim()}",
+                                link = $"https://agriseco.com.vn/Report/ReportFile/{itemValid.ReportID}"
+                            });
                         }
                     }
                 }
@@ -504,15 +512,15 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> SSI(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> SSI(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[SSI - Báo cáo ngành]" : "[SSI - Phân tích cổ phiếu]";
+                var title = mode ? "|SSI - Báo cáo ngành|" : "|SSI - Cổ phiếu|";
                 var commonlink = mode ? "https://www.ssi.com.vn/khach-hang-ca-nhan/bao-cao-nganh"
                                     : "https://www.ssi.com.vn/khach-hang-ca-nhan/bao-cao-cong-ty";
 
@@ -553,7 +561,11 @@ namespace StockPr.Service
                             ty = (int)ESource.SSI
                         });
 
-                        lMes.Add($"[{title} {itemValid.title}]({commonlink})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"{title} {itemValid.title}",
+                            link = commonlink
+                        });
                     }
                 }
             }
@@ -565,9 +577,9 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> VCI()
+        private async Task<List<BaoCaoPhanTichModel>> VCI()
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
@@ -614,18 +626,21 @@ namespace StockPr.Service
                             ty = (int)ESource.VCI
                         });
 
+                        var title = $"|VCI - Báo cáo vĩ mô| {itemValid.name}";
                         if (itemValid.pageLink == "company-research")
                         {
-                            lMes.Add($"[[VCI - Phân tích cổ phiếu] {itemValid.name}]({itemValid.file})");
+                            title = $"|VCI - Cổ phiếu| {itemValid.name}";
                         }
                         else if (itemValid.pageLink == "sector-reports")
                         {
-                            lMes.Add($"[[VCI - Báo cáo Ngành] {itemValid.name}]({itemValid.file})");
+                            title = $"|VCI - Báo cáo Ngành| {itemValid.name}";
                         }
-                        else
+
+                        lMes.Add(new BaoCaoPhanTichModel
                         {
-                            lMes.Add($"[[VCI - Báo cáo vĩ mô] {itemValid.name}]({itemValid.file})");
-                        }
+                            content = title,
+                            link = itemValid.file
+                        });
                     }
                 }
             }
@@ -637,9 +652,9 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> VCBS()
+        private async Task<List<BaoCaoPhanTichModel>> VCBS()
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
@@ -685,15 +700,27 @@ namespace StockPr.Service
 
                         if (itemValid.category.code == "BCDN")
                         {
-                            lMes.Add($"[[VCBS - Phân tích cổ phiếu] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
+                            lMes.Add(new BaoCaoPhanTichModel
+                            {
+                                content = $"|VCBS - Cổ phiếu| {itemValid.name}",
+                                link = "https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet?code=BCDN"
+                            });
                         }
                         else if (itemValid.category.code == "BCN")
                         {
-                            lMes.Add($"[[VCBS - Báo cáo Ngành] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
+                            lMes.Add(new BaoCaoPhanTichModel
+                            {
+                                content = $"|VCBS - Báo cáo Ngành| {itemValid.name}",
+                                link = "https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet?code=BCN"
+                            });
                         }
                         else
                         {
-                            lMes.Add($"[[VCBS - Báo cáo vĩ mô] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
+                            lMes.Add(new BaoCaoPhanTichModel
+                            {
+                                content = $"|VCBS - Báo cáo vĩ mô| {itemValid.name}",
+                                link = "https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet?code=BCVM"
+                            });
                         }
                     }
                 }
@@ -706,15 +733,15 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> BSC(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> BSC(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[BSC - Báo cáo ngành]" : "[BSC - Phân tích cổ phiếu]";
+                var title = mode ? "|BSC - Báo cáo ngành|" : "|BSC - Cổ phiếu|";
                 var commonlink = mode ? "https://www.bsc.com.vn/bao-cao-phan-tich/danh-muc-bao-cao/2"
                                     : "https://www.bsc.com.vn/bao-cao-phan-tich/danh-muc-bao-cao/1";
 
@@ -756,7 +783,11 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
-                        lMes.Add($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"{title} {HttpUtility.HtmlDecode(itemValid.title)}",
+                            link = link
+                        });
                     }
                 }
             }
@@ -768,15 +799,15 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> MBS(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> MBS(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[MBS - Báo cáo ngành]" : "[MBS - Phân tích cổ phiếu]";
+                var title = mode ? "|MBS - Báo cáo ngành|" : "|MBS - Cổ phiếu|";
                 var commonlink = mode ? "https://mbs.com.vn/trung-tam-nghien-cuu/bao-cao-phan-tich/bao-cao-phan-tich-nganh/"
                                     : "https://mbs.com.vn/trung-tam-nghien-cuu/bao-cao-phan-tich/nghien-cuu-co-phieu/";
 
@@ -818,7 +849,11 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{HttpUtility.HtmlDecode(itemValid.path)}";
-                        lMes.Add($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"{title} {HttpUtility.HtmlDecode(itemValid.title)}",
+                            link = link
+                        });
                     }
                 }
             }
@@ -830,15 +865,15 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> PSI(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> PSI(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[PSI - Báo cáo ngành]" : "[PSI - Phân tích cổ phiếu]";
+                var title = mode ? "|PSI - Báo cáo ngành|" : "|PSI - Cổ phiếu|";
                 var commonlink = mode ? "https://www.psi.vn/vi/trung-tam-phan-tich/bao-cao-nganh"
                                     : "https://www.psi.vn/vi/trung-tam-phan-tich/bao-cao-phan-tich-doanh-nghiep";
 
@@ -879,7 +914,11 @@ namespace StockPr.Service
                             ty = (int)ESource.PSI
                         });
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
-                        lMes.Add($"[{title} {itemValid.title}]({link})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"{title} {itemValid.title}",
+                            link = link
+                        });
                     }
                 }
             }
@@ -891,15 +930,15 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> FPTS(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> FPTS(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[FPTS - Báo cáo ngành]" : "[FPTS - Phân tích cổ phiếu]";
+                var title = mode ? "|FPTS - Báo cáo ngành|" : "|FPTS - Cổ phiếu|";
                 var commonlink = mode ? "https://ezsearch.fpts.com.vn/Services/EzReport/?tabid=174"
                                     : "https://ezsearch.fpts.com.vn/Services/EzReport/?tabid=179";
 
@@ -941,7 +980,11 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
-                        lMes.Add($"[{title} {itemValid.title}]({link})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"{title} {itemValid.title}",
+                            link = link
+                        });
                     }
                 }
             }
@@ -953,15 +996,15 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> KBS(bool mode)
+        private async Task<List<BaoCaoPhanTichModel>> KBS(bool mode)
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var title = mode ? "[KBS - Báo cáo ngành]" : "[KBS - Phân tích cổ phiếu]";
+                var title = mode ? "|KBS - Báo cáo ngành|" : "|KBS - Cổ phiếu|";
 
                 var lRes = await _apiService.KBS_GetPost(mode);
                 if (lRes is null)
@@ -1000,7 +1043,11 @@ namespace StockPr.Service
                             ty = (int)ESource.KBS
                         });
 
-                        lMes.Add($"[{title} {itemValid.title}]({itemValid.path})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"{title} {itemValid.title}",
+                            link = itemValid.path
+                        });
                     }
                 }
             }
@@ -1012,9 +1059,9 @@ namespace StockPr.Service
             return lMes;
         }
 
-        private async Task<List<string>> CafeF()
+        private async Task<List<BaoCaoPhanTichModel>> CafeF()
         {
-            var lMes = new List<string>();
+            var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
                 var dt = DateTime.Now;
@@ -1058,7 +1105,11 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"https://s.cafef.vn/phan-tich-bao-cao.chn" : $"{itemValid.path}";
-                        lMes.Add($"[[CafeF - Phân tích] {itemValid.title}]({link})");
+                        lMes.Add(new BaoCaoPhanTichModel
+                        {
+                            content = $"|CafeF - Phân tích| {itemValid.title}",
+                            link = link
+                        });
                     }
                 }
             }

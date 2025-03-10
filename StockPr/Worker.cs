@@ -53,10 +53,14 @@ namespace StockPr
                 var isTimePrint = dt.Minute >= 15 && dt.Minute < 30;//từ phút thứ 15 đến phút thứ 30
                 var isRealTime = (dt.Hour >= 9 && dt.Hour < 12) || (dt.Hour >= 13 && dt.Hour < 15);//từ 9h đến 3h
                 //Báo cáo phân tích
-                var bcpt = await _bcptService.BaoCaoPhanTich();
-                if(!string.IsNullOrWhiteSpace(bcpt))
+                var lBCPT = await _bcptService.BaoCaoPhanTich();
+                if (lBCPT?.Any() ?? false) 
                 {
-                    await _teleService.SendMessage(_idGroup, bcpt);
+                    foreach (var item in lBCPT)
+                    {
+                        await _teleService.SendMessage(_idGroup, item.content, item.link);
+                        Thread.Sleep(200);
+                    }
                 }
 
                 if(dt.Day == 1)
