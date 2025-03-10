@@ -482,12 +482,12 @@ namespace TradePr.Service
                             unlock.rate = rate;
                             _tokenUnlockTradeRepo.Update(unlock);
 
-                            var mes = $"[Three][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            var mes = $"[Unlock][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                             sBuilder.AppendLine(mes);
                             continue;
                         }
 
-                        var mesOther = $"[Three][Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}";
+                        var mesOther = $"[Đóng vị thế {item.Side}] {item.Symbol}|Giá đóng: {item.MarkPrice}";
                         sBuilder.AppendLine(mesOther);
                     }
 
