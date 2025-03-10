@@ -28,139 +28,154 @@ namespace StockPr.Service
         public async Task<string> BaoCaoPhanTich()
         {
             var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var ssi_COM = await SSI(false);
-                if (!string.IsNullOrWhiteSpace(ssi_COM))
+                if (ssi_COM?.Any() ?? false) 
                 {
-                    sBuilder.Append(ssi_COM);
+                    lMes.AddRange(ssi_COM);
                 }
 
                 var vcbs = await VCBS();
-                if (!string.IsNullOrWhiteSpace(vcbs))
+                if (vcbs?.Any() ?? false)
                 {
-                    sBuilder.Append(vcbs);
+                    lMes.AddRange(vcbs);
                 }
 
                 var vci = await VCI();
-                if (!string.IsNullOrWhiteSpace(vci))
+                if (vci?.Any() ?? false)
                 {
-                    sBuilder.Append(vci);
+                    lMes.AddRange(vci);
                 }
 
                 var dsc = await DSC();
-                if(!string.IsNullOrWhiteSpace(dsc))
+                if(dsc?.Any() ?? false)
                 {
-                    sBuilder.Append(dsc);
+                    lMes.AddRange(dsc);
                 }
 
                 var vinacapital = await VinaCapital();
-                if (!string.IsNullOrWhiteSpace(vinacapital))
+                if (vinacapital?.Any() ?? false)
                 {
-                    sBuilder.Append(vinacapital);
+                    lMes.AddRange(vinacapital);
                 }
 
                 var vndirect_COM = await VNDirect(false);
-                if (!string.IsNullOrWhiteSpace(vndirect_COM))
+                if (vndirect_COM?.Any() ?? false)
                 {
-                    sBuilder.Append(vndirect_COM);
+                    lMes.AddRange(vndirect_COM);
                 }
 
                 var mbs_COM = await MBS(false);
-                if (!string.IsNullOrWhiteSpace(mbs_COM))
+                if (mbs_COM?.Any() ?? false)
                 {
-                    sBuilder.Append(mbs_COM);
+                    lMes.AddRange(mbs_COM);
                 }
 
                 var fpts_COM = await FPTS(false);
-                if (!string.IsNullOrWhiteSpace(fpts_COM))
+                if (fpts_COM?.Any() ?? false)
                 {
-                    sBuilder.Append(fpts_COM);
+                    lMes.AddRange(fpts_COM);
                 }
 
                 var bsc_COM = await BSC(false);
-                if (!string.IsNullOrWhiteSpace(bsc_COM))
+                if (bsc_COM?.Any() ?? false)
                 {
-                    sBuilder.Append(bsc_COM);
+                    lMes.AddRange(bsc_COM);
                 }
 
                 var ma = await MigrateAsset();
-                if (!string.IsNullOrWhiteSpace(ma))
+                if (ma?.Any() ?? false)
                 {
-                    sBuilder.Append(ma);
+                    lMes.AddRange(ma);
                 }
 
                 var agribank_COM = await Agribank(false);
-                if (!string.IsNullOrWhiteSpace(agribank_COM))
+                if (agribank_COM?.Any() ?? false)
                 {
-                    sBuilder.Append(agribank_COM);
+                    lMes.AddRange(agribank_COM);
                 }
 
                 var psi_COM = await PSI(false);
-                if (!string.IsNullOrWhiteSpace(psi_COM))
+                if (psi_COM?.Any() ?? false)
                 {
-                    sBuilder.Append(psi_COM);
+                    lMes.AddRange(psi_COM);
                 }
 
                 var kbs_COM = await KBS(false);
-                if (!string.IsNullOrWhiteSpace(kbs_COM))
+                if (kbs_COM?.Any() ?? false)
                 {
-                    sBuilder.Append(kbs_COM);
+                    lMes.AddRange(kbs_COM);
                 }
 
 
                 var ssi_Ins = await SSI(true);
-                if (!string.IsNullOrWhiteSpace(ssi_Ins))
+                if (ssi_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(ssi_Ins);
+                    lMes.AddRange(ssi_Ins);
                 }
 
                 var vndirect_Ins = await VNDirect(true);
-                if (!string.IsNullOrWhiteSpace(vndirect_Ins))
+                if (vndirect_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(vndirect_Ins);
+                    lMes.AddRange(vndirect_Ins);
                 }
 
                 var mbs_Ins = await MBS(true);
-                if (!string.IsNullOrWhiteSpace(mbs_Ins))
+                if (mbs_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(mbs_Ins);
+                    lMes.AddRange(mbs_Ins);
                 }
 
                 var fpts_Ins = await FPTS(true);
-                if (!string.IsNullOrWhiteSpace(fpts_Ins))
+                if (fpts_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(fpts_Ins);
+                    lMes.AddRange(fpts_Ins);
                 }
 
                 var bsc_Ins = await BSC(true);
-                if (!string.IsNullOrWhiteSpace(bsc_Ins))
+                if (bsc_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(bsc_Ins);
+                    lMes.AddRange(bsc_Ins);
                 }
 
                 var agribank_Ins = await Agribank(true);
-                if (!string.IsNullOrWhiteSpace(agribank_Ins))
+                if (agribank_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(agribank_Ins);
+                    lMes.AddRange(agribank_Ins);
                 }
 
                 var psi_Ins = await PSI(true);
-                if (!string.IsNullOrWhiteSpace(psi_Ins))
+                if (psi_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(psi_Ins);
+                    lMes.AddRange(psi_Ins);
                 }
 
                 var kbs_Ins = await KBS(true);
-                if (!string.IsNullOrWhiteSpace(kbs_Ins))
+                if (kbs_Ins?.Any() ?? false)
                 {
-                    sBuilder.Append(kbs_Ins);
+                    lMes.AddRange(kbs_Ins);
                 }
 
                 var cafef = await CafeF();
-                if (!string.IsNullOrWhiteSpace(cafef))
+                if (cafef?.Any() ?? false)
                 {
-                    sBuilder.Append(cafef);
+                    lMes.AddRange(cafef);
+                }
+
+                var count = lMes.Count();
+                if (count > 1)
+                {
+                    var index = 1;
+                    foreach (var item in lMes)
+                    {
+                        sBuilder.AppendLine($"{index++}. {item}");
+                    }
+                }
+                else if(count == 1)
+                {
+                    sBuilder.Append(lMes.First());
                 }
             }
             catch (Exception ex)
@@ -171,9 +186,9 @@ namespace StockPr.Service
             return sBuilder.ToString();
         }
 
-        private async Task<string> DSC()
+        private async Task<List<string>> DSC()
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -183,7 +198,7 @@ namespace StockPr.Service
                 var lRes = await _apiService.DSC_GetPost();
                 if (lRes is null)
                 {
-                    return string.Empty;
+                    return null;
                 }
 
                 var lValid = lRes.Where(x => x.attributes.public_at > time);
@@ -222,11 +237,11 @@ namespace StockPr.Service
                         if (itemValid.attributes.category_id.data.attributes.slug.Equals("phan-tich-doanh-nghiep"))
                         {
                             var code = itemValid.attributes.slug.Split('-').First().ToUpper();
-                            sBuilder.AppendLine($"[[DSC - Phân tích cổ phiếu] - {code}:{itemValid.attributes.title}](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
+                            lMes.Add($"[[DSC - Phân tích cổ phiếu] - {code}:{itemValid.attributes.title}](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
                         }
                         else if (!itemValid.attributes.category_id.data.attributes.slug.Contains("beat"))
                         {
-                            sBuilder.AppendLine($"[DSC - Báo cáo phân tích](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
+                            lMes.Add($"[DSC - Báo cáo phân tích](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
                         }
                     }
                 }
@@ -236,12 +251,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.DSC|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> VinaCapital()
+        private async Task<List<string>> VinaCapital()
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -251,7 +266,7 @@ namespace StockPr.Service
                 var lRes = await _apiService.VinaCapital_GetPost();
                 if (lRes is null)
                 {
-                    return string.Empty;
+                    return null;
                 }
 
                 var lValid = lRes.Where(x => x.date >= time);
@@ -287,7 +302,7 @@ namespace StockPr.Service
                             ty = (int)ESource.VinaCapital
                         });
 
-                        sBuilder.AppendLine($"[[VinaCapital] - {itemValid.title}]({itemValid.path})");
+                        lMes.Add($"[[VinaCapital] - {itemValid.title}]({itemValid.path})");
                     }
                 }
             }
@@ -296,17 +311,17 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VinaCapital|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> VNDirect(bool mode)
+        private async Task<List<string>> VNDirect(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var lRes = await _apiService.VNDirect_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
@@ -350,7 +365,7 @@ namespace StockPr.Service
                         });
 
                         var link = itemValid.attachments.Any() ? $"https://www.vndirect.com.vn/cmsupload/beta/{itemValid.attachments.First().name}" : $"{commonlink}";
-                        sBuilder.AppendLine($"[{title} {itemValid.newsTitle}]({link})");
+                        lMes.Add($"[{title} {itemValid.newsTitle}]({link})");
                     }
                 }
             }
@@ -359,17 +374,17 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VNDirect|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> MigrateAsset()
+        private async Task<List<string>> MigrateAsset()
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var lRes = await _apiService.MigrateAsset_GetPost();
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
@@ -411,11 +426,11 @@ namespace StockPr.Service
 
                         if (itemValid.stock_related.Length == 3)
                         {
-                            sBuilder.AppendLine($"[[MigrateAsset - Phân tích cổ phiếu] {itemValid.stock_related}:{itemValid.title}](https://masvn.com/api{itemValid.file_path})");
+                            lMes.Add($"[[MigrateAsset - Phân tích cổ phiếu] {itemValid.stock_related}:{itemValid.title}](https://masvn.com/api{itemValid.file_path})");
                         }
                         else
                         {
-                            sBuilder.AppendLine($"[[MigrateAsset - Báo cáo phân tích] {itemValid.title}](https://masvn.com/api{itemValid.file_path})");
+                            lMes.Add($"[[MigrateAsset - Báo cáo phân tích] {itemValid.title}](https://masvn.com/api{itemValid.file_path})");
                         }
                     }
                 }
@@ -424,12 +439,12 @@ namespace StockPr.Service
             {
                 _logger.LogError(ex, $"MessageService.MigrateAsset|EXCEPTION| {ex.Message}");
             }
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> Agribank(bool mode)
+        private async Task<List<string>> Agribank(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -439,7 +454,7 @@ namespace StockPr.Service
 
                 var lRes = await _apiService.Agribank_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.Date > time);
                 if (lValid?.Any() ?? false)
@@ -476,7 +491,7 @@ namespace StockPr.Service
 
                         if (itemValid.Title.Contains("AGR Snapshot"))
                         {
-                            sBuilder.AppendLine($"[{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim()}](https://agriseco.com.vn/Report/ReportFile/{itemValid.ReportID})");
+                            lMes.Add($"[{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim()}](https://agriseco.com.vn/Report/ReportFile/{itemValid.ReportID})");
                         }
                     }
                 }
@@ -486,12 +501,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.Agribank|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> SSI(bool mode)
+        private async Task<List<string>> SSI(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -503,7 +518,7 @@ namespace StockPr.Service
 
                 var lRes = await _apiService.SSI_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
@@ -538,7 +553,7 @@ namespace StockPr.Service
                             ty = (int)ESource.SSI
                         });
 
-                        sBuilder.AppendLine($"[{title} {itemValid.title}]({commonlink})");
+                        lMes.Add($"[{title} {itemValid.title}]({commonlink})");
                     }
                 }
             }
@@ -547,12 +562,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.SSI|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> VCI()
+        private async Task<List<string>> VCI()
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -560,7 +575,7 @@ namespace StockPr.Service
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
                 var lRes = await _apiService.VCI_GetPost();
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.makerDate >= time
                                             && (x.pageLink == "company-research" || x.pageLink == "sector-reports" || x.pageLink == "macroeconomics" || x.pageLink == "phan-tich-doanh-nghiep"));
@@ -601,15 +616,15 @@ namespace StockPr.Service
 
                         if (itemValid.pageLink == "company-research")
                         {
-                            sBuilder.AppendLine($"[[VCI - Phân tích cổ phiếu] {itemValid.name}]({itemValid.file})");
+                            lMes.Add($"[[VCI - Phân tích cổ phiếu] {itemValid.name}]({itemValid.file})");
                         }
                         else if (itemValid.pageLink == "sector-reports")
                         {
-                            sBuilder.AppendLine($"[[VCI - Báo cáo Ngành] {itemValid.name}]({itemValid.file})");
+                            lMes.Add($"[[VCI - Báo cáo Ngành] {itemValid.name}]({itemValid.file})");
                         }
                         else
                         {
-                            sBuilder.AppendLine($"[[VCI - Báo cáo vĩ mô] {itemValid.name}]({itemValid.file})");
+                            lMes.Add($"[[VCI - Báo cáo vĩ mô] {itemValid.name}]({itemValid.file})");
                         }
                     }
                 }
@@ -619,12 +634,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VCI|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> VCBS()
+        private async Task<List<string>> VCBS()
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -632,7 +647,7 @@ namespace StockPr.Service
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
                 var lRes = await _apiService.VCBS_GetPost();
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.publishedAt >= time
                                             && (x.category.code == "BCVM" || x.category.code == "BCDN" || x.category.code == "BCN"));
@@ -670,15 +685,15 @@ namespace StockPr.Service
 
                         if (itemValid.category.code == "BCDN")
                         {
-                            sBuilder.AppendLine($"[[VCBS - Phân tích cổ phiếu] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
+                            lMes.Add($"[[VCBS - Phân tích cổ phiếu] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
                         }
                         else if (itemValid.category.code == "BCN")
                         {
-                            sBuilder.AppendLine($"[[VCBS - Báo cáo Ngành] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
+                            lMes.Add($"[[VCBS - Báo cáo Ngành] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
                         }
                         else
                         {
-                            sBuilder.AppendLine($"[[VCBS - Báo cáo vĩ mô] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
+                            lMes.Add($"[[VCBS - Báo cáo vĩ mô] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
                         }
                     }
                 }
@@ -688,12 +703,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VCBS|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> BSC(bool mode)
+        private async Task<List<string>> BSC(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -705,7 +720,7 @@ namespace StockPr.Service
 
                 var lRes = await _apiService.BSC_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
@@ -741,7 +756,7 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
-                        sBuilder.AppendLine($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
+                        lMes.Add($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
                     }
                 }
             }
@@ -750,12 +765,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.BSC|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> MBS(bool mode)
+        private async Task<List<string>> MBS(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -767,7 +782,7 @@ namespace StockPr.Service
 
                 var lRes = await _apiService.MBS_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
@@ -803,7 +818,7 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{HttpUtility.HtmlDecode(itemValid.path)}";
-                        sBuilder.AppendLine($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
+                        lMes.Add($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
                     }
                 }
             }
@@ -812,12 +827,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.MBS|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> PSI(bool mode)
+        private async Task<List<string>> PSI(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -829,7 +844,7 @@ namespace StockPr.Service
 
                 var lRes = await _apiService.PSI_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
@@ -864,7 +879,7 @@ namespace StockPr.Service
                             ty = (int)ESource.PSI
                         });
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
-                        sBuilder.AppendLine($"[{title} {itemValid.title}]({link})");
+                        lMes.Add($"[{title} {itemValid.title}]({link})");
                     }
                 }
             }
@@ -873,12 +888,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.PSI|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> FPTS(bool mode)
+        private async Task<List<string>> FPTS(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -890,7 +905,7 @@ namespace StockPr.Service
 
                 var lRes = await _apiService.FPTS_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
@@ -926,7 +941,7 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
-                        sBuilder.AppendLine($"[{title} {itemValid.title}]({link})");
+                        lMes.Add($"[{title} {itemValid.title}]({link})");
                     }
                 }
             }
@@ -935,12 +950,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.FPTS|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> KBS(bool mode)
+        private async Task<List<string>> KBS(bool mode)
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -950,7 +965,7 @@ namespace StockPr.Service
 
                 var lRes = await _apiService.KBS_GetPost(mode);
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
@@ -985,7 +1000,7 @@ namespace StockPr.Service
                             ty = (int)ESource.KBS
                         });
 
-                        sBuilder.AppendLine($"[{title} {itemValid.title}]({itemValid.path})");
+                        lMes.Add($"[{title} {itemValid.title}]({itemValid.path})");
                     }
                 }
             }
@@ -994,12 +1009,12 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.KBS|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
 
-        private async Task<string> CafeF()
+        private async Task<List<string>> CafeF()
         {
-            var sBuilder = new StringBuilder();
+            var lMes = new List<string>();
             try
             {
                 var dt = DateTime.Now;
@@ -1007,7 +1022,7 @@ namespace StockPr.Service
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
                 var lRes = await _apiService.CafeF_GetPost();
                 if (lRes is null)
-                    return string.Empty;
+                    return null;
 
                 var lValid = lRes.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
@@ -1043,7 +1058,7 @@ namespace StockPr.Service
                         });
 
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"https://s.cafef.vn/phan-tich-bao-cao.chn" : $"{itemValid.path}";
-                        sBuilder.AppendLine($"[[CafeF - Phân tích] {itemValid.title}]({link})");
+                        lMes.Add($"[[CafeF - Phân tích] {itemValid.title}]({link})");
                     }
                 }
             }
@@ -1052,7 +1067,7 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.CafeF|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return lMes;
         }
     }
 }
