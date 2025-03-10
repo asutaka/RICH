@@ -59,7 +59,7 @@ namespace StockPr
                     await _teleService.SendMessage(_idGroup, bcpt);
                 }
 
-                if(dt.DayOfWeek == DayOfWeek.Monday)
+                if(dt.Day == 1)
                 {
                     var eps = await _epsService.RankEPS(DateTime.Now);
                     if (eps.Item1 > 0)
