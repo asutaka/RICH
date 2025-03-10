@@ -222,13 +222,11 @@ namespace StockPr.Service
                         if (itemValid.attributes.category_id.data.attributes.slug.Equals("phan-tich-doanh-nghiep"))
                         {
                             var code = itemValid.attributes.slug.Split('-').First().ToUpper();
-                            sBuilder.AppendLine($"[DSC - Phân tích cổ phiếu] - {code}:{itemValid.attributes.title}");
-                            sBuilder.AppendLine($"Link: www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug}");
+                            sBuilder.AppendLine($"[[DSC - Phân tích cổ phiếu] - {code}:{itemValid.attributes.title}](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
                         }
                         else if (!itemValid.attributes.category_id.data.attributes.slug.Contains("beat"))
                         {
-                            sBuilder.AppendLine($"[DSC - Báo cáo phân tích]");
-                            sBuilder.AppendLine($"Link: www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug}");
+                            sBuilder.AppendLine($"[DSC - Báo cáo phân tích](www.dsc.com.vn/bao-cao-phan-tich/{itemValid.attributes.slug})");
                         }
                     }
                 }
@@ -289,8 +287,7 @@ namespace StockPr.Service
                             ty = (int)ESource.VinaCapital
                         });
 
-                        sBuilder.AppendLine($"[VinaCapital] - {itemValid.title}");
-                        sBuilder.AppendLine($"Link: {itemValid.path}");
+                        sBuilder.AppendLine($"[[VinaCapital] - {itemValid.title}]({itemValid.path})");
                     }
                 }
             }
@@ -352,16 +349,8 @@ namespace StockPr.Service
                             ty = (int)ESource.VNDirect
                         });
 
-                        sBuilder.AppendLine($"{title} {itemValid.newsTitle}");
-                        if (itemValid.attachments.Any())
-                        {
-                            var link = $"https://www.vndirect.com.vn/cmsupload/beta/{itemValid.attachments.First().name}";
-                            sBuilder.AppendLine(link);
-                        }
-                        else
-                        {
-                            sBuilder.AppendLine($"Link: {commonlink}");
-                        }
+                        var link = itemValid.attachments.Any() ? $"https://www.vndirect.com.vn/cmsupload/beta/{itemValid.attachments.First().name}" : $"{commonlink}";
+                        sBuilder.AppendLine($"[{title} {itemValid.newsTitle}]({link})");
                     }
                 }
             }
@@ -422,13 +411,12 @@ namespace StockPr.Service
 
                         if (itemValid.stock_related.Length == 3)
                         {
-                            sBuilder.AppendLine($"[MigrateAsset - Phân tích cổ phiếu] {itemValid.stock_related}:{itemValid.title}");
+                            sBuilder.AppendLine($"[[MigrateAsset - Phân tích cổ phiếu] {itemValid.stock_related}:{itemValid.title}](https://masvn.com/api{itemValid.file_path})");
                         }
                         else
                         {
-                            sBuilder.AppendLine($"[MigrateAsset - Báo cáo phân tích] {itemValid.title}");
+                            sBuilder.AppendLine($"[[MigrateAsset - Báo cáo phân tích] {itemValid.title}](https://masvn.com/api{itemValid.file_path})");
                         }
-                        sBuilder.AppendLine($"Link: https://masvn.com/api{itemValid.file_path}");
                     }
                 }
             }
@@ -488,8 +476,7 @@ namespace StockPr.Service
 
                         if (itemValid.Title.Contains("AGR Snapshot"))
                         {
-                            sBuilder.AppendLine($"{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim()}");
-                            sBuilder.AppendLine($"Link: https://agriseco.com.vn/Report/ReportFile/{itemValid.ReportID}");
+                            sBuilder.AppendLine($"[{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim()}](https://agriseco.com.vn/Report/ReportFile/{itemValid.ReportID})");
                         }
                     }
                 }
@@ -551,8 +538,7 @@ namespace StockPr.Service
                             ty = (int)ESource.SSI
                         });
 
-                        sBuilder.AppendLine($"{title} {itemValid.title}");
-                        sBuilder.AppendLine($"Link: {commonlink}");
+                        sBuilder.AppendLine($"[{title} {itemValid.title}]({commonlink})");
                     }
                 }
             }
@@ -603,6 +589,9 @@ namespace StockPr.Service
                         if (entityValid != null)
                             continue;
 
+                        if (string.IsNullOrWhiteSpace(itemValid.file))
+                            continue;
+
                         _bcptRepo.InsertOne(new ConfigBaoCaoPhanTich
                         {
                             d = d,
@@ -612,18 +601,16 @@ namespace StockPr.Service
 
                         if (itemValid.pageLink == "company-research")
                         {
-                            sBuilder.AppendLine($"[VCI - Phân tích cổ phiếu] {itemValid.name}");
+                            sBuilder.AppendLine($"[[VCI - Phân tích cổ phiếu] {itemValid.name}]({itemValid.file})");
                         }
                         else if (itemValid.pageLink == "sector-reports")
                         {
-                            sBuilder.AppendLine($"[VCI - Báo cáo Ngành] {itemValid.name}");
+                            sBuilder.AppendLine($"[[VCI - Báo cáo Ngành] {itemValid.name}]({itemValid.file})");
                         }
                         else
                         {
-                            sBuilder.AppendLine($"[VCI - Báo cáo vĩ mô] {itemValid.name}");
+                            sBuilder.AppendLine($"[[VCI - Báo cáo vĩ mô] {itemValid.name}]({itemValid.file})");
                         }
-
-                        sBuilder.AppendLine($"Link: {itemValid.file}");
                     }
                 }
             }
@@ -683,18 +670,16 @@ namespace StockPr.Service
 
                         if (itemValid.category.code == "BCDN")
                         {
-                            sBuilder.AppendLine($"[VCBS - Phân tích cổ phiếu] {itemValid.name}");
+                            sBuilder.AppendLine($"[[VCBS - Phân tích cổ phiếu] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
                         }
                         else if (itemValid.category.code == "BCN")
                         {
-                            sBuilder.AppendLine($"[VCBS - Báo cáo Ngành] {itemValid.name}");
+                            sBuilder.AppendLine($"[[VCBS - Báo cáo Ngành] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
                         }
                         else
                         {
-                            sBuilder.AppendLine($"[VCBS - Báo cáo vĩ mô] {itemValid.name}");
+                            sBuilder.AppendLine($"[[VCBS - Báo cáo vĩ mô] {itemValid.name}](https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet)");
                         }
-
-                        sBuilder.AppendLine($"Link: https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet");
                     }
                 }
             }
@@ -755,15 +740,8 @@ namespace StockPr.Service
                             ty = (int)ESource.BSC
                         });
 
-                        sBuilder.AppendLine($"{title} {HttpUtility.HtmlDecode(itemValid.title)}");
-                        if (string.IsNullOrWhiteSpace(itemValid.path))
-                        {
-                            sBuilder.AppendLine($"Link: {commonlink}");
-                        }
-                        else
-                        {
-                            sBuilder.AppendLine($"Link: {itemValid.path}");
-                        }
+                        var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
+                        sBuilder.AppendLine($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
                     }
                 }
             }
@@ -824,15 +802,8 @@ namespace StockPr.Service
                             ty = (int)ESource.MBS
                         });
 
-                        sBuilder.AppendLine($"{title} {HttpUtility.HtmlDecode(itemValid.title)}");
-                        if (string.IsNullOrWhiteSpace(itemValid.path))
-                        {
-                            sBuilder.AppendLine($"Link: {commonlink}");
-                        }
-                        else
-                        {
-                            sBuilder.AppendLine($"Link: {HttpUtility.HtmlDecode(itemValid.path)}");
-                        }
+                        var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{HttpUtility.HtmlDecode(itemValid.path)}";
+                        sBuilder.AppendLine($"[{title} {HttpUtility.HtmlDecode(itemValid.title)}]({link})");
                     }
                 }
             }
@@ -892,16 +863,8 @@ namespace StockPr.Service
                             key = itemValid.id,
                             ty = (int)ESource.PSI
                         });
-
-                        sBuilder.AppendLine($"{title} {itemValid.title}");
-                        if (string.IsNullOrWhiteSpace(itemValid.path))
-                        {
-                            sBuilder.AppendLine($"Link: {commonlink}");
-                        }
-                        else
-                        {
-                            sBuilder.AppendLine($"Link: {itemValid.path}");
-                        }
+                        var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
+                        sBuilder.AppendLine($"[{title} {itemValid.title}]({link})");
                     }
                 }
             }
@@ -962,15 +925,8 @@ namespace StockPr.Service
                             ty = (int)ESource.FPTS
                         });
 
-                        sBuilder.AppendLine($"{title} {itemValid.title}");
-                        if (string.IsNullOrWhiteSpace(itemValid.path))
-                        {
-                            sBuilder.AppendLine($"Link: {commonlink}");
-                        }
-                        else
-                        {
-                            sBuilder.AppendLine($"Link: {itemValid.path}");
-                        }
+                        var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
+                        sBuilder.AppendLine($"[{title} {itemValid.title}]({link})");
                     }
                 }
             }
@@ -1029,8 +985,7 @@ namespace StockPr.Service
                             ty = (int)ESource.KBS
                         });
 
-                        sBuilder.AppendLine($"{title} {itemValid.title}");
-                        sBuilder.AppendLine($"Link: {itemValid.path}");
+                        sBuilder.AppendLine($"[{title} {itemValid.title}]({itemValid.path})");
                     }
                 }
             }
@@ -1087,16 +1042,8 @@ namespace StockPr.Service
                             ty = (int)ESource.CafeF
                         });
 
-                        sBuilder.AppendLine($"[CafeF - Phân tích] {itemValid.title}");
-                        if (string.IsNullOrWhiteSpace(itemValid.path))
-                        {
-                            sBuilder.AppendLine($"Link: https://s.cafef.vn/phan-tich-bao-cao.chn");
-                        }
-                        else
-                        {
-                            sBuilder.AppendLine($"Link: {itemValid.path}");
-                        }
-
+                        var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"https://s.cafef.vn/phan-tich-bao-cao.chn" : $"{itemValid.path}";
+                        sBuilder.AppendLine($"[[CafeF - Phân tích] {itemValid.title}]({link})");
                     }
                 }
             }
