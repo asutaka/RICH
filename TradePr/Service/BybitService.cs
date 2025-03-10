@@ -287,7 +287,7 @@ namespace TradePr.Service
                                 first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
                                 first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                                 _tokenUnlockTradeRepo.Update(first);
-                                var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
+                                var mes = $"[UNLOCK][Đóng vị thế SELL] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
                                 sBuilder.AppendLine(mes);
                             }
                         }

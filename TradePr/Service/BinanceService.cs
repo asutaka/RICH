@@ -276,7 +276,7 @@ namespace TradePr.Service
                                 first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice), 1);
                                 first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                                 _tokenUnlockTradeRepo.Update(first);
-                                var mes = $"[UNLOCK][Đóng vị thế SHORT] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
+                                var mes = $"[UNLOCK][Đóng vị thế SELL] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
                                 sBuilder.AppendLine(mes);
                             }
                         }
@@ -398,6 +398,7 @@ namespace TradePr.Service
                 {
                     foreach (var item in lRes)
                     {
+                        var sideStr = item.PositionSide == Binance.Net.Enums.PositionSide.Long ? "Buy" : "Sell";
                         var priceClose = (double)item.MarkPrice;
                         var signal = lSignal.FirstOrDefault(x => x.s == item.Symbol);
                         if (signal != null)
@@ -419,7 +420,7 @@ namespace TradePr.Service
                             signal.rate = rate;
                             _signalTradeRepo.Update(signal);
 
-                            var mes = $"[Signal][Đóng vị thế {item.PositionSide}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            var mes = $"[Signal][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                             sBuilder.AppendLine(mes);
                             continue;
                         }
@@ -444,7 +445,7 @@ namespace TradePr.Service
                             three.rate = rate;
                             _threeSignalTradeRepo.Update(three);
 
-                            var mes = $"[Three][Đóng vị thế {item.PositionSide}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            var mes = $"[Three][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                             sBuilder.AppendLine(mes);
                             continue;
                         }
@@ -469,12 +470,12 @@ namespace TradePr.Service
                             unlock.rate = rate;
                             _tokenUnlockTradeRepo.Update(unlock);
 
-                            var mes = $"[Three][Đóng vị thế {item.PositionSide}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            var mes = $"[Unlock][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                             sBuilder.AppendLine(mes);
                             continue;
                         }
 
-                        var mesOther = $"[Three][Đóng vị thế {item.PositionSide}] {item.Symbol}|Giá đóng: {item.MarkPrice}";
+                        var mesOther = $"[Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}";
                         sBuilder.AppendLine(mesOther);
                     }
 
@@ -491,6 +492,7 @@ namespace TradePr.Service
                     lRes = await ForceMarket(resPosition.Data.Where(x => lSignal.Any(y => y.s == x.Symbol)));
                     foreach (var item in lRes)
                     {
+                        var sideStr = item.PositionSide == Binance.Net.Enums.PositionSide.Long ? "Buy" : "Sell";
                         var priceClose = (double)item.MarkPrice;
                         var first = lSignal.First(x => x.s == item.Symbol);
                         var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / first.priceEntry), 1));
@@ -510,7 +512,7 @@ namespace TradePr.Service
                         first.rate = rate;
                         _signalTradeRepo.Update(first);
 
-                        var mes = $"[Signal][Đóng vị thế {item.PositionSide}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                        var mes = $"[Signal][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                         sBuilder.AppendLine(mes);
                     }
                 }
@@ -520,6 +522,7 @@ namespace TradePr.Service
                     lRes = await ForceMarket(resPosition.Data.Where(x => lThree.Any(y => y.s == x.Symbol)));
                     foreach (var item in lRes)
                     {
+                        var sideStr = item.PositionSide == Binance.Net.Enums.PositionSide.Long ? "Buy" : "Sell";
                         var priceClose = (double)item.MarkPrice;
                         var first = lThree.First(x => x.s == item.Symbol);
                         var rate = Math.Abs(Math.Round(100 * (-1 + priceClose / first.priceEntry), 1));
@@ -539,7 +542,7 @@ namespace TradePr.Service
                         first.rate = rate;
                         _threeSignalTradeRepo.Update(first);
 
-                        var mes = $"[Three][Đóng vị thế {item.PositionSide}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                        var mes = $"[Three][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                         sBuilder.AppendLine(mes);
                     }
                 }
