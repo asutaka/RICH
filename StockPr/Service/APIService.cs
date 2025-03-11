@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using StockPr.Model;
@@ -97,11 +98,54 @@ namespace StockPr.Service
         }
 
         #region Báo cáo phân tích
-        public async Task<(bool, List<DSC_Data>)> DSC_GetPost()
+        private async Task<string> DSC_GetKey()
         {
-            var url = $"https://www.dsc.com.vn/_next/data/WFPzV3eUVhGH1XZ9NqjIh/vi/bao-cao-phan-tich/tat-ca-bao-cao.json?slug=tat-ca-bao-cao";
             try
             {
+                var lResult = new List<BCPT_Crawl_Data>();
+                var link = string.Empty;
+                var url = $"https://www.dsc.com.vn/bao-cao-phan-tich";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Method = HttpMethod.Get;
+                var responseMessage = await client.SendAsync(requestMessage);
+
+                var html = await responseMessage.Content.ReadAsStringAsync();
+                var index = html.IndexOf("\"buildId\":\"");
+                if(index < 0)
+                {
+                    return string.Empty;
+                }
+                index += 10;
+                var indexLast = html.IndexOf(",", index);
+                if(indexLast < 0)
+                {
+                    return string.Empty;
+                }
+                var len = indexLast - index;
+                var val = html.Substring(index, len).Replace("\"", "").Trim();
+
+                return val;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.DSC_GetKey|EXCEPTION| {ex.Message}");
+            }
+            return string.Empty;
+        }
+        public async Task<(bool, List<DSC_Data>)> DSC_GetPost()
+        {
+            
+            try
+            {
+                var key = await DSC_GetKey();
+                if(string.IsNullOrWhiteSpace(key))
+                    return (false, null);
+
+                var url = $"https://www.dsc.com.vn/_next/data/{key}/vi/bao-cao-phan-tich/tat-ca-bao-cao.json?slug=tat-ca-bao-cao";
                 var client = _client.CreateClient();
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
