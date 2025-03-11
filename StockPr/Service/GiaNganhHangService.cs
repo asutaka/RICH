@@ -522,7 +522,14 @@ namespace StockPr.Service
             var res = $"   - {model.content}: W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
             if (!string.IsNullOrWhiteSpace(model.description))
             {
-                res += $"\n       => {model.description}\n";
+                var strSplit = model.description.Split(',');
+                var lMes = new List<string>();
+                foreach (var item in strSplit)
+                {
+                    var mes = $"[{item}](https://finance.vietstock.vn/{item}/phan-tich-ky-thuat.htm)";
+                    lMes.Add(mes);
+                }
+                res += $"\n       => {string.Join(",", lMes)}\n";
             }
             return res;
         }

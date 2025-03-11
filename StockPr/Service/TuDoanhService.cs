@@ -69,7 +69,7 @@ namespace StockPr.Service
                     if (item.net == 0)
                         continue;
 
-                    var content = $"{index++}. {item.s} (Mua ròng {Math.Abs(item.net).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net).ToString("#,##0.#")} tỷ)";
                     if (item.net_pt != 0)
                     {
                         var buySell_pt = item.net_pt > 0 ? "Thỏa thuận mua" : "Thỏa thuận bán";
@@ -90,7 +90,7 @@ namespace StockPr.Service
                     if (item.net == 0)
                         continue;
 
-                    var content = $"{index++}. {item.s} (Bán ròng {Math.Abs(item.net).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net).ToString("#,##0.#")} tỷ)";
                     if (item.net_pt != 0)
                     {
                         var buySell_pt = item.net_pt > 0 ? "Thỏa thuận mua" : "Thỏa thuận bán";

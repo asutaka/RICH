@@ -167,7 +167,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lOut.OrderBy(x => x.rank).Take(10).ToList())
                 {
-                    var content = $"{index}. {item.s}";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)";
                     var extend = string.Empty;
                     if (item.isIchi)
                     {
@@ -223,7 +223,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lStockClean.OrderBy(x => x.rank).Take(10).ToList())
                 {
-                    var content = $"{index}. {item.s}";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)";
                     var extend = string.Empty;
                     if (!string.IsNullOrWhiteSpace(extend))
                     {
@@ -279,7 +279,7 @@ namespace StockPr.Service
                         var index = 1;
                         foreach (var item in lOrderBlockBuy)
                         {
-                            var content = $"{index++}. {item.s}|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
+                            var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
                             strOutput.AppendLine(content);
                         }
                     }
@@ -292,7 +292,7 @@ namespace StockPr.Service
                         var index = 1;
                         foreach (var item in lOrderBlockSell)
                         {
-                            var content = $"{index++}. {item.s}|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
+                            var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
                             strOutput.AppendLine(content);
                         }
                     }
@@ -363,7 +363,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. {item.s} (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -373,7 +373,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. {item.s} (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
