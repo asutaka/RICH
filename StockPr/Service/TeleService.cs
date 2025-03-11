@@ -7,7 +7,8 @@ namespace StockPr.Service
 {
     public interface ITeleService
     {
-        Task SendMessage(long id, string mes, Dictionary<string, string> dLink = null);
+        Task SendMessage(long id, string mes, bool isMark = false);
+        Task SendMessage(long id, string mes, Dictionary<string, string> dLink);
         Task SendMessage(long id, string mes, string link);
         Task SendPhoto(long id, InputFileStream stream);
 
@@ -55,6 +56,28 @@ namespace StockPr.Service
             }
         }
 
+        public async Task SendMessage(long id, string mes, bool isMark = false)
+        {
+            try
+            {
+                if (isMark)
+                {
+                    await _bot.SendMessage(id, mes, ParseMode.Markdown, linkPreviewOptions: new LinkPreviewOptions
+                    {
+                        IsDisabled = true,
+                    });
+                }
+                else
+                {
+                    await _bot.SendMessage(id, mes);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TeleService.SendMessage|EXCEPTION| {ex.Message}");
+            }
+        }
+
         public async Task SendMessage(long id, string mes, string link)
         {
             try
@@ -71,7 +94,7 @@ namespace StockPr.Service
             }
         }
 
-        public async Task SendMessage(long id, string mes, Dictionary<string, string> dLink = null)
+        public async Task SendMessage(long id, string mes, Dictionary<string, string> dLink)
         {
             try
             {

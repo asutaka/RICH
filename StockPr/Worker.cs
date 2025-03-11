@@ -68,7 +68,7 @@ namespace StockPr
                     var eps = await _epsService.RankEPS(DateTime.Now);
                     if (eps.Item1 > 0)
                     {
-                        await _teleService.SendMessage(_idGroup, eps.Item2);
+                        await _teleService.SendMessage(_idGroup, eps.Item2, true);
                     }
                 }
 
