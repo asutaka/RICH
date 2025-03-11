@@ -99,7 +99,7 @@ namespace StockPr.Service
         #region Báo cáo phân tích
         public async Task<(bool, List<DSC_Data>)> DSC_GetPost()
         {
-            var url = $"https://www.dsc.com.vn/_next/data/_yb_7FS7Rg1u71yUzTxPK/bao-cao-phan-tich/tat-ca-bao-cao.json?slug=tat-ca-bao-cao";
+            var url = $"https://www.dsc.com.vn/_next/data/WFPzV3eUVhGH1XZ9NqjIh/vi/bao-cao-phan-tich/tat-ca-bao-cao.json?slug=tat-ca-bao-cao";
             try
             {
                 var client = _client.CreateClient();
