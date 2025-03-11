@@ -155,7 +155,7 @@ namespace TradePr.Service
                             priceEntry = res.priceEntry,
                             priceStoploss = res.priceStoploss,
                         });
-                        var mes = $"[SIGNAL][Mở vị thế {((Binance.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                        var mes = $"[SIGNAL_binance][Mở vị thế {((Binance.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                         await _teleService.SendMessage(_idUser, mes);
                     }
                 }
@@ -228,7 +228,7 @@ namespace TradePr.Service
                                 priceEntry = res.priceEntry,
                                 priceStoploss = res.priceStoploss
                             });
-                            var mes = $"[THREE][Mở vị thế {((Binance.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[THREE_binance][Mở vị thế {((Binance.Net.Enums.OrderSide)res.Side).ToString().ToUpper()}] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             await _teleService.SendMessage(_idUser, mes);
                         }
                     }
@@ -276,7 +276,7 @@ namespace TradePr.Service
                                 first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice), 1);
                                 first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                                 _tokenUnlockTradeRepo.Update(first);
-                                var mes = $"[UNLOCK][Đóng vị thế SELL] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
+                                var mes = $"[UNLOCK_binance][Đóng vị thế SELL] {position.Symbol}|Giá đóng: {position.MarkPrice}|Rate: {first.rate}%";
                                 sBuilder.AppendLine(mes);
                             }
                         }
@@ -325,7 +325,7 @@ namespace TradePr.Service
                                 priceStoploss = res.priceStoploss
                             });
 
-                            var mes = $"[UNLOCK][Mở vị thế SHORT] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
+                            var mes = $"[UNLOCK_binance][Mở vị thế SHORT] {res.s}|Giá mở: {res.priceEntry}|SL: {res.priceStoploss}";
                             sBuilder.AppendLine(mes);
                         }
                     }
@@ -420,7 +420,7 @@ namespace TradePr.Service
                             signal.rate = rate;
                             _signalTradeRepo.Update(signal);
 
-                            var mes = $"[Signal][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            var mes = $"[SIGNAL_binance][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                             sBuilder.AppendLine(mes);
                             continue;
                         }
@@ -445,7 +445,7 @@ namespace TradePr.Service
                             three.rate = rate;
                             _threeSignalTradeRepo.Update(three);
 
-                            var mes = $"[Three][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            var mes = $"[THREE_binance][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                             sBuilder.AppendLine(mes);
                             continue;
                         }
@@ -470,7 +470,7 @@ namespace TradePr.Service
                             unlock.rate = rate;
                             _tokenUnlockTradeRepo.Update(unlock);
 
-                            var mes = $"[Unlock][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                            var mes = $"[UNLOCK_binance][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                             sBuilder.AppendLine(mes);
                             continue;
                         }
@@ -512,7 +512,7 @@ namespace TradePr.Service
                         first.rate = rate;
                         _signalTradeRepo.Update(first);
 
-                        var mes = $"[Signal][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                        var mes = $"[SIGNAL_binance][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                         sBuilder.AppendLine(mes);
                     }
                 }
@@ -542,7 +542,7 @@ namespace TradePr.Service
                         first.rate = rate;
                         _threeSignalTradeRepo.Update(first);
 
-                        var mes = $"[Three][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
+                        var mes = $"[THREE_binance][Đóng vị thế {sideStr}] {item.Symbol}|Giá đóng: {item.MarkPrice}|Rate: {rate}";
                         sBuilder.AppendLine(mes);
                     }
                 }
@@ -592,7 +592,7 @@ namespace TradePr.Service
                 var account = await Binance_GetAccountInfo();
                 if (account == null)
                 {
-                    await _teleService.SendMessage(_idUser, "[ERROR] Không lấy được thông tin tài khoản");
+                    await _teleService.SendMessage(_idUser, "[ERROR_binance] Không lấy được thông tin tài khoản");
                     return null;
                 }
 
@@ -641,7 +641,7 @@ namespace TradePr.Service
                         action = (int)EAction.Short,
                         des = $"side: {side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}"
                     });
-                    await _teleService.SendMessage(_idUser, $"[ERROR] |{entity.s}|{res.Error.Message}");
+                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Message}");
                     return null;
                 }
 
@@ -719,7 +719,7 @@ namespace TradePr.Service
                             action = (int)EAction.Short_SL,
                             des = $"side: {SL_side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
                         });
-                        await _teleService.SendMessage(_idUser, $"[ERROR] |{entity.s}|{res.Error.Message}");
+                        await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Message}");
                         return null;
                     }
 
@@ -753,7 +753,7 @@ namespace TradePr.Service
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
 
-            await _teleService.SendMessage(_idUser, $"[ERROR] Không thể đóng lệnh {side}: {symbol}!");
+            await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không thể đóng lệnh {side}: {symbol}!");
             return false;
         }
     }
