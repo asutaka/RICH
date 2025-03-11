@@ -151,6 +151,14 @@ namespace StockPr
                             }
                         }
                     }
+                    if(dt.Hour == 11 && dt.Minute >= 30 && dt.Minute < 45)
+                    {
+                        var gdnn = await _analyzeService.ThongkeForeign_PhienSang(dt);
+                        if (gdnn.Item1 > 0)
+                        {
+                            await _teleService.SendMessage(_idUser, gdnn.Item2, true);
+                        }
+                    }    
                 }
 
                 //if (dt.Hour == 23

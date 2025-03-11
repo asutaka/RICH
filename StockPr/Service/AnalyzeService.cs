@@ -14,6 +14,7 @@ namespace StockPr.Service
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
         Task<(int, string)> ChiBaoKyThuat(DateTime dt);
+        Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
     }
     public class AnalyzeService : IAnalyzeService
     {
@@ -389,6 +390,52 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"AnalyzeService.ThongkeForeign|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        public async Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt)
+        {
+            try
+            {
+                var type = EMoney24hTimeType.today;
+                var strOutput = new StringBuilder();
+                var lData = new List<Money24h_ForeignResponse>();
+                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HSX, type));
+                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HNX, type));
+                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.UPCOM, type));
+                if (!lData.Any())
+                    return (0, null);
+
+                var head = $"[Thông báo] GDNN buổi sáng {dt.ToString("dd/MM/yyyy")}:"; ;
+                strOutput.AppendLine(head);
+                strOutput.AppendLine($"*Top mua ròng:");
+                var lTopBuy = lData.OrderByDescending(x => x.net_val).Take(10);
+                var lTopSell = lData.OrderBy(x => x.net_val).Take(10);
+                var index = 1;
+                foreach (var item in lTopBuy)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                strOutput.AppendLine();
+                strOutput.AppendLine($"*Top bán ròng:");
+                index = 1;
+                foreach (var item in lTopSell)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.ThongkeForeign_PhienSang|EXCEPTION| {ex.Message}");
             }
 
             return (0, null);
