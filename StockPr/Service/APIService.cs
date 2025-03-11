@@ -15,7 +15,6 @@ namespace StockPr.Service
         Task<Stream> GetChartImage(string body);
 
         Task<(bool, List<DSC_Data>)> DSC_GetPost();
-        Task<(bool, List<BCPT_Crawl_Data>)> VinaCapital_GetPost();
         Task<(bool, List<VNDirect_Data>)> VNDirect_GetPost(bool isIndustry);
         Task<(bool, List<MigrateAsset_Data>)> MigrateAsset_GetPost();
         Task<(bool, List<AGR_Data>)> Agribank_GetPost(bool isIndustry);
@@ -160,58 +159,6 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.DSC_GetPost|EXCEPTION| {ex.Message}");
-            }
-            return (false, null);
-        }
-
-        public async Task<(bool, List<BCPT_Crawl_Data>)> VinaCapital_GetPost()
-        {
-            var lResult = new List<BCPT_Crawl_Data>();
-            var url = $"https://vinacapital.com/wp-admin/admin-ajax.php";
-            var dt = DateTime.Now;
-            var dFormat = $"{dt.Day.To2Digit()}/{dt.Month.To2Digit()}/{dt.Year}";
-            try
-            {
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(15);
-                var request = new HttpRequestMessage(HttpMethod.Post, url);
-                request.Headers.Add("referer", "https://vinacapital.com/vi/news-insights/");
-                request.Headers.Add("user-agent", "zz");
-                var content = new StringContent($"action=loadinsightsyear&year={dt.Year}", null, "application/x-www-form-urlencoded");
-                request.Content = content;
-                var response = await client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                var html = await response.Content.ReadAsStringAsync();
-                var doc = new HtmlDocument();
-                doc.LoadHtml(html);
-
-                var nodes = doc.DocumentNode.ChildNodes;
-
-                foreach (HtmlNode node in nodes)
-                {
-                    if (!node.InnerText.Contains(dFormat)) 
-                        continue;
-
-                    var path = node.InnerHtml.Split("\"").FirstOrDefault(x => x.Contains(".pdf"));
-                    if (path is null)
-                        continue;
-                    var id = $"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}{path.Substring(path.Length - 10)}";
-
-                    var model = new BCPT_Crawl_Data
-                    {
-                        id = id,
-                        date = dt,
-                        title = node.InnerText.Replace(dFormat, string.Empty).Trim(),
-                        path = path 
-                    };
-                    lResult.Add(model);
-                }
-                return (true, lResult);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"APIService.VinaCapital_GetPost|EXCEPTION| {ex.Message}");
             }
             return (false, null);
         }

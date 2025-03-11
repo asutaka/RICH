@@ -71,16 +71,6 @@ namespace StockPr.Service
                     lMes.AddRange(dsc.Item2);
                 }
 
-                var vinacapital = await VinaCapital();
-                if (!vinacapital.Item1)
-                {
-                    lError.Add("[ERROR] Báo cáo phân tích VinaCapital");
-                }
-                if (vinacapital.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(vinacapital.Item2);
-                }
-
                 var vndirect_COM = await VNDirect(false);
                 if (!vndirect_COM.Item1)
                 {
@@ -300,70 +290,6 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"MessageService.DSC|EXCEPTION| {ex.Message}");
-            }
-
-            return (true, lMes);
-        }
-
-        private async Task<(bool, List<BaoCaoPhanTichModel>)> VinaCapital()
-        {
-            var lMes = new List<BaoCaoPhanTichModel>();
-            try
-            {
-                var dt = DateTime.Now;
-                var time = new DateTime(dt.Year, dt.Month, dt.Day);
-                var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-
-                var res = await _apiService.VinaCapital_GetPost();
-                if (!res.Item1)
-                {
-                    return (false, null);
-                }
-
-                var lValid = res.Item2.Where(x => x.date >= time);
-                if (lValid?.Any() ?? false)
-                {
-                    foreach (var itemValid in lValid)
-                    {
-                        FilterDefinition<ConfigBaoCaoPhanTich> filter = null;
-                        var builder = Builders<ConfigBaoCaoPhanTich>.Filter;
-                        var lFilter = new List<FilterDefinition<ConfigBaoCaoPhanTich>>()
-                            {
-                                builder.Eq(x => x.d, d),
-                                builder.Eq(x => x.ty, (int)ESource.VinaCapital),
-                                builder.Eq(x => x.key, itemValid.id.ToString()),
-                            };
-                        foreach (var item in lFilter)
-                        {
-                            if (filter is null)
-                            {
-                                filter = item;
-                                continue;
-                            }
-                            filter &= item;
-                        }
-                        var entityValid = _bcptRepo.GetEntityByFilter(filter);
-                        if (entityValid != null)
-                            continue;
-
-                        _bcptRepo.InsertOne(new ConfigBaoCaoPhanTich
-                        {
-                            d = d,
-                            key = itemValid.id.ToString(),
-                            ty = (int)ESource.VinaCapital
-                        });
-
-                        lMes.Add(new BaoCaoPhanTichModel
-                        {
-                            content = $"|VinaCapital| {itemValid.title}",
-                            link = itemValid.path
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"MessageService.VinaCapital|EXCEPTION| {ex.Message}");
             }
 
             return (true, lMes);
