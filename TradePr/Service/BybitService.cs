@@ -650,6 +650,7 @@ namespace TradePr.Service
                         ty = (int)ETypeBot.TokenUnlock,
                         action = (int)EAction.GetPosition
                     });
+                    Console.WriteLine($"[ERROR_bybit] |{entity.s}|Soluong: {soluong}");
                     await _teleService.SendMessage(_idUser, $"[ERROR_bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
                     return entity;
                 }
@@ -700,7 +701,8 @@ namespace TradePr.Service
                             action = (int)EAction.Short_SL,
                             des = $"side: {SL_side}, type: {NewOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
                         });
-                        await _teleService.SendMessage(_idUser, $"[ERROR_bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                        Console.WriteLine($"[ERROR_bybit_SL] |{entity.s}|Soluong: {soluong}");
+                        await _teleService.SendMessage(_idUser, $"[ERROR_bybit_SL] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
                         return null;
                     }
 
@@ -735,8 +737,8 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
-
-            await _teleService.SendMessage(_idUser, $"[ERROR_bybit] Không thể đóng lệnh {side}: {symbol}!");
+            Console.WriteLine($"[ERROR_bybit_Close] |{symbol}|Soluong: {quan}");
+            await _teleService.SendMessage(_idUser, $"[ERROR_bybit_Close] Không thể đóng lệnh {side}: {symbol}!");
             return false;
         }
     }

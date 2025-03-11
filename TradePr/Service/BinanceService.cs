@@ -6,6 +6,7 @@ using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
 using Newtonsoft.Json;
+using SharpCompress.Common;
 
 namespace TradePr.Service
 {
@@ -641,6 +642,7 @@ namespace TradePr.Service
                         action = (int)EAction.Short,
                         des = $"side: {side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}"
                     });
+                    Console.WriteLine($"[ERROR_binance] |{entity.s}|Soluong: {soluong}");
                     await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
                     return null;
                 }
@@ -719,7 +721,8 @@ namespace TradePr.Service
                             action = (int)EAction.Short_SL,
                             des = $"side: {SL_side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
                         });
-                        await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                        Console.WriteLine($"[ERROR_binance_SL] |{entity.s}|Soluong: {soluong}");
+                        await _teleService.SendMessage(_idUser, $"[ERROR_binance_SL] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
                         return null;
                     }
 
@@ -752,8 +755,8 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
-
-            await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không thể đóng lệnh {side}: {symbol}!");
+            Console.WriteLine($"[ERROR_binance_Close] |{symbol}|Soluong: {quan}");
+            await _teleService.SendMessage(_idUser, $"[ERROR_binance_Close] Không thể đóng lệnh {side}: {symbol}!");
             return false;
         }
     }
