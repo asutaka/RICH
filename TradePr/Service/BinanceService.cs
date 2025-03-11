@@ -641,7 +641,7 @@ namespace TradePr.Service
                         action = (int)EAction.Short,
                         des = $"side: {side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}"
                     });
-                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Message}");
+                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
                     return null;
                 }
 
@@ -719,7 +719,7 @@ namespace TradePr.Service
                             action = (int)EAction.Short_SL,
                             des = $"side: {SL_side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}, stopPrice: {sl}"
                         });
-                        await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Message}");
+                        await _teleService.SendMessage(_idUser, $"[ERROR_binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
                         return null;
                     }
 
