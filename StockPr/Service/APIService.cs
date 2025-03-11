@@ -13,20 +13,20 @@ namespace StockPr.Service
     {
         Task<Stream> GetChartImage(string body);
 
-        Task<List<DSC_Data>> DSC_GetPost();
-        Task<List<BCPT_Crawl_Data>> VinaCapital_GetPost();
-        Task<List<VNDirect_Data>> VNDirect_GetPost(bool isIndustry);
-        Task<List<MigrateAsset_Data>> MigrateAsset_GetPost();
-        Task<List<AGR_Data>> Agribank_GetPost(bool isIndustry);
-        Task<List<BCPT_Crawl_Data>> SSI_GetPost(bool isIndustry);
-        Task<List<VCI_Content>> VCI_GetPost();
-        Task<List<VCBS_Data>> VCBS_GetPost();
-        Task<List<BCPT_Crawl_Data>> BSC_GetPost(bool isIndustry);
-        Task<List<BCPT_Crawl_Data>> MBS_GetPost(bool isIndustry);
-        Task<List<BCPT_Crawl_Data>> PSI_GetPost(bool isIndustry);
-        Task<List<BCPT_Crawl_Data>> FPTS_GetPost(bool isIndustry);
-        Task<List<BCPT_Crawl_Data>> KBS_GetPost(bool isIndustry);
-        Task<List<BCPT_Crawl_Data>> CafeF_GetPost();
+        Task<(bool, List<DSC_Data>)> DSC_GetPost();
+        Task<(bool, List<BCPT_Crawl_Data>)> VinaCapital_GetPost();
+        Task<(bool, List<VNDirect_Data>)> VNDirect_GetPost(bool isIndustry);
+        Task<(bool, List<MigrateAsset_Data>)> MigrateAsset_GetPost();
+        Task<(bool, List<AGR_Data>)> Agribank_GetPost(bool isIndustry);
+        Task<(bool, List<BCPT_Crawl_Data>)> SSI_GetPost(bool isIndustry);
+        Task<(bool, List<VCI_Content>)> VCI_GetPost();
+        Task<(bool, List<VCBS_Data>)> VCBS_GetPost();
+        Task<(bool, List<BCPT_Crawl_Data>)> BSC_GetPost(bool isIndustry);
+        Task<(bool, List<BCPT_Crawl_Data>)> MBS_GetPost(bool isIndustry);
+        Task<(bool, List<BCPT_Crawl_Data>)> PSI_GetPost(bool isIndustry);
+        Task<(bool, List<BCPT_Crawl_Data>)> FPTS_GetPost(bool isIndustry);
+        Task<(bool, List<BCPT_Crawl_Data>)> KBS_GetPost(bool isIndustry);
+        Task<(bool, List<BCPT_Crawl_Data>)> CafeF_GetPost();
 
         Task<List<Pig333_Clean>> Pig333_GetPigPrice();
         Task<List<TradingEconomics_Data>> Tradingeconimic_Commodities();
@@ -97,7 +97,7 @@ namespace StockPr.Service
         }
 
         #region Báo cáo phân tích
-        public async Task<List<DSC_Data>> DSC_GetPost()
+        public async Task<(bool, List<DSC_Data>)> DSC_GetPost()
         {
             var url = $"https://www.dsc.com.vn/_next/data/_yb_7FS7Rg1u71yUzTxPK/bao-cao-phan-tich/tat-ca-bao-cao.json?slug=tat-ca-bao-cao";
             try
@@ -106,21 +106,21 @@ namespace StockPr.Service
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
-                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
-                    return null;
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    return (false, null);
 
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<DSC_Main>(responseMessageStr);
-                return responseModel?.pageProps?.dataCategory?.dataList?.data;
+                return (true, responseModel?.pageProps?.dataCategory?.dataList?.data);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.DSC_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> VinaCapital_GetPost()
+        public async Task<(bool, List<BCPT_Crawl_Data>)> VinaCapital_GetPost()
         {
             var lResult = new List<BCPT_Crawl_Data>();
             var url = $"https://vinacapital.com/wp-admin/admin-ajax.php";
@@ -163,16 +163,16 @@ namespace StockPr.Service
                     };
                     lResult.Add(model);
                 }
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.VinaCapital_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<VNDirect_Data>> VNDirect_GetPost(bool isIndustry)
+        public async Task<(bool, List<VNDirect_Data>)> VNDirect_GetPost(bool isIndustry)
         {
             var url = $"https://api-finfo.vndirect.com.vn/v4/news?q=newsType:company_report~locale:VN~newsSource:VNDIRECT&sort=newsDate:desc~newsTime:desc&size=20";
             if (isIndustry)
@@ -189,21 +189,21 @@ namespace StockPr.Service
                 requestMessage.Method = HttpMethod.Get;
                 var responseMessage = await client.SendAsync(requestMessage);
 
-                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
-                    return null;
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    return (false, null);
 
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<VNDirect_Main>(responseMessageStr);
-                return responseModel?.data;
+                return (true, responseModel?.data);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.VNDirect_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<MigrateAsset_Data>> MigrateAsset_GetPost()
+        public async Task<(bool, List<MigrateAsset_Data>)> MigrateAsset_GetPost()
         {
             var url = $"https://masvn.com/api/categories/fe/56/article?paging=1&sort=published_at&direction=desc&active=1&page=1&limit=10";
             try
@@ -216,21 +216,21 @@ namespace StockPr.Service
                 requestMessage.Method = HttpMethod.Get;
                 var responseMessage = await client.SendAsync(requestMessage);
 
-                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
-                    return null;
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    return (false, null);
 
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<MigrateAsset_Main>(responseMessageStr);
-                return responseModel?.data;
+                return (true, responseModel?.data);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.MigrateAsset_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<AGR_Data>> Agribank_GetPost(bool isIndustry)
+        public async Task<(bool, List<AGR_Data>)> Agribank_GetPost(bool isIndustry)
         {
             var cat = 1;
             if (isIndustry)
@@ -252,21 +252,21 @@ namespace StockPr.Service
                 requestMessage.Method = HttpMethod.Get;
                 var responseMessage = await client.SendAsync(requestMessage);
 
-                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
-                    return null;
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    return (false, null);
 
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<List<AGR_Data>>(responseMessageStr);
-                return responseModel;
+                return (true, responseModel);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.Agribank_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> SSI_GetPost(bool isIndustry)
+        public async Task<(bool, List<BCPT_Crawl_Data>)> SSI_GetPost(bool isIndustry)
         {
             try
             {
@@ -315,34 +315,34 @@ namespace StockPr.Service
                     }
                 }
 
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.SSI_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<VCI_Content>> VCI_GetPost()
+        public async Task<(bool, List<VCI_Content>)> VCI_GetPost()
         {
             var lResult = new List<VCI_Content>();
             var lEng = await VCI_GetPost_Lang(2);
-            if (lEng?.Any() ?? false)
+            if (lEng.Item2?.Any() ?? false)
             {
-                lResult.AddRange(lEng);
+                lResult.AddRange(lEng.Item2);
             }
 
             var lVi = await VCI_GetPost_Lang(1);
-            if (lVi?.Any() ?? false)
+            if (lVi.Item2?.Any() ?? false)
             {
-                lResult.AddRange(lVi);
+                lResult.AddRange(lVi.Item2);
             }
 
-            return lResult;
+            return (true, lResult);
         }
 
-        private async Task<List<VCI_Content>> VCI_GetPost_Lang(int lang)
+        private async Task<(bool, List<VCI_Content>)> VCI_GetPost_Lang(int lang)
         {
             var url = $"https://www.vietcap.com.vn/api/cms-service/v1/page/analysis?is-all=true&page=0&size=10&direction=DESC&sortBy=date&language={lang}";
             try
@@ -355,21 +355,21 @@ namespace StockPr.Service
                 requestMessage.Method = HttpMethod.Get;
                 var responseMessage = await client.SendAsync(requestMessage);
 
-                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
-                    return null;
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    return (false, null);
 
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<VCI_Main>(responseMessageStr);
-                return responseModel.data.pagingGeneralResponses.content;
+                return (true, responseModel.data.pagingGeneralResponses.content);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.VCI_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<VCBS_Data>> VCBS_GetPost()
+        public async Task<(bool, List<VCBS_Data>)> VCBS_GetPost()
         {
             var url = $"https://www.vcbs.com.vn/api/v1/ttpt-reports?limit=15&page=1&keyword=&locale=vi";
             try
@@ -383,20 +383,20 @@ namespace StockPr.Service
                 var responseMessage = await client.SendAsync(requestMessage);
 
                 if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
-                    return null;
+                    return (false, null);
 
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<VCBS_Main>(responseMessageStr);
-                return responseModel.data;
+                return (true, responseModel.data);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.VCBS_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> BSC_GetPost(bool isIndustry)
+        public async Task<(bool, List<BCPT_Crawl_Data>)> BSC_GetPost(bool isIndustry)
         {
             try
             {
@@ -447,16 +447,16 @@ namespace StockPr.Service
                     }
                 }
 
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.BSC_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> MBS_GetPost(bool isIndustry)
+        public async Task<(bool, List<BCPT_Crawl_Data>)> MBS_GetPost(bool isIndustry)
         {
             try
             {
@@ -507,16 +507,16 @@ namespace StockPr.Service
                     }
                 }
 
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.MBS_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> PSI_GetPost(bool isIndustry)
+        public async Task<(bool, List<BCPT_Crawl_Data>)> PSI_GetPost(bool isIndustry)
         {
             try
             {
@@ -567,16 +567,16 @@ namespace StockPr.Service
                     }
                 }
 
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.PSI_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> FPTS_GetPost(bool isIndustry)
+        public async Task<(bool, List<BCPT_Crawl_Data>)> FPTS_GetPost(bool isIndustry)
         {
             try
             {
@@ -602,7 +602,7 @@ namespace StockPr.Service
                 doc.LoadHtml(html);
                 var lNode = doc.DocumentNode.SelectNodes($"//*[@id=\"grid\"]")?.Nodes();
                 if (!lNode.Any())
-                    return null;
+                    return (false, null);
 
                 foreach (var item in lNode)
                 {
@@ -645,16 +645,16 @@ namespace StockPr.Service
 
                 }
 
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.FPTS_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> KBS_GetPost(bool isIndustry)
+        public async Task<(bool, List<BCPT_Crawl_Data>)> KBS_GetPost(bool isIndustry)
         {
             try
             {
@@ -680,7 +680,7 @@ namespace StockPr.Service
                 doc.LoadHtml(html);
                 var lNode = doc.DocumentNode.SelectNodes($"//*[@id=\"form1\"]/main/div/div/div/div[2]/div[2]")?.Nodes();
                 if (!lNode.Any())
-                    return null;
+                    return (false, null);
 
                 foreach (var item in lNode)
                 {
@@ -714,16 +714,16 @@ namespace StockPr.Service
 
                 }
 
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.KBS_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
 
-        public async Task<List<BCPT_Crawl_Data>> CafeF_GetPost()
+        public async Task<(bool, List<BCPT_Crawl_Data>)> CafeF_GetPost()
         {
             try
             {
@@ -770,13 +770,13 @@ namespace StockPr.Service
                     }
                 }
 
-                return lResult;
+                return (true, lResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.CafeF_GetPost|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return (false, null);
         }
         #endregion
 

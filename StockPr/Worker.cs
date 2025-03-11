@@ -54,13 +54,19 @@ namespace StockPr
                 var isRealTime = (dt.Hour >= 9 && dt.Hour < 12) || (dt.Hour >= 13 && dt.Hour < 15);//từ 9h đến 3h
                 //Báo cáo phân tích
                 var lBCPT = await _bcptService.BaoCaoPhanTich();
-                if (lBCPT?.Any() ?? false) 
+                if (lBCPT.Item1?.Any() ?? false) 
                 {
-                    foreach (var item in lBCPT)
+                    foreach (var item in lBCPT.Item1)
                     {
                         await _teleService.SendMessage(_idGroup, item.content, item.link);
                         Thread.Sleep(200);
                     }
+                }
+                if(lBCPT.Item2?.Any() ?? false)
+                {
+                    var mes = string.Join("\n", lBCPT.Item2);
+                    await _teleService.SendMessage(_idUser, mes);
+                    Thread.Sleep(200);
                 }
 
                 if(dt.Day == 1)

@@ -9,7 +9,7 @@ namespace StockPr.Service
 {
     public interface IBaoCaoPhanTichService
     {
-        Task<List<BaoCaoPhanTichModel>> BaoCaoPhanTich();
+        Task<(List<BaoCaoPhanTichModel>, List<string>)> BaoCaoPhanTich();
     }
     public class BaoCaoPhanTichService : IBaoCaoPhanTichService
     {
@@ -25,142 +25,198 @@ namespace StockPr.Service
             _bcptRepo = bcptRepo;
         }
 
-        public async Task<List<BaoCaoPhanTichModel>> BaoCaoPhanTich()
+        public async Task<(List<BaoCaoPhanTichModel>, List<string>)> BaoCaoPhanTich()
         {
             var lMes = new List<BaoCaoPhanTichModel>();
+            var lError = new List<string>();
             try
             {
                 var ssi_COM = await SSI(false);
-                if (ssi_COM?.Any() ?? false) 
+                if (!ssi_COM.Item1)
                 {
-                    lMes.AddRange(ssi_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích SSI");
+                }
+                if (ssi_COM.Item2?.Any() ?? false) 
+                {
+                    lMes.AddRange(ssi_COM.Item2);
                 }
 
                 var vcbs = await VCBS();
-                if (vcbs?.Any() ?? false)
+                if (!vcbs.Item1)
                 {
-                    lMes.AddRange(vcbs);
+                    lError.Add("[ERROR] Báo cáo phân tích VCBS");
+                }
+                if (vcbs.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(vcbs.Item2);
                 }
 
                 var vci = await VCI();
-                if (vci?.Any() ?? false)
+                if (!vci.Item1)
                 {
-                    lMes.AddRange(vci);
+                    lError.Add("[ERROR] Báo cáo phân tích VCI");
+                }
+                if (vci.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(vci.Item2);
                 }
 
                 var dsc = await DSC();
-                if(dsc?.Any() ?? false)
+                if (!dsc.Item1)
                 {
-                    lMes.AddRange(dsc);
+                    lError.Add("[ERROR] Báo cáo phân tích DSC");
+                }
+                if (dsc.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(dsc.Item2);
                 }
 
                 var vinacapital = await VinaCapital();
-                if (vinacapital?.Any() ?? false)
+                if (!vinacapital.Item1)
                 {
-                    lMes.AddRange(vinacapital);
+                    lError.Add("[ERROR] Báo cáo phân tích VinaCapital");
+                }
+                if (vinacapital.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(vinacapital.Item2);
                 }
 
                 var vndirect_COM = await VNDirect(false);
-                if (vndirect_COM?.Any() ?? false)
+                if (!vndirect_COM.Item1)
                 {
-                    lMes.AddRange(vndirect_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích VNDirect");
+                }
+                if (vndirect_COM.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(vndirect_COM.Item2);
                 }
 
                 var mbs_COM = await MBS(false);
-                if (mbs_COM?.Any() ?? false)
+                if (!mbs_COM.Item1)
                 {
-                    lMes.AddRange(mbs_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích MBS");
+                }
+                if (mbs_COM.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(mbs_COM.Item2);
                 }
 
                 var fpts_COM = await FPTS(false);
-                if (fpts_COM?.Any() ?? false)
+                if (!fpts_COM.Item1)
                 {
-                    lMes.AddRange(fpts_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích FPTS");
+                }
+                if (fpts_COM.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(fpts_COM.Item2);
                 }
 
                 var bsc_COM = await BSC(false);
-                if (bsc_COM?.Any() ?? false)
+                if (!bsc_COM.Item1)
                 {
-                    lMes.AddRange(bsc_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích BSC");
+                }
+                if (bsc_COM.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(bsc_COM.Item2);
                 }
 
                 var ma = await MigrateAsset();
-                if (ma?.Any() ?? false)
+                if (!ma.Item1)
                 {
-                    lMes.AddRange(ma);
+                    lError.Add("[ERROR] Báo cáo phân tích MigrateAsset");
+                }
+                if (ma.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(ma.Item2);
                 }
 
                 var agribank_COM = await Agribank(false);
-                if (agribank_COM?.Any() ?? false)
+                if (!agribank_COM.Item1)
                 {
-                    lMes.AddRange(agribank_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích Agribank");
+                }
+                if (agribank_COM.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(agribank_COM.Item2);
                 }
 
                 var psi_COM = await PSI(false);
-                if (psi_COM?.Any() ?? false)
+                if (!psi_COM.Item1)
                 {
-                    lMes.AddRange(psi_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích PSI");
+                }
+                if (psi_COM.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(psi_COM.Item2);
                 }
 
                 var kbs_COM = await KBS(false);
-                if (kbs_COM?.Any() ?? false)
+                if (!kbs_COM.Item1)
                 {
-                    lMes.AddRange(kbs_COM);
+                    lError.Add("[ERROR] Báo cáo phân tích KBS");
+                }
+                if (kbs_COM.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(kbs_COM.Item2);
                 }
 
-
                 var ssi_Ins = await SSI(true);
-                if (ssi_Ins?.Any() ?? false)
+                if (ssi_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(ssi_Ins);
+                    lMes.AddRange(ssi_Ins.Item2);
                 }
 
                 var vndirect_Ins = await VNDirect(true);
-                if (vndirect_Ins?.Any() ?? false)
+                if (vndirect_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(vndirect_Ins);
+                    lMes.AddRange(vndirect_Ins.Item2);
                 }
 
                 var mbs_Ins = await MBS(true);
-                if (mbs_Ins?.Any() ?? false)
+                if (mbs_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(mbs_Ins);
+                    lMes.AddRange(mbs_Ins.Item2);
                 }
 
                 var fpts_Ins = await FPTS(true);
-                if (fpts_Ins?.Any() ?? false)
+                if (fpts_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(fpts_Ins);
+                    lMes.AddRange(fpts_Ins.Item2);
                 }
 
                 var bsc_Ins = await BSC(true);
-                if (bsc_Ins?.Any() ?? false)
+                if (bsc_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(bsc_Ins);
+                    lMes.AddRange(bsc_Ins.Item2);
                 }
 
                 var agribank_Ins = await Agribank(true);
-                if (agribank_Ins?.Any() ?? false)
+                if (agribank_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(agribank_Ins);
+                    lMes.AddRange(agribank_Ins.Item2);
                 }
 
                 var psi_Ins = await PSI(true);
-                if (psi_Ins?.Any() ?? false)
+                if (psi_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(psi_Ins);
+                    lMes.AddRange(psi_Ins.Item2);
                 }
 
                 var kbs_Ins = await KBS(true);
-                if (kbs_Ins?.Any() ?? false)
+                if (kbs_Ins.Item2?.Any() ?? false)
                 {
-                    lMes.AddRange(kbs_Ins);
+                    lMes.AddRange(kbs_Ins.Item2);
                 }
 
                 var cafef = await CafeF();
-                if (cafef?.Any() ?? false)
+                if (!cafef.Item1)
                 {
-                    lMes.AddRange(cafef);
+                    lError.Add("[ERROR] Báo cáo phân tích CafeF");
+                }
+                if (cafef.Item2?.Any() ?? false)
+                {
+                    lMes.AddRange(cafef.Item2);
                 }
             }
             catch (Exception ex)
@@ -168,10 +224,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.BaoCaoPhanTich|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (lMes, lError);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> DSC()
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> DSC()
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -180,13 +236,13 @@ namespace StockPr.Service
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
 
-                var lRes = await _apiService.DSC_GetPost();
-                if (lRes is null)
+                var res = await _apiService.DSC_GetPost();
+                if (!res.Item1)
                 {
-                    return null;
+                    return (false, null);
                 }
 
-                var lValid = lRes.Where(x => x.attributes.public_at > time);
+                var lValid = res.Item2.Where(x => x.attributes.public_at > time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -246,10 +302,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.DSC|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> VinaCapital()
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> VinaCapital()
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -258,13 +314,13 @@ namespace StockPr.Service
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
 
-                var lRes = await _apiService.VinaCapital_GetPost();
-                if (lRes is null)
+                var res = await _apiService.VinaCapital_GetPost();
+                if (!res.Item1)
                 {
-                    return null;
+                    return (false, null);
                 }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -310,17 +366,19 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VinaCapital|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> VNDirect(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> VNDirect(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
-                var lRes = await _apiService.VNDirect_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.VNDirect_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
@@ -330,7 +388,7 @@ namespace StockPr.Service
                                     : "https://dstock.vndirect.com.vn/trung-tam-phan-tich/bao-cao-phan-tich-dn";
 
                 var t = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var lValid = lRes.Where(x => int.Parse(x.newsDate.Replace("-", "")) >= t);
+                var lValid = res.Item2.Where(x => int.Parse(x.newsDate.Replace("-", "")) >= t);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -377,23 +435,25 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VNDirect|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> MigrateAsset()
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> MigrateAsset()
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
-                var lRes = await _apiService.MigrateAsset_GetPost();
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.MigrateAsset_GetPost();
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
 
-                var lValid = lRes.Where(x => x.published_at > time);
+                var lValid = res.Item2.Where(x => x.published_at > time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -443,10 +503,10 @@ namespace StockPr.Service
             {
                 _logger.LogError(ex, $"MessageService.MigrateAsset|EXCEPTION| {ex.Message}");
             }
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> Agribank(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> Agribank(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -456,11 +516,13 @@ namespace StockPr.Service
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
                 var title = mode ? "|Agribank - Báo cáo ngành|" : "|Agribank - Phân tích cổ phiếu|";
 
-                var lRes = await _apiService.Agribank_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.Agribank_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.Date > time);
+                var lValid = res.Item2.Where(x => x.Date > time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -509,10 +571,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.Agribank|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> SSI(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> SSI(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -524,11 +586,13 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://www.ssi.com.vn/khach-hang-ca-nhan/bao-cao-nganh"
                                     : "https://www.ssi.com.vn/khach-hang-ca-nhan/bao-cao-cong-ty";
 
-                var lRes = await _apiService.SSI_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.SSI_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -574,10 +638,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.SSI|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> VCI()
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> VCI()
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -585,11 +649,13 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var lRes = await _apiService.VCI_GetPost();
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.VCI_GetPost();
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.makerDate >= time
+                var lValid = res.Item2.Where(x => x.makerDate >= time
                                             && (x.pageLink == "company-research" || x.pageLink == "sector-reports" || x.pageLink == "macroeconomics" || x.pageLink == "phan-tich-doanh-nghiep"));
                 if (lValid?.Any() ?? false)
                 {
@@ -649,10 +715,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VCI|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> VCBS()
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> VCBS()
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -660,11 +726,13 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var lRes = await _apiService.VCBS_GetPost();
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.VCBS_GetPost();
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.publishedAt >= time
+                var lValid = res.Item2.Where(x => x.publishedAt >= time
                                             && (x.category.code == "BCVM" || x.category.code == "BCDN" || x.category.code == "BCN"));
                 if (lValid?.Any() ?? false)
                 {
@@ -730,10 +798,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.VCBS|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> BSC(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> BSC(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -745,11 +813,13 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://www.bsc.com.vn/bao-cao-phan-tich/danh-muc-bao-cao/2"
                                     : "https://www.bsc.com.vn/bao-cao-phan-tich/danh-muc-bao-cao/1";
 
-                var lRes = await _apiService.BSC_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.BSC_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -796,10 +866,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.BSC|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> MBS(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> MBS(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -811,11 +881,13 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://mbs.com.vn/trung-tam-nghien-cuu/bao-cao-phan-tich/bao-cao-phan-tich-nganh/"
                                     : "https://mbs.com.vn/trung-tam-nghien-cuu/bao-cao-phan-tich/nghien-cuu-co-phieu/";
 
-                var lRes = await _apiService.MBS_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.MBS_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -862,10 +934,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.MBS|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> PSI(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> PSI(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -877,11 +949,13 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://www.psi.vn/vi/trung-tam-phan-tich/bao-cao-nganh"
                                     : "https://www.psi.vn/vi/trung-tam-phan-tich/bao-cao-phan-tich-doanh-nghiep";
 
-                var lRes = await _apiService.PSI_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.PSI_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -927,10 +1001,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.PSI|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> FPTS(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> FPTS(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -942,11 +1016,13 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://ezsearch.fpts.com.vn/Services/EzReport/?tabid=174"
                                     : "https://ezsearch.fpts.com.vn/Services/EzReport/?tabid=179";
 
-                var lRes = await _apiService.FPTS_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.FPTS_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -993,10 +1069,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.FPTS|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> KBS(bool mode)
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> KBS(bool mode)
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -1006,11 +1082,13 @@ namespace StockPr.Service
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
                 var title = mode ? "|KBS - Báo cáo ngành|" : "|KBS - Cổ phiếu|";
 
-                var lRes = await _apiService.KBS_GetPost(mode);
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.KBS_GetPost(mode);
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -1056,10 +1134,10 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.KBS|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
 
-        private async Task<List<BaoCaoPhanTichModel>> CafeF()
+        private async Task<(bool, List<BaoCaoPhanTichModel>)> CafeF()
         {
             var lMes = new List<BaoCaoPhanTichModel>();
             try
@@ -1067,11 +1145,13 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var lRes = await _apiService.CafeF_GetPost();
-                if (lRes is null)
-                    return null;
+                var res = await _apiService.CafeF_GetPost();
+                if (!res.Item1)
+                {
+                    return (false, null);
+                }
 
-                var lValid = lRes.Where(x => x.date >= time);
+                var lValid = res.Item2.Where(x => x.date >= time);
                 if (lValid?.Any() ?? false)
                 {
                     foreach (var itemValid in lValid)
@@ -1118,7 +1198,7 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"MessageService.CafeF|EXCEPTION| {ex.Message}");
             }
 
-            return lMes;
+            return (true, lMes);
         }
     }
 }
