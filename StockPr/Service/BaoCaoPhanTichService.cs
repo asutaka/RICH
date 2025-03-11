@@ -1046,7 +1046,7 @@ namespace StockPr.Service
                         lMes.Add(new BaoCaoPhanTichModel
                         {
                             content = $"{title} {itemValid.title}",
-                            link = itemValid.path
+                            link = itemValid.path.Replace("(", "").Replace(")", "").Replace(" ", "")
                         });
                     }
                 }
