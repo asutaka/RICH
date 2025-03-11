@@ -101,7 +101,7 @@ namespace StockPr
                         var res = await _giaService.TraceGia(false);
                         if(res.Item1 > 0)
                         {
-                            await _teleService.SendMessage(_idGroup, res.Item2);
+                            await _teleService.SendMessage(_idGroup, res.Item2, true);
                         }
                     }
                     else if (dt.Hour == 17)
@@ -109,7 +109,7 @@ namespace StockPr
                         var res = await _giaService.TraceGia(true);
                         if (res.Item1 > 0)
                         {
-                            await _teleService.SendMessage(_idGroup, res.Item2);
+                            await _teleService.SendMessage(_idGroup, res.Item2, true);
                         }
                     }
                 }
@@ -124,7 +124,7 @@ namespace StockPr
                             var mes = await _analyzeService.Realtime();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
-                                await _teleService.SendMessage(_idChannel, mes);
+                                await _teleService.SendMessage(_idChannel, mes, true);
                             }
                         }
 
@@ -133,12 +133,12 @@ namespace StockPr
                             var mes = await _analyzeService.ThongKeGDNN_NhomNganh();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
-                                await _teleService.SendMessage(_idChannel, mes);
+                                await _teleService.SendMessage(_idChannel, mes, true);
                             }
                             var res = await _analyzeService.ChiBaoKyThuat(dt);
                             if (res.Item1 > 0)
                             {
-                                await _teleService.SendMessage(_idChannel, res.Item2);
+                                await _teleService.SendMessage(_idChannel, res.Item2, true);
                             }
                         }
 
@@ -147,7 +147,7 @@ namespace StockPr
                             var res = await _tudoanhService.TuDoanhHSX();
                             if (res.Item1 > 0)
                             {
-                                await _teleService.SendMessage(_idChannel, res.Item2);
+                                await _teleService.SendMessage(_idChannel, res.Item2, true);
                             }
                         }
                     }
