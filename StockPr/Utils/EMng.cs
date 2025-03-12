@@ -205,6 +205,14 @@ namespace StockPr.Utils
         VCBF = 20,
         DC = 21,
         PynElite = 22,
+        [Display(Name = "veof")]
+        VinaCapital_VEOF = 23,
+        [Display(Name = "vesaf")]
+        VinaCapital_VESAF = 24,
+        [Display(Name = "vmeef")]
+        VinaCapital_VMEEF = 25,
+        SGI = 26,
+
     }
 
     public enum EMoney24hTimeType

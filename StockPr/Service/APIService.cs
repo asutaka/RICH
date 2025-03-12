@@ -57,9 +57,7 @@ namespace StockPr.Service
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body);
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
 
-        Task<BCPT_Crawl_Data> VinaCapital_Portfolio(int mode = 0);
         Task<BCPT_Crawl_Data> DragonCapital_Portfolio();
-        Task<List<BCPT_Crawl_Data>> VCBF_Portfolio();
     }
     public class APIService : IAPIService
     {
@@ -1515,62 +1513,6 @@ namespace StockPr.Service
         #endregion
 
         #region Portfolio
-        public async Task<BCPT_Crawl_Data> VinaCapital_Portfolio(int mode = 0)
-        {
-            var url = $"https://vinacapital.com/vi/investment-solutions/onshore-funds/veof/";
-            if(mode == 1)
-            {
-                url = $"https://vinacapital.com/vi/investment-solutions/onshore-funds/vesaf/";
-            }
-            else if(mode == 2)
-            {
-                url = $"https://vinacapital.com/vi/investment-solutions/onshore-funds/vmeef/";
-            }
-
-            var dt = DateTime.Now;
-            var dFormat = $"{dt.Month.To2Digit()}/{dt.Year}";
-
-            try
-            {
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(15);
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Add("user-agent", "zz");
-                var response = await client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                Thread.Sleep(200);
-                var html = await response.Content.ReadAsStringAsync();
-                var doc = new HtmlDocument();
-                doc.LoadHtml(html);
-
-                var node = doc.DocumentNode.SelectNodes($"//*[@id=\"lsvvfff\"]")?.Nodes().FirstOrDefault();
-                if (node is null)
-                    return null;
-
-                var title = node.InnerText.Trim();
-                var path = node.InnerHtml.Split("\"").FirstOrDefault(x => x.Contains(".pdf"));
-                if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(path))
-                    return null;
-
-                if (!title.Contains(dFormat))
-                    return null;
-
-                return new BCPT_Crawl_Data
-                {
-                    id = $"{dt.Year}{dt.Month.To2Digit()}",
-                    title = title.Replace(dFormat, "").Replace("Mới","").Trim(),
-                    date = dt,
-                    path = path,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"APIService.VinaCapital_Portfolio|EXCEPTION| {ex.Message}");
-            }
-            return null;
-        }
-
         public async Task<BCPT_Crawl_Data> DragonCapital_Portfolio()
         {
             var lResult = new List<BCPT_Crawl_Data>();
@@ -1610,76 +1552,6 @@ namespace StockPr.Service
                     date = dt,
                     path = path,
                 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"APIService.PynElite_Portfolio|EXCEPTION| {ex.Message}");
-            }
-            return null;
-        }
-
-        public async Task<List<BCPT_Crawl_Data>> VCBF_Portfolio()
-        {
-            var lResult = new List<BCPT_Crawl_Data>();
-            var url = $"https://www.vcbf.com/don-tai-lieu-quy/ban-thong-tin-quy/";
-
-            var dt = DateTime.Now;
-            if (dt.Month % 3 != 1)
-                return null;
-
-            dt = dt.AddMonths(-1);
-            var dFormat = dt.ToString("MMM_yyyy").ToLower();
-
-            try
-            {
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(15);
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Add("user-agent", "zz");
-                var response = await client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                var html = await response.Content.ReadAsStringAsync();
-                var doc = new HtmlDocument();
-                doc.LoadHtml(html);
-
-                var link = doc.DocumentNode.Descendants("a")
-                                                    .Select(a => a.GetAttributeValue("href", null))
-                                                    .Where(u => !string.IsNullOrWhiteSpace(u));
-                var lPath = link.Where(x => x.Contains(".pdf") && x.Contains(dFormat));
-                if (!lPath.Any())
-                    return null;
-
-                foreach (var item in lPath)
-                {
-                    var title = string.Empty;
-                    if(item.Contains("tbf", StringComparison.OrdinalIgnoreCase))
-                    {
-                        title = "QĐT Cân bằng chiến lược VCBF";
-                    }
-                    else if (item.Contains("mgf", StringComparison.OrdinalIgnoreCase))
-                    {
-                        title = "QĐT Cổ phiếu tăng trưởng VCBF";
-                    }
-                    else if (item.Contains("fif", StringComparison.OrdinalIgnoreCase))
-                    {
-                        title = "QĐT Trái phiếu VCBF";
-                    }
-                    else if (item.Contains("bcf", StringComparison.OrdinalIgnoreCase))
-                    {
-                        title = "QĐT Cổ phiếu hàng đầu VCBF";
-                    }
-
-                    lResult.Add(new BCPT_Crawl_Data
-                    {
-                        id = $"{dt.Year}{dt.Month}",
-                        title = title,
-                        date = dt,
-                        path = $"https://www.vcbf.com/{item}"
-                    });
-                }
-
-                return lResult;
             }
             catch (Exception ex)
             {

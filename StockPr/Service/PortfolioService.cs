@@ -2,7 +2,6 @@
 using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Utils;
-using System.Text;
 
 namespace StockPr.Service
 {
@@ -21,49 +20,6 @@ namespace StockPr.Service
             _apiService = apiService;
             _configRepo = configRepo;
         }
-
-        //public async Task<string> Portfolio()
-        //{
-        //    var sBuilder = new StringBuilder();
-        //    try
-        //    {
-        //        var dt = DateTime.Now;
-        //        if (dt.Day >= 9 && dt.Day <= 20)
-        //        {
-        //            //Vinacapital 
-        //            var vina = await Vinacapital();
-        //            if (!string.IsNullOrWhiteSpace(vina))
-        //            {
-        //                sBuilder.Append(vina);
-        //            }
-        //        }
-               
-        //        if(dt.Day >= 28 || dt.Day <= 20)
-        //        {
-        //            //Dragon Capital + Pyn Elite
-        //            var dc = await DragonCapital();
-        //            if (!string.IsNullOrWhiteSpace(dc))
-        //            {
-        //                sBuilder.Append(dc);
-        //            }
-        //        }
-                
-        //        if(dt.Month % 3 == 1 && dt.Day >= 10 && dt.Day <= 25)
-        //        {
-        //            //VCBF
-        //            var vcbf = await VCBF();
-        //            if (!string.IsNullOrWhiteSpace(vcbf))
-        //            {
-        //                sBuilder.Append(vcbf);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"PortfolioService.Portfolio|EXCEPTION| {ex.Message}");
-        //    }
-        //    return sBuilder.ToString();
-        //}
 
         public async Task<(string, Dictionary<string, string>)> Portfolio()
         {
@@ -86,31 +42,50 @@ namespace StockPr.Service
                     {
                         dic.Add("Pyn Elite", pyn);
                     }
-                    return (mes, dic);
+                    if (dic.Any())
+                    {
+                        return (mes, dic);
+                    }
                 }
 
+                if (dt.DayOfWeek == DayOfWeek.Monday)
+                {
+                    mes = "*Quỹ đầu tư trong nước*";
 
-                //if (dt.Day >= 9 && dt.Day <= 20)
-                //{
-                //    //Vinacapital 
-                //    var vina = await Vinacapital();
-                //    if (!string.IsNullOrWhiteSpace(vina))
-                //    {
-                //        sBuilder.Append(vina);
-                //    }
-                //}
+                    //Vinacapital 
+                    var vmeef = Vinacapital(ESource.VinaCapital_VMEEF);
+                    if (!string.IsNullOrWhiteSpace(vmeef))
+                    {
+                        dic.Add("VMEEF", vmeef);
+                    }
+                    var veof = Vinacapital(ESource.VinaCapital_VEOF);
+                    if (!string.IsNullOrWhiteSpace(veof))
+                    {
+                        dic.Add("VEOF", veof);
+                    }
+                    var vesaf = Vinacapital(ESource.VinaCapital_VESAF);
+                    if (!string.IsNullOrWhiteSpace(vesaf))
+                    {
+                        dic.Add("VESAF", vesaf);
+                    }
 
+                    var vcbf = VCBF();
+                    if (!string.IsNullOrWhiteSpace(vcbf))
+                    {
+                        dic.Add("VCBF", vcbf);
+                    }
 
+                    var sgi = SGI();
+                    if (!string.IsNullOrWhiteSpace(sgi))
+                    {
+                        dic.Add("SGI", sgi);
+                    }
 
-                //if(dt.Month % 3 == 1 && dt.Day >= 10 && dt.Day <= 25)
-                //{
-                //    //VCBF
-                //    var vcbf = await VCBF();
-                //    if (!string.IsNullOrWhiteSpace(vcbf))
-                //    {
-                //        sBuilder.Append(vcbf);
-                //    }
-                //}
+                    if(dic.Any())
+                    {
+                        return (mes, dic);
+                    }    
+                }
             }
             catch (Exception ex)
             {
@@ -119,112 +94,97 @@ namespace StockPr.Service
             return (null, null);
         }
 
-        private async Task<string> Vinacapital()
+        private string Vinacapital(ESource source)
         {
-            var sBuilder = new StringBuilder();
             try
             {
+                var ty = (int)source;
                 var dt = DateTime.Now;
-                var time = new DateTime(dt.Year, dt.Month, dt.Day);
-                FilterDefinition<ConfigPortfolio> filter = null;
+                var time = $"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}";
                 var builder = Builders<ConfigPortfolio>.Filter;
-                var lFilter = new List<FilterDefinition<ConfigPortfolio>>()
-                            {
-                                builder.Eq(x => x.ty, (int)ESource.VinaCapital),
-                                builder.Eq(x => x.key, $"{dt.Year}{dt.Month.To2Digit()}"),
-                            };
-                foreach (var item in lFilter)
-                {
-                    if (filter is null)
-                    {
-                        filter = item;
-                        continue;
-                    }
-                    filter &= item;
-                }
-                var entityValid = _configRepo.GetEntityByFilter(filter);
+                var entityValid = _configRepo.GetEntityByFilter(builder.And(
+                    builder.Eq(x => x.ty, ty),
+                   builder.Eq(x => x.key, time)
+                ));
                 if (entityValid != null)
-                    return null;
-
-                //Vinacapital - VEOF
-                var veof = await _apiService.VinaCapital_Portfolio();
-                if (veof is null)
                     return null;
 
                 _configRepo.InsertOne(new ConfigPortfolio
                 {
-                    key = $"{dt.Year}{dt.Month.To2Digit()}",
-                    ty = (int)ESource.VinaCapital
+                    key = time,
+                    ty = ty
                 });
-                //Vinacapital - VESAF
-                var vesaf = await _apiService.VinaCapital_Portfolio(1);
-                //Vinacapital - VMEEF
-                var vmeef = await _apiService.VinaCapital_Portfolio(2);
 
-                sBuilder.AppendLine($"{veof.title}({veof.path})");
-                sBuilder.AppendLine($"{vesaf.title}({vesaf.path})");
-                sBuilder.AppendLine($"{vmeef.title}({vesaf.path})");
+                return $"https://vinacapital.com/vi/investment-solutions/onshore-funds/{source.GetDisplayName()}/";
             }
             catch (Exception ex)
             {
                 _logger.LogError($"PortfolioService.Vinacapital|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return string.Empty;
         }
 
-        private async Task<string> VCBF()
+        private string VCBF()
         {
-            var sBuilder = new StringBuilder();
             try
             {
+                var ty = (int)ESource.VCBF;
                 var dt = DateTime.Now;
-                if (dt.Day <= 20)
-                {
-                    dt = dt.AddMonths(-1);
-                }
-
-                FilterDefinition<ConfigPortfolio> filter = null;
+                var time = $"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}";
                 var builder = Builders<ConfigPortfolio>.Filter;
-                var lFilter = new List<FilterDefinition<ConfigPortfolio>>()
-                            {
-                                builder.Eq(x => x.ty, (int)ESource.VCBF),
-                                builder.Eq(x => x.key, $"{dt.Year}{dt.Month.To2Digit()}"),
-                            };
-                foreach (var item in lFilter)
-                {
-                    if (filter is null)
-                    {
-                        filter = item;
-                        continue;
-                    }
-                    filter &= item;
-                }
-                var entityValid = _configRepo.GetEntityByFilter(filter);
+                var entityValid = _configRepo.GetEntityByFilter(builder.And(
+                    builder.Eq(x => x.ty, ty),
+                    builder.Eq(x => x.key, time)
+                ));
                 if (entityValid != null)
-                    return null;
-
-                var lvcbf = await _apiService.VCBF_Portfolio();
-                if (lvcbf is null || !lvcbf.Any())
                     return null;
 
                 _configRepo.InsertOne(new ConfigPortfolio
                 {
-                    key = $"{dt.Year}{dt.Month.To2Digit()}",
-                    ty = (int)ESource.VCBF
+                    key = time,
+                    ty = ty
                 });
 
-                foreach (var item in lvcbf)
-                {
-                    sBuilder.AppendLine($"{item.title}({item.path})");
-                }
+                return "https://www.vcbf.com/don-tai-lieu-quy/ban-thong-tin-quy/?p=1";
             }
             catch (Exception ex)
             {
                 _logger.LogError($"PortfolioService.VCBF|EXCEPTION| {ex.Message}");
             }
 
-            return sBuilder.ToString();
+            return string.Empty;
+        }
+
+        private string SGI()
+        {
+            try
+            {
+                var ty = (int)ESource.SGI;
+                var dt = DateTime.Now;
+                var time = $"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}";
+                var builder = Builders<ConfigPortfolio>.Filter;
+                var entityValid = _configRepo.GetEntityByFilter(builder.And(
+                    builder.Eq(x => x.ty, ty),
+                    builder.Eq(x => x.key, time)
+                ));
+                if (entityValid != null)
+                    return null;
+
+                _configRepo.InsertOne(new ConfigPortfolio
+                {
+                    key = time,
+                    ty = ty
+                });
+
+                return "https://sgicapital.com.vn/download-category/the-ballad-fund-bao-cao-dinh-ky/";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"PortfolioService.VCBF|EXCEPTION| {ex.Message}");
+            }
+
+            return string.Empty;
         }
 
         private async Task<string> DragonCapital()

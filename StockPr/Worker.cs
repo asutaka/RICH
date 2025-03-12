@@ -45,12 +45,6 @@ namespace StockPr
         {
             StockInstance();
 
-            //var tmp = await _portfolioService.Portfolio();
-            //if (!string.IsNullOrWhiteSpace(tmp.Item1))
-            //{
-            //    await _teleService.SendMessage(_idUser, tmp.Item1, tmp.Item2);
-            //}
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
