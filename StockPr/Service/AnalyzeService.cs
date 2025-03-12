@@ -356,25 +356,26 @@ namespace StockPr.Service
                 if (!lData.Any())
                     return (0, null);
 
-                var head = $"[Thông báo] GDNN ngày {dt.ToString("dd/MM/yyyy")}:"; ;
+                var head = $"*GDNN ngày {dt.ToString("dd/MM/yyyy")}*"; ;
                 strOutput.AppendLine(head);
-                strOutput.AppendLine($"*Top mua ròng:");
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top mua ròng");
                 var lTopBuy = lData.OrderByDescending(x => x.net_val).Take(10);
                 var lTopSell = lData.OrderBy(x => x.net_val).Take(10);
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. {item.s} (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
 
                 strOutput.AppendLine();
-                strOutput.AppendLine($"*Top bán ròng:");
+                strOutput.AppendLine($">>Top bán ròng");
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. {item.s} (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -408,9 +409,10 @@ namespace StockPr.Service
                 if (!lData.Any())
                     return (0, null);
 
-                var head = $"[Thông báo] GDNN phiên sáng {dt.ToString("dd/MM/yyyy")}:"; ;
+                var head = $"*GDNN phiên sáng {dt.ToString("dd/MM/yyyy")}*"; ;
                 strOutput.AppendLine(head);
-                strOutput.AppendLine($"*Top mua ròng:");
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top mua ròng");
                 var lTopBuy = lData.OrderByDescending(x => x.net_val).Take(10);
                 var lTopSell = lData.OrderBy(x => x.net_val).Take(10);
                 var index = 1;
@@ -422,7 +424,7 @@ namespace StockPr.Service
                 }
 
                 strOutput.AppendLine();
-                strOutput.AppendLine($"*Top bán ròng:");
+                strOutput.AppendLine($">>Top bán ròng");
                 index = 1;
                 foreach (var item in lTopSell)
                 {
@@ -585,8 +587,8 @@ namespace StockPr.Service
 
                 var count = lReport.Count;
                 //Tỉ lệ cp trên ma20 
-                strOutput.AppendLine($"[Thống kê PTKT]");
-                strOutput.AppendLine($"*Tổng quan:");
+                strOutput.AppendLine($"*Thống kê PTKT*");
+                strOutput.AppendLine($">>Tổng quan:");
                 strOutput.AppendLine($" - Số cp tăng giá: {Math.Round((float)lReport.Count(x => x.isPriceUp) * 100 / count, 1)}%");
                 strOutput.AppendLine($" - Số cp trên MA20: {Math.Round((float)lReport.Count(x => x.isGEMA20) * 100 / count, 1)}%");
 
@@ -596,11 +598,11 @@ namespace StockPr.Service
                 if (lTrenMa20.Any())
                 {
                     strOutput.AppendLine();
-                    strOutput.AppendLine($"*Top cp cắt lên MA20:");
+                    strOutput.AppendLine($">>Top cp cắt lên MA20:");
                     var index = 1;
                     foreach (var item in lTrenMa20)
                     {
-                        var content = $"{index++}. {item.s}";
+                        var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)";
                         if (item.isIchi)
                         {
                             content += " - Ichimoku";
@@ -615,11 +617,11 @@ namespace StockPr.Service
                 if(lOrderBlockBuy.Any())
                 {
                     strOutput.AppendLine();
-                    strOutput.AppendLine($"*OrderBlock MUA:");
+                    strOutput.AppendLine($">>OrderBlock MUA:");
                     var index = 1;
                     foreach (var item in lOrderBlockBuy)
                     {
-                        var content = $"{index++}. {item.s}|ENTRY: {Math.Round(item.ob.Entry, 1)}|SL: {Math.Round(item.ob.SL, 1)}";
+                        var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)|ENTRY: {Math.Round(item.ob.Entry, 1)}|SL: {Math.Round(item.ob.SL, 1)}";
                         strOutput.AppendLine(content);
                     }
                 }
@@ -630,11 +632,11 @@ namespace StockPr.Service
                 if (lOrderBlockSell.Any())
                 {
                     strOutput.AppendLine();
-                    strOutput.AppendLine($"*OrderBlock BÁN:");
+                    strOutput.AppendLine($">>OrderBlock BÁN:");
                     var index = 1;
                     foreach (var item in lOrderBlockSell)
                     {
-                        var content = $"{index++}. {item.s}|ENTRY: {Math.Round(item.ob.Entry, 1)}|SL: {Math.Round(item.ob.SL,1)}";
+                        var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)|ENTRY: {Math.Round(item.ob.Entry, 1)}|SL: {Math.Round(item.ob.SL,1)}";
                         strOutput.AppendLine(content);
                     }
                 }

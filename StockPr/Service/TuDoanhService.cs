@@ -54,12 +54,13 @@ namespace StockPr.Service
                 var lData = _fileService.HSX(stream);
                 var lOutput = TuDoanhClean(lData);
 
-                strOutput.AppendLine($"[Thông báo] Tự doanh HOSE ngày {dt.ToString("dd/MM/yyyy")}:");
+                strOutput.AppendLine($"*Tự doanh HOSE ngày {dt.ToString("dd/MM/yyyy")}*");
+                strOutput.AppendLine();
                 var lTopBuy = lOutput.Where(x => x.net > 0).OrderByDescending(x => x.net).Take(10);
                 var lTopSell = lOutput.Where(x => x.net < 0).OrderBy(x => x.net).Take(10);
                 if (lTopBuy.Any())
                 {
-                    strOutput.AppendLine($"*Top mua ròng:");
+                    strOutput.AppendLine($">>Top mua ròng");
                 }
                 var index = 1;
                 foreach (var item in lTopBuy)
@@ -80,7 +81,7 @@ namespace StockPr.Service
                 if (lTopSell.Any())
                 {
                     strOutput.AppendLine();
-                    strOutput.AppendLine($"*Top bán ròng:");
+                    strOutput.AppendLine($">>Top bán ròng");
                 }
                 index = 1;
                 foreach (var item in lTopSell)
