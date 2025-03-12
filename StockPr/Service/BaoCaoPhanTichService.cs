@@ -269,11 +269,11 @@ namespace StockPr.Service
                         if (itemValid.attributes.category_id.data.attributes.slug.Equals("phan-tich-doanh-nghiep"))
                         {
                             var code = itemValid.attributes.slug.Split('-').First().ToUpper();
-                            title = $"|DSC - Cổ phiếu {code}| {itemValid.attributes.title}";
+                            title = $"|DSC - Cổ phiếu {code}| {itemValid.attributes.title.Replace("[","").Replace("]", "").Replace("(", "").Replace(")", "")}";
                         }
                         else if (!itemValid.attributes.category_id.data.attributes.slug.Contains("beat"))
                         {
-                            title = $"|DSC - Báo cáo phân tích| {itemValid.attributes.title}";
+                            title = $"|DSC - Báo cáo phân tích| {itemValid.attributes.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}";
                         }
 
                         if (!string.IsNullOrWhiteSpace(title))
@@ -350,7 +350,7 @@ namespace StockPr.Service
                         var link = itemValid.attachments.Any() ? $"https://www.vndirect.com.vn/cmsupload/beta/{itemValid.attachments.First().name}" : $"{commonlink}";
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"{title} {itemValid.newsTitle}",
+                            content = $"{title} {itemValid.newsTitle.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                             link = link
                         });
                     }
@@ -412,10 +412,10 @@ namespace StockPr.Service
                             ty = (int)ESource.MigrateAsset
                         });
 
-                        var title = $"|MigrateAsset - Báo cáo phân tích| {itemValid.title}";
+                        var title = $"|MigrateAsset - Báo cáo phân tích| {itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}";
                         if (itemValid.stock_related.Length == 3)
                         {
-                            title = $"|MigrateAsset - Cổ phiếu {itemValid.stock_related}| {itemValid.title}";
+                            title = $"|MigrateAsset - Cổ phiếu {itemValid.stock_related}| {itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}";
                         }
                         lMes.Add(new BaoCaoPhanTichModel
                         {
@@ -485,7 +485,7 @@ namespace StockPr.Service
                         {
                             lMes.Add(new BaoCaoPhanTichModel
                             {
-                                content = $"{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim()}",
+                                content = $"{title} {itemValid.Title.Replace("AGR Snapshot", "").Trim().Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                                 link = $"https://agriseco.com.vn/Report/ReportFile/{itemValid.ReportID}"
                             });
                         }
@@ -553,7 +553,7 @@ namespace StockPr.Service
 
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"{title} {itemValid.title}",
+                            content = $"{title} {itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                             link = commonlink
                         });
                     }
@@ -630,7 +630,7 @@ namespace StockPr.Service
 
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = title,
+                            content = title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", ""),
                             link = itemValid.file
                         });
                     }
@@ -696,7 +696,7 @@ namespace StockPr.Service
                         {
                             lMes.Add(new BaoCaoPhanTichModel
                             {
-                                content = $"|VCBS - Cổ phiếu| {itemValid.name}",
+                                content = $"|VCBS - Cổ phiếu| {itemValid.name.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                                 link = "https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet?code=BCDN"
                             });
                         }
@@ -704,7 +704,7 @@ namespace StockPr.Service
                         {
                             lMes.Add(new BaoCaoPhanTichModel
                             {
-                                content = $"|VCBS - Báo cáo Ngành| {itemValid.name}",
+                                content = $"|VCBS - Báo cáo Ngành| {itemValid.name.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                                 link = "https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet?code=BCN"
                             });
                         }
@@ -712,7 +712,7 @@ namespace StockPr.Service
                         {
                             lMes.Add(new BaoCaoPhanTichModel
                             {
-                                content = $"|VCBS - Báo cáo vĩ mô| {itemValid.name}",
+                                content = $"|VCBS - Báo cáo vĩ mô| {itemValid.name.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                                 link = "https://www.vcbs.com.vn/trung-tam-phan-tich/bao-cao-chi-tiet?code=BCVM"
                             });
                         }
@@ -781,7 +781,7 @@ namespace StockPr.Service
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"{title} {HttpUtility.HtmlDecode(itemValid.title)}",
+                            content = $"{title} {HttpUtility.HtmlDecode(itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", ""))}",
                             link = link
                         });
                     }
@@ -849,7 +849,7 @@ namespace StockPr.Service
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{HttpUtility.HtmlDecode(itemValid.path)}";
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"{title} {HttpUtility.HtmlDecode(itemValid.title)}",
+                            content = $"{title} {HttpUtility.HtmlDecode(itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", ""))}",
                             link = link
                         });
                     }
@@ -916,7 +916,7 @@ namespace StockPr.Service
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"{title} {itemValid.title}",
+                            content = $"{title} {itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                             link = link
                         });
                     }
@@ -984,7 +984,7 @@ namespace StockPr.Service
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"{commonlink}" : $"{itemValid.path}";
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"{title} {itemValid.title}",
+                            content = $"{title} {itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                             link = link
                         });
                     }
@@ -1049,7 +1049,7 @@ namespace StockPr.Service
 
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"{title} {itemValid.title}",
+                            content = $"{title} {itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                             link = itemValid.path.Replace("(", "").Replace(")", "").Replace(" ", "")
                         });
                     }
@@ -1113,7 +1113,7 @@ namespace StockPr.Service
                         var link = string.IsNullOrWhiteSpace(itemValid.path) ? $"https://s.cafef.vn/phan-tich-bao-cao.chn" : $"{itemValid.path}";
                         lMes.Add(new BaoCaoPhanTichModel
                         {
-                            content = $"|CafeF - Phân tích| {itemValid.title}",
+                            content = $"|CafeF - Phân tích| {itemValid.title.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "")}",
                             link = link
                         });
                     }
