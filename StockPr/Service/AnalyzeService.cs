@@ -364,7 +364,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. {item.s} (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -374,7 +374,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. {item.s} (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }

@@ -204,6 +204,7 @@ namespace StockPr.Utils
 
         VCBF = 20,
         DC = 21,
+        PynElite = 22,
     }
 
     public enum EMoney24hTimeType

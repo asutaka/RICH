@@ -8,7 +8,7 @@ namespace StockPr.Service
 {
     public interface IPortfolioService
     {
-        Task<string> Portfolio();
+        Task<(string, Dictionary<string, string>)> Portfolio();
     }
     public class PortfolioService : IPortfolioService
     {
@@ -22,47 +22,101 @@ namespace StockPr.Service
             _configRepo = configRepo;
         }
 
-        public async Task<string> Portfolio()
+        //public async Task<string> Portfolio()
+        //{
+        //    var sBuilder = new StringBuilder();
+        //    try
+        //    {
+        //        var dt = DateTime.Now;
+        //        if (dt.Day >= 9 && dt.Day <= 20)
+        //        {
+        //            //Vinacapital 
+        //            var vina = await Vinacapital();
+        //            if (!string.IsNullOrWhiteSpace(vina))
+        //            {
+        //                sBuilder.Append(vina);
+        //            }
+        //        }
+               
+        //        if(dt.Day >= 28 || dt.Day <= 20)
+        //        {
+        //            //Dragon Capital + Pyn Elite
+        //            var dc = await DragonCapital();
+        //            if (!string.IsNullOrWhiteSpace(dc))
+        //            {
+        //                sBuilder.Append(dc);
+        //            }
+        //        }
+                
+        //        if(dt.Month % 3 == 1 && dt.Day >= 10 && dt.Day <= 25)
+        //        {
+        //            //VCBF
+        //            var vcbf = await VCBF();
+        //            if (!string.IsNullOrWhiteSpace(vcbf))
+        //            {
+        //                sBuilder.Append(vcbf);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"PortfolioService.Portfolio|EXCEPTION| {ex.Message}");
+        //    }
+        //    return sBuilder.ToString();
+        //}
+
+        public async Task<(string, Dictionary<string, string>)> Portfolio()
         {
-            var sBuilder = new StringBuilder();
+            var mes = string.Empty;
+            var dic = new Dictionary<string, string>();
             try
             {
                 var dt = DateTime.Now;
-                if (dt.Day >= 9 && dt.Day <= 20)
+                if (dt.Day == 1)
                 {
-                    //Vinacapital 
-                    var vina = await Vinacapital();
-                    if (!string.IsNullOrWhiteSpace(vina))
-                    {
-                        sBuilder.Append(vina);
-                    }
-                }
-               
-                if(dt.Day >= 28 || dt.Day <= 20)
-                {
-                    //Dragon Capital + Pyn Elite
+                    mes = "*Quỹ đầu tư nước ngoài*";
+
                     var dc = await DragonCapital();
                     if (!string.IsNullOrWhiteSpace(dc))
                     {
-                        sBuilder.Append(dc);
+                        dic.Add("Dragon Capital", dc);
                     }
-                }
-                
-                if(dt.Month % 3 == 1 && dt.Day >= 10 && dt.Day <= 25)
-                {
-                    //VCBF
-                    var vcbf = await VCBF();
-                    if (!string.IsNullOrWhiteSpace(vcbf))
+                    var pyn = PynElite();
+                    if (!string.IsNullOrWhiteSpace(pyn))
                     {
-                        sBuilder.Append(vcbf);
+                        dic.Add("Pyn Elite", pyn);
                     }
+                    return (mes, dic);
                 }
+
+
+                //if (dt.Day >= 9 && dt.Day <= 20)
+                //{
+                //    //Vinacapital 
+                //    var vina = await Vinacapital();
+                //    if (!string.IsNullOrWhiteSpace(vina))
+                //    {
+                //        sBuilder.Append(vina);
+                //    }
+                //}
+
+
+
+                //if(dt.Month % 3 == 1 && dt.Day >= 10 && dt.Day <= 25)
+                //{
+                //    //VCBF
+                //    var vcbf = await VCBF();
+                //    if (!string.IsNullOrWhiteSpace(vcbf))
+                //    {
+                //        sBuilder.Append(vcbf);
+                //    }
+                //}
             }
             catch (Exception ex)
             {
                 _logger.LogError($"PortfolioService.Portfolio|EXCEPTION| {ex.Message}");
             }
-            return sBuilder.ToString();
+            return (null, null);
         }
 
         private async Task<string> Vinacapital()
@@ -114,58 +168,6 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"PortfolioService.Vinacapital|EXCEPTION| {ex.Message}");
-            }
-
-            return sBuilder.ToString();
-        }
-
-        private async Task<string> DragonCapital()
-        {
-            var sBuilder = new StringBuilder();
-            try
-            {
-                var dt = DateTime.Now;
-                if (dt.Day <= 20)
-                {
-                    dt = dt.AddMonths(-1);
-                }
-
-                FilterDefinition<ConfigPortfolio> filter = null;
-                var builder = Builders<ConfigPortfolio>.Filter;
-                var lFilter = new List<FilterDefinition<ConfigPortfolio>>()
-                            {
-                                builder.Eq(x => x.ty, (int)ESource.DC),
-                                builder.Eq(x => x.key, $"{dt.Year}{dt.Month.To2Digit()}"),
-                            };
-                foreach (var item in lFilter)
-                {
-                    if (filter is null)
-                    {
-                        filter = item;
-                        continue;
-                    }
-                    filter &= item;
-                }
-                var entityValid = _configRepo.GetEntityByFilter(filter);
-                if (entityValid != null)
-                    return null;
-
-                var dc = await _apiService.DragonCapital_Portfolio();
-                if (dc is null)
-                    return null;
-
-                _configRepo.InsertOne(new ConfigPortfolio
-                {
-                    key = $"{dt.Year}{dt.Month.To2Digit()}",
-                    ty = (int)ESource.DC
-                });
-
-                sBuilder.AppendLine($"{dc.title}({dc.path})");
-                sBuilder.AppendLine($"Pyn Elite - Tháng {dt.Month}(https://www.pyn.fi/en/pyn-elite-fund/portfolio/)");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"PortfolioService.DragonCapital|EXCEPTION| {ex.Message}");
             }
 
             return sBuilder.ToString();
@@ -223,6 +225,72 @@ namespace StockPr.Service
             }
 
             return sBuilder.ToString();
+        }
+
+        private async Task<string> DragonCapital()
+        {
+            try
+            {
+                var ty = (int)ESource.DC;
+                var dt = DateTime.Now.AddMonths(-1);
+                var builder = Builders<ConfigPortfolio>.Filter;
+                var entityValid = _configRepo.GetEntityByFilter(builder.And(
+                    builder.Eq(x => x.ty, ty),
+                    builder.Eq(x => x.key, $"{dt.Year}{dt.Month.To2Digit()}")
+                ));
+
+                if (entityValid != null)
+                    return null;
+
+                var dc = await _apiService.DragonCapital_Portfolio();
+                if (dc is null)
+                    return null;
+
+                _configRepo.InsertOne(new ConfigPortfolio
+                {
+                    key = $"{dt.Year}{dt.Month.To2Digit()}",
+                    ty = ty
+                });
+
+                return dc.path;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"PortfolioService.DragonCapital|EXCEPTION| {ex.Message}");
+            }
+
+            return string.Empty;
+        }
+
+        private string PynElite()
+        {
+            try
+            {
+                var ty = (int)ESource.PynElite;
+                var dt = DateTime.Now.AddMonths(-1);
+
+                var builder = Builders<ConfigPortfolio>.Filter;
+                var entityValid = _configRepo.GetEntityByFilter(builder.And(
+                    builder.Eq(x => x.ty, ty),
+                    builder.Eq(x => x.key, $"{dt.Year}{dt.Month.To2Digit()}")
+                ));
+
+                if (entityValid != null)
+                    return null;
+
+                _configRepo.InsertOne(new ConfigPortfolio
+                {
+                    key = $"{dt.Year}{dt.Month.To2Digit()}",
+                    ty = ty
+                });
+                return "https://www.pyn.fi/en/pyn-elite-fund/portfolio/";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"PortfolioService.PynElite|EXCEPTION| {ex.Message}");
+            }
+
+            return string.Empty;
         }
     }
 }

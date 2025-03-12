@@ -44,6 +44,13 @@ namespace StockPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
+
+            //var tmp = await _portfolioService.Portfolio();
+            //if (!string.IsNullOrWhiteSpace(tmp.Item1))
+            //{
+            //    await _teleService.SendMessage(_idUser, tmp.Item1, tmp.Item2);
+            //}
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
@@ -80,9 +87,9 @@ namespace StockPr
 
                 //Quỹ đầu tư
                 var portfolio = await _portfolioService.Portfolio();
-                if (!string.IsNullOrWhiteSpace(portfolio))
+                if (!string.IsNullOrWhiteSpace(portfolio.Item1))
                 {
-                    await _teleService.SendMessage(_idChannel, $"[Quỹ Đầu Tư]\n{portfolio}");
+                    await _teleService.SendMessage(_idChannel, portfolio.Item1, portfolio.Item2);
                 }
                 //Tổng cục thống kê
                 if (dt.Day == 6 && dt.Hour >= 7)

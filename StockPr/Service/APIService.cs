@@ -1581,7 +1581,7 @@ namespace StockPr.Service
             {
                 dt = dt.AddMonths(-1);
             }
-            string dFormat = $"{dt.Year}{dt.Month.To2Digit()}";
+            string dFormat = $"{dt.Year}/{dt.Month.To2Digit()}";
 
             try
             {
