@@ -408,7 +408,7 @@ namespace StockPr.Service
                 if (!lData.Any())
                     return (0, null);
 
-                var head = $"[Thông báo] GDNN buổi sáng {dt.ToString("dd/MM/yyyy")}:"; ;
+                var head = $"[Thông báo] GDNN phiên sáng {dt.ToString("dd/MM/yyyy")}:"; ;
                 strOutput.AppendLine(head);
                 strOutput.AppendLine($"*Top mua ròng:");
                 var lTopBuy = lData.OrderByDescending(x => x.net_val).Take(10);
