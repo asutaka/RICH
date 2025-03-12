@@ -529,7 +529,7 @@ namespace StockPr.Service
                     var mes = $"[{item}](https://finance.vietstock.vn/{item}/phan-tich-ky-thuat.htm)";
                     lMes.Add(mes);
                 }
-                res += $"\n       => {string.Join(",", lMes)}\n";
+                res += $"\n       => {string.Join(", ", lMes)}\n";
             }
             return res;
         }
