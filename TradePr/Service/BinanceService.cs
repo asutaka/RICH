@@ -609,6 +609,12 @@ namespace TradePr.Service
                 {
                     near = 0;
                 }
+                var exists = StaticVal._dicCoinAnk.FirstOrDefault(x => x.Key == entity.s);
+                if(exists.Key != null)
+                {
+                    near = exists.Value.Item1;
+                }
+
                 var soluong = Math.Round(_unit / quote.Close, near);
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
                                                                                                     side: side,
@@ -617,20 +623,6 @@ namespace TradePr.Service
                                                                                                     reduceOnly: false,
                                                                                                     quantity: soluong);
                 Thread.Sleep(500);
-                if (!res.Success)
-                {
-                    if(res.Error.Code == -1111)
-                    {
-                        soluong = Math.Round(soluong, 1);
-                        res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
-                                                                                                    side: side,
-                                                                                                    type: Binance.Net.Enums.FuturesOrderType.Market,
-                                                                                                    positionSide: Binance.Net.Enums.PositionSide.Both,
-                                                                                                    reduceOnly: false,
-                                                                                                    quantity: soluong);
-                        Thread.Sleep(500);
-                    }
-                }
                 //nếu lỗi return
                 if (!res.Success)
                 {
@@ -672,6 +664,10 @@ namespace TradePr.Service
                         var price = quote.Close.ToString().Split('.').Last();
                         price = price.ReverseString();
                         near = long.Parse(price).ToString().Length;
+                        if (exists.Key != null)
+                        {
+                            near = exists.Value.Item2;
+                        }
                     }
                     var checkLenght = quote.Close.ToString().Split('.').Last();
                     decimal sl = 0;

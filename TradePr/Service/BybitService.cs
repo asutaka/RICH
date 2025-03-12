@@ -617,6 +617,12 @@ namespace TradePr.Service
                 {
                     near = 0;
                 }
+                var exists = StaticVal._dicCoinAnk.FirstOrDefault(x => x.Key == entity.s);
+                if (exists.Key != null)
+                {
+                    near = exists.Value.Item1;
+                }
+
                 var soluong = Math.Round(_unit / quote.ClosePrice, near);
                 var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                         entity.s,
@@ -665,6 +671,10 @@ namespace TradePr.Service
                         var price = quote.ClosePrice.ToString().Split('.').Last();
                         price = price.ReverseString();
                         near = long.Parse(price).ToString().Length;
+                        if (exists.Key != null)
+                        {
+                            near = exists.Value.Item2;
+                        }
                     }
                     var checkLenght = quote.ClosePrice.ToString().Split('.').Last();
                     decimal sl = 0;
