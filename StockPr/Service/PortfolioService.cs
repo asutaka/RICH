@@ -28,7 +28,7 @@ namespace StockPr.Service
             try
             {
                 var dt = DateTime.Now;
-                if (dt.Day == 1)
+                if (dt.Day == 1 && dt.Hour == 8)
                 {
                     mes = "*Quỹ đầu tư nước ngoài*";
 
@@ -48,7 +48,7 @@ namespace StockPr.Service
                     }
                 }
 
-                if (dt.DayOfWeek == DayOfWeek.Monday)
+                if (dt.DayOfWeek == DayOfWeek.Monday && dt.Hour == 8)
                 {
                     mes = "*Quỹ đầu tư trong nước*";
 
