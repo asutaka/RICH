@@ -157,7 +157,7 @@ namespace StockPr
                         var gdnn = await _analyzeService.ThongkeForeign_PhienSang(dt);
                         if (gdnn.Item1 > 0)
                         {
-                            await _teleService.SendMessage(_idUser, gdnn.Item2, true);
+                            await _teleService.SendMessage(_idChannel, gdnn.Item2, true);
                         }
                     }    
                 }
