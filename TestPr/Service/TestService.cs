@@ -133,10 +133,16 @@ namespace TestPr.Service
         {
             try
             {
+                //2x1.7
+                decimal SL_RATE = 1.5m;//1.5,1.6,1.8,1.9,2
+                int hour = 2;//1h,2h,3h,4h
+
                 var lTrading = _tradingRepo.GetAll();
                 var lSymbol = lTrading.Select(x => x.s).Distinct();
                 var lMesAll = new List<string>();
                 var lRate = new List<decimal>();
+                var winCount = 0;
+                var lossCount = 0;
                 foreach (var item in lSymbol)
                 {
                     if (StaticVal._lIgnoreThreeSignal.Contains(item))
@@ -157,7 +163,7 @@ namespace TestPr.Service
                         {
                             //MP
                             //var lData1M = await _apiService.GetData(item, EInterval.M1, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
-                            Thread.Sleep(200);
+                            //Thread.Sleep(200);
                             var lData15m = await _apiService.GetData(item, EInterval.M15, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
                             Thread.Sleep(200);
                             prev = null;
@@ -169,7 +175,7 @@ namespace TestPr.Service
                             }
 
                             var eEntry = first;
-                            var eClose = lData15m.First(x => x.Date >= eEntry.Date.AddHours(2));
+                            var eClose = lData15m.First(x => x.Date >= eEntry.Date.AddHours(hour));
                             var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
                             var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
                             var maxH = lRange.Max(x => x.High);
@@ -178,16 +184,10 @@ namespace TestPr.Service
                             var winloss = "W";
                             if ((val.Side == (int)Binance.Net.Enums.OrderSide.Buy && rate <= 0)
                                 || (val.Side == (int)Binance.Net.Enums.OrderSide.Sell && rate >= 0))
+                            {
                                 winloss = "L";
-                            if (winloss == "W")
-                            {
-                                rate = Math.Abs(rate);
                             }
-                            else
-                            {
-                                rate = -Math.Abs(rate);
-                            }
-
+                            
                             decimal maxTP = 0, maxSL = 0;
                             if (val.Side == (int)Binance.Net.Enums.OrderSide.Buy)
                             {
@@ -199,11 +199,21 @@ namespace TestPr.Service
                                 maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
                                 maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
                             }
-                            
-                            if(maxSL <= (decimal)-1.7)
+                            if (maxSL <= -SL_RATE)
                             {
-                                rate = (decimal)-1.7;
+                                rate = -SL_RATE;
                                 winloss = "L";
+                            }
+
+                            if (winloss == "W")
+                            {
+                                rate = Math.Abs(rate);
+                                winCount++;
+                            }
+                            else
+                            {
+                                rate = -Math.Abs(rate);
+                                lossCount++;
                             }
 
                             lRate.Add(rate);
@@ -227,7 +237,7 @@ namespace TestPr.Service
                 {
                     Console.WriteLine(mes);
                 }
-                Console.WriteLine($"Tong: {lRate.Sum()}%");
+                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
             }
             catch (Exception ex)
             {

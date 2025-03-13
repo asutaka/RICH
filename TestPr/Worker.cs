@@ -20,11 +20,11 @@ namespace TestPr
             //await _testService.MethodTestEntry_2702();
             //await _testService.MethodTestTokenUnlock();
             //await _testService.MethodTest();
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
-            }
+            //while (!stoppingToken.IsCancellationRequested)
+            //{
+            //    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            //    await Task.Delay(1000, stoppingToken);
+            //}
         }
     }
 }
