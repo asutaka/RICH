@@ -293,6 +293,8 @@ namespace TestPr.Service
                                 continue;
 
                             var FromEntry = Math.Round(100 * (-1 + (double)first.Close / val.Entry), 1);
+                            if (FromEntry > 1.7)
+                                continue;
 
                             var eEntry = first;
                             var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
