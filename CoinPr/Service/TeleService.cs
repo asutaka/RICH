@@ -111,7 +111,6 @@ namespace CoinPr.Service
                 if (update.GetType().Name.Equals("UpdateNewChannelMessage", StringComparison.OrdinalIgnoreCase))
                 {
                     var val = update as UpdateNewChannelMessage;
-                    await SendMessage(_idUser, "zzzz");
                     if (val.message.Peer.ID == 2088766055) //Token Unlocks
                     {
                         try
