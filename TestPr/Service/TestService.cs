@@ -264,7 +264,7 @@ namespace TestPr.Service
                 var winCount = 0;
                 var lossCount = 0;
                 foreach (var item in lSymbol)
-                {
+                { 
                     //if (StaticVal._lIgnoreThreeSignal.Contains(item))
                     //    continue;
 
