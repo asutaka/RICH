@@ -4,19 +4,19 @@ using Skender.Stock.Indicators;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 using TestPr.Utils;
+using static MongoDB.Driver.WriteConcern;
 
 namespace TestPr.Service
 {
     public interface ITestService
     {
-        Task MethodTestEntry_2602();
-        Task MethodTestEntry_0303();
-        Task MethodTestEntry_1303();
-        Task MethodTestEntry_1403();
-        Task MethodTestEntry_1503();
-        Task MethodTestEntry_1603();
-        Task MethodTestEntry_1603_Long();
-        Task MethodTestTokenUnlock();
+        Task Liquid_3();
+        Task Liquid_2();
+        Task LongLiquid_1();
+        Task ShortLiquid_1();
+        Task ShortRSI();
+        Task LongRSI();
+        Task ShortTokenUnlock();
     }
     public class TestService : ITestService
     {
@@ -33,7 +33,7 @@ namespace TestPr.Service
         }
 
         //very good
-        public async Task MethodTestEntry_2602()
+        public async Task Liquid_3()
         {
             try
             {
@@ -41,6 +41,8 @@ namespace TestPr.Service
                 var lSymbol = lTrading.Select(x => x.s).Distinct();
                 var lMesAll = new List<string>();
                 var lRate = new List<decimal>();
+                var winCount = 0;
+                var lossCount = 0;
                 foreach (var item in lSymbol)
                 {
                     if (StaticVal._lIgnoreThreeSignal.Contains(item))
@@ -83,10 +85,12 @@ namespace TestPr.Service
                                 if(winloss == "W")
                                 {
                                     rate = Math.Abs(rate);
+                                    winCount++;
                                 }
                                 else
                                 {
                                     rate = - Math.Abs(rate);
+                                    lossCount++;
                                 }
 
                                 decimal maxTP = 0, maxSL = 0;
@@ -126,7 +130,7 @@ namespace TestPr.Service
                 {
                     Console.WriteLine(mes);
                 }
-                Console.WriteLine($"Tong: {lRate.Sum()}%");
+                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
             }
             catch (Exception ex)
             {
@@ -134,7 +138,7 @@ namespace TestPr.Service
             }
         }
         //best
-        public async Task MethodTestEntry_0303()
+        public async Task Liquid_2()
         {
             try
             {
@@ -250,130 +254,8 @@ namespace TestPr.Service
             }
         }
 
-        public async Task MethodTestEntry_1303()
-        {
-            try
-            {
-                //2x1.7 best
-                decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
-                int hour = 2;//1h,2h,3h,4h
-
-                var lTrading = _tradingRepo.GetAll();
-                var lSymbol = lTrading.Select(x => x.s).Distinct();
-                var lMesAll = new List<string>();
-                var lRate = new List<decimal>();
-                var winCount = 0;
-                var lossCount = 0;
-                foreach (var item in lSymbol)
-                { 
-                    //if (StaticVal._lIgnoreThreeSignal.Contains(item))
-                    //    continue;
-
-                    var lMes = new List<string>();
-                    var lval = lTrading.Where(x => x.s == item);
-                    Quote close = null;
-                    foreach (var val in lval)
-                    {
-                        try
-                        {
-                            //if (close != null && close.Date >= val.Date)
-                            //    continue;
-                            if (lval.Any(x => x.s == val.s && x.Date > val.Date && (x.Date - val.Date).TotalMinutes <= 30))
-                                continue;
-                            var lData15m = await _apiService.GetData(item, EInterval.M15, new DateTimeOffset(val.Date.AddHours(-2)).ToUnixTimeMilliseconds());
-                            Thread.Sleep(200);
-                            if (!lData15m.Any())
-                                continue;
-
-                            var first = lData15m.FirstOrDefault(x => x.Date >= val.Date.AddMinutes(15) && x.Date <= val.Date.AddMinutes(45) && x.Close > x.Open);
-                            if (first is null)
-                            {
-                                continue;
-                            }
-                            if (val.Entry > (double)first.Close)//
-                                continue;
-
-                            var FromEntry = Math.Round(100 * (-1 + (double)first.Close / val.Entry), 1);
-                            if (FromEntry > 1.7)
-                                continue;
-
-                            var eEntry = first;
-                            var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
-                            if (eClose is null)
-                                continue;
-                            close = eClose;
-                            var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
-                            var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
-                            var maxH = lRange.Max(x => x.High);
-                            var minL = lRange.Min(x => x.Low);
-
-                            var winloss = "W";
-                            if ((val.Side == (int)Binance.Net.Enums.OrderSide.Buy && rate <= 0)
-                                || (val.Side == (int)Binance.Net.Enums.OrderSide.Sell && rate >= 0))
-                            {
-                                winloss = "L";
-                            }
-
-                            decimal maxTP = 0, maxSL = 0;
-                            if (val.Side == (int)Binance.Net.Enums.OrderSide.Buy)
-                            {
-                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
-                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
-                            }
-                            else
-                            {
-                                maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
-                                maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
-                            }
-                            if (maxSL <= -SL_RATE)
-                            {
-                                rate = -SL_RATE;
-                                winloss = "L";
-                            }
-
-                            if (winloss == "W")
-                            {
-                                rate = Math.Abs(rate);
-                                winCount++;
-                            }
-                            else
-                            {
-                                rate = -Math.Abs(rate);
-                                lossCount++;
-                            }
-
-                            lRate.Add(rate);
-                            var mes = $"{val.s}|{winloss}|{((Binance.Net.Enums.OrderSide)val.Side).ToString()}|{val.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|{FromEntry}%";
-                            lMes.Add(mes);
-                        }
-                        catch(Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                        }
-                        
-                    }
-
-                    lMesAll.AddRange(lMes);
-                    //foreach (var mes in lMes)
-                    //{
-                    //    Console.WriteLine(mes);
-                    //}
-                }
-
-                foreach (var mes in lMesAll)
-                {
-                    Console.WriteLine(mes);
-                }
-                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
-            }
-        }
-
         //GOOD FOR LONG
-        public async Task MethodTestEntry_1403()
+        public async Task LongLiquid_1()
         {
             try
             {
@@ -512,7 +394,7 @@ namespace TestPr.Service
             }
         }
         //GOOD FOR SHORT
-        public async Task MethodTestEntry_1503()
+        public async Task ShortLiquid_1()
         {
             try
             {
@@ -643,7 +525,7 @@ namespace TestPr.Service
         }
 
         //rsi - Good for SHORT(rate very high)
-        public async Task MethodTestEntry_1603()
+        public async Task ShortRSI()
         {
             try
             {
@@ -776,7 +658,7 @@ namespace TestPr.Service
         }
 
         //rsi - Good for LONG(rate very high)
-        public async Task MethodTestEntry_1603_Long()
+        public async Task LongRSI()
         {
             try
             {
@@ -929,7 +811,7 @@ namespace TestPr.Service
             }
         }
 
-        public async Task MethodTestTokenUnlock()
+        public async Task ShortTokenUnlock()
         {
             try
             {
@@ -995,8 +877,7 @@ namespace TestPr.Service
                 {
                     Console.WriteLine(item);
                 }
-                Console.WriteLine($"Tong: {asset}");
-                Console.WriteLine($"Tong Lenh Win: {totalWin}/{totalLoss}");
+                Console.WriteLine($"Tong: {asset}%|W/L: {totalWin}/{totalLoss}");
             }
             catch (Exception ex)
             {
