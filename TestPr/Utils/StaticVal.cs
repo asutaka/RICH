@@ -94,5 +94,38 @@ namespace TestPr.Utils
             { "MERLUSDT", ( 1,5 ) },
             { "ZBCNUSDT", ( 0,6 ) },
         };
+
+        public static List<string> _lRsiShort = new List<string>
+        {
+            "1INCHUSDT",
+            "LINKUSDT",
+            "ZILUSDT",
+            "OPUSDT",
+            "HIGHUSDT",
+            "STGUSDT",
+            "XTZUSDT",
+            "ATOMUSDT",
+            "ARBUSDT",
+            "LINAUSDT",
+            "DOTUSDT",
+            "FILUSDT",
+            "ETCUSDT",
+            "DOGEUSDT",
+            "MAGICUSDT",
+            "MDTUSDT",
+            "APEUSDT",
+            "BTCUSDT",
+            "SUIUSDT",
+            "MINAUSDT",
+            "AVAXUSDT",
+            "AGLDUSDT",
+            "GRTUSDT",
+            "DYDXUSDT",
+            "NEOUSDT",
+            "IDUSDT",
+            "GTCUSDT",
+            "ETHUSDT",
+            "THETAUSDT"
+        };
     }
 }

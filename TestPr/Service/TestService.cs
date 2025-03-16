@@ -15,6 +15,7 @@ namespace TestPr.Service
         Task MethodTestEntry_1403();
         Task MethodTestEntry_1503();
         Task MethodTestEntry_1603();
+        Task MethodTestEntry_1603_Long();
         Task MethodTestTokenUnlock();
     }
     public class TestService : ITestService
@@ -641,7 +642,7 @@ namespace TestPr.Service
             }
         }
 
-        //rsi
+        //rsi - Good for SHORT(rate very high)
         public async Task MethodTestEntry_1603()
         {
             try
@@ -654,31 +655,31 @@ namespace TestPr.Service
                 var lRate = new List<decimal>();
                 var winCount = 0;
                 var lossCount = 0;
-                foreach (var item in StaticVal._dicCoinAnk)
+                foreach (var item in StaticVal._lRsiShort)
                 {
                     var lMes = new List<string>();
-                    var lData15m = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                    var lData15m = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                     if (!lData15m.Any())
                         continue;
                     var last = lData15m.Last();
                     Thread.Sleep(200);
 
-                    var lData40 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                    var lData40 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData30 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                    var lData30 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData20 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                    var lData20 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData10 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
+                    var lData10 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
                     var lrsi = lData15m.GetRsi();
@@ -749,7 +750,7 @@ namespace TestPr.Service
                             }
 
                             lRate.Add(rate);
-                            var mes = $"{item.Key}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{rsi.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            var mes = $"{item}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{rsi.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
                             lMes.Add(mes);
                         }
                         catch(Exception ex)
@@ -757,6 +758,148 @@ namespace TestPr.Service
                             _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
                         }
                        
+                    }
+
+                    lMesAll.AddRange(lMes);
+                }
+
+                foreach (var mes in lMesAll)
+                {
+                    Console.WriteLine(mes);
+                }
+                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task MethodTestEntry_1603_Long()
+        {
+            try
+            {
+                //2x1.7 best
+                decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
+                int hour = 2;//1h,2h,3h,4h
+
+                var lMesAll = new List<string>();
+                var lRate = new List<decimal>();
+                var winCount = 0;
+                var lossCount = 0;
+                foreach (var item in StaticVal._dicCoinAnk)
+                {
+                    var lMes = new List<string>();
+                    var lData15m = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                    if (!lData15m.Any())
+                        continue;
+                    var last = lData15m.Last();
+                    Thread.Sleep(200);
+
+                    var lData40 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                    Thread.Sleep(200);
+                    lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
+                    last = lData15m.Last();
+
+                    var lData30 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                    Thread.Sleep(200);
+                    lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
+                    last = lData15m.Last();
+
+                    var lData20 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                    Thread.Sleep(200);
+                    lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                    last = lData15m.Last();
+
+                    var lData10 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
+                    Thread.Sleep(200);
+                    lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                    var lrsi = lData15m.GetRsi();
+                    Quote close = null;
+                    foreach (var rsi in lrsi)
+                    {
+                        try
+                        {
+                            if (close != null && close.Date >= rsi.Date)
+                                continue;
+                            if (rsi.Rsi is null || rsi.Rsi >= 30 || rsi.Rsi <= 25 )
+                                continue;
+                            var side = (int)Binance.Net.Enums.OrderSide.Buy;
+                            var cur = lData15m.First(x => x.Date == rsi.Date);
+
+                            Quote first = null;
+                            var curRate = Math.Round(Math.Abs(cur.Open - cur.Close) * 100 / Math.Abs(cur.High - cur.Low));
+                            if (curRate >= 40)
+                            {
+                                first = lData15m.FirstOrDefault(x => x.Date == cur.Date.AddMinutes(15) && x.Close > x.Open && (Math.Abs(x.Close - x.Close) >= (0.9m * Math.Abs(cur.Open - cur.Close))));
+                            }
+                            else
+                            {
+                                var low = cur.Low + 0.1m * (cur.High - cur.Low);
+                                first = lData15m.FirstOrDefault(x => x.Date == cur.Date.AddMinutes(15) && x.Low <= low);
+                                if (first != null)
+                                    first.Close = low;
+                            }
+
+                            if (first is null)
+                            {
+                                continue;
+                            }
+
+                            var eEntry = first;
+                            var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
+                            if (eClose is null)
+                                continue;
+                            close = eClose;
+                            var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
+                            var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
+                            var maxH = lRange.Max(x => x.High);
+                            var minL = lRange.Min(x => x.Low);
+
+                            var winloss = "W";
+                            if ((side == (int)Binance.Net.Enums.OrderSide.Buy && rate <= 0)
+                                || (side == (int)Binance.Net.Enums.OrderSide.Sell && rate >= 0))
+                            {
+                                winloss = "L";
+                            }
+
+                            decimal maxTP = 0, maxSL = 0;
+                            if (side == (int)Binance.Net.Enums.OrderSide.Buy)
+                            {
+                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
+                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
+                            }
+                            else
+                            {
+                                maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
+                                maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
+                            }
+                            if (maxSL <= -SL_RATE)
+                            {
+                                rate = -SL_RATE;
+                                winloss = "L";
+                            }
+
+                            if (winloss == "W")
+                            {
+                                rate = Math.Abs(rate);
+                                winCount++;
+                            }
+                            else
+                            {
+                                rate = -Math.Abs(rate);
+                                lossCount++;
+                            }
+
+                            lRate.Add(rate);
+                            var mes = $"{item.Key}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{first.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%";
+                            lMes.Add(mes);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+                        }
+
                     }
 
                     lMesAll.AddRange(lMes);
