@@ -1,14 +1,9 @@
 ﻿using Binance.Net.Objects.Models.Futures;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
-using System.Text;
 using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
-using Newtonsoft.Json;
-using SharpCompress.Common;
-using System.Collections.Generic;
-using Bybit.Net.Enums;
 
 namespace TradePr.Service
 {
@@ -16,6 +11,7 @@ namespace TradePr.Service
     {
         Task<BinanceUsdFuturesAccountBalance> Binance_GetAccountInfo();
         Task Binance_Trade();
+        Task<SignalBase> PlaceOrder(SignalBase entity, decimal lastPrice);
     }
     public class BinanceService : IBinanceService
     {
@@ -33,6 +29,7 @@ namespace TradePr.Service
         private readonly int _HOUR = 2;
         private readonly decimal _SL_RATE = 0.017m;
         private readonly int _exchange = (int)EExchange.Binance;
+        private object _locker = new object();
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISignalTradeRepo signalTradeRepo, IErrorPartnerRepo errRepo,
                             IConfigDataRepo configRepo, IPrepareTradeRepo prepareRepo,
                             IAPIService apiService, ITeleService teleService)
@@ -67,7 +64,6 @@ namespace TradePr.Service
                 await Binance_Entry(dt);
                 await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI(dt);
-                await Binance_Entry(dt);
             }
             catch (Exception ex)
             {
@@ -143,6 +139,9 @@ namespace TradePr.Service
                     if(model.Entry > 0)
                     {
                         _prepareRepo.InsertOne(model);
+                        Monitor.Enter(_locker);
+                        StaticVal._lPrepare.Add(model);
+                        Monitor.Exit(_locker);
                     }
                 }
             }
@@ -211,7 +210,9 @@ namespace TradePr.Service
 
                     if (model.Entry > 0)
                     {
-                        _prepareRepo.InsertOne(model);
+                        Monitor.Enter(_locker);
+                        StaticVal._lPrepare.Add(model);
+                        Monitor.Exit(_locker);
                     }
                 }
             }
@@ -255,52 +256,7 @@ namespace TradePr.Service
                 }
                 #endregion
 
-                #region Buy
-                var num = pos.Data.Count() - index;
-                if (num >= 3)
-                    return;
-
-                var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
-                var builderBuy = Builders<PrepareTrade>.Filter;
-                var lVitheBuy = _prepareRepo.GetByFilter(builderBuy.And(
-                    builderBuy.Gte(x => x.entryTime, time),
-                    builderBuy.Eq(x => x.Status, 0)
-                ));
-
-                foreach (var item in lVitheBuy)
-                {
-                    var lData15m = await _apiService.GetData(item.s, EInterval.M15);
-                    if (!lData15m.Any())
-                        continue;
-
-                    var last = lData15m.Last();
-                    if (item.Side == (int)Binance.Net.Enums.OrderSide.Buy)
-                    {
-                        if ((double)last.Low > item.Entry)
-                            continue;
-                    }
-                    else
-                    {
-                        if ((double)last.High < item.Entry)
-                            continue;
-                    }
-
-                    var res = await PlaceOrder(new SignalBase
-                    {
-                        s = item.s,
-                        Side = item.Side
-                    }, last);
-                    if (res is null)
-                        continue;
-                    item.Entry_Real = res.priceEntry;
-                    item.SL_Real = res.priceStoploss;
-                    item.entryDate = DateTime.Now;
-                    item.entryTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                    item.Status = 1;
-                    _prepareRepo.Update(item);
-                }
-                #endregion
-
+                #region Force Sell
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 if (!pos.Data.Any())
                     return;
@@ -319,7 +275,8 @@ namespace TradePr.Service
                     var lBuy = pos.Data.Where(x => x.PositionAmt > 0);
                     await ForceMarket(lBuy);
                     await _teleService.SendMessage(_idUser, "Thanh lý lệnh LONG hàng loạt");
-                }
+                } 
+                #endregion
             }
             catch(Exception ex)
             {
@@ -352,7 +309,7 @@ namespace TradePr.Service
             return lRes;
         }
 
-        private async Task<SignalBase> PlaceOrder(SignalBase entity, Quote quote)
+        public async Task<SignalBase> PlaceOrder(SignalBase entity, decimal lastPrice)
         {
             try
             {
@@ -405,7 +362,7 @@ namespace TradePr.Service
                 }
 
                 var near = 2;
-                if (quote.Close < 5)
+                if (lastPrice < 5)
                 {
                     near = 0;
                 }
@@ -415,7 +372,7 @@ namespace TradePr.Service
                     near = exists.Value.Item1;
                 }
 
-                var soluong = Math.Round(_unit / quote.Close, near);
+                var soluong = Math.Round(_unit / lastPrice, near);
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
                                                                                                     side: side,
                                                                                                     type: Binance.Net.Enums.FuturesOrderType.Market,
@@ -461,9 +418,9 @@ namespace TradePr.Service
                 var first = resPosition.Data.First();
                 entity.priceEntry = (double)first.MarkPrice;
 
-                if (quote.Close < 5)
+                if (lastPrice < 5)
                 {
-                    var price = quote.Close.ToString().Split('.').Last();
+                    var price = lastPrice.ToString().Split('.').Last();
                     price = price.ReverseString();
                     near = long.Parse(price).ToString().Length;
                     if (exists.Key != null)
@@ -471,7 +428,7 @@ namespace TradePr.Service
                         near = exists.Value.Item2;
                     }
                 }
-                var checkLenght = quote.Close.ToString().Split('.').Last();
+                var checkLenght = lastPrice.ToString().Split('.').Last();
                 decimal sl = 0;
                 if (side == Binance.Net.Enums.OrderSide.Buy)
                 {

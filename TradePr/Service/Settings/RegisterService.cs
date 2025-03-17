@@ -9,6 +9,7 @@
             services.AddSingleton<ICacheService, CacheService>();
             services.AddSingleton<IAPIService, APIService>();
             services.AddSingleton<ITeleService, TeleService>();
+            services.AddSingleton<IWebSocketService, WebSocketService>();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Binance.Net.Clients;
 using Bybit.Net.Clients;
 using CryptoExchange.Net.Authentication;
+using TradePr.DAL.Entity;
 
 namespace TradePr.Utils
 {
@@ -209,5 +210,8 @@ namespace TradePr.Utils
             "ATOMUSDT",
             "ADAUSDT"
         };
+
+        public static List<string> _lRsi = new List<string>();
+        public static List<PrepareTrade> _lPrepare = new List<PrepareTrade>();
     }
 }
