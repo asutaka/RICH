@@ -161,7 +161,7 @@ namespace TradePr.Service
                 var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lPrepare = _prepareRepo.GetByFilter(Builders<PrepareTrade>.Filter.Gte(x => x.detectTime, time));
 
-                var lSym = StaticVal._lRsiLong.Concat(StaticVal._lRsiShort);
+                var lSym = StaticVal._lRsiShort.Concat(StaticVal._lRsiLong);
                 foreach (var sym in lSym)
                 {
                     if (lPrepare.Any(x => x.s == sym))
