@@ -23,25 +23,15 @@ namespace TestPr.DAL
         /// </summary>
         /// <returns>collection of entities</returns>
         List<T> GetAll();
-        /*
-            FilterDefinition<ThongKe> filter = null;
-            var builder = Builders<ThongKe>.Filter;
-            var lFilter = new List<FilterDefinition<ThongKe>>()
-            {
-                builder.Eq(x => x.date, content.date),
-                builder.Eq(x => x.symbol, content.symbol),
-            };
-            foreach (var item in lFilter)
-            {
-                if (filter is null)
-                {
-                    filter = item;
-                    continue;
-                }
-                filter &= item;
-            }
-         */
+
         //Example: FilterDefinition<StockPr> filter = Builders<StockPr>.Filter.Eq(x => x.s, itemMa.symbol);
+
+        //var builder = Builders<SignalTrade>.Filter;
+        //var lSignal = _signalTradeRepo.GetByFilter(builder.And(
+        //    builder.Eq(x => x.ex, _exchange),
+        //    builder.Gte(x => x.timeFlag, time)
+        //));
+
         List<T> GetByFilter(FilterDefinition<T> filter, int offset = 0, int limit = 0);
         T GetEntityByFilter(FilterDefinition<T> filter);
 

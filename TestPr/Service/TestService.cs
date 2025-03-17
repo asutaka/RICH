@@ -137,6 +137,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
+
         //best Tong: 65.4%|W/L: 39/28 liquid 2
         public async Task Liquid_2()
         {
@@ -263,7 +264,10 @@ namespace TestPr.Service
                 decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
                 int hour = 2;//1h,2h,3h,4h
 
-                var lTrading = _tradingRepo.GetAll();
+                var builder = Builders<Trading>.Filter;
+                var lTrading = _tradingRepo.GetByFilter(builder.And(
+                   builder.Eq(x => x.Side, (int)Binance.Net.Enums.OrderSide.Buy)
+               ));
                 var lSymbol = lTrading.Select(x => x.s).Distinct();
                 var lMesAll = new List<string>();
                 var lRate = new List<decimal>();
@@ -283,9 +287,6 @@ namespace TestPr.Service
                     {
                         try
                         {
-                            if (val.Side == (int)Binance.Net.Enums.OrderSide.Sell)//HARD
-                                continue;
-
                             if (close != null && close.Date >= val.Date)
                                 continue;
                             //if (lval.Any(x => x.s == val.s && x.Date > val.Date && (x.Date - val.Date).TotalMinutes <= 30))
@@ -393,6 +394,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
+
         //GOOD FOR SHORT Tong: 34.1%|W/L: 40/25 short liquid 1
         public async Task ShortLiquid_1()
         {
@@ -402,12 +404,17 @@ namespace TestPr.Service
                 decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
                 int hour = 2;//1h,2h,3h,4h
 
-                var lTrading = _tradingRepo.GetAll();
+                var builder = Builders<Trading>.Filter;
+                var lTrading = _tradingRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.Side, (int)Binance.Net.Enums.OrderSide.Sell)
+                ));
+
                 var lSymbol = lTrading.Select(x => x.s).Distinct();
                 var lMesAll = new List<string>();
                 var lRate = new List<decimal>();
                 var winCount = 0;
                 var lossCount = 0;
+                int countErr1 = 0, countErr2 = 0, countErr3 = 0, countErr4 = 0, countErr5 = 0, countErr6 = 0;
                 foreach (var item in lSymbol)
                 {
                     //if (item == "ETHUSDT")
@@ -422,9 +429,6 @@ namespace TestPr.Service
                     {
                         try
                         {
-                            if (val.Side == (int)Binance.Net.Enums.OrderSide.Buy)//HARD
-                                continue;
-
                             //if (close != null && close.Date >= val.Date)
                             //    continue;
                             //if (lval.Any(x => x.s == val.s && x.Date > val.Date && (x.Date - val.Date).TotalMinutes <= 30))
@@ -432,27 +436,50 @@ namespace TestPr.Service
                             var lData15m = await _apiService.GetData(item, EInterval.M15, new DateTimeOffset(val.Date.AddHours(-10)).ToUnixTimeMilliseconds());
                             Thread.Sleep(200);
                             if (!lData15m.Any())
+                            {
+                                countErr1++;
                                 continue;
+                            }    
                             var lRsi = lData15m.GetRsi();
                             var cur = lData15m.FirstOrDefault(x => x.Date >= val.Date.AddMinutes(-15));
                             if (cur is null)
+                            {
+                                countErr2++;
                                 continue;
+                            }    
+                                
                             var rsi = lRsi.FirstOrDefault(x => x.Date == cur.Date);
                             if (rsi?.Rsi is null || rsi.Rsi < 70)
+                            {
+                                countErr3++;
                                 continue;
+                            }
+                                
 
                             var first = lData15m.FirstOrDefault(x => x.Date == cur.Date.AddMinutes(15));
                             if (first is null)
+                            {
+                                countErr4++;
                                 continue;
+                            }
+                                
                             if (first.High < cur.High)
+                            {
+                                countErr5++;
                                 continue;
+                            }
+                                
 
                             first.Close = cur.High;
 
                             var eEntry = first;
                             var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
                             if (eClose is null)
+                            {
+                                countErr6++;
                                 continue;
+                            }
+                                
                             close = eClose;
                             var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
                             var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
@@ -516,7 +543,7 @@ namespace TestPr.Service
                 {
                     Console.WriteLine(mes);
                 }
-                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
+                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}|Err1: {countErr1}|Err2: {countErr2}|Err3: {countErr3}|Err4: {countErr4}|Err5: {countErr5}|Err6: {countErr6}");
             }
             catch (Exception ex)
             {
