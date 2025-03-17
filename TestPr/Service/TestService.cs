@@ -32,7 +32,7 @@ namespace TestPr.Service
             _tokenRepo = tokenrepo;
         }
 
-        //very good
+        //very good Tong: 57.5%|W/L: 26/11 liquid 3
         public async Task Liquid_3()
         {
             try
@@ -137,7 +137,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //best
+        //best Tong: 65.4%|W/L: 39/28 liquid 2
         public async Task Liquid_2()
         {
             try
@@ -254,7 +254,7 @@ namespace TestPr.Service
             }
         }
 
-        //GOOD FOR LONG
+        //GOOD FOR LONG Tong: 67.9%|W/L: 28/15 long liquid 1
         public async Task LongLiquid_1()
         {
             try
@@ -393,7 +393,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //GOOD FOR SHORT
+        //GOOD FOR SHORT Tong: 34.1%|W/L: 40/25 short liquid 1
         public async Task ShortLiquid_1()
         {
             try
@@ -524,7 +524,7 @@ namespace TestPr.Service
             }
         }
 
-        //rsi - Good for SHORT(rate very high)
+        //rsi - Good for SHORT(rate very high) Tong: 406.7%|W/L: 383/168 short rsi
         public async Task ShortRSI()
         {
             try
@@ -657,7 +657,7 @@ namespace TestPr.Service
             }
         }
 
-        //rsi - Good for LONG(rate very high)
+        //rsi - Good for LONG(rate very high) Tong: 281.8%|W/L: 162/121 long rsi
         public async Task LongRSI()
         {
             try
@@ -811,6 +811,7 @@ namespace TestPr.Service
             }
         }
 
+        // Tong: 331.7%|W/L: 45/79 Token Unlock
         public async Task ShortTokenUnlock()
         {
             try
