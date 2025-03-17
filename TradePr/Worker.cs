@@ -18,12 +18,12 @@ namespace TradePr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             //await _bybitService.Bybit_GetAccountInfo();
-            //await _binnanceService.GetAccountInfo();
+            //await _binnanceService.Binance_GetAccountInfo();
             while (!stoppingToken.IsCancellationRequested)
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 await _binnanceService.Binance_Trade();
-                await _bybitService.Bybit_Trade();
+                //await _bybitService.Bybit_Trade();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }

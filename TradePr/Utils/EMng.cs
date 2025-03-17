@@ -52,6 +52,8 @@ namespace TradePr.Utils
     {
         Unlock = 1,
         Signal = 2,
-        ThreeSignal = 3
+        ThreeSignal = 3,
+        Liquid = 4,
+        RSI = 5
     }
 }

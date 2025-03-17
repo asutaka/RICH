@@ -137,5 +137,77 @@ namespace TradePr.Utils
             "ETHUSDT",
             "XRPUSDT"
         };
+
+        public static List<string> _lRsiShort = new List<string>
+        {
+            "1INCHUSDT",
+            "LINKUSDT",
+            "ZILUSDT",
+            "OPUSDT",
+            "HIGHUSDT",
+            "STGUSDT",
+            "XTZUSDT",
+            "ATOMUSDT",
+            "ARBUSDT",
+            "LINAUSDT",
+            "DOTUSDT",
+            "FILUSDT",
+            "ETCUSDT",
+            "DOGEUSDT",
+            "MAGICUSDT",
+            "MDTUSDT",
+            "APEUSDT",
+            "BTCUSDT",
+            "SUIUSDT",
+            "MINAUSDT",
+            "AVAXUSDT",
+            "AGLDUSDT",
+            "GRTUSDT",
+            "DYDXUSDT",
+            "NEOUSDT",
+            "IDUSDT",
+            "GTCUSDT",
+            "ETHUSDT",
+            "THETAUSDT"
+        };
+
+        public static List<string> _lRsiLong = new List<string>
+        {
+            "ETCUSDT",
+            "HIGHUSDT",
+            "FILUSDT",
+            "DOTUSDT",
+            "BTCUSDT",
+            "GTCUSDT",
+            "LINKUSDT",
+            "1INCHUSDT",
+            "ARBUSDT",
+            "EOSUSDT",
+            "BCHUSDT",
+            "LTCUSDT",
+            "ETHUSDT",
+            "MDTUSDT",
+            "NEOUSDT",
+            "XRPUSDT",
+            "STGUSDT",
+            "TRBUSDT",
+            "WLDUSDT",
+            "MKRUSDT",
+            "PIXELUSDT",
+            "APTUSDT",
+            "THETAUSDT",
+            "DOGEUSDT",
+            "JOEUSDT",
+            "EGLDUSDT",
+            "LINAUSDT",
+            "AGLDUSDT",
+            "C98USDT",
+            "ZILUSDT",
+            "CYBERUSDT",
+            "BELUSDT",
+            "DYDXUSDT",
+            "ATOMUSDT",
+            "ADAUSDT"
+        };
     }
 }
