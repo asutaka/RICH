@@ -367,11 +367,11 @@ namespace TradePr.Service
                         {
                             if (item.PositionAmt < 0 && side == Binance.Net.Enums.OrderSide.Sell)
                             {
-                                continue;
+                                return null;
                             }
                             else if(item.PositionAmt > 0 && side == Binance.Net.Enums.OrderSide.Buy)
                             {
-                                continue;
+                                return null;
                             }
                             else
                             {

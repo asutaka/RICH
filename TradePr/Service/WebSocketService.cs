@@ -41,8 +41,6 @@ namespace TradePr.Service
             try
             {
                 RemoveValue(val);
-                await _teleService.SendMessage(_idUser, $"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
-                Console.WriteLine($"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                 //return;
                 //action
                 var res = await _binanceService.PlaceOrder(new SignalBase
@@ -52,6 +50,9 @@ namespace TradePr.Service
                 }, lastPrice);
                 if (res is null)
                     return;
+
+                await _teleService.SendMessage(_idUser, $"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                Console.WriteLine($"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                 val.Entry_Real = res.priceEntry;
                 val.SL_Real = res.priceStoploss;
                 val.entryDate = DateTime.Now;
