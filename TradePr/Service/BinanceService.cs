@@ -223,6 +223,7 @@ namespace TradePr.Service
 
                     if (model.Entry > 0)
                     {
+                        _prepareRepo.InsertOne(model);
                         Monitor.Enter(_locker);
                         StaticVal._lPrepare.Add(model);
                         Monitor.Exit(_locker);
@@ -241,14 +242,12 @@ namespace TradePr.Service
         {
             try
             {
-                //var timeStart = (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds();
-                //var timeEnd = (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
-                //var builder = Builders<PrepareTrade>.Filter;
-                //var lViThe = _prepareRepo.GetByFilter(builder.And(
-                //    builder.Gte(x => x.entryTime, timeStart),
-                //    builder.Lte(x => x.entryTime, timeEnd),
-                //    builder.Eq(x => x.Status, 1)
-                //));
+                var timeEnd = (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
+                var builder = Builders<PrepareTrade>.Filter;
+                var lViThe = _prepareRepo.GetByFilter(builder.And(
+                    builder.Lte(x => x.entryTime, timeEnd),
+                    builder.Eq(x => x.Status, 1)
+                ));
                 var index = 0;
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 #region Sell
@@ -262,19 +261,28 @@ namespace TradePr.Service
                     {
                         index++;
                         await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_side);
-                    }    
+                        var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
+                        if (vithe != null)
+                        {
+                            vithe.stopDate = DateTime.Now;
+                            vithe.stopTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                            vithe.SL_Real = (double)item.MarkPrice;
+                            vithe.Status = 2;
+                            _prepareRepo.Update(vithe);
+                            var rate = Math.Round(100 * (-1 + vithe.SL_Real / vithe.Entry), 1);
+                            var winloss = "L";
+                            if(side == Binance.Net.Enums.OrderSide.Buy && rate > 0)
+                            {
+                                winloss = "W";
+                            }
+                            else if(side == Binance.Net.Enums.OrderSide.Sell && rate < 0)
+                            {
+                                winloss = "W";
+                            }
 
-                    //var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
-                    //if (vithe != null)
-                    //{
-                    //    index++;
-                    //    await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_side);
-
-                    //    vithe.stopDate = DateTime.Now;
-                    //    vithe.stopTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                    //    vithe.Status = 2;
-                    //    _prepareRepo.Update(vithe);
-                    //}
+                            await _teleService.SendMessage(_idUser, $"[CLOSE] {item.Symbol}|{winloss}({rate}%)|{side}|PRICE: {vithe.SL_Real}|Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                        }
+                    }
                 }
                 #endregion
 
