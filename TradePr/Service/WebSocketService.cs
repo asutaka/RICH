@@ -40,6 +40,8 @@ namespace TradePr.Service
         {
             try
             {
+                Console.WriteLine($"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                return;
                 //action
                 var res = await _binanceService.PlaceOrder(new SignalBase
                 {

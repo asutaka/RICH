@@ -61,7 +61,7 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.Now;
-                await Binance_Entry(dt);
+                //await Binance_Entry(dt);
                 await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI(dt);
             }
@@ -142,6 +142,7 @@ namespace TradePr.Service
                         Monitor.Enter(_locker);
                         StaticVal._lPrepare.Add(model);
                         Monitor.Exit(_locker);
+                        Console.WriteLine($"[PREPARE-Liquid] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                     }
                 }
             }
@@ -213,6 +214,7 @@ namespace TradePr.Service
                         Monitor.Enter(_locker);
                         StaticVal._lPrepare.Add(model);
                         Monitor.Exit(_locker);
+                        Console.WriteLine($"[PREPARE-RSI] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                     }
                 }
             }
