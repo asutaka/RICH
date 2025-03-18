@@ -61,7 +61,7 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.Now;
-                //await Binance_Entry(dt);
+                await Binance_Entry(dt);
                 await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI(dt);
             }
@@ -119,6 +119,9 @@ namespace TradePr.Service
                             continue;
                         if ((cur.High - Math.Max(cur.Open, cur.Close)) > (Math.Min(cur.Open, cur.Close) - cur.Low))
                             continue;
+                        if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi < 25))
+                            continue;
+
                         var low = cur.Low + 0.1m * (cur.High - cur.Low);
 
                         model.Side = (int)Binance.Net.Enums.OrderSide.Buy;
@@ -130,6 +133,9 @@ namespace TradePr.Service
                             continue;
 
                         if (rsi.Rsi >= 80 || rsi.Rsi < 75)
+                            continue;
+
+                        if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi > 80))
                             continue;
 
                         model.Side = (int)Binance.Net.Enums.OrderSide.Sell;
@@ -196,6 +202,9 @@ namespace TradePr.Service
                             continue;
                         if ((cur.High - Math.Max(cur.Open, cur.Close)) > (Math.Min(cur.Open, cur.Close) - cur.Low))
                             continue;
+                        if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi < 25))
+                            continue;
+
                         var low = cur.Low + 0.1m * (cur.High - cur.Low);
 
                         model.Side = (int)Binance.Net.Enums.OrderSide.Buy;
@@ -204,6 +213,8 @@ namespace TradePr.Service
                     else if(rsi.Rsi >= 75 && rsi.Rsi < 80)
                     {
                         if (!StaticVal._lRsiShort.Contains(sym))
+                            continue;
+                        if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi > 80))
                             continue;
 
                         model.Side = (int)Binance.Net.Enums.OrderSide.Sell;
@@ -332,7 +343,14 @@ namespace TradePr.Service
                 if (!marginType.Success)
                     return null;
 
-                var initLevel = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, (int)_margin);
+                var eMargin = StaticVal._dicBinanceMargin.FirstOrDefault(x => x.Key == entity.s);
+                int margin = (int)_margin;
+                if(eMargin.Key != null && eMargin.Value < (int)_margin)
+                {
+                    margin = eMargin.Value;
+                }
+
+                var initLevel = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, margin);
                 if (!initLevel.Success)
                     return null;
 
