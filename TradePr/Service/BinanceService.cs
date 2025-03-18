@@ -241,14 +241,14 @@ namespace TradePr.Service
         {
             try
             {
-                var timeStart = (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds();
-                var timeEnd = (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
-                var builder = Builders<PrepareTrade>.Filter;
-                var lViThe = _prepareRepo.GetByFilter(builder.And(
-                    builder.Gte(x => x.entryTime, timeStart),
-                    builder.Lte(x => x.entryTime, timeEnd),
-                    builder.Eq(x => x.Status, 1)
-                ));
+                //var timeStart = (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds();
+                //var timeEnd = (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
+                //var builder = Builders<PrepareTrade>.Filter;
+                //var lViThe = _prepareRepo.GetByFilter(builder.And(
+                //    builder.Gte(x => x.entryTime, timeStart),
+                //    builder.Lte(x => x.entryTime, timeEnd),
+                //    builder.Eq(x => x.Status, 1)
+                //));
                 var index = 0;
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 #region Sell
@@ -257,23 +257,31 @@ namespace TradePr.Service
                     var side = item.PositionAmt < 0 ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy;
                     var SL_side = item.PositionAmt < 0 ? Binance.Net.Enums.OrderSide.Buy : Binance.Net.Enums.OrderSide.Sell;
 
-                    var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
-                    if (vithe != null)
+                    var curTime = (DateTime.UtcNow - item.UpdateTime.Value).TotalHours;
+                    if(curTime >= 2)
                     {
                         index++;
                         await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_side);
+                    }    
 
-                        vithe.stopDate = DateTime.Now;
-                        vithe.stopTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                        vithe.Status = 2;
-                        _prepareRepo.Update(vithe);
-                    }
+                    //var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
+                    //if (vithe != null)
+                    //{
+                    //    index++;
+                    //    await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_side);
+
+                    //    vithe.stopDate = DateTime.Now;
+                    //    vithe.stopTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                    //    vithe.Status = 2;
+                    //    _prepareRepo.Update(vithe);
+                    //}
                 }
                 #endregion
 
                 #region Force Sell
+                var num = pos.Data.Count() - index;
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
-                if (!pos.Data.Any())
+                if (num <= 0)
                     return;
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
