@@ -41,6 +41,7 @@ namespace TradePr.Service
             try
             {
                 RemoveValue(val);
+                await _teleService.SendMessage(_idUser, $"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                 Console.WriteLine($"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                 return;
                 //action

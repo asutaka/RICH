@@ -142,6 +142,7 @@ namespace TradePr.Service
                         Monitor.Enter(_locker);
                         StaticVal._lPrepare.Add(model);
                         Monitor.Exit(_locker);
+                        await _teleService.SendMessage(_idUser, $"[PREPARE-Liquid] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                         Console.WriteLine($"[PREPARE-Liquid] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                     }
                 }
@@ -214,6 +215,7 @@ namespace TradePr.Service
                         Monitor.Enter(_locker);
                         StaticVal._lPrepare.Add(model);
                         Monitor.Exit(_locker);
+                        await _teleService.SendMessage(_idUser, $"[PREPARE-RSI] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                         Console.WriteLine($"[PREPARE-RSI] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                     }
                 }
@@ -241,8 +243,8 @@ namespace TradePr.Service
                 #region Sell
                 foreach (var item in pos.Data)
                 {
-                    var side = item.PositionSide == Binance.Net.Enums.PositionSide.Short ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy;
-                    var SL_side = item.PositionSide == Binance.Net.Enums.PositionSide.Short ? Binance.Net.Enums.OrderSide.Buy : Binance.Net.Enums.OrderSide.Sell;
+                    var side = item.PositionAmt < 0 ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy;
+                    var SL_side = item.PositionAmt < 0 ? Binance.Net.Enums.OrderSide.Buy : Binance.Net.Enums.OrderSide.Sell;
 
                     var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
                     if (vithe != null)
