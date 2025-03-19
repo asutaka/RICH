@@ -431,7 +431,7 @@ namespace TradePr.Service
                 //nếu lỗi return
                 if (!res.Success)
                 {
-                    var mes = $"[ERROR_binance] {entity.s}|{side}|AMOUNT: {soluong}";
+                    var mes = $"[ERROR_binance] {entity.s}|{side}|AMOUNT: {soluong}| {res.Error?.Message}";
                     _errRepo.InsertOne(new ErrorPartner
                     {
                         s = entity.s,
@@ -447,7 +447,7 @@ namespace TradePr.Service
                 Thread.Sleep(500);
                 if (!resPosition.Success)
                 {
-                    var mes = $"[ERROR_binance] {entity.s}|Error when get Position";
+                    var mes = $"[ERROR_binance] {entity.s}|Error when get Position| {res.Error?.Message}";
                     _errRepo.InsertOne(new ErrorPartner
                     {
                         s = entity.s,
@@ -499,7 +499,7 @@ namespace TradePr.Service
                 Thread.Sleep(500);
                 if (!res.Success)
                 {
-                    var mes = $"[ERROR_binance_SL] {entity.s}|{SL_side}|AMOUNT: {soluong}|Entry: {entity.priceEntry}|SL: {sl}";
+                    var mes = $"[ERROR_binance_SL] {entity.s}|{SL_side}|AMOUNT: {soluong}|Entry: {entity.priceEntry}|SL: {sl}| {res.Error?.Message}";
                     _errRepo.InsertOne(new ErrorPartner
                     {
                         s = entity.s,
@@ -534,16 +534,20 @@ namespace TradePr.Service
                                                                                                     quantity: quan);
                 Thread.Sleep(500);
                 if (res.Success)
+                {
                     return true;
+                }
+                else
+                {
+                    var mes = $"[ERROR_binance_Close] {symbol}|{side}|AMOUNT: {quan}|Error Không thể đóng lệnh| {res.Error?.Message}";
+                    Console.WriteLine(mes);
+                    await _teleService.SendMessage(_idUser, mes);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
-
-            var mes = $"[ERROR_binance_Close] {symbol}|{side}|AMOUNT: {quan}|Error Không thể đóng lệnh";
-            Console.WriteLine(mes);
-            await _teleService.SendMessage(_idUser, mes);
             return false;
         }
     }
