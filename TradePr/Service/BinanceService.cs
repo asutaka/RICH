@@ -4,6 +4,7 @@ using Skender.Stock.Indicators;
 using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
+using SharpCompress.Common;
 
 namespace TradePr.Service
 {
@@ -430,7 +431,7 @@ namespace TradePr.Service
                 //nếu lỗi return
                 if (!res.Success)
                 {
-                    var mes = $"[ERROR_binance] side: {side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}";
+                    var mes = $"[ERROR_binance] {entity.s}|{side}|AMOUNT: {soluong}";
                     _errRepo.InsertOne(new ErrorPartner
                     {
                         s = entity.s,
@@ -446,7 +447,7 @@ namespace TradePr.Service
                 Thread.Sleep(500);
                 if (!resPosition.Success)
                 {
-                    var mes = $"[ERROR_binance] when get Position";
+                    var mes = $"[ERROR_binance] {entity.s}|Error when get Position";
                     _errRepo.InsertOne(new ErrorPartner
                     {
                         s = entity.s,
@@ -498,7 +499,7 @@ namespace TradePr.Service
                 Thread.Sleep(500);
                 if (!res.Success)
                 {
-                    var mes = $"[ERROR_binance_SL] side: {SL_side}, type: {Binance.Net.Enums.FuturesOrderType.Market}, quantity: {soluong}, stopPrice: {sl}";
+                    var mes = $"[ERROR_binance_SL] {entity.s}|{SL_side}|AMOUNT: {soluong}|Entry: {entity.priceEntry}|SL: {sl}";
                     _errRepo.InsertOne(new ErrorPartner
                     {
                         s = entity.s,
@@ -539,8 +540,10 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
-            Console.WriteLine($"[ERROR_binance_Close] |{symbol}|Soluong: {quan}");
-            await _teleService.SendMessage(_idUser, $"[ERROR_binance_Close] Không thể đóng lệnh {side}: {symbol}!");
+
+            var mes = $"[ERROR_binance_Close] {symbol}|{side}|AMOUNT: {quan}|Error Không thể đóng lệnh";
+            Console.WriteLine(mes);
+            await _teleService.SendMessage(_idUser, mes);
             return false;
         }
     }
