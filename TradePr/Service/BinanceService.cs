@@ -274,10 +274,16 @@ namespace TradePr.Service
                             if(side == Binance.Net.Enums.OrderSide.Buy && rate > 0)
                             {
                                 winloss = "W";
+                                rate = Math.Abs(rate);
                             }
                             else if(side == Binance.Net.Enums.OrderSide.Sell && rate < 0)
                             {
                                 winloss = "W";
+                                rate = Math.Abs(rate);
+                            }
+                            else
+                            {
+                                rate = - Math.Abs(rate);
                             }
 
                             await _teleService.SendMessage(_idUser, $"[CLOSE] {item.Symbol}|{winloss}({rate}%)|{side}|PRICE: {vithe.SL_Real}|Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
