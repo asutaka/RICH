@@ -85,7 +85,7 @@ namespace TradePr.Utils
             { "RUNEUSDT", ( 1,3 ) },
             { "AGLDUSDT", ( 1,4 ) },
             { "SUSHIUSDT", ( 1,4 ) },
-            { "GRTUSDT", ( 1,5 ) },
+            { "GRTUSDT", ( 0,5 ) },
             { "1INCHUSDT", ( 1,4 ) },
             { "JOEUSDT", ( 0,4 ) },
             { "LINAUSDT", ( 0,5 ) },
