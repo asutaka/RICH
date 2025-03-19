@@ -62,7 +62,7 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.Now;
-                await Binance_Entry(dt);
+                await Binance_TakeProfit(dt);
                 await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI(dt);
             }
@@ -239,7 +239,7 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Binance_Entry(DateTime dt)
+        private async Task Binance_TakeProfit(DateTime dt)
         {
             try
             {
@@ -257,12 +257,13 @@ namespace TradePr.Service
                     var side = item.PositionAmt < 0 ? Binance.Net.Enums.OrderSide.Sell : Binance.Net.Enums.OrderSide.Buy;
                     var SL_side = item.PositionAmt < 0 ? Binance.Net.Enums.OrderSide.Buy : Binance.Net.Enums.OrderSide.Sell;
 
+                    var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
                     var curTime = (DateTime.UtcNow - item.UpdateTime.Value).TotalHours;
-                    if(curTime >= 2)
+                    if(curTime >= 2 || (vithe != null && (DateTime.UtcNow - vithe.entryDate).TotalHours >= 2))
                     {
                         index++;
                         await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_side);
-                        var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
+                        
                         if (vithe != null)
                         {
                             vithe.stopDate = DateTime.Now;
@@ -271,15 +272,15 @@ namespace TradePr.Service
                             vithe.Status = 2;
                             _prepareRepo.Update(vithe);
                             var rate = Math.Round(100 * (-1 + vithe.SL_Real / vithe.Entry), 1);
-                            var winloss = "L";
+                            var winloss = "LOSS";
                             if(side == Binance.Net.Enums.OrderSide.Buy && rate > 0)
                             {
-                                winloss = "W";
+                                winloss = "WIN";
                                 rate = Math.Abs(rate);
                             }
                             else if(side == Binance.Net.Enums.OrderSide.Sell && rate < 0)
                             {
-                                winloss = "W";
+                                winloss = "WIN";
                                 rate = Math.Abs(rate);
                             }
                             else
@@ -287,7 +288,7 @@ namespace TradePr.Service
                                 rate = - Math.Abs(rate);
                             }
 
-                            await _teleService.SendMessage(_idUser, $"[CLOSE] {item.Symbol}|{winloss}({rate}%)|{side}|PRICE: {vithe.SL_Real}|Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                            await _teleService.SendMessage(_idUser, $"[CLOSE] {item.Symbol}|{winloss}({rate}%)|{side}|PRICE: {vithe.SL_Real}");
                         }
                     }
                 }
@@ -306,13 +307,13 @@ namespace TradePr.Service
                 {
                     var lSell = pos.Data.Where(x => x.PositionAmt < 0);
                     await ForceMarket(lSell);
-                    await _teleService.SendMessage(_idUser, "Thanh lý lệnh SHORT hàng loạt");
+                    await _teleService.SendMessage(_idUser, $"Thanh lý lệnh SHORT hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 }
                 if (countForceBuy >= _forceSell)
                 {
                     var lBuy = pos.Data.Where(x => x.PositionAmt > 0);
                     await ForceMarket(lBuy);
-                    await _teleService.SendMessage(_idUser, "Thanh lý lệnh LONG hàng loạt");
+                    await _teleService.SendMessage(_idUser, $"Thanh lý lệnh LONG hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 } 
                 #endregion
             }
