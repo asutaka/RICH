@@ -149,7 +149,7 @@ namespace TradePr.Service
                         StaticVal._lPrepare.Add(model);
                         Monitor.Exit(_locker);
                         //await _teleService.SendMessage(_idUser, $"[PREPARE-Liquid] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
-                        //Console.WriteLine($"[PREPARE-Liquid] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                        Console.WriteLine($"[PREPARE-Liquid] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                     }
                 }
             }
@@ -228,7 +228,7 @@ namespace TradePr.Service
                         StaticVal._lPrepare.Add(model);
                         Monitor.Exit(_locker);
                         //await _teleService.SendMessage(_idUser, $"[PREPARE-RSI] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
-                        //Console.WriteLine($"[PREPARE-RSI] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                        Console.WriteLine($"[PREPARE-RSI] {model.s}|{(Binance.Net.Enums.OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
                     }
                 }
             }
