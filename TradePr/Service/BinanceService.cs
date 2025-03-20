@@ -472,10 +472,10 @@ namespace TradePr.Service
                     var price = lastPrice.ToString().Split('.').Last();
                     price = price.ReverseString();
                     near = long.Parse(price).ToString().Length;
-                    if (exists.Key != null)
-                    {
-                        near = exists.Value.Item2;
-                    }
+                }
+                if (exists.Key != null)
+                {
+                    near = exists.Value.Item2;
                 }
                 var checkLenght = lastPrice.ToString().Split('.').Last();
                 decimal sl = 0;
