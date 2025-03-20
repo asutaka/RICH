@@ -280,7 +280,7 @@ namespace StockPr.Service
                         var index = 1;
                         foreach (var item in lOrderBlockBuy)
                         {
-                            var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
+                            var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) ({Math.Round(item.SL, 1)} - {Math.Round(item.Entry, 1)}) Tín hiệu ngày {item.Date.ToString("dd/MM/yyyy")}";
                             strOutput.AppendLine(content);
                         }
                     }
@@ -293,7 +293,7 @@ namespace StockPr.Service
                         var index = 1;
                         foreach (var item in lOrderBlockSell)
                         {
-                            var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)|{item.Date.ToString("dd/MM/yyyy")}|ENTRY: {Math.Round(item.Entry, 1)}|SL: {Math.Round(item.SL, 1)}";
+                            var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) ({Math.Round(item.Entry, 1)} - {Math.Round(item.SL, 1)}) Tín hiệu ngày {item.Date.ToString("dd/MM/yyyy")}";
                             strOutput.AppendLine(content);
                         }
                     }
