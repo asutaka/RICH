@@ -72,7 +72,7 @@ namespace TradePr.Utils
             { "MKRUSDT", ( 3,1 ) },
             { "PERPUSDT", ( 0,4 ) },
             { "APTUSDT", ( 2,3 ) },
-            { "EOSUSDT", ( 1,4 ) },
+            { "EOSUSDT", ( 1,3 ) },
             { "SUIUSDT", ( 0,4 ) },
             { "FILUSDT", ( 1,3 ) },
             { "ETCUSDT", ( 1,3 ) },
