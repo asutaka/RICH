@@ -100,7 +100,7 @@ namespace TradePr.Utils
             { "THETAUSDT", ( 1,4 ) },
             { "KNCUSDT", ( 1,4 ) },
             { "STGUSDT", ( 1,4 ) },
-            { "C98USDT", ( 1,5 ) },
+            { "C98USDT", ( 0,4 ) },
             { "ZILUSDT", ( 0,5 ) },
             { "MDTUSDT", ( 0,5 ) },
             { "MINAUSDT", ( 1,4 ) },
