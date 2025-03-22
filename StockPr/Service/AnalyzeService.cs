@@ -13,6 +13,7 @@ namespace StockPr.Service
     {
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
+        Task<string> ThongKeGDNN_Week();
         Task<(int, string)> ChiBaoKyThuat(DateTime dt);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
     }
@@ -329,6 +330,20 @@ namespace StockPr.Service
             return sBuilder.ToString();
         }
 
+        public async Task<string> ThongKeGDNN_Week()
+        {
+            var dt = DateTime.Now;
+            var sBuilder = new StringBuilder();
+            var foreign = await ThongkeForeignWeek(dt);
+            if (foreign.Item1 > 0)
+            {
+                sBuilder.AppendLine(foreign.Item2);
+                sBuilder.AppendLine();
+            }
+
+            return sBuilder.ToString();
+        }
+
         private async Task<(int, string)> ThongkeForeign(DateTime dt)
         {
             var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
@@ -336,9 +351,9 @@ namespace StockPr.Service
             try
             {
                 var type = EMoney24hTimeType.today;
-                var mode = EConfigDataType.GDNN_today;
+                var mode = (int)EConfigDataType.GDNN_today;
                 var builder = Builders<ConfigData>.Filter;
-                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
                 var lConfig = _configRepo.GetByFilter(filter);
                 if (lConfig.Any())
                 {
@@ -382,7 +397,7 @@ namespace StockPr.Service
 
                 _configRepo.InsertOne(new ConfigData
                 {
-                    ty = (int)EConfigDataType.GDNN_today,
+                    ty = mode,
                     t = t
                 });
 
@@ -391,6 +406,71 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"AnalyzeService.ThongkeForeign|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        private async Task<(int, string)> ThongkeForeignWeek(DateTime dt)
+        {
+            var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+            var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
+            try
+            {
+                var type = EMoney24hTimeType.week;
+                var mode = (int)EConfigDataType.GDNN_week;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return (0, null);
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var strOutput = new StringBuilder();
+                var lData = new List<Money24h_ForeignResponse>();
+                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HSX, type));
+                if (!lData.Any())
+                    return (0, null);
+
+                var head = $"*GDNN 7 ngày gần nhất*"; ;
+                strOutput.AppendLine(head);
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top mua ròng");
+                var lTopBuy = lData.OrderByDescending(x => x.net_val).Take(10);
+                var lTopSell = lData.OrderBy(x => x.net_val).Take(10);
+                var index = 1;
+                foreach (var item in lTopBuy)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top bán ròng");
+                index = 1;
+                foreach (var item in lTopSell)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = mode,
+                    t = t
+                });
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.ThongkeForeignWeek|EXCEPTION| {ex.Message}");
             }
 
             return (0, null);
@@ -521,7 +601,7 @@ namespace StockPr.Service
                 lNhomNganhData = lNhomNganhData.OrderByDescending(x => (float)x.total_stock_increase / x.total_stock).Take(5).ToList();
 
 
-                var head = $"[Thông báo] Nhóm ngành được quan tâm ngày {dt.ToString("dd/MM/yyyy")}:";
+                var head = $"*Nhóm ngành được quan tâm ngày {dt.ToString("dd/MM/yyyy")}*";
                 strOutput.AppendLine(head);
                 var index = 1;
                 foreach (var item in lNhomNganhData)
