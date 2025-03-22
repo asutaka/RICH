@@ -39,7 +39,7 @@ namespace StockPr.Service
         Task<Stream> TuDoanhHSX(DateTime dt);
 
         Task<List<Quote>> SSI_GetDataStock(string code);
-        Task<decimal> SSI_GetFinanceStock(string code);
+        Task<SSI_DataFinanceDetailResponse> SSI_GetFinanceStock(string code);
         Task<decimal> SSI_GetFreefloatStock(string code);
 
 
@@ -1265,7 +1265,7 @@ namespace StockPr.Service
             return lOutput;
         }
 
-        public async Task<decimal> SSI_GetFinanceStock(string code)
+        public async Task<SSI_DataFinanceDetailResponse> SSI_GetFinanceStock(string code)
         {
             var lOutput = new List<Quote>();
             var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/financial-indicator?symbol={0}&page=1&pageSize=1";
@@ -1281,14 +1281,14 @@ namespace StockPr.Service
                 var responseModel = JsonConvert.DeserializeObject<SSI_DataFinanceResponse>(resultArray);
                 if (responseModel.data.Any())
                 {
-                    return responseModel.data.First().eps;
+                    return responseModel.data.First();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.SSI_GetFinanceStock|EXCEPTION| {ex.Message}");
             }
-            return 0;
+            return null;
         }
 
         public async Task<decimal> SSI_GetFreefloatStock(string code)

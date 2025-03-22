@@ -124,6 +124,8 @@ namespace StockPr.Model
     public class SSI_DataFinanceDetailResponse
     {
         public decimal eps { get; set; }
+        public decimal pe { get; set; }
+        public decimal debtEquity { get; set; }//Nợ/ Vốn chủ
     }
 
     public class SSI_ShareholderResponse

@@ -93,7 +93,7 @@ namespace StockPr.Service
                     {
                         lRes.Add(new HandleMessageModel
                         {
-                            Message = $"FreeFloat: { rank.Item1 }|EPS: { rank.Item2 }"
+                            Message = $"FreeFloat: { Math.Round(rank.Item1) }%\nEPS: { Math.Round(rank.Item2) }K\nPE: {Math.Round(rank.Item3)}\nNợ/VCSH: {Math.Round(rank.Item4, 2)}%"
                         });
                     }
                 }

@@ -9,7 +9,7 @@ namespace StockPr.Service
     public interface IEPSRankService
     {
         Task<(int, string)> RankEPS(DateTime dt);
-        Task<(decimal, decimal)> FreeFloat(string s);
+        Task<(decimal, decimal, decimal, decimal)> FreeFloat(string s);
     }
     public class EPSRankService : IEPSRankService
     {
@@ -25,23 +25,26 @@ namespace StockPr.Service
             _configRepo = configRepo;
         }
         /// <summary>
-        /// FreeFloat + EPS 
+        /// FreeFloat + EPS  + PE + Nợ/Vốn chủ
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public async Task<(decimal, decimal)> FreeFloat(string s)
+        public async Task<(decimal, decimal, decimal, decimal)> FreeFloat(string s)
         {
             try
             {
-                var eps = await _apiService.SSI_GetFinanceStock(s);
+                var finance = await _apiService.SSI_GetFinanceStock(s);
+                if (finance is null)
+                    return (0, 0, 0, 0); 
+
                 var freefloat = await _apiService.SSI_GetFreefloatStock(s);
-                return (freefloat, eps);
+                return (freefloat, finance.eps, finance.pe, finance.debtEquity);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"EPSRankService.FreeFloat|EXCEPTION| {ex.Message}");
             }
-            return (0, 0);
+            return (0, 0, 0, 0);
         }
         public async Task<(int, string)> RankEPS(DateTime dt)
         {
@@ -65,10 +68,13 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var eps = await _apiService.SSI_GetFinanceStock(item.s);
-                        if(eps >= 5000)
+                        var finance = await _apiService.SSI_GetFinanceStock(item.s);
+                        if (finance is null)
+                            continue;
+
+                        if(finance.eps >= 5000)
                         {
-                            lEPS.Add((item.s, Math.Round(eps)));
+                            lEPS.Add((item.s, Math.Round(finance.eps)));
                         }
                     }
                     catch (Exception ex)
