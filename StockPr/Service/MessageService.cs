@@ -16,13 +16,15 @@ namespace StockPr.Service
         private static List<UserMessage> _lUserMes = new List<UserMessage>();
         private readonly IUserMessageRepo _userMessageRepo;
         private readonly IChartService _chartService;
+        private readonly IEPSRankService _rankService;
 
         private readonly int _ty = (int)EUserMessageType.StockPr;
-        public MessageService(ILogger<MessageService> logger, IChartService chartService, IUserMessageRepo userMessageRepo)
+        public MessageService(ILogger<MessageService> logger, IChartService chartService, IUserMessageRepo userMessageRepo, IEPSRankService rankService)
         {
             _logger = logger;
             _chartService = chartService;
             _userMessageRepo = userMessageRepo;
+            _rankService = rankService;
         }
         public async Task<List<HandleMessageModel>> ReceivedMessage(Message msg)
         {
@@ -85,6 +87,14 @@ namespace StockPr.Service
                     if (lMa?.Any() ?? false)
                     {
                         lRes.AddRange(lMa);
+                    }
+                    var rank = await _rankService.FreeFloat(input.ToUpper());
+                    if(rank.Item1 > 0)
+                    {
+                        lRes.Add(new HandleMessageModel
+                        {
+                            Message = $"FreeFloat: { rank.Item1 }|EPS: { rank.Item2 }"
+                        });
                     }
                 }
             }

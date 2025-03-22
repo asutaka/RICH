@@ -9,6 +9,7 @@ namespace StockPr.Service
     public interface IEPSRankService
     {
         Task<(int, string)> RankEPS(DateTime dt);
+        Task<(decimal, decimal)> FreeFloat(string s);
     }
     public class EPSRankService : IEPSRankService
     {
@@ -23,7 +24,25 @@ namespace StockPr.Service
             _apiService = apiService;
             _configRepo = configRepo;
         }
-
+        /// <summary>
+        /// FreeFloat + EPS 
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public async Task<(decimal, decimal)> FreeFloat(string s)
+        {
+            try
+            {
+                var eps = await _apiService.SSI_GetFinanceStock(s);
+                var freefloat = await _apiService.SSI_GetFreefloatStock(s);
+                return (freefloat, eps);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"EPSRankService.FreeFloat|EXCEPTION| {ex.Message}");
+            }
+            return (0, 0);
+        }
         public async Task<(int, string)> RankEPS(DateTime dt)
         {
             try
