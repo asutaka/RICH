@@ -459,6 +459,18 @@ namespace StockPr.Service
                                 YTD = item.YTD
                             });
                         }
+                        else if (item.Code.Equals(EPrice.DAP.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            lTraceGia.Add(new TraceGiaModel
+                            {
+                                content = "Phân bón DAP",
+                                description = "DDV",
+                                weekly = item.Weekly,
+                                monthly = item.Monthly,
+                                yearly = item.YoY,
+                                YTD = item.YTD
+                            });
+                        }
                         else if (item.Code.Equals(EPrice.polyvinyl.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
                         {
                             lTraceGia.Add(new TraceGiaModel

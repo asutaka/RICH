@@ -276,7 +276,9 @@ namespace StockPr.Utils
         [Display(Name = "kraft-pulp")]
         kraftpulp = 98,
         [Display(Name = "Cotton")]
-        Cotton = 97//Giá bông
+        Cotton = 97,//Giá bông
+        [Display(Name = "di-ammonium")]
+        DAP = 96
     }
 
     public enum EReportNormId

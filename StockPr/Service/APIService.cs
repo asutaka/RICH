@@ -839,6 +839,7 @@ namespace StockPr.Service
                     EPrice.milk.GetDisplayName(),//Sữa
                     EPrice.kraftpulp.GetDisplayName(),//Bột giấy
                     EPrice.Cotton.GetDisplayName(),//Bông
+                    EPrice.DAP.GetDisplayName()
                 };
 
                 var lResult = new List<TradingEconomics_Data>();
