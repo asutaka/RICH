@@ -288,7 +288,7 @@ namespace TradePr.Service
                                 rate = - Math.Abs(rate);
                             }
 
-                            await _teleService.SendMessage(_idUser, $"[CLOSE-{side.ToString().ToUpper()}({winloss}({rate}%))] {item.Symbol}|ENTRY: {item.MarkPrice}|CLOSE: {vithe.SL_Real}");
+                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)] {item.Symbol}|ENTRY: {vithe.Entry}|CLOSE: {vithe.SL_Real}");
                         }
                     }
                 }
