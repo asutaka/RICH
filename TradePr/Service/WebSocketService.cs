@@ -51,8 +51,8 @@ namespace TradePr.Service
                 if (res is null)
                     return;
 
-                await _teleService.SendMessage(_idUser, $"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
-                Console.WriteLine($"[ACTION] {val.s}|{(Binance.Net.Enums.OrderSide)val.Side}|ENTRY: {val.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                await _teleService.SendMessage(_idUser, $"[ACTION-{((Binance.Net.Enums.OrderSide)val.Side).ToString().ToUpper()}] {val.s}|ENTRY: {val.Entry}");
+                Console.WriteLine($"[ACTION-{((Binance.Net.Enums.OrderSide)val.Side).ToString().ToUpper()}] {val.s}|ENTRY: {val.Entry}");
                 val.Entry_Real = res.priceEntry;
                 val.SL_Real = res.priceStoploss;
                 val.entryDate = DateTime.Now;
