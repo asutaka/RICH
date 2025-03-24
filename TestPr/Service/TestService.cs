@@ -901,8 +901,13 @@ namespace TestPr.Service
                                 continue;
 
                             var prev = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-15));
-                            var ma20_Prev = lbb.First(x => x.Date == ma20.Date.AddMinutes(-15));
-                            if (Math.Max(prev.Open, prev.Close) > (decimal)ma20_Prev.Sma.Value)
+                            var ma20_Prev = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-15));
+                            if (ma20_Prev.Sma is null || Math.Max(prev.Open, prev.Close) > (decimal)ma20_Prev.Sma.Value)
+                                continue;
+
+                            var prev2 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-30));
+                            var ma20_Prev2 = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-30));
+                            if (ma20_Prev2.Sma is null || Math.Max(prev2.Open, prev2.Close) > (decimal)ma20_Prev2.Sma.Value)
                                 continue;
 
                             var next = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
@@ -998,7 +1003,7 @@ namespace TestPr.Service
                 // + Nến xanh cắt lên MA20
                 // + 2 nến ngay phía trước đều nằm dưới MA20
                 // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
-                // + Giữ 1 tiếng? hoặc nến chạm BB trên
+                // + Giữ 2 tiếng? hoặc nến chạm BB trên
                 var tmp3x = lModel.Count(x => x.RateBody < 40);
                 var tmptmp = lModel.Where(x => x.RateBody < 40);
                 var tmp = lModel.Count(x => x.RateEntry <= -1);
