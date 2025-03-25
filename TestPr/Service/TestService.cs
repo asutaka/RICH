@@ -4,7 +4,6 @@ using Skender.Stock.Indicators;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 using TestPr.Utils;
-using static MongoDB.Driver.WriteConcern;
 
 namespace TestPr.Service
 {
@@ -854,34 +853,34 @@ namespace TestPr.Service
                 var lRate = new List<decimal>();
                 var winCount = 0;
                 var lossCount = 0;
-                foreach (var item in StaticVal._dicCoinAnk)
+                foreach (var item in StaticVal._lMa20)
                 {
-                    if (item.Key != "1INCHUSDT")
-                        continue;
+                    //if (item.Key != "1INCHUSDT")
+                    //    continue;
                     var lMes = new List<string>();
                     
-                    var lData15m = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                    var lData15m = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                     if (!lData15m.Any())
                         continue;
                     var last = lData15m.Last();
                     Thread.Sleep(200);
 
-                    var lData40 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                    var lData40 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData30 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                    var lData30 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData20 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                    var lData20 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData10 = await _apiService.GetData(item.Key, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
+                    var lData10 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
                     var lbb = lData15m.GetBollingerBands();
@@ -915,10 +914,37 @@ namespace TestPr.Service
                                 continue;
 
                             var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
-                            var curRate = Math.Round(Math.Abs(cur.Open - cur.Close) * 100 / Math.Abs(cur.High - cur.Low));//tỉ lệ thân/ tổng độ dài
-                            var is10 = lData15m.Where(x => x.Date < cur.Date).TakeLast(9).Where(x => x.Volume > cur.Volume).Count() == 0;
-                            var is9 = lData15m.Where(x => x.Date < cur.Date).TakeLast(9).Where(x => x.Volume > cur.Volume).Count() == 1;
-                            if (!is10 && !is9)
+
+                            var lPrev = lData15m.Where(x => x.Date < cur.Date).TakeLast(5);
+                            var indexPrev = 0;
+                            decimal totalPrev = 0;
+                            foreach (var itemPrev in lPrev)
+                            {
+                                var prevRate = Math.Round(Math.Abs(itemPrev.Open - itemPrev.Close) * 100 / Math.Abs(itemPrev.High - itemPrev.Low));
+                                if(prevRate > 10)
+                                {
+                                    indexPrev++;
+                                    totalPrev += Math.Abs(itemPrev.Open - itemPrev.Close);
+                                }
+                            }
+                            if (indexPrev <= 0)
+                                continue;
+
+                            var avgPrev = totalPrev / indexPrev;
+                            if (Math.Abs(cur.Open - cur.Close) <= 2 * avgPrev
+                                || Math.Abs(cur.Open - cur.Close) > avgPrev * 4)
+                                continue;
+
+                            //var checkBB = 2 * (cur.High - cur.Close) > (decimal)ma20.UpperBand - cur.High;
+                            //if (checkBB)
+                            //    continue;
+
+                            var checkBB = (cur.Close - (decimal)ma20.Sma) > (decimal)ma20.UpperBand - cur.Close;
+                            if (checkBB)
+                                continue;
+
+                            var checkMa20 = (cur.Close - (decimal)ma20.Sma) * 2 < ((decimal)ma20.Sma - cur.Open);
+                            if (checkMa20)
                                 continue;
 
                             var eEntry = cur;
@@ -969,18 +995,15 @@ namespace TestPr.Service
                             lRate.Add(rate);
                             lModel.Add(new LongMa20
                             {
-                                s = item.Key,
+                                s = item,
                                 IsWin = winloss == "W",
                                 Date = cur.Date,
                                 Rate = rate,
                                 MaxTP = maxTP,
                                 MaxSL = maxSL,
                                 RateEntry = rateEntry,
-                                RateBody = curRate,
-                                IsVol10 = is10,
-                                IsVol9 = is9,
                             });
-                            var mes = $"{item.Key}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{cur.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%|BodyRate: {curRate}%";
+                            var mes = $"{item}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{cur.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%";
                             lMes.Add(mes);
                         }
                         catch (Exception ex)
@@ -999,18 +1022,14 @@ namespace TestPr.Service
                 }
                 Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
 
+                var tmp = lModel.Select(x => x.Date).Distinct();
+                var tmp1 = 1;
+
                 // Note:
                 // + Nến xanh cắt lên MA20
                 // + 2 nến ngay phía trước đều nằm dưới MA20
                 // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
                 // + Giữ 2 tiếng? hoặc nến chạm BB trên
-                var tmp3x = lModel.Count(x => x.RateBody < 40);
-                var tmptmp = lModel.Where(x => x.RateBody < 40);
-                var tmp = lModel.Count(x => x.RateEntry <= -1);
-                var tmp1 = lModel.Count(x => x.RateEntry <= -2);
-                var tmp2 = lModel.Max(x => x.MaxTP);
-                var tmp3 = lModel.Min(x => x.MaxSL);
-                var x = 1;
             }
             catch (Exception ex)
             {
@@ -1533,9 +1552,6 @@ namespace TestPr.Service
             public decimal MaxTP { get; set; }
             public decimal MaxSL { get; set; }
             public decimal RateEntry { get; set; }
-            public decimal RateBody { get; set; }
-            public bool IsVol10 { get; set; }
-            public bool IsVol9 { get; set; }
         }
     }
 }

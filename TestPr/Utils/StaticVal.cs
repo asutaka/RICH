@@ -166,5 +166,22 @@ namespace TestPr.Utils
             "ATOMUSDT",
             "ADAUSDT"
         };
+
+        public static List<string> _lMa20 = new List<string>
+        {
+            "XRPUSDT",
+            "DOGEUSDT",
+            "LTCUSDT",
+            "BCHUSDT",
+            "LINKUSDT",
+            "WLDUSDT",
+            "OPUSDT",
+            "1INCHUSDT",
+            "JOEUSDT",
+            "MAGICUSDT",
+            "IDUSDT",
+            "STGUSDT",
+            "ZILUSDT"
+        };
     }
 }
