@@ -1180,8 +1180,8 @@ namespace StockPr.Service
                     && responseModel.data.data.Any())
                 {
                     var date = responseModel.data.from_date.ToDateTime("dd/MM/yyyy");
-                    if (date.Day == DateTime.Now.Day)
-                    {
+                    //if (date.Day == DateTime.Now.Day)
+                    //{
                         return responseModel.data.data.Where(x => x.symbol.Length == 3).OrderByDescending(x => x.net_val).Select((x, index) => new Money24h_ForeignResponse
                         {
                             no = index + 1,
@@ -1194,7 +1194,7 @@ namespace StockPr.Service
                             net_val = x.net_val,
                             t = DateTimeOffset.Now.ToUnixTimeSeconds()
                         }).ToList();
-                    }
+                    //}
                 }
             }
             catch (Exception ex)
