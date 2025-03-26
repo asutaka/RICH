@@ -213,6 +213,7 @@ namespace StockPr.Service
             {
                 _logger.LogError(ex, $"MessageService.BaoCaoPhanTich|EXCEPTION| {ex.Message}");
             }
+            lError.Clear();
 
             return (lMes, lError);
         }
