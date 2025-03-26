@@ -305,13 +305,13 @@ namespace TradePr.Service
                 var countForceBuy = lForce.Count(x => x.Side == (int)Binance.Net.Enums.OrderSide.Buy);
                 if (countForceSell >= _forceSell)
                 {
-                    var lSell = pos.Data.Where(x => x.PositionAmt < 0);
+                    var lSell = pos.Data.Where(x => x.PositionAmt > 0);
                     await ForceMarket(lSell);
                     await _teleService.SendMessage(_idUser, $"Thanh lý lệnh SHORT hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 }
                 if (countForceBuy >= _forceSell)
                 {
-                    var lBuy = pos.Data.Where(x => x.PositionAmt > 0);
+                    var lBuy = pos.Data.Where(x => x.PositionAmt < 0);
                     await ForceMarket(lBuy);
                     await _teleService.SendMessage(_idUser, $"Thanh lý lệnh LONG hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 } 
