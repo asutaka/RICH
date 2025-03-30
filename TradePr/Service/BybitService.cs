@@ -284,13 +284,15 @@ namespace TradePr.Service
             {
                 if (dt.Minute % 15 != 0)
                     return;
-
+                var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
                 var lSym = StaticVal._lMa20Short.Concat(StaticVal._lMa20);
                 foreach (var item in lSym)
                 {
                     try
                     {
+                        if (pos.Data.List.Any(x => x.Symbol == item))
+                            continue;
                         //gia
                         var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}", KlineInterval.FifteenMinutes);
                         Thread.Sleep(100);
