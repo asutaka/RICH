@@ -136,8 +136,8 @@ namespace TradePr.Service
                         || !lData15m.Data.List.Any())
                         continue;
 
-                    var last = lData15m.Data.List.Last();
-                    var itemCheck = lData15m.Data.List.SkipLast(1).Last();
+                    var last = lData15m.Data.List.Reverse().Last();
+                    var itemCheck = lData15m.Data.List.Reverse().SkipLast(1).Last();
                     if (itemCheck.OpenPrice >= itemCheck.ClosePrice)
                         continue;
 
@@ -238,7 +238,7 @@ namespace TradePr.Service
                             || !lData15m.Data.List.Any())
                             continue;
 
-                        var last = lData15m.Data.List.Last();
+                        var last = lData15m.Data.List.Reverse().Last();
                         var res = await PlaceOrder(new SignalBase
                         {
                             s = $"{item.s}USDT",
@@ -298,7 +298,7 @@ namespace TradePr.Service
                             || !lData15m.Data.List.Any())
                             continue;
 
-                        var l15m = lData15m.Data.List.SkipLast(1).Select(x => new Quote
+                        var l15m = lData15m.Data.List.Reverse().SkipLast(1).Select(x => new Quote
                         {
                             Date = x.StartTime,
                             Open = x.OpenPrice,
@@ -492,7 +492,7 @@ namespace TradePr.Service
                             || !lData15m.Data.List.Any())
                             continue;
 
-                        var l15m = lData15m.Data.List.SkipLast(1).Select(x => new Quote
+                        var l15m = lData15m.Data.List.Reverse().SkipLast(1).Select(x => new Quote
                         {
                             Date = x.StartTime,
                             Open = x.OpenPrice,
