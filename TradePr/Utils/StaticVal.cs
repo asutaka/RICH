@@ -260,5 +260,50 @@ namespace TradePr.Utils
 
         public static List<string> _lRsi = new List<string>();
         public static List<PrepareTrade> _lPrepare = new List<PrepareTrade>();
+
+        public static List<string> _lMa20 = new List<string>
+        {
+            "XRPUSDT",
+            "DOGEUSDT",
+            "LTCUSDT",
+            "BCHUSDT",
+            "LINKUSDT",
+            "WLDUSDT",
+            "ADAUSDT",
+            "OPUSDT",
+            "1INCHUSDT",
+            "JOEUSDT",
+            "MAGICUSDT",
+            "IDUSDT",
+            "STGUSDT",
+            "ZILUSDT"
+        };
+
+        public static List<string> _lMa20Short = new List<string>
+        {
+            "AVAXUSDT",
+            "HIGHUSDT",
+            "XTZUSDT",
+            "OPUSDT",
+            "KNCUSDT",
+            "ZILUSDT",
+            "NEOUSDT",
+            "APEUSDT",
+            "FILUSDT",
+            "DYDXUSDT",
+            "DOTUSDT",
+            "EOSUSDT",
+            "CYBERUSDT",
+            "WLDUSDT",
+            "JOEUSDT",
+            "BNBUSDT",
+            "PERPUSDT",
+            "TRBUSDT",
+            "THETAUSDT",
+            "STGUSDT",
+            "BELUSDT",
+            "MDTUSDT",
+            "APTUSDT"
+        };
     }
 }

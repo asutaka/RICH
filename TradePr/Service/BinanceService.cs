@@ -4,7 +4,6 @@ using Skender.Stock.Indicators;
 using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
-using SharpCompress.Common;
 
 namespace TradePr.Service
 {
@@ -288,7 +287,7 @@ namespace TradePr.Service
                                 rate = - Math.Abs(rate);
                             }
 
-                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)] {item.Symbol}|ENTRY: {vithe.Entry}|CLOSE: {vithe.SL_Real}");
+                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {item.Symbol}|ENTRY: {vithe.Entry}|CLOSE: {vithe.SL_Real}");
                         }
                     }
                 }
@@ -307,13 +306,13 @@ namespace TradePr.Service
                 {
                     var lSell = pos.Data.Where(x => x.PositionAmt > 0);
                     await ForceMarket(lSell);
-                    await _teleService.SendMessage(_idUser, $"Thanh lý lệnh SHORT hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
+                    await _teleService.SendMessage(_idUser, $"Thanh lý lệnh LONG hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 }
                 if (countForceBuy >= _forceSell)
                 {
                     var lBuy = pos.Data.Where(x => x.PositionAmt < 0);
                     await ForceMarket(lBuy);
-                    await _teleService.SendMessage(_idUser, $"Thanh lý lệnh LONG hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
+                    await _teleService.SendMessage(_idUser, $"Thanh lý lệnh SHORT hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 } 
                 #endregion
             }

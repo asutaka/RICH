@@ -12,6 +12,7 @@
             services.AddSingleton<ISignalTradeRepo, SignalTradeRepo>();
             services.AddSingleton<IConfigDataRepo, ConfigDataRepo>();
             services.AddSingleton<IPrepareTradeRepo, PrepareTradeRepo>();
+            services.AddSingleton<IMa20TradeRepo, Ma20TradeRepo>();
         }
     }
 }

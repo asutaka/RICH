@@ -175,6 +175,7 @@ namespace TestPr.Utils
             "BCHUSDT",
             "LINKUSDT",
             "WLDUSDT",
+            "ADAUSDT",
             "OPUSDT",
             "1INCHUSDT",
             "JOEUSDT",
@@ -182,6 +183,33 @@ namespace TestPr.Utils
             "IDUSDT",
             "STGUSDT",
             "ZILUSDT"
+        };
+
+        public static List<string> _lMa20Short = new List<string>
+        {
+            "AVAXUSDT",
+            "HIGHUSDT",
+            "XTZUSDT",
+            "OPUSDT",
+            "KNCUSDT",
+            "ZILUSDT",
+            "NEOUSDT",
+            "APEUSDT",
+            "FILUSDT",
+            "DYDXUSDT",
+            "DOTUSDT",
+            "EOSUSDT",
+            "CYBERUSDT",
+            "WLDUSDT",
+            "JOEUSDT",
+            "BNBUSDT",
+            "PERPUSDT",
+            "TRBUSDT",
+            "THETAUSDT",
+            "STGUSDT",
+            "BELUSDT",
+            "MDTUSDT",
+            "APTUSDT"
         };
     }
 }

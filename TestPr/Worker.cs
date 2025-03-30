@@ -16,7 +16,7 @@ namespace TestPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             //await _testService.MethodTestEntry_0303();
-            await _testService.LongMA20();
+            await _testService.ShortMA20();
             //await _testService.MethodTestEntry_2602();
             //await _testService.MethodTestEntry_2702();
             //await _testService.MethodTestTokenUnlock();

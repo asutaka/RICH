@@ -9,6 +9,7 @@ namespace TradePr.DAL.Entity
         public int ex { get; set; }
         public int Side { get; set; }
         public int timeFlag { get; set; }
+        public DateTime dateFlag { get; set; }
         public int timeStoploss { get; set; }
         public int timeClose { get; set; }
         public double priceEntry { get; set; }
