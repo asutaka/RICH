@@ -451,14 +451,14 @@ namespace TradePr.Service
                     if (lUnlock.Any(x => x.s == item.Symbol))
                         continue;
 
-                    var side = item.PositionValue < 0 ? OrderSide.Sell : OrderSide.Buy;
-                    var SL_side = item.PositionValue < 0 ? OrderSide.Buy : OrderSide.Sell;
+                    var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
+                    var SL_side = item.Side == PositionSide.Sell ? OrderSide.Buy : OrderSide.Sell;
 
                     var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
                     var curTime = (dt - item.UpdateTime.Value).TotalHours;
                     if (curTime >= 2 || (vithe != null && (DateTime.Now - vithe.dateFlag).TotalHours >= 2))
                     {
-                        await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionValue.Value), SL_side);
+                        await PlaceOrderClose(item.Symbol, Math.Abs(item.Quantity), SL_side);
 
                         if (vithe != null)
                         {
@@ -517,7 +517,7 @@ namespace TradePr.Service
 
                         if(flag)
                         {
-                            await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionValue.Value), SL_side);
+                            await PlaceOrderClose(item.Symbol, Math.Abs(item.Quantity), SL_side);
 
                             if (vithe != null)
                             {
@@ -557,13 +557,13 @@ namespace TradePr.Service
                 var countForceBuy = lForce.Count(x => x.Side == (int)OrderSide.Buy);
                 if (countForceSell >= _forceSell)
                 {
-                    var lSell = pos.Data.List.Where(x => x.PositionValue > 0);
+                    var lSell = pos.Data.List.Where(x => x.Side == PositionSide.Buy);
                     await ForceMarket(lSell);
                     await _teleService.SendMessage(_idUser, $"Thanh lý lệnh LONG hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 }
                 if (countForceBuy >= _forceSell)
                 {
-                    var lBuy = pos.Data.List.Where(x => x.PositionValue < 0);
+                    var lBuy = pos.Data.List.Where(x => x.Side == PositionSide.Sell);
                     await ForceMarket(lBuy);
                     await _teleService.SendMessage(_idUser, $"Thanh lý lệnh SHORT hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
                 } 
@@ -627,18 +627,18 @@ namespace TradePr.Service
                     {
                         if (item.Symbol == entity.s)
                         {
-                            if (item.PositionValue < 0 && side == OrderSide.Sell)
+                            if (item.Side == PositionSide.Sell && side == OrderSide.Sell)
                             {
                                 return null;
                             }
-                            else if (item.PositionValue > 0 && side == OrderSide.Buy)
+                            else if (item.Side == PositionSide.Buy && side == OrderSide.Buy)
                             {
                                 return null;
                             }
                             else
                             {
                                 index++;
-                                await PlaceOrderClose(entity.s, Math.Abs(item.PositionValue.Value), SL_side);
+                                await PlaceOrderClose(entity.s, Math.Abs(item.Quantity), SL_side);
                             }
                         }
                     }
