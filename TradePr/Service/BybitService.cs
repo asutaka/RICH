@@ -280,7 +280,7 @@ namespace TradePr.Service
         {
             try
             {
-                if (dt.Minute != 0)
+                if (dt.Minute % 15 != 0)
                     return; 
 
                 var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
