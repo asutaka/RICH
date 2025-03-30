@@ -130,7 +130,8 @@ namespace TradePr.Service
                         continue;
 
                     //gia
-                    var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}USDT", KlineInterval.ThirtyMinutes);
+                    var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}USDT", KlineInterval.FifteenMinutes);
+                    Thread.Sleep(100);
                     if (lData15m.Data is null
                         || !lData15m.Data.List.Any())
                         continue;
@@ -231,7 +232,8 @@ namespace TradePr.Service
                         if (entityCheck != null)
                             continue;
 
-                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item.s}USDT", KlineInterval.ThirtyMinutes);
+                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item.s}USDT", KlineInterval.FifteenMinutes);
+                        Thread.Sleep(100);
                         if (lData15m.Data is null
                             || !lData15m.Data.List.Any())
                             continue;
@@ -281,7 +283,7 @@ namespace TradePr.Service
             try
             {
                 if (dt.Minute % 15 != 0)
-                    return; 
+                    return;
 
                 var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
                 var lSym = StaticVal._lMa20Short.Concat(StaticVal._lMa20);
@@ -290,7 +292,8 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}", KlineInterval.ThirtyMinutes);
+                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}", KlineInterval.FifteenMinutes);
+                        Thread.Sleep(100);
                         if (lData15m.Data is null
                             || !lData15m.Data.List.Any())
                             continue;
@@ -483,7 +486,8 @@ namespace TradePr.Service
                     }
                     else
                     {
-                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item.Symbol}", KlineInterval.ThirtyMinutes);
+                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item.Symbol}", KlineInterval.FifteenMinutes);
+                        Thread.Sleep(100);
                         if (lData15m.Data is null
                             || !lData15m.Data.List.Any())
                             continue;
