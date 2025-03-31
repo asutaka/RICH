@@ -368,6 +368,7 @@ namespace TradePr.Service
 
                                 _maRepo.InsertOne(new Ma20Trade
                                 {
+                                    ex = _exchange,
                                     s = res.s,
                                     Side = res.Side,
                                     priceEntry = price,
