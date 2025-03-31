@@ -443,6 +443,7 @@ namespace TradePr.Service
                 var timeEnd = (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
                 var builder = Builders<Ma20Trade>.Filter;
                 var lViThe = _maRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, _exchange),
                     builder.Lte(x => x.timeFlag, timeEnd)
                 ));
 
