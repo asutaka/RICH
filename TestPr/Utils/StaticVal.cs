@@ -225,18 +225,33 @@ namespace TestPr.Utils
 
         public static List<string> _lMa20Short_Bybit = new List<string>
         {
-            "ARBUSDT",
+            "HIGHUSDT",
+            "AVAXUSDT",
+            "WLDUSDT",
+            "NEOUSDT",
             "OPUSDT",
-            "MKRUSDT",
+            "KNCUSDT",
+            "MOODENGUSDT",
+            "TRBUSDT",
+            "XTZUSDT",
+            "MDTUSDT",
+            "QIUSDT",
+            "BNBUSDT",
             "EOSUSDT",
-            "FILUSDT",
-            "ETCUSDT",
-            "DYDXUSDT",
-            "AGLDUSDT",
-            "GRTUSDT",
-            "IDUSDT",
             "STGUSDT",
-            "C98USDT"
+            "CYBERUSDT",
+            "APEUSDT",
+            "PERPUSDT",
+            "ZILUSDT",
+            "GRTUSDT",
+            "JOEUSDT",
+            "MINAUSDT",
+            "DOTUSDT",
+            "C98USDT",
+            "DYDXUSDT",
+             "1INCHUSDT",
+            "MAGICUSDT",
+            "ZKJUSDT",
         };
     }
 }

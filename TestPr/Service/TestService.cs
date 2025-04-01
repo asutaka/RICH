@@ -1068,6 +1068,7 @@ namespace TestPr.Service
             }
         }
         //ma20 - Short 110.1%|W/L: 304/165
+        //ma20 - Short - Bybit 137.1%|W/L: 400/223
         public async Task ShortMA20()
         {
             try
@@ -1083,34 +1084,37 @@ namespace TestPr.Service
                 var winCount = 0;
                 var lossCount = 0;
 
-                foreach (var item in StaticVal._lMa20Short)
+                StaticVal._lMa20Short_Bybit.Clear();
+                StaticVal._lMa20Short_Bybit.Add("MOODENGUSDT");
+                foreach (var item in StaticVal._lMa20Short_Bybit)
                 {
                     //if (item != "HIGHUSDT")
                     //    continue;
+
                     var lMes = new List<string>();
 
-                    var lData15m = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                    var lData15m = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                     if (!lData15m.Any())
                         continue;
                     var last = lData15m.Last();
                     Thread.Sleep(200);
 
-                    var lData40 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                    var lData40 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData30 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                    var lData30 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData20 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                    var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
                     last = lData15m.Last();
 
-                    var lData10 = await _apiService.GetData(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
+                    var lData10 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                     Thread.Sleep(200);
                     lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
                     var lbb = lData15m.GetBollingerBands();
