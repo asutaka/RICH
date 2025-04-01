@@ -75,7 +75,7 @@ namespace TradePr.Service
                 var dt = DateTime.Now;
 
                 await Bybit_TakeProfit();
-                //await Bybit_TradeMA20(dt);
+                await Bybit_TradeMA20(dt);
                 //if(lSignal.Any(x => x.op == (int)EOption.Signal))
                 //{
                 //    await Bybit_TradeSignal();
