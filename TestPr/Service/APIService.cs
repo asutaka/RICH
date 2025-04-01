@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Bybit.Net.Enums;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Skender.Stock.Indicators;
 using System.Net.Http.Headers;
@@ -63,30 +64,18 @@ namespace TestPr.Service
         {
             try
             {
-                string intervalStr = "15m";
-                if (interval == EInterval.H1)
+                var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
+                if(lres.Data.List.Any())
                 {
-                    intervalStr = "1h";
+                    return lres.Data.List.Reverse().Select(x => new Quote
+                    {
+                        Open = x.OpenPrice,
+                        High = x.HighPrice,
+                        Low = x.LowPrice,
+                        Close = x.ClosePrice,
+                        Date = x.StartTime
+                    }).ToList();
                 }
-                else if (interval == EInterval.H4)
-                {
-                    intervalStr = "4h";
-                }
-                else if (interval == EInterval.D1)
-                {
-                    intervalStr = "1d";
-                }
-                else if (interval == EInterval.W1)
-                {
-                    intervalStr = "1w";
-                }
-                else if (interval == EInterval.M1)
-                {
-                    intervalStr = "1m";
-                }
-                var lDataBinance = await GetCoinData_Bybit(symbol, intervalStr, fromTime);
-
-                return lDataBinance;
             }
             catch (Exception ex)
             {

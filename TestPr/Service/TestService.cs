@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using Bybit.Net.Enums;
+using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;    
 using TestPr.DAL;
@@ -1084,7 +1085,7 @@ namespace TestPr.Service
 
                 foreach (var item in StaticVal._lMa20Short)
                 {
-                    //if (item.Key != "1INCHUSDT")
+                    //if (item != "HIGHUSDT")
                     //    continue;
                     var lMes = new List<string>();
 
