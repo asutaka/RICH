@@ -222,5 +222,21 @@ namespace TestPr.Utils
             "MDTUSDT",
             "APTUSDT"
         };
+
+        public static List<string> _lMa20Short_Bybit = new List<string>
+        {
+            "ARBUSDT",
+            "OPUSDT",
+            "MKRUSDT",
+            "EOSUSDT",
+            "FILUSDT",
+            "ETCUSDT",
+            "DYDXUSDT",
+            "AGLDUSDT",
+            "GRTUSDT",
+            "IDUSDT",
+            "STGUSDT",
+            "C98USDT"
+        };
     }
 }

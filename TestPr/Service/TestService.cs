@@ -926,6 +926,10 @@ namespace TestPr.Service
                             decimal totalPrev = 0;
                             foreach (var itemPrev in lPrev)
                             {
+                                if (itemPrev.High == itemPrev.Low)
+                                {
+                                    continue;
+                                }
                                 var prevRate = Math.Round(Math.Abs(itemPrev.Open - itemPrev.Close) * 100 / Math.Abs(itemPrev.High - itemPrev.Low));
                                 if(prevRate > 10)
                                 {
@@ -1150,6 +1154,10 @@ namespace TestPr.Service
                             decimal totalPrev = 0;
                             foreach (var itemPrev in lPrev)
                             {
+                                if (itemPrev.High == itemPrev.Low)
+                                {
+                                    continue;
+                                }
                                 var prevRate = Math.Round(Math.Abs(itemPrev.Open - itemPrev.Close) * 100 / Math.Abs(itemPrev.High - itemPrev.Low));
                                 if (prevRate > 10)
                                 {

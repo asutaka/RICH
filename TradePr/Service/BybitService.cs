@@ -294,20 +294,23 @@ namespace TradePr.Service
                         if (pos.Data.List.Any(x => x.Symbol == item))
                             continue;
                         //gia
-                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}", KlineInterval.FifteenMinutes);
+                        var l15m = await _apiService.GetData(item, EInterval.M15);
+                        //var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item}", KlineInterval.FifteenMinutes);
                         Thread.Sleep(100);
-                        if (lData15m.Data is null
-                            || !lData15m.Data.List.Any())
+                        if (l15m is null
+                            || !l15m.Any())
                             continue;
+                        var last = l15m.Last();
+                        l15m.Remove(last);
 
-                        var l15m = lData15m.Data.List.Reverse().SkipLast(1).Select(x => new Quote
-                        {
-                            Date = x.StartTime,
-                            Open = x.OpenPrice,
-                            High = x.HighPrice,
-                            Low = x.LowPrice,
-                            Close = x.ClosePrice,
-                        });
+                        //var l15m = lData15m.Data.List.Reverse().SkipLast(1).Select(x => new Quote
+                        //{
+                        //    Date = x.StartTime,
+                        //    Open = x.OpenPrice,
+                        //    High = x.HighPrice,
+                        //    Low = x.LowPrice,
+                        //    Close = x.ClosePrice,
+                        //});
                         var lbb = l15m.GetBollingerBands();
                         var cur = l15m.Last();
                         var prev = l15m.SkipLast(1).Last();
@@ -358,7 +361,7 @@ namespace TradePr.Service
                                 ex = _exchange,
                                 Side = sideDetect,
                                 timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                            }, lData15m.Data.List.Last().ClosePrice);
+                            }, last.Close);
 
                             if (res != null)
                             {
