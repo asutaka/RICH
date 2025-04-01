@@ -1077,6 +1077,7 @@ namespace TestPr.Service
                 var lRate = new List<decimal>();
                 var winCount = 0;
                 var lossCount = 0;
+
                 foreach (var item in StaticVal._lMa20Short)
                 {
                     //if (item.Key != "1INCHUSDT")

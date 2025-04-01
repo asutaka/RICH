@@ -1,10 +1,12 @@
 ﻿using Binance.Net.Clients;
+using Bybit.Net.Clients;
 
 namespace TestPr.Utils
 {
     public static class StaticVal
     {
         private static BinanceRestClient _binance;
+        private static BybitRestClient _bybit;
         private static BinanceSocketClient _binanceSocket;
         public static BinanceRestClient BinanceInstance()
         {
@@ -13,6 +15,15 @@ namespace TestPr.Utils
                 _binance = new BinanceRestClient();
             }
             return _binance;
+        }
+
+        public static BybitRestClient ByBitInstance()
+        {
+            if (_bybit == null)
+            {
+                _bybit = new BybitRestClient();
+            }
+            return _bybit;
         }
 
         public static BinanceSocketClient BinanceSocketInstance()
