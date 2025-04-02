@@ -286,7 +286,7 @@ namespace TradePr.Service
                     return;
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
-                var lSym = StaticVal._lMa20Short.Concat(StaticVal._lMa20);
+                var lSym = StaticVal._lMa20Short_Bybit.Concat(StaticVal._lMa20_Bybit);
                 foreach (var item in lSym)
                 {
                     try
