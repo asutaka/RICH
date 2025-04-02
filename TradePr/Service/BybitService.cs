@@ -243,7 +243,7 @@ namespace TradePr.Service
                         {
                             s = $"{item.s}USDT",
                             ex = _exchange,
-                            Side = (int)PositionSide.Sell,
+                            Side = (int)OrderSide.Sell,
                             timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                         }, last.ClosePrice);
                         if (res != null)
@@ -332,13 +332,13 @@ namespace TradePr.Service
 
                         var sideDetect = -1;
                         //Short
-                        if (StaticVal._lMa20Short.Any(x => x == item))
+                        if (StaticVal._lMa20Short_Bybit.Any(x => x == item))
                         {
                             ShortAction();
                         }
 
                         //Long
-                        if (StaticVal._lMa20.Any(x => x == item))
+                        if (StaticVal._lMa20_Bybit.Any(x => x == item))
                         {
                             LongAction();
                         }
@@ -386,7 +386,7 @@ namespace TradePr.Service
                                || (((decimal)bb.Sma - cur.Close) > (cur.Close - (decimal)bb.LowerBand)))
                                 return;
                             //SHORT
-                            sideDetect = (int)PositionSide.Sell;
+                            sideDetect = (int)OrderSide.Sell;
                         }
 
                         void LongAction()
@@ -400,7 +400,7 @@ namespace TradePr.Service
                                || (cur.Close - (decimal)bb.Sma) * 2 < ((decimal)bb.Sma - cur.Open))
                                 return;
                             //LONG
-                            sideDetect = (int)PositionSide.Buy;
+                            sideDetect = (int)OrderSide.Buy;
                         }
                     }
                     catch (Exception ex)
@@ -483,20 +483,14 @@ namespace TradePr.Service
                     }
                     else
                     {
-                        var lData15m = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, $"{item.Symbol}", KlineInterval.FifteenMinutes);
+                        var l15m = await _apiService.GetData_Bybit(item.Symbol, EInterval.M15);
                         Thread.Sleep(100);
-                        if (lData15m.Data is null
-                            || !lData15m.Data.List.Any())
+                        if (l15m is null || !l15m.Any())
                             continue;
 
-                        var l15m = lData15m.Data.List.Reverse().SkipLast(1).Select(x => new Quote
-                        {
-                            Date = x.StartTime,
-                            Open = x.OpenPrice,
-                            High = x.HighPrice,
-                            Low = x.LowPrice,
-                            Close = x.ClosePrice,
-                        });
+                        var last = l15m.Last();
+                        l15m.Remove(last);
+
                         var cur = l15m.Last();
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
