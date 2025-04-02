@@ -841,6 +841,7 @@ namespace TestPr.Service
         }
 
         //ma20 - Long 56.7%|W/L: 106/34
+        //ma20 - Long - Bybit 43.7%|W/L: 97/39
         public async Task LongMA20()
         {
             try
@@ -1068,14 +1069,14 @@ namespace TestPr.Service
             }
         }
         //ma20 - Short 110.1%|W/L: 304/165
-        //ma20 - Short - Bybit 137.1%|W/L: 400/223
+        //ma20 - Short - Bybit 183.6%|W/L: 420/236
         public async Task ShortMA20()
         {
             try
             {
                 //2x1.7 best
-                //decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
-                decimal SL_RATE = 100m;//1.5,1.6,1.8,1.9,2
+                decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
+                //decimal SL_RATE = 100m;//1.5,1.6,1.8,1.9,2
                 int hour = 2;//1h,2h,3h,4h
 
                 var lMesAll = new List<string>();
@@ -1084,8 +1085,6 @@ namespace TestPr.Service
                 var winCount = 0;
                 var lossCount = 0;
 
-                StaticVal._lMa20Short_Bybit.Clear();
-                StaticVal._lMa20Short_Bybit.Add("MOODENGUSDT");
                 foreach (var item in StaticVal._lMa20Short_Bybit)
                 {
                     //if (item != "HIGHUSDT")
