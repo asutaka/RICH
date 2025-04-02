@@ -1,5 +1,4 @@
 using TradePr.Service;
-using TradePr.Utils;
 
 namespace TradePr
 {
@@ -30,8 +29,9 @@ namespace TradePr
             while (!stoppingToken.IsCancellationRequested)
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await _binnanceService.Binance_Trade();
-                await _bybitService.Bybit_Trade();
+                var binance = _binnanceService.Binance_Trade();
+                var bybit = _bybitService.Bybit_Trade();
+                Task.WaitAll(binance, bybit);
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }
