@@ -62,6 +62,7 @@ namespace TradePr.Service
             {
                 var dt = DateTime.Now;
                 await Binance_TakeProfit(dt);
+                await Binance_TradeMA20(dt);
                 await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI(dt);
             }
@@ -236,6 +237,154 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI|EXCEPTION| {ex.Message}");
             }
+        }
+
+        private async Task Binance_TradeMA20(DateTime dt)
+        {
+            try
+            {
+                return;
+                //if (dt.Minute % 15 != 0)
+                //    return;
+                //var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                //var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
+                //var lSym = StaticVal._lMa20Short_Bybit.Concat(StaticVal._lMa20_Bybit);
+                //foreach (var item in lSym)
+                //{
+                //    try
+                //    {
+                //        if (pos.Data.List.Any(x => x.Symbol == item))
+                //            continue;
+                //        //gia
+                //        var l15m = await _apiService.GetData(item, EInterval.M15);
+                //        Thread.Sleep(100);
+                //        if (l15m is null
+                //            || !l15m.Any())
+                //            continue;
+                //        var last = l15m.Last();
+                //        l15m.Remove(last);
+
+                //        //var l15m = lData15m.Data.List.Reverse().SkipLast(1).Select(x => new Quote
+                //        //{
+                //        //    Date = x.StartTime,
+                //        //    Open = x.OpenPrice,
+                //        //    High = x.HighPrice,
+                //        //    Low = x.LowPrice,
+                //        //    Close = x.ClosePrice,
+                //        //});
+                //        var lbb = l15m.GetBollingerBands();
+                //        var cur = l15m.Last();
+                //        var prev = l15m.SkipLast(1).Last();
+                //        var prev2 = l15m.SkipLast(2).Last();
+
+                //        var bb = lbb.Last();
+                //        var bb_Prev = lbb.SkipLast(1).Last();
+                //        var bb_Prev2 = lbb.SkipLast(2).Last();
+
+                //        var lPrev = l15m.SkipLast(1).TakeLast(5);
+                //        var indexPrev = 0;
+                //        decimal totalPrev = 0;
+                //        foreach (var itemPrev in lPrev)
+                //        {
+                //            var prevRate = Math.Round(Math.Abs(itemPrev.Open - itemPrev.Close) * 100 / Math.Abs(itemPrev.High - itemPrev.Low));
+                //            if (prevRate > 10)
+                //            {
+                //                indexPrev++;
+                //                totalPrev += Math.Abs(itemPrev.Open - itemPrev.Close);
+                //            }
+                //        }
+                //        if (indexPrev <= 0)
+                //            continue;
+
+                //        var avgPrev = totalPrev / indexPrev;
+                //        if (Math.Abs(cur.Open - cur.Close) <= 2 * avgPrev
+                //               || Math.Abs(cur.Open - cur.Close) > avgPrev * 4)
+                //            continue;
+
+                //        var sideDetect = -1;
+                //        //Short
+                //        if (StaticVal._lMa20Short.Any(x => x == item))
+                //        {
+                //            ShortAction();
+                //        }
+
+                //        //Long
+                //        if (StaticVal._lMa20.Any(x => x == item))
+                //        {
+                //            LongAction();
+                //        }
+
+                //        if (sideDetect > -1)
+                //        {
+                //            var res = await PlaceOrder(new SignalBase
+                //            {
+                //                s = item,
+                //                ex = _exchange,
+                //                Side = sideDetect,
+                //                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                //            }, last.Close);
+
+                //            if (res != null)
+                //            {
+                //                var first = StaticVal._dicCoinAnk.First(x => x.Key == res.s);
+                //                var side = ((OrderSide)res.Side).ToString().ToUpper();
+                //                var price = Math.Round(res.priceEntry, first.Value.Item2);
+
+                //                _maRepo.InsertOne(new Ma20Trade
+                //                {
+                //                    ex = _exchange,
+                //                    s = res.s,
+                //                    Side = res.Side,
+                //                    priceEntry = price,
+                //                    timeFlag = res.timeFlag,
+                //                    dateFlag = DateTime.Now,
+                //                    timeStoploss = res.timeStoploss,
+                //                    priceStoploss = res.priceStoploss,
+                //                });
+
+                //                var mes = $"[ACTION - {side}|BB_bybit] {res.s}|ENTRY: {price}";
+                //                await _teleService.SendMessage(_idUser, mes);
+                //            }
+                //        }
+
+                //        void ShortAction()
+                //        {
+                //            if (cur.Open <= cur.Close
+                //               || cur.Close >= (decimal)bb.Sma.Value
+                //               || cur.Open <= (decimal)bb.Sma.Value
+                //               || prev.Low < (decimal)bb_Prev.Sma.Value
+                //               || prev2.Low < (decimal)bb_Prev2.Sma.Value
+                //               || (((decimal)bb.Sma - cur.Close) > (cur.Close - (decimal)bb.LowerBand)))
+                //                return;
+                //            //SHORT
+                //            sideDetect = (int)PositionSide.Sell;
+                //        }
+
+                //        void LongAction()
+                //        {
+                //            if (cur.Open >= cur.Close
+                //               || cur.Close <= (decimal)bb.Sma.Value
+                //               || cur.Open >= (decimal)bb.Sma.Value
+                //               || prev.High > (decimal)bb_Prev.Sma.Value
+                //               || prev2.High > (decimal)bb_Prev2.Sma.Value
+                //               || ((cur.Close - (decimal)bb.Sma) > ((decimal)bb.UpperBand - cur.Close))
+                //               || (cur.Close - (decimal)bb.Sma) * 2 < ((decimal)bb.Sma - cur.Open))
+                //                return;
+                //            //LONG
+                //            sideDetect = (int)PositionSide.Buy;
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeMA20|EXCEPTION|{item}| {ex.Message}");
+                //    }
+                //}
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeMA20|EXCEPTION| {ex.Message}");
+            }
+            return;
         }
 
         private async Task Binance_TakeProfit(DateTime dt)
