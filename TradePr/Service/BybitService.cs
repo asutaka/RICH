@@ -437,7 +437,7 @@ namespace TradePr.Service
                 var builder = Builders<Ma20Trade>.Filter;
                 var lViThe = _maRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, _exchange),
-                    builder.Lte(x => x.timeFlag, timeEnd)
+                    builder.Gte(x => x.timeFlag, timeEnd)
                 ));
 
                 #region Sell
