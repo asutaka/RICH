@@ -476,7 +476,7 @@ namespace TradePr.Service
                             }
                             vithe.rate = rate;
                             _maRepo.Update(vithe);
-                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_bybit] {item.Symbol}");
+                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_bybit] {item.Symbol}| {item.MarkPrice}");
                             continue;
                         }
                         await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}|BB_bybit] {item.Symbol}|CLOSE: {item.MarkPrice}");
