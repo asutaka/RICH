@@ -433,11 +433,12 @@ namespace TradePr.Service
                             builderUnlock.Eq(x => x.timeUnlock, timeUnlock)
                         ));
 
-                var timeEnd = (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
+                var timeEnd = (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds();
                 var builder = Builders<Ma20Trade>.Filter;
                 var lViThe = _maRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, _exchange),
-                    builder.Gte(x => x.timeFlag, timeEnd)
+                    builder.Eq(x => x.status, 0),
+                    builder.Lte(x => x.timeFlag, timeEnd)
                 ));
 
                 #region Sell
@@ -475,6 +476,7 @@ namespace TradePr.Service
                                 rate = -Math.Abs(rate);
                             }
                             vithe.rate = rate;
+                            vithe.status = 1;
                             _maRepo.Update(vithe);
                             await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_bybit] {item.Symbol}| {item.MarkPrice}");
                             continue;
@@ -528,6 +530,7 @@ namespace TradePr.Service
                                     rate = -Math.Abs(rate);
                                 }
                                 vithe.rate = rate;
+                                vithe.status = 1;
                                 _maRepo.Update(vithe);
                                 await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_bybit] {item.Symbol}");
                                 continue;
