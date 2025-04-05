@@ -610,6 +610,7 @@ namespace TradePr.Service
 
         private async Task<bool> PlaceOrderClose(BinancePositionV3 pos)
         {
+            var side = pos.PositionAmt < 0 ? OrderSide.Sell : OrderSide.Buy;
             var CLOSE_side = pos.PositionAmt < 0 ? OrderSide.Buy : OrderSide.Sell;
             try
             {
@@ -639,12 +640,12 @@ namespace TradePr.Service
                         rate = -Math.Abs(rate);
                     }
 
-                    await _teleService.SendMessage(_idUser, $"[CLOSE - {CLOSE_side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}| {pos.MarkPrice}");
+                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}| {pos.MarkPrice}");
                     return true;
                 }
                 else
                 {
-                    var mes = $"[Binance] {pos.Symbol}|{CLOSE_side}|AMOUNT: {Math.Abs(pos.PositionAmt)}|Error Không thể đóng lệnh| {res.Error?.Message}";
+                    var mes = $"[Binance] {pos.Symbol}|{side}|AMOUNT: {Math.Abs(pos.PositionAmt)}|Error Không thể đóng lệnh| {res.Error?.Message}";
                     await _teleService.SendMessage(_idUser, mes);
                 }
             }

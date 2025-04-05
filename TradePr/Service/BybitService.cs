@@ -653,6 +653,7 @@ namespace TradePr.Service
 
         private async Task<bool> PlaceOrderClose(BybitPosition pos)
         {
+            var side = pos.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
             var CLOSE_side = pos.Side == PositionSide.Sell ? OrderSide.Buy : OrderSide.Sell;
             try
             {
@@ -682,7 +683,7 @@ namespace TradePr.Service
                         rate = -Math.Abs(rate);
                     }
 
-                    await _teleService.SendMessage(_idUser, $"[CLOSE - {CLOSE_side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}| {pos.MarkPrice}");
+                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}| {pos.MarkPrice}");
 
                     return true;
                 }
@@ -691,7 +692,7 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
-            await _teleService.SendMessage(_idUser, $"[Bybit] Không thể đóng lệnh {CLOSE_side}: {pos.Symbol}!");
+            await _teleService.SendMessage(_idUser, $"[Bybit] Không thể đóng lệnh {side}: {pos.Symbol}!");
             return false;
         }
     }
