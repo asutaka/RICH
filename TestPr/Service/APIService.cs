@@ -65,6 +65,8 @@ namespace TestPr.Service
             try
             {
                 var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
+                if (!lres.Success)
+                    return null;
                 if(lres.Data.List.Any())
                 {
                     return lres.Data.List.Reverse().Select(x => new Quote
