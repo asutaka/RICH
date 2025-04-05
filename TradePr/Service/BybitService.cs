@@ -2,6 +2,7 @@
 using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
+using System.Drawing;
 using System.Text;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -22,7 +23,6 @@ namespace TradePr.Service
         private readonly IThreeSignalTradeRepo _threeSignalTradeRepo;
         private readonly ITokenUnlockTradeRepo _tokenUnlockTradeRepo;
         private readonly ITokenUnlockRepo _tokenUnlockRepo;
-        private readonly IMa20TradeRepo _maRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IConfigDataRepo _configRepo;
         private readonly IAPIService _apiService;
@@ -34,7 +34,6 @@ namespace TradePr.Service
         private readonly int _forceSell = 4;
         public BybitService(ILogger<BybitService> logger, ITradingRepo tradingRepo, ISignalTradeRepo signalTradeRepo, IErrorPartnerRepo errRepo,
                             IConfigDataRepo configRepo, IThreeSignalTradeRepo threeSignalTradeRepo, ITokenUnlockTradeRepo tokenUnlockTradeRepo, ITokenUnlockRepo tokenUnlockRepo,
-                            IMa20TradeRepo maRepo,
                             IAPIService apiService, ITeleService teleService)
         {
             _logger = logger;
@@ -47,7 +46,6 @@ namespace TradePr.Service
             _tokenUnlockRepo = tokenUnlockRepo;
             _apiService = apiService;
             _teleService = teleService;
-            _maRepo = maRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -201,7 +199,7 @@ namespace TradePr.Service
                             if (first is null)
                                 continue;
 
-                            var res = await PlaceOrderClose(position.Symbol, Math.Abs(position.Quantity), OrderSide.Buy);
+                            var res = await PlaceOrderClose(position);
                             if (res)
                             {
                                 first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
@@ -359,18 +357,6 @@ namespace TradePr.Service
                                 var side = ((OrderSide)res.Side).ToString().ToUpper();
                                 var price = Math.Round(res.priceEntry, first.Value.Item2);
 
-                                _maRepo.InsertOne(new Ma20Trade
-                                {
-                                    ex = _exchange,
-                                    s = res.s,
-                                    Side = res.Side,
-                                    priceEntry = price,
-                                    timeFlag = res.timeFlag,
-                                    dateFlag = DateTime.Now,
-                                    timeStoploss = res.timeStoploss,
-                                    priceStoploss = res.priceStoploss,
-                                });
-
                                 var mes = $"[ACTION - {side}|BB_bybit] {res.s}|ENTRY: {price}";
                                 await _teleService.SendMessage(_idUser, mes);
                             }
@@ -420,6 +406,7 @@ namespace TradePr.Service
         {
             try
             {
+                var index = 0;
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (!pos.Data.List.Any())
                     return;
@@ -433,14 +420,6 @@ namespace TradePr.Service
                             builderUnlock.Eq(x => x.timeUnlock, timeUnlock)
                         ));
 
-                var timeEnd = (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds();
-                var builder = Builders<Ma20Trade>.Filter;
-                var lViThe = _maRepo.GetByFilter(builder.And(
-                    builder.Eq(x => x.ex, _exchange),
-                    builder.Eq(x => x.status, 0),
-                    builder.Lte(x => x.timeFlag, timeEnd)
-                ));
-
                 #region Sell
                 foreach (var item in pos.Data.List)
                 {
@@ -448,40 +427,12 @@ namespace TradePr.Service
                         continue;
 
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
-                    var SL_side = item.Side == PositionSide.Sell ? OrderSide.Buy : OrderSide.Sell;
 
-                    var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
                     var curTime = (dt - item.UpdateTime.Value).TotalHours;
-                    if (curTime >= 2 || (vithe != null && (DateTime.Now - vithe.dateFlag).TotalHours >= 2))
+                    if (curTime >= 2)
                     {
-                        await PlaceOrderClose(item.Symbol, Math.Abs(item.Quantity), SL_side);
-
-                        if (vithe != null)
-                        {
-                            vithe.priceClose = (double)item.MarkPrice;
-                            var rate = Math.Round(100 * (-1 + vithe.priceClose / vithe.priceEntry), 1);
-                            var winloss = "LOSS";
-                            if (side == OrderSide.Buy && rate > 0)
-                            {
-                                winloss = "WIN";
-                                rate = Math.Abs(rate);
-                            }
-                            else if (side == OrderSide.Sell && rate < 0)
-                            {
-                                winloss = "WIN";
-                                rate = Math.Abs(rate);
-                            }
-                            else
-                            {
-                                rate = -Math.Abs(rate);
-                            }
-                            vithe.rate = rate;
-                            vithe.status = 1;
-                            _maRepo.Update(vithe);
-                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_bybit] {item.Symbol}| {item.MarkPrice}");
-                            continue;
-                        }
-                        await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}|BB_bybit] {item.Symbol}|CLOSE: {item.MarkPrice}");
+                        index++;
+                        await PlaceOrderClose(item);
                     }
                     else
                     {
@@ -508,40 +459,17 @@ namespace TradePr.Service
 
                         if(flag)
                         {
-                            await PlaceOrderClose(item.Symbol, Math.Abs(item.Quantity), SL_side);
-
-                            if (vithe != null)
-                            {
-                                vithe.priceClose = (double)item.MarkPrice;
-                                var rate = Math.Round(100 * (-1 + vithe.priceClose / vithe.priceEntry), 1);
-                                var winloss = "LOSS";
-                                if (side == OrderSide.Buy && rate > 0)
-                                {
-                                    winloss = "WIN";
-                                    rate = Math.Abs(rate);
-                                }
-                                else if (side == OrderSide.Sell && rate < 0)
-                                {
-                                    winloss = "WIN";
-                                    rate = Math.Abs(rate);
-                                }
-                                else
-                                {
-                                    rate = -Math.Abs(rate);
-                                }
-                                vithe.rate = rate;
-                                vithe.status = 1;
-                                _maRepo.Update(vithe);
-                                await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_bybit] {item.Symbol}");
-                                continue;
-                            }
-                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}|BB_bybit] {item.Symbol}|CLOSE: {item.MarkPrice}");
+                            index++;
+                            await PlaceOrderClose(item);
                         }
                     }
                 }
                 #endregion
 
                 #region Force Sell
+                var num = pos.Data.List.Count() - index;
+                if (num <= 0)
+                    return;
                 //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
@@ -550,14 +478,14 @@ namespace TradePr.Service
                 if (countForceSell >= _forceSell)
                 {
                     var lSell = pos.Data.List.Where(x => x.Side == PositionSide.Buy);
-                    await ForceMarket(lSell);
                     await _teleService.SendMessage(_idUser, $"Thanh lý lệnh LONG hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
+                    await ForceMarket(lSell);
                 }
                 if (countForceBuy >= _forceSell)
                 {
                     var lBuy = pos.Data.List.Where(x => x.Side == PositionSide.Sell);
-                    await ForceMarket(lBuy);
                     await _teleService.SendMessage(_idUser, $"Thanh lý lệnh SHORT hàng loạt| {DateTime.Now.ToString("dd/MM/yyyy HH:mm")}");
+                    await ForceMarket(lBuy);
                 } 
                 #endregion
             }
@@ -567,27 +495,19 @@ namespace TradePr.Service
             }
         }
 
-        private async Task<List<BybitPosition>> ForceMarket(IEnumerable<BybitPosition> lData)
+        private async Task ForceMarket(IEnumerable<BybitPosition> lData)
         {
-            var lRes = new List<BybitPosition>();
-            try
+            foreach (var item in lData)
             {
-                foreach (var item in lData)
+                try
                 {
-                    var side = (item.Side == PositionSide.Buy) ? OrderSide.Sell : OrderSide.Buy;
-                    var res = await PlaceOrderClose(item.Symbol, item.Quantity, side);
-                    if (!res)
-                        continue;
-
-                    lRes.Add(item);
+                    await PlaceOrderClose(item);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.ForceMarket|EXCEPTION| {ex.Message}");
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.ForceMarket|EXCEPTION| {ex.Message}");
-            }
-
-            return lRes;
         }
 
         private async Task<SignalBase> PlaceOrder(SignalBase entity, decimal lastPrice)
@@ -612,33 +532,8 @@ namespace TradePr.Service
                 var direction = side == OrderSide.Buy ? TriggerDirection.Fall : TriggerDirection.Rise;
 
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                if (pos.Data.List.Any())
-                {
-                    var index = 0;
-                    foreach (var item in pos.Data.List)
-                    {
-                        if (item.Symbol == entity.s)
-                        {
-                            if (item.Side == PositionSide.Sell && side == OrderSide.Sell)
-                            {
-                                return null;
-                            }
-                            else if (item.Side == PositionSide.Buy && side == OrderSide.Buy)
-                            {
-                                return null;
-                            }
-                            else
-                            {
-                                index++;
-                                await PlaceOrderClose(entity.s, Math.Abs(item.Quantity), SL_side);
-                            }
-                        }
-                    }
-
-                    var num = pos.Data.List.Count() - index;
-                    if (num >= 3)
-                        return null;
-                }
+                if (pos.Data.List.Count() >= 3)
+                    return null;
 
                 var near = 2; 
                 if (lastPrice < 5)
@@ -756,18 +651,39 @@ namespace TradePr.Service
             return null;
         }
 
-        private async Task<bool> PlaceOrderClose(string symbol, decimal quan, OrderSide side)
+        private async Task<bool> PlaceOrderClose(BybitPosition pos)
         {
+            var CLOSE_side = pos.Side == PositionSide.Sell ? OrderSide.Buy : OrderSide.Sell;
             try
             {
                 var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
-                                                                                        symbol,
-                                                                                        side: side,
+                                                                                        pos.Symbol,
+                                                                                        side: CLOSE_side,
                                                                                         type: NewOrderType.Market,
-                                                                                        quantity: quan);
+                                                                                        quantity: Math.Abs(pos.Quantity));
                 if (res.Success)
                 {
-                    var resCancel = await StaticVal.ByBitInstance().V5Api.Trading.CancelAllOrderAsync(Category.Linear, symbol);
+                    var resCancel = await StaticVal.ByBitInstance().V5Api.Trading.CancelAllOrderAsync(Category.Linear, pos.Symbol);
+
+                    var rate = Math.Round(100 * (-1 + pos.MarkPrice.Value / pos.AveragePrice.Value), 1);
+                    var winloss = "LOSS";
+                    if (CLOSE_side == OrderSide.Buy && rate > 0)
+                    {
+                        winloss = "WIN";
+                        rate = Math.Abs(rate);
+                    }
+                    else if (CLOSE_side == OrderSide.Sell && rate < 0)
+                    {
+                        winloss = "WIN";
+                        rate = Math.Abs(rate);
+                    }
+                    else
+                    {
+                        rate = -Math.Abs(rate);
+                    }
+
+                    await _teleService.SendMessage(_idUser, $"[CLOSE - {CLOSE_side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}| {pos.MarkPrice}");
+
                     return true;
                 }
             }
@@ -775,8 +691,7 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
-            Console.WriteLine($"[ERROR_bybit_Close] |{symbol}|Soluong: {quan}");
-            await _teleService.SendMessage(_idUser, $"[ERROR_bybit_Close] Không thể đóng lệnh {side}: {symbol}!");
+            await _teleService.SendMessage(_idUser, $"[Bybit] Không thể đóng lệnh {CLOSE_side}: {pos.Symbol}!");
             return false;
         }
     }

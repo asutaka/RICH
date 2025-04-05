@@ -21,7 +21,6 @@ namespace TradePr.Service
         private readonly IPrepareTradeRepo _prepareRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IConfigDataRepo _configRepo;
-        private readonly IMa20TradeRepo _maRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
@@ -33,7 +32,7 @@ namespace TradePr.Service
         private readonly int _exchange = (int)EExchange.Binance;
         private object _locker = new object();
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISignalTradeRepo signalTradeRepo, IErrorPartnerRepo errRepo,
-                            IConfigDataRepo configRepo, IPrepareTradeRepo prepareRepo, IMa20TradeRepo maRepo,
+                            IConfigDataRepo configRepo, IPrepareTradeRepo prepareRepo, 
                             IAPIService apiService, ITeleService teleService)
         {
             _logger = logger;
@@ -43,7 +42,6 @@ namespace TradePr.Service
             _configRepo = configRepo;
             _apiService = apiService;
             _teleService = teleService;
-            _maRepo = maRepo;
         }
         public async Task<BinanceUsdFuturesAccountBalance> Binance_GetAccountInfo()
         {
@@ -323,18 +321,6 @@ namespace TradePr.Service
                                 var side = ((OrderSide)res.Side).ToString().ToUpper();
                                 var price = Math.Round(res.priceEntry, first.Value.Item2);
 
-                                _maRepo.InsertOne(new Ma20Trade
-                                {
-                                    ex = _exchange,
-                                    s = res.s,
-                                    Side = res.Side,
-                                    priceEntry = price,
-                                    timeFlag = res.timeFlag,
-                                    dateFlag = DateTime.Now,
-                                    timeStoploss = res.timeStoploss,
-                                    priceStoploss = res.priceStoploss,
-                                });
-
                                 var mes = $"[ACTION - {side}|BB_Binance] {res.s}|ENTRY: {price}";
                                 await _teleService.SendMessage(_idUser, mes);
                             }
@@ -384,91 +370,17 @@ namespace TradePr.Service
         {
             try
             {
-                var timeEndPrepare = (int)DateTimeOffset.Now.AddHours(-2).ToUnixTimeSeconds();
-                var builderPrepare = Builders<PrepareTrade>.Filter;
-                var lViThePrepare = _prepareRepo.GetByFilter(builderPrepare.And(
-                    builderPrepare.Lte(x => x.entryTime, timeEndPrepare),
-                    builderPrepare.Eq(x => x.Status, 1)
-                ));
-
-                var timeEnd = (int)DateTimeOffset.Now.AddHours(-3).ToUnixTimeSeconds();
-                var builder = Builders<Ma20Trade>.Filter;
-                var lViThe = _maRepo.GetByFilter(builder.And(
-                    builder.Eq(x => x.ex, _exchange),
-                    builder.Eq(x => x.status, 0),
-                    builder.Lte(x => x.timeFlag, timeEnd)
-                ));
                 var index = 0;
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 #region Sell
                 foreach (var item in pos.Data)
                 {
                     var side = item.PositionAmt < 0 ? OrderSide.Sell : OrderSide.Buy;
-                    var SL_side = item.PositionAmt < 0 ? OrderSide.Buy : OrderSide.Sell;
-
-                    var vithePrepare = lViThePrepare.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
-                    var vithe = lViThe.FirstOrDefault(x => x.s == item.Symbol && x.Side == (int)side);
                     var curTime = (DateTime.UtcNow - item.UpdateTime.Value).TotalHours;
-                    if(curTime >= 2 
-                        || (vithePrepare != null && (DateTime.UtcNow - vithePrepare.entryDate).TotalHours >= 2) 
-                        || (vithe != null && (DateTime.Now - vithe.dateFlag).TotalHours >= 2))
+                    if(curTime >= 2)
                     {
                         index++;
-                        await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_side);
-                        
-                        if (vithePrepare != null)
-                        {
-                            vithePrepare.stopDate = DateTime.Now;
-                            vithePrepare.stopTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                            vithePrepare.SL_Real = (double)item.MarkPrice;
-                            vithePrepare.Status = 2;
-                            _prepareRepo.Update(vithePrepare);
-                            var rate = Math.Round(100 * (-1 + vithePrepare.SL_Real / vithePrepare.Entry), 1);
-                            var winloss = "LOSS";
-                            if(side == OrderSide.Buy && rate > 0)
-                            {
-                                winloss = "WIN";
-                                rate = Math.Abs(rate);
-                            }
-                            else if(side == OrderSide.Sell && rate < 0)
-                            {
-                                winloss = "WIN";
-                                rate = Math.Abs(rate);
-                            }
-                            else
-                            {
-                                rate = - Math.Abs(rate);
-                            }
-
-                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {item.Symbol}|ENTRY: {vithePrepare.Entry}|CLOSE: {vithePrepare.SL_Real}");
-                            continue;
-                        }
-                        else if(vithe != null)
-                        {
-                            vithe.priceClose = (double)item.MarkPrice;
-                            var rate = Math.Round(100 * (-1 + vithe.priceClose / vithe.priceEntry), 1);
-                            var winloss = "LOSS";
-                            if (side == OrderSide.Buy && rate > 0)
-                            {
-                                winloss = "WIN";
-                                rate = Math.Abs(rate);
-                            }
-                            else if (side == OrderSide.Sell && rate < 0)
-                            {
-                                winloss = "WIN";
-                                rate = Math.Abs(rate);
-                            }
-                            else
-                            {
-                                rate = -Math.Abs(rate);
-                            }
-                            vithe.rate = rate;
-                            vithe.status = 1;
-                            _maRepo.Update(vithe);
-                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_Binance] {item.Symbol}| {item.MarkPrice}");
-                            continue;
-                        }
-                        await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}|BB_Binance] {item.Symbol}|CLOSE: {item.MarkPrice}");
+                        await PlaceOrderClose(item);
                     }
                     else
                     {
@@ -495,34 +407,8 @@ namespace TradePr.Service
 
                         if (flag)
                         {
-                            await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_side);
-
-                            if (vithe != null)
-                            {
-                                vithe.priceClose = (double)item.MarkPrice;
-                                var rate = Math.Round(100 * (-1 + vithe.priceClose / vithe.priceEntry), 1);
-                                var winloss = "LOSS";
-                                if (side == OrderSide.Buy && rate > 0)
-                                {
-                                    winloss = "WIN";
-                                    rate = Math.Abs(rate);
-                                }
-                                else if (side == OrderSide.Sell && rate < 0)
-                                {
-                                    winloss = "WIN";
-                                    rate = Math.Abs(rate);
-                                }
-                                else
-                                {
-                                    rate = -Math.Abs(rate);
-                                }
-                                vithe.rate = rate;
-                                vithe.status = 1;
-                                _maRepo.Update(vithe);
-                                await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|BB_Binance] {item.Symbol}| {item.MarkPrice}");
-                                continue;
-                            }
-                            await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}|BB_Binance] {item.Symbol}|CLOSE: {item.MarkPrice}");
+                            index++;
+                            await PlaceOrderClose(item);
                         }
                     }
                 }
@@ -530,9 +416,9 @@ namespace TradePr.Service
 
                 #region Force Sell
                 var num = pos.Data.Count() - index;
-                //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 if (num <= 0)
                     return;
+                //Force Sell - Khi trong 1 khoảng thời gian ngắn có một loạt các lệnh thanh lý ngược chiều vị thế
                 var timeForce = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
                 var lForce = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, timeForce));
                 var countForceSell = lForce.Count(x => x.Side == (int)OrderSide.Sell);
@@ -557,29 +443,19 @@ namespace TradePr.Service
             }
         }
 
-        private async Task<List<BinancePositionV3>> ForceMarket(IEnumerable<BinancePositionV3> lData)
+        private async Task ForceMarket(IEnumerable<BinancePositionV3> lData)
         {
-            var lRes = new List<BinancePositionV3>();
-            try
+            foreach (var item in lData)
             {
-                foreach (var item in lData)
+                try
                 {
-                    var SL_Side = (item.PositionAmt < 0) ? OrderSide.Buy : OrderSide.Sell;
-                    var pos = (item.PositionAmt < 0) ? PositionSide.Short : PositionSide.Long;
-                    item.PositionSide = pos;
-                    var res = await PlaceOrderClose(item.Symbol, Math.Abs(item.PositionAmt), SL_Side);
-                    if (!res)
-                        continue;
-
-                    lRes.Add(item);
+                    await PlaceOrderClose(item);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.ForceMarket|EXCEPTION| {ex.Message}");
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.ForceMarket|EXCEPTION| {ex.Message}");
-            }
-
-            return lRes;
         }
 
         public async Task<SignalBase> PlaceOrder(SignalBase entity, decimal lastPrice)
@@ -616,33 +492,8 @@ namespace TradePr.Service
                 var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
 
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
-                if (pos.Data.Any())
-                {
-                    var index = 0;
-                    foreach (var item in pos.Data)
-                    {
-                        if(item.Symbol == entity.s)
-                        {
-                            if (item.PositionAmt < 0 && side == OrderSide.Sell)
-                            {
-                                return null;
-                            }
-                            else if(item.PositionAmt > 0 && side == OrderSide.Buy)
-                            {
-                                return null;
-                            }
-                            else
-                            {
-                                index++;
-                                await PlaceOrderClose(entity.s, Math.Abs(item.PositionAmt), SL_side);
-                            }
-                        }
-                    }
-                   
-                    var num = pos.Data.Count() - index;
-                    if (num >= 3)
-                        return null;
-                }
+                if (pos.Data.Count() >= 3)
+                    return null;
 
                 var near = 2;
                 if (lastPrice < 5)
@@ -757,25 +608,43 @@ namespace TradePr.Service
             return null;
         }
 
-        private async Task<bool> PlaceOrderClose(string symbol, decimal quan, OrderSide side)
+        private async Task<bool> PlaceOrderClose(BinancePositionV3 pos)
         {
+            var CLOSE_side = pos.PositionAmt < 0 ? OrderSide.Buy : OrderSide.Sell;
             try
             {
-                var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(symbol,
-                                                                                                    side: side,
+                var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(pos.Symbol,
+                                                                                                    side: CLOSE_side,
                                                                                                     type: FuturesOrderType.Market,
                                                                                                     positionSide: PositionSide.Both,
                                                                                                     reduceOnly: false,
-                                                                                                    quantity: quan);
+                                                                                                    quantity: Math.Abs(pos.PositionAmt));
                 Thread.Sleep(500);
                 if (res.Success)
                 {
+                    var rate = Math.Round(100 * (-1 + pos.MarkPrice / pos.EntryPrice), 1);
+                    var winloss = "LOSS";
+                    if (CLOSE_side == OrderSide.Buy && rate > 0)
+                    {
+                        winloss = "WIN";
+                        rate = Math.Abs(rate);
+                    }
+                    else if (CLOSE_side == OrderSide.Sell && rate < 0)
+                    {
+                        winloss = "WIN";
+                        rate = Math.Abs(rate);
+                    }
+                    else
+                    {
+                        rate = -Math.Abs(rate);
+                    }
+
+                    await _teleService.SendMessage(_idUser, $"[CLOSE - {CLOSE_side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}| {pos.MarkPrice}");
                     return true;
                 }
                 else
                 {
-                    var mes = $"[ERROR_binance_Close] {symbol}|{side}|AMOUNT: {quan}|Error Không thể đóng lệnh| {res.Error?.Message}";
-                    Console.WriteLine(mes);
+                    var mes = $"[Binance] {pos.Symbol}|{CLOSE_side}|AMOUNT: {Math.Abs(pos.PositionAmt)}|Error Không thể đóng lệnh| {res.Error?.Message}";
                     await _teleService.SendMessage(_idUser, mes);
                 }
             }
