@@ -180,7 +180,6 @@ namespace TradePr.Service
                 //if (true)
                 if (dt.Hour == 23 && dt.Minute == 58)
                 {
-                    var sBuilder = new StringBuilder();
                     #region Đóng vị thế
                     var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                     if (resPosition?.Data?.List?.Any()?? false)
@@ -199,15 +198,7 @@ namespace TradePr.Service
                             if (first is null)
                                 continue;
 
-                            var res = await PlaceOrderClose(position);
-                            if (res)
-                            {
-                                first.rate = Math.Round(100 * (-1 + first.priceEntry / (double)position.MarkPrice.Value), 1);
-                                first.timeClose = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                                _tokenUnlockTradeRepo.Update(first);
-                                var mes = $"[CLOSE - SELL({first.rate}%)|UNLOCK_bybit] {position.Symbol}";
-                                sBuilder.AppendLine(mes);
-                            }
+                            await PlaceOrderClose(position);
                         }
                     }
                     #endregion
@@ -259,15 +250,10 @@ namespace TradePr.Service
 
                             var first = StaticVal._dicCoinAnk.First(x => x.Key == res.s);
                             var mes = $"[ACTION - SELL|UNLOCK_bybit] {res.s}|ENTRY: {Math.Round(res.priceEntry, first.Value.Item2)}";
-                            sBuilder.AppendLine(mes);
+                            await _teleService.SendMessage(_idUser, mes);
                         }
                     }
                     #endregion
-
-                    if (sBuilder.Length > 0)
-                    {
-                        await _teleService.SendMessage(_idUser, sBuilder.ToString());
-                    }
                 }
             }
             catch (Exception ex)
