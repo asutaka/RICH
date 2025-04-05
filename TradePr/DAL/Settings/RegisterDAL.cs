@@ -13,6 +13,7 @@
             services.AddSingleton<IConfigDataRepo, ConfigDataRepo>();
             services.AddSingleton<IPrepareTradeRepo, PrepareTradeRepo>();
             services.AddSingleton<IMa20TradeRepo, Ma20TradeRepo>();
+            services.AddSingleton<ISymbolRepo, SymbolRepo>();
         }
     }
 }

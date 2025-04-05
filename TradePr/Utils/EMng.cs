@@ -54,6 +54,9 @@ namespace TradePr.Utils
         Signal = 2,
         ThreeSignal = 3,
         Liquid = 4,
-        RSI = 5
+        RSI = 5,
+        Ma20 = 6
     }
+
+
 }

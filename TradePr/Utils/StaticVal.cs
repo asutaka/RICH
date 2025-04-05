@@ -278,25 +278,6 @@ namespace TradePr.Utils
             "STGUSDT",
             "ZILUSDT"
         };
-
-        public static List<string> _lMa20_Bybit = new List<string>
-        {
-            "ARBUSDT",
-            "MINAUSDT",
-            "QIUSDT",
-            "ADAUSDT",
-            "LINKUSDT",
-            "DOGEUSDT",
-            "1INCHUSDT",
-            "JOEUSDT",
-            "IDUSDT",
-            "KNCUSDT",
-            "OPUSDT",
-            "XRPUSDT",
-            "DYDXUSDT",
-            "PIXELUSDT",
-        };
-
         public static List<string> _lMa20Short = new List<string>
         {
             "AVAXUSDT",
@@ -324,6 +305,23 @@ namespace TradePr.Utils
             "APTUSDT"
         };
 
+        public static List<string> _lMa20_Bybit = new List<string>
+        {
+            "ARBUSDT",
+            "MINAUSDT",
+            "QIUSDT",
+            "ADAUSDT",
+            "LINKUSDT",
+            "DOGEUSDT",
+            "1INCHUSDT",
+            "JOEUSDT",
+            "IDUSDT",
+            "KNCUSDT",
+            "OPUSDT",
+            "XRPUSDT",
+            "DYDXUSDT",
+            "PIXELUSDT",
+        };
         public static List<string> _lMa20Short_Bybit = new List<string>
         {
             "HIGHUSDT",
