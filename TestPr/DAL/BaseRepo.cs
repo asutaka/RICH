@@ -1,10 +1,5 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.Core.Extensions.DiagnosticSources;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TestPr.DAL.Entity;
 using TestPr.DAL.Settings;
 
@@ -23,8 +18,24 @@ namespace TestPr.DAL
         /// </summary>
         /// <returns>collection of entities</returns>
         List<T> GetAll();
-
-        //Example: FilterDefinition<StockPr> filter = Builders<StockPr>.Filter.Eq(x => x.s, itemMa.symbol);
+        /*
+            FilterDefinition<ThongKe> filter = null;
+            var builder = Builders<ThongKe>.Filter;
+            var lFilter = new List<FilterDefinition<ThongKe>>()
+            {
+                builder.Eq(x => x.date, content.date),
+                builder.Eq(x => x.symbol, content.symbol),
+            };
+            foreach (var itemFilter in lFilter)
+            {
+                if (filter is null)
+                {
+                    filter = itemFilter;
+                    continue;
+                }
+                filter &= itemFilter;
+            }
+         */
 
         //var builder = Builders<SignalTrade>.Filter;
         //var lSignal = _signalTradeRepo.GetByFilter(builder.And(
@@ -32,6 +43,8 @@ namespace TestPr.DAL
         //    builder.Gte(x => x.timeFlag, time)
         //));
 
+
+        //Example: FilterDefinition<StockPr> filter = Builders<StockPr>.Filter.Eq(x => x.s, itemMa.symbol);
         List<T> GetByFilter(FilterDefinition<T> filter, int offset = 0, int limit = 0);
         T GetEntityByFilter(FilterDefinition<T> filter);
 
