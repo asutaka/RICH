@@ -1312,81 +1312,85 @@ namespace TestPr.Service
                 lTake.Clear();
                 var lTmp = new List<string>
                 {
-                 //"AVAXUSDT",
-  //"SYNUSDT",
-  //"POLYXUSDT",
-  //"PYTHUSDT",
-  //"DRIFTUSDT",
-  //"TRBUSDT",
-  //"HIGHUSDT",
-  //"WAXPUSDT",
-  //"PNUTUSDT",
-  //"PHBUSDT",
-  //"TRUMPUSDT",
-  //"MASAUSDT",
-  //"NEOUSDT",
-  //"BOBAUSDT",
-  //"HFTUSDT",
-  //"DYMUSDT",
-  //"WLDUSDT",
-  //"CARVUSDT",
-  //"TRUUSDT",
-  //"OPUSDT",
-  //"TNSRUSDT",
-  //"MAGICUSDT",
-  //"SCRUSDT",
-  //"UNIUSDT",
-  //"C98USDT",
-  //"CTSIUSDT",
-  //"STORJUSDT",
-  //"XVGUSDT",
-  //"KNCUSDT",
-  //"ALPHAUSDT",
-  //"OXTUSDT",
-  //"ARCUSDT",
-  //"MELANIAUSDT",
-  //"CKBUSDT",
-  //"COTIUSDT",
-  //"POWRUSDT",
-  //"SSVUSDT",
-  //"XCNUSDT",
-  //"TSTBSCUSDT",
-  //"ALGOUSDT",
-  //"DYDXUSDT",
-  //"GALAUSDT",
-  //"LUMIAUSDT",
-  //"BANANAUSDT",
-  //"LUNA2USDT",
-  //"ARBUSDT",
-    //"YGGUSDT",
-  //"MAVUSDT",
-  //"VOXELUSDT",
-  //"GPSUSDT",
-  //"NKNUSDT",
-  //"WOOUSDT",
-  //"APEUSDT",
-  //"AXSUSDT",
-  //"DUSKUSDT",
-  //"EDUUSDT",
-  //"RLCUSDT",
-  //"JUPUSDT",
-  //"CETUSUSDT",
-  "NOTUSDT",
-  //"SWELLUSDT",
-  //"VIDTUSDT",
-  //"ZRXUSDT",
-  //"SAFEUSDT",
-  //"MINAUSDT",
-  //"MOODENGUSDT",
-  //"PONKEUSDT",
-  //"TAIUSDT",
-  //"VETUSDT",
+                    "MORPHOUSDT",
+                    "ENAUSDT",
+                    "KAVAUSDT",
+                    "LDOUSDT",
+                    "ARBUSDT",
+                    "BOMEUSDT",
+                    "ARUSDT",
+                    "CKBUSDT",
+                    "ALICEUSDT",
+                    "KNCUSDT",
+                    "LISTAUSDT",
+                    "UNIUSDT",
+                    "1INCHUSDT",
+                    "BANDUSDT",
+                    "DGBUSDT",
+                    "BIGTIMEUSDT",
+                    "AAVEUSDT",
+                    "DATAUSDT",
+                    "ETHFIUSDT",
+                    "HFTUSDT",
+                    "AIUSDT",
+                    "BATUSDT",
+                    "SIRENUSDT",
+                    "PEAQUSDT",
+                    "PEOPLEUSDT",
+                    "POLUSDT",
+                    "PENDLEUSDT",
+                    "SLERFUSDT",
+                    "SKLUSDT",
+                    "ZILUSDT",
+                    "LINKUSDT",
+                    "LUNA2USDT",
+                    "NEIROETHUSDT",
+                    "MINAUSDT",
+                    "NILUSDT",
+                    "RPLUSDT",
+                    "SHELLUSDT",
+
+
+                    "ALUUSDT",
+                    "AGIUSDT",
+                    "BLUEUSDT",
+                    "BRUSDT",
+                    "CFXUSDT",
+                    "EPICUSDT",
+                    "CRVUSDT",
+                    "CTSIUSDT",
+                    "FIOUSDT",
+                    "GUSDT",
+                    "FLMUSDT",
+                    "LEVERUSDT",
+                    "IDUSDT",
+                    "MAVIAUSDT",
+                    "NSUSDT",
+                    "NULSUSDT",
+                    "NTRNUSDT",
+                    "OGNUSDT",
+                    "PERPUSDT",
+                    "PIXELUSDT",
+                    "PLUMEUSDT",
+                    "ROAMUSDT",
+                    "RSRUSDT",
+                    "SEIUSDT",
+                    "SPECUSDT",
+                    "THETAUSDT",
+                    "VANRYUSDT",
+                    "VRAUSDT",
+                    "WIFUSDT",
+                    "XIONUSDT",
+                    "SOLAYERUSDT",
+                    "XVSUSDT",
                 };
                 lTake.AddRange(lTmp);
                 foreach (var item in lTake)
                 {
                     try
                     {
+                        //if (item.Key != "1INCHUSDT")
+                        //    continue;
                         var lMes = new List<string>();
 
                         var lData15m = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
@@ -1424,19 +1428,19 @@ namespace TestPr.Service
                                 var side = (int)Binance.Net.Enums.OrderSide.Buy;
                                 var cur = lData15m.First(x => x.Date == ma20.Date);
                                 if (ma20.Sma is null
-                                    || cur.Open <= cur.Close
-                                    || cur.Close >= (decimal)ma20.Sma.Value
-                                    || cur.Open <= (decimal)ma20.Sma.Value)
+                                    || cur.Open >= cur.Close
+                                    || cur.Close <= (decimal)ma20.Sma.Value
+                                    || cur.Open >= (decimal)ma20.Sma.Value)
                                     continue;
 
                                 var prev = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-15));
                                 var ma20_Prev = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-15));
-                                if (ma20_Prev.Sma is null || prev.Low < (decimal)ma20_Prev.Sma.Value)
+                                if (ma20_Prev.Sma is null || prev.High > (decimal)ma20_Prev.Sma.Value)
                                     continue;
 
                                 var prev2 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-30));
                                 var ma20_Prev2 = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-30));
-                                if (ma20_Prev2.Sma is null || prev2.Low < (decimal)ma20_Prev2.Sma.Value)
+                                if (ma20_Prev2.Sma is null || prev2.High > (decimal)ma20_Prev2.Sma.Value)
                                     continue;
 
                                 //var prev3 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-45));
@@ -1445,10 +1449,10 @@ namespace TestPr.Service
                                 //    continue;
 
                                 var next = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-                                if (next is null || next.High <= cur.Close)
+                                if (next is null || next.Low >= cur.Close)
                                     continue;
 
-                                var rateEntry = -Math.Round(100 * (-1 + next.High / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
+                                var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
 
                                 var lPrev = lData15m.Where(x => x.Date < cur.Date).TakeLast(5);
                                 var indexPrev = 0;
@@ -1474,13 +1478,25 @@ namespace TestPr.Service
                                     || Math.Abs(cur.Open - cur.Close) > avgPrev * 4)
                                     continue;
 
-                                var checkBB = ((decimal)ma20.Sma) - cur.Close > cur.Close - (decimal)ma20.LowerBand;
+                                //var curCO = cur.Close - cur.Open;
+                                //var curHC = cur.High - cur.Close;
+
+                                //if (curHC > curCO)
+                                //{
+                                //        continue;
+                                //}
+
+                                //var checkBB = 2 * (cur.High - cur.Close) > (decimal)ma20.UpperBand - cur.High;
+                                //if (checkBB)
+                                //    continue;
+
+                                var checkBB = (cur.Close - (decimal)ma20.Sma) > (decimal)ma20.UpperBand - cur.Close;
                                 if (checkBB)
                                     continue;
 
-                                //var checkMa20 = ((decimal)ma20.Sma - cur.Close) * 2 < (cur.Open - (decimal)ma20.Sma);
-                                //if (checkMa20)
-                                //    continue;
+                                var checkMa20 = (cur.Close - (decimal)ma20.Sma) * 2 < ((decimal)ma20.Sma - cur.Open);
+                                if (checkMa20)
+                                    continue;
 
                                 var eEntry = cur;
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
@@ -1491,7 +1507,7 @@ namespace TestPr.Service
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
-                                    if (itemClose.Close < (decimal)ma.LowerBand)
+                                    if (itemClose.Close > (decimal)ma.UpperBand)
                                     {
                                         eClose = itemClose;
                                         break;
@@ -1499,20 +1515,28 @@ namespace TestPr.Service
                                 }
 
                                 close = eClose;
-                                var rate = Math.Round(100 * (-1 + eEntry.Close / eClose.Close), 1);
+                                var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
                                 var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
                                 var maxH = lRange.Max(x => x.High);
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate < (decimal)0.5)
+                                if (rate <= (decimal)0.5)
                                 {
                                     winloss = "L";
                                 }
 
                                 decimal maxTP = 0, maxSL = 0;
-                                maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
-                                maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
+                                if (side == (int)Binance.Net.Enums.OrderSide.Buy)
+                                {
+                                    maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
+                                    maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
+                                }
+                                else
+                                {
+                                    maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
+                                    maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
+                                }
                                 if (maxSL <= -SL_RATE)
                                 {
                                     rate = -SL_RATE;
@@ -1554,7 +1578,7 @@ namespace TestPr.Service
                         lMesAll.AddRange(lMes);
                         //
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        if(rateRes >= (decimal)0.5)
+                        if(rateRes <= (decimal)0.5)
                         {
                             Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                         }
