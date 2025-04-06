@@ -1283,10 +1283,10 @@ namespace TestPr.Service
         {
             try
             {
-                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
-                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var countUSDT = lUsdt.Count();
-                var lTake = lUsdt.Skip(450).Take(50).ToList();
+                //var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                //var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                //var countUSDT = lUsdt.Count();
+                //var lTake = lUsdt.Skip(450).Take(50).ToList();
                 //2x1.7 best
                 decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
                 //decimal SL_RATE = 100m;//1.5,1.6,1.8,1.9,2
@@ -1298,12 +1298,81 @@ namespace TestPr.Service
                 var winCount = 0;
                 var lossCount = 0;
 
-                //lTake.Clear();
-                //var lTmp = new List<string>
-                //{
-                //   "XRDUSDT",
-                //};
-                //lTake.AddRange(lTmp);
+                var lTake = new List<string>();
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                 //"AVAXUSDT",
+  //"SYNUSDT",
+  //"POLYXUSDT",
+  //"PYTHUSDT",
+  //"DRIFTUSDT",
+  //"TRBUSDT",
+  //"HIGHUSDT",
+  //"WAXPUSDT",
+  //"PNUTUSDT",
+  //"PHBUSDT",
+  //"TRUMPUSDT",
+  //"MASAUSDT",
+  //"NEOUSDT",
+  //"BOBAUSDT",
+  //"HFTUSDT",
+  //"DYMUSDT",
+  //"WLDUSDT",
+  //"CARVUSDT",
+  //"TRUUSDT",
+  //"OPUSDT",
+  //"TNSRUSDT",
+  //"MAGICUSDT",
+  //"SCRUSDT",
+  //"UNIUSDT",
+  //"C98USDT",
+  //"CTSIUSDT",
+  //"STORJUSDT",
+  //"XVGUSDT",
+  //"KNCUSDT",
+  //"ALPHAUSDT",
+  //"OXTUSDT",
+  //"ARCUSDT",
+  //"MELANIAUSDT",
+  //"CKBUSDT",
+  //"COTIUSDT",
+  //"POWRUSDT",
+  //"SSVUSDT",
+  //"XCNUSDT",
+  //"TSTBSCUSDT",
+  //"ALGOUSDT",
+  //"DYDXUSDT",
+  //"GALAUSDT",
+  //"LUMIAUSDT",
+  //"BANANAUSDT",
+  //"LUNA2USDT",
+  //"ARBUSDT",
+    //"YGGUSDT",
+  //"MAVUSDT",
+  //"VOXELUSDT",
+  //"GPSUSDT",
+  //"NKNUSDT",
+  //"WOOUSDT",
+  //"APEUSDT",
+  //"AXSUSDT",
+  //"DUSKUSDT",
+  //"EDUUSDT",
+  //"RLCUSDT",
+  //"JUPUSDT",
+  //"CETUSUSDT",
+  "NOTUSDT",
+  //"SWELLUSDT",
+  //"VIDTUSDT",
+  //"ZRXUSDT",
+  //"SAFEUSDT",
+  //"MINAUSDT",
+  //"MOODENGUSDT",
+  //"PONKEUSDT",
+  //"TAIUSDT",
+  //"VETUSDT",
+                };
+                lTake.AddRange(lTmp);
                 foreach (var item in lTake)
                 {
                     try
@@ -1426,7 +1495,7 @@ namespace TestPr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= 0)
+                                if (rate < (decimal)0.5)
                                 {
                                     winloss = "L";
                                 }
@@ -1475,7 +1544,7 @@ namespace TestPr.Service
                         lMesAll.AddRange(lMes);
                         //
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        if(rateRes >= (decimal)0.58)
+                        if(rateRes >= (decimal)0.5)
                         {
                             Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                         }

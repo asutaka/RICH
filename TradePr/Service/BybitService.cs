@@ -19,20 +19,21 @@ namespace TradePr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ISymbolRepo _symRepo;
+        private readonly ISymbolConfigRepo _symConfigRepo;
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
         private const int _op = (int)EOption.Ma20;
 
         private readonly int _exchange = (int)EExchange.Bybit;
-        private readonly int _forceSell = 4;
         public BybitService(ILogger<BybitService1> logger,
-                            IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo)
+                            IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, ISymbolConfigRepo symConfigRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _symRepo = symRepo;
+            _symConfigRepo = symConfigRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -271,18 +272,35 @@ namespace TradePr.Service
                 if (pos.Data.List.Count() >= 3)
                     return false;
 
-                var near = 2; 
-                if (lastPrice < 5)
+                var tronSL = 2;
+                var exists = _symConfigRepo.GetEntityByFilter(Builders<SymbolConfig>.Filter.Eq(x => x.s, entity.s));
+                if (exists != null)
                 {
-                    near = 0;
+                    tronSL = exists.amount;
                 }
-                var exists = StaticVal._dicCoinAnk.FirstOrDefault(x => x.Key == entity.s);
-                if (exists.Key != null)
+                else if (lastPrice < 5)
                 {
-                    near = exists.Value.Item1;
+                    tronSL = 0;
+                }
+              
+                decimal soluong = _unit / lastPrice;
+                if(tronSL == -1)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 10;
+                    soluong -= odd;
+                }
+                else if(tronSL == -2)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 100;
+                    soluong -= odd;
+                }
+                else
+                {
+                    soluong = Math.Round(soluong, tronSL);
                 }
 
-                var soluong = Math.Round(_unit / lastPrice, near);
                 var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                         entity.s,
                                                                                         side: side,
@@ -308,26 +326,26 @@ namespace TradePr.Service
                 if (resPosition.Data.List.Any())
                 {
                     var first = resPosition.Data.List.First();
-
-                    if (lastPrice < 5)
+                    var tronGia = 0;
+                    if (exists != null)
+                    {
+                        tronGia = exists.price;
+                    }
+                    else if(lastPrice < 5)
                     {
                         var price = lastPrice.ToString().Split('.').Last();
                         price = price.ReverseString();
-                        near = long.Parse(price).ToString().Length;
-                        if (exists.Key != null)
-                        {
-                            near = exists.Value.Item2;
-                        }
+                        tronGia = long.Parse(price).ToString().Length;
                     }
-                    var checkLenght = lastPrice.ToString().Split('.').Last();
+
                     decimal sl = 0;
                     if (side == OrderSide.Buy)
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - SL_RATE), near);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - SL_RATE), tronGia);
                     }
                     else
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + SL_RATE), near);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + SL_RATE), tronGia);
                     }
                     res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                             first.Symbol,
@@ -350,12 +368,7 @@ namespace TradePr.Service
                         return false;
                     }
                     //Print
-                    var key = StaticVal._dicCoinAnk.FirstOrDefault(x => x.Key == first.Symbol);
-                    var entry = first.AveragePrice;
-                    if(!string.IsNullOrWhiteSpace(key.Key))
-                    {
-                        entry = Math.Round(entry.Value, key.Value.Item2);
-                    }
+                    var entry = Math.Round(first.AveragePrice.Value, tronGia);
 
                     var mes = $"[ACTION - {side}|Bybit] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
