@@ -12,6 +12,7 @@ namespace TestPr.Service
     {
         Task<List<Quote>> GetData(string symbol, EInterval interval, long fromTime = 0);
         Task<List<Quote>> GetData_Bybit(string symbol, EInterval interval, long fromTime = 0);
+        Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, long fromTime = 0);
     }
     public class APIService : IAPIService
     {
@@ -82,6 +83,32 @@ namespace TestPr.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"APIService.GetData_Bybit|EXCEPTION|INPUT: {symbol}| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, long fromTime = 0)
+        {
+            try
+            {
+                var lres = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetMarkPriceKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
+                if (!lres.Success)
+                    return null;
+                if (lres.Data.Any())
+                {
+                    return lres.Data.Select(x => new Quote
+                    {
+                        Open = x.OpenPrice,
+                        High = x.HighPrice,
+                        Low = x.LowPrice,
+                        Close = x.ClosePrice,
+                        Date = x.OpenTime
+                    }).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetData_Binance|EXCEPTION|INPUT: {symbol}| {ex.Message}");
             }
             return null;
         }

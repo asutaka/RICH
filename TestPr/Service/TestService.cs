@@ -1,6 +1,7 @@
 ﻿using Bybit.Net.Enums;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Newtonsoft.Json;
 using Skender.Stock.Indicators;    
 using TestPr.DAL;
 using TestPr.DAL.Entity;
@@ -20,6 +21,7 @@ namespace TestPr.Service
         Task LongMA20();
         Task ShortMA20();
         Task CheckAllBYBIT();
+        Task CheckAllBINANCE();
     }
     public class TestService : ITestService
     {
@@ -1579,7 +1581,313 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
+        public async Task CheckAllBINANCE()
+        {
+            try
+            {
+                var lAll = await StaticVal.BinanceInstance().UsdFuturesApi.CommonFuturesClient.GetSymbolsAsync();
+                var lUsdt = lAll.Data.Select(x => x.Name);
+                //var countUSDT = lUsdt.Count();
+                var lTake = lUsdt.Skip(0).Take(50).ToList();
+                //2x1.7 best
+                decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
+                //decimal SL_RATE = 100m;//1.5,1.6,1.8,1.9,2
+                int hour = 2;//1h,2h,3h,4h
 
+                var lMesAll = new List<string>();
+                var lModel = new List<LongMa20>();
+                var lRate = new List<decimal>();
+                var winCount = 0;
+                var lossCount = 0;
+
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    "BTCUSDT",
+                    //"KAVAUSDT",
+                    //"LDOUSDT",
+                    //"ARBUSDT",
+                    //"BOMEUSDT",
+                    //"ARUSDT",
+                    //"KNCUSDT",
+                    //"DGBUSDT",
+                    //"BIGTIMEUSDT",
+                    //"AAVEUSDT",
+                    //"DATAUSDT",
+                    //"ETHFIUSDT",
+                    //"AIUSDT",
+                    //"BATUSDT",
+                    //"PEAQUSDT",
+                    //"PEOPLEUSDT",
+                    //"POLUSDT",
+                    //"PENDLEUSDT",
+                    //"ZILUSDT",
+                    //"LINKUSDT",
+                    //"LUNA2USDT",
+                    //"NEIROETHUSDT",
+                    //"MINAUSDT",
+                    //"NILUSDT",
+                    //"RPLUSDT",
+                    //"SHELLUSDT",
+
+
+                    //"ALUUSDT",
+                    //"BLUEUSDT",
+                    //"CRVUSDT",
+                    //"CTSIUSDT",
+                    //"GUSDT",
+                    //"NULSUSDT",
+                    //"PERPUSDT",
+                    //"PIXELUSDT",
+                    //"PLUMEUSDT",
+                    //"ROAMUSDT",
+                    //"RSRUSDT",
+                    //"SEIUSDT",
+                    //"XIONUSDT",
+                };
+                lTake.AddRange(lTmp);
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        //if (item.Key != "1INCHUSDT")
+                        //    continue;
+                        var lMes = new List<string>();
+
+                        var lData15m = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                        if (!lData15m.Any())
+                            continue;
+                        var last = lData15m.Last();
+                        Thread.Sleep(200);
+
+                        var lData40 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
+                        last = lData15m.Last();
+
+                        var lData30 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
+                        last = lData15m.Last();
+
+                        var lData20 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                        last = lData15m.Last();
+
+                        var lData10 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                        var lbb = lData15m.GetBollingerBands();
+                        var lrsi = lData15m.GetRsi();
+
+                        Quote close = null;
+                        var count = 0;
+                        foreach (var ma20 in lbb)
+                        {
+                            try
+                            {
+                                if (close != null && close.Date >= ma20.Date)
+                                    continue;
+                                var side = (int)Binance.Net.Enums.OrderSide.Buy;
+                                var cur = lData15m.First(x => x.Date == ma20.Date);
+                                var rsi = lrsi.First(x => x.Date == ma20.Date);
+                                var maxOpenClose = Math.Max(cur.Open, cur.Close);
+                                var minOpenClose = Math.Min(cur.Open, cur.Close);
+                                var isPinBar = ((minOpenClose - cur.Low) >= (decimal)0.5 * (cur.High - cur.Low)) && ((minOpenClose - cur.Low) > 2 * (cur.High - maxOpenClose));
+                                var isValiid = Math.Abs(cur.Open - cur.Close) > (decimal)0.15 * (cur.High - cur.Low);
+                                if (ma20.Sma is null
+                                    || !isPinBar
+                                    || !isValiid
+                                    || rsi.Rsi > 35
+                                    || cur.Low >= (decimal)ma20.LowerBand.Value
+                                    || Math.Abs(maxOpenClose - (decimal)ma20.LowerBand.Value) > Math.Abs((decimal)ma20.Sma.Value - maxOpenClose))
+                                    continue;
+                                var tmp = Math.Round(Math.Abs(cur.Open - cur.Close) / (cur.High - cur.Low), 2);
+
+                                Console.WriteLine($"{ma20.Date.ToString("dd/MM/yyyy HH:mm")}|MA20: {ma20.Sma}|Max: {maxOpenClose}| Low: {ma20.LowerBand}|Rate: {tmp}");
+                                count++;
+                                continue;
+
+                                var prev = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-15));
+                                var ma20_Prev = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-15));
+                                if (ma20_Prev.Sma is null || prev.High > (decimal)ma20_Prev.Sma.Value)
+                                    continue;
+
+                                var prev2 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-30));
+                                var ma20_Prev2 = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-30));
+                                if (ma20_Prev2.Sma is null || prev2.High > (decimal)ma20_Prev2.Sma.Value)
+                                    continue;
+
+                                //var prev3 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-45));
+                                //var ma20_Prev3 = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-45));
+                                //if (ma20_Prev3.Sma is null || prev3.High > (decimal)ma20_Prev3.Sma.Value)
+                                //    continue;
+
+                                var next = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
+                                if (next is null || next.Low >= cur.Close)
+                                    continue;
+
+                                var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
+
+                                var lPrev = lData15m.Where(x => x.Date < cur.Date).TakeLast(5);
+                                var indexPrev = 0;
+                                decimal totalPrev = 0;
+                                foreach (var itemPrev in lPrev)
+                                {
+                                    if (itemPrev.High == itemPrev.Low)
+                                    {
+                                        continue;
+                                    }
+                                    var prevRate = Math.Round(Math.Abs(itemPrev.Open - itemPrev.Close) * 100 / Math.Abs(itemPrev.High - itemPrev.Low));
+                                    if (prevRate > 10)
+                                    {
+                                        indexPrev++;
+                                        totalPrev += Math.Abs(itemPrev.Open - itemPrev.Close);
+                                    }
+                                }
+                                if (indexPrev <= 0)
+                                    continue;
+
+                                var avgPrev = totalPrev / indexPrev;
+                                if (Math.Abs(cur.Open - cur.Close) <= 2 * avgPrev
+                                    || Math.Abs(cur.Open - cur.Close) > avgPrev * 4)
+                                    continue;
+
+                                //var curCO = cur.Close - cur.Open;
+                                //var curHC = cur.High - cur.Close;
+
+                                //if (curHC > curCO)
+                                //{
+                                //        continue;
+                                //}
+
+                                //var checkBB = 2 * (cur.High - cur.Close) > (decimal)ma20.UpperBand - cur.High;
+                                //if (checkBB)
+                                //    continue;
+
+                                var checkBB = (cur.Close - (decimal)ma20.Sma) > (decimal)ma20.UpperBand - cur.Close;
+                                if (checkBB)
+                                    continue;
+
+                                var checkMa20 = (cur.Close - (decimal)ma20.Sma) * 2 < ((decimal)ma20.Sma - cur.Open);
+                                if (checkMa20)
+                                    continue;
+
+                                var eEntry = cur;
+                                var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
+                                if (eClose is null)
+                                    continue;
+
+                                var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
+                                foreach (var itemClose in lClose)
+                                {
+                                    var ma = lbb.First(x => x.Date == itemClose.Date);
+                                    if (itemClose.Close > (decimal)ma.UpperBand)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+                                }
+
+                                close = eClose;
+                                var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
+                                var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
+                                var maxH = lRange.Max(x => x.High);
+                                var minL = lRange.Min(x => x.Low);
+
+                                var winloss = "W";
+                                if (rate <= (decimal)0.5)
+                                {
+                                    winloss = "L";
+                                }
+
+                                decimal maxTP = 0, maxSL = 0;
+                                if (side == (int)Binance.Net.Enums.OrderSide.Buy)
+                                {
+                                    maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
+                                    maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
+                                }
+                                else
+                                {
+                                    maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
+                                    maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
+                                }
+                                if (maxSL <= -SL_RATE)
+                                {
+                                    rate = -SL_RATE;
+                                    winloss = "L";
+                                }
+
+                                if (winloss == "W")
+                                {
+                                    rate = Math.Abs(rate);
+                                    winCount++;
+                                }
+                                else
+                                {
+                                    rate = -Math.Abs(rate);
+                                    lossCount++;
+                                }
+
+                                lRate.Add(rate);
+                                lModel.Add(new LongMa20
+                                {
+                                    s = item,
+                                    IsWin = winloss == "W",
+                                    Date = cur.Date,
+                                    Rate = rate,
+                                    MaxTP = maxTP,
+                                    MaxSL = maxSL,
+                                    RateEntry = rateEntry,
+                                });
+                                var mes = $"{item}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{cur.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%";
+                                lMes.Add(mes);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+                            }
+
+                        }
+
+                        Console.WriteLine(count);
+                        return;
+
+                        lMesAll.AddRange(lMes);
+                        //
+                        var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
+                        if (rateRes > (decimal)0.5)
+                        {
+                            Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
+                        }
+
+                        winCount = 0;
+                        lossCount = 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(item);
+                    }
+                }
+
+                //foreach (var mes in lMesAll)
+                //{
+                //    Console.WriteLine(mes);
+                //}
+                //Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
+
+                // Note:
+                // + Nến xanh cắt lên MA20
+                // + 2 nến ngay phía trước đều nằm dưới MA20
+                // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
+                // + Giữ 2 tiếng? hoặc nến chạm BB trên
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
         // Tong: 331.7%|W/L: 45/79 Token Unlock
         public async Task ShortTokenUnlock()
         {
