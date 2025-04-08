@@ -1592,14 +1592,16 @@ namespace TestPr.Service
                 //var lTake = lUsdt.Skip(0).Take(50).ToList();
                 //2x1.7 best
                 //decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
-                decimal SL_RATE = 100m;//1.5,1.6,1.8,1.9,2
-                int hour = 2;//1h,2h,3h,4h
+                decimal SL_RATE = 2.5m;//1.5,1.6,1.8,1.9,2
+                int hour = 4;//1h,2h,3h,4h
 
                 var lMesAll = new List<string>();
                 var lModel = new List<LongMa20>();
                 var lRate = new List<decimal>();
                 var winCount = 0;
+                var winTotal = 0;
                 var lossCount = 0;
+                var lossTotal = 0;
 
                 //lTake.Clear();
                 //var lTmp = new List<string>
@@ -1695,30 +1697,36 @@ namespace TestPr.Service
                                 var rsi = lrsi.First(x => x.Date == ma20.Date);
                                 var maxOpenClose = Math.Max(cur.Open, cur.Close);
                                 var minOpenClose = Math.Min(cur.Open, cur.Close);
-                                var isPinBar = ((minOpenClose - cur.Low) >= (decimal)0.5 * (cur.High - cur.Low)) && ((minOpenClose - cur.Low) > 2 * (cur.High - maxOpenClose));
-                                var isValiid = Math.Abs(cur.Open - cur.Close) > (decimal)0.15 * (cur.High - cur.Low);
+                               
+                                var isValid = Math.Abs(cur.Open - cur.Close) > (decimal)0.15 * (cur.High - cur.Low);
                                 if (ma20.Sma is null
-                                    || !isPinBar
-                                    || !isValiid
+                                    || !isValid
                                     || rsi.Rsi > 35
+                                    || rsi.Rsi <= 25
                                     || cur.Low >= (decimal)ma20.LowerBand.Value
                                     || Math.Abs(maxOpenClose - (decimal)ma20.LowerBand.Value) > Math.Abs((decimal)ma20.Sma.Value - maxOpenClose))
                                     continue;
+
+                                var prev = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-15));
+                                var ma20_Prev = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-15));
+                                if (ma20_Prev.Sma is null || prev.High > (decimal)ma20_Prev.Sma.Value || prev.Low > (decimal)ma20_Prev.LowerBand || prev.Close >= prev.Open)
+                                    continue;
+
+                                var prev2 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-30));
+                                var ma20_Prev2 = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-30));
+                                if (ma20_Prev2.Sma is null || prev2.High > (decimal)ma20_Prev2.Sma.Value || prev2.Low > (decimal)ma20_Prev2.LowerBand || prev2.Close >= prev2.Open)
+                                    continue;
+
+                                var isPinBar = ((minOpenClose - cur.Low) >= (decimal)0.5 * (cur.High - cur.Low)) && ((minOpenClose - cur.Low) > 2 * (cur.High - maxOpenClose));
+                                //if (!isPinBar && cur.Open >= cur.Close)
+                                if (!isPinBar)
+                                    continue;
+
                                 //var tmp = Math.Round(Math.Abs(cur.Open - cur.Close) / (cur.High - cur.Low), 2);
 
                                 //Console.WriteLine($"{ma20.Date.ToString("dd/MM/yyyy HH:mm")}|MA20: {ma20.Sma}|Max: {maxOpenClose}| Low: {ma20.LowerBand}|Rate: {tmp}");
-                                //count++;
+                                ////count++;
                                 //continue;
-
-                                //var prev = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-15));
-                                //var ma20_Prev = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-15));
-                                //if (ma20_Prev.Sma is null || prev.High > (decimal)ma20_Prev.Sma.Value)
-                                //    continue;
-
-                                //var prev2 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-30));
-                                //var ma20_Prev2 = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-30));
-                                //if (ma20_Prev2.Sma is null || prev2.High > (decimal)ma20_Prev2.Sma.Value)
-                                //    continue;
 
                                 //var prev3 = lData15m.First(x => x.Date == ma20.Date.AddMinutes(-45));
                                 //var ma20_Prev3 = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(-45));
@@ -1854,21 +1862,30 @@ namespace TestPr.Service
 
                         //Console.WriteLine(count);
                         //return;
-
-                        lMesAll.AddRange(lMes);
+                       
                         //
+                        if (winCount + lossCount <= 0)
+                            continue;
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        if (rateRes > (decimal)0.5)
+                        if (rateRes > (decimal)0.5 && winCount > 3 && (winCount - lossCount) > 1)
                         {
-                            Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
+                            //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
+                            lMesAll.AddRange(lMes);
+                            foreach (var mes in lMes)
+                            {
+                                Console.WriteLine(mes);
+                            }
+                            winTotal += winCount;
+                            lossTotal += lossCount;
+                            winCount = 0;
+                            lossCount = 0;
                         }
 
-                        winCount = 0;
-                        lossCount = 0;
+                      
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(item);
+                        Console.WriteLine($"{item}| {ex.Message}");
                     }
                 }
 
@@ -1876,7 +1893,7 @@ namespace TestPr.Service
                 //{
                 //    Console.WriteLine(mes);
                 //}
-                //Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winCount}/{lossCount}");
+                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winTotal}/{lossTotal}");
 
                 // Note:
                 // + Nến xanh cắt lên MA20
