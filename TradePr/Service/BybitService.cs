@@ -223,6 +223,10 @@ namespace TradePr.Service
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
                         var flag = false;
+                        var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
+                        if (rate < 1)
+                            continue;
+
                         if (side == OrderSide.Buy && cur.Close > (decimal)bb.UpperBand.Value)
                         {
                             flag = true;
