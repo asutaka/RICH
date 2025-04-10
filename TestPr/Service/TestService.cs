@@ -1720,8 +1720,8 @@ namespace TestPr.Service
 
                                 var isPinBar = ((minOpenClose - cur.Low) >= (decimal)0.5 * (cur.High - cur.Low)) && ((minOpenClose - cur.Low) > 2 * (cur.High - maxOpenClose));
                                 //if (!isPinBar && cur.Open >= cur.Close)
-                                if (cur.Open >= cur.Close)
-                                    //if (!isPinBar)
+                                //if (cur.Open >= cur.Close)
+                                if (!isPinBar)
                                     continue;
 
                                 //var tmp = Math.Round(Math.Abs(cur.Open - cur.Close) / (cur.High - cur.Low), 2);
@@ -1738,6 +1738,14 @@ namespace TestPr.Service
                                 var next = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
                                 if (next is null || next.Low >= cur.Close)
                                     continue;
+
+                                if (cur.Volume > (decimal)0.5 * prev.Volume)
+                                {
+                                    if (next.Volume > (decimal)0.5 * cur.Volume)
+                                        continue;
+
+                                    cur = next;
+                                }
 
                                 var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
 
