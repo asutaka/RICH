@@ -27,4 +27,20 @@ namespace TestPr.Utils
         [Display(Name = "5m")]
         M5 = 7
     }
+
+    public enum EExchange
+    {
+        Binance = 0,
+        Bybit = 1
+    }
+
+    public enum EOption
+    {
+        Unlock = 1,
+        Signal = 2,
+        ThreeSignal = 3,
+        Liquid = 4,
+        RSI = 5,
+        Ma20 = 6
+    }
 }
