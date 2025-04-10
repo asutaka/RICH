@@ -1598,9 +1598,8 @@ namespace TestPr.Service
                 var lMesAll = new List<string>();
                 var lModel = new List<LongMa20>();
                 var lRate = new List<decimal>();
-                var winCount = 0;
+               
                 var winTotal = 0;
-                var lossCount = 0;
                 var lossTotal = 0;
 
                 //lTake.Clear();
@@ -1651,6 +1650,8 @@ namespace TestPr.Service
                 //lTake.AddRange(lTmp);
                 foreach (var item in lTake)
                 {
+                    var winCount = 0;
+                    var lossCount = 0;
                     try
                     {
                         //if (item.Key != "1INCHUSDT")
@@ -1719,7 +1720,8 @@ namespace TestPr.Service
 
                                 var isPinBar = ((minOpenClose - cur.Low) >= (decimal)0.5 * (cur.High - cur.Low)) && ((minOpenClose - cur.Low) > 2 * (cur.High - maxOpenClose));
                                 //if (!isPinBar && cur.Open >= cur.Close)
-                                if (!isPinBar)
+                                if (cur.Open >= cur.Close)
+                                    //if (!isPinBar)
                                     continue;
 
                                 //var tmp = Math.Round(Math.Abs(cur.Open - cur.Close) / (cur.High - cur.Low), 2);
@@ -1806,7 +1808,7 @@ namespace TestPr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0.9)
                                 {
                                     winloss = "L";
                                 }
@@ -1864,10 +1866,10 @@ namespace TestPr.Service
                         //return;
                        
                         //
-                        if (winCount + lossCount <= 0)
+                        if (winCount <= lossCount)
                             continue;
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        if (rateRes > (decimal)0.5 && winCount > 3 && (winCount - lossCount) > 1)
+                        if (rateRes > (decimal)0.5 && winCount > 3)
                         {
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
