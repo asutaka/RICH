@@ -15,7 +15,6 @@ namespace CoinPr
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var dt = DateTime.Now;
             try
             {
                 _socketService.BinanceLiquid();

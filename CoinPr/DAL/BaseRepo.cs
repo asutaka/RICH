@@ -37,6 +37,11 @@ namespace CoinPr.DAL
             }
          */
         //Example: FilterDefinition<StockPr> filter = Builders<StockPr>.Filter.Eq(x => x.s, itemMa.symbol);
+        //var builder = Builders<SignalTrade>.Filter;
+        //var lSignal = _signalTradeRepo.GetByFilter(builder.And(
+        //    builder.Eq(x => x.ex, _exchange),
+        //    builder.Gte(x => x.timeFlag, time)
+        //));
         List<T> GetByFilter(FilterDefinition<T> filter, int offset = 0, int limit = 0);
         T GetEntityByFilter(FilterDefinition<T> filter);
 

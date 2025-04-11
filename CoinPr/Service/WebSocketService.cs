@@ -1,6 +1,6 @@
 ﻿using Binance.Net.Objects.Models.Futures.Socket;
 using CoinPr.DAL;
-using CoinPr.Model;
+using CoinPr.DAL.Entity;
 using CoinPr.Utils;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
@@ -21,7 +21,6 @@ namespace CoinPr.Service
         private readonly ITradingRepo _tradingRepo;
         private const int MIN_VALUE = 10000;
         private const decimal STOP_LOSS = (decimal)0.016;
-        private static Dictionary<string, DateTime> _dicRes = new Dictionary<string, DateTime>();
         
         public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, ITradingRepo tradingRepo)
         {
@@ -42,31 +41,19 @@ namespace CoinPr.Service
                         || !StaticVal._lCoinAnk.Contains(data.Data.Symbol))
                         return;
 
-                    //Console.WriteLine(JsonConvert.SerializeObject(data.Data));
-                    var dt = DateTime.Now;
-                    var first = _dicRes.FirstOrDefault(x => x.Key == data.Data.Symbol);
-                    if (first.Key != null)
-                    {
-                        var div = (dt - first.Value).TotalSeconds;
-                        if (div >= 120)
-                        {
-                            _dicRes[data.Data.Symbol] = dt;
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        _dicRes.Add(data.Data.Symbol, dt);
-                    }
+                    var builder = Builders<Trading>.Filter;
+                    var entity = _tradingRepo.GetEntityByFilter(builder.And(
+                        builder.Eq(x => x.s, data.Data.Symbol),
+                        builder.Gte(x => x.d, (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds())
+                    ));
+                    if (entity != null)
+                        return;
 
                     var mes = HandleMessage(data.Data).GetAwaiter().GetResult();
                     if (string.IsNullOrWhiteSpace(mes))
                         return;
 
-                    _teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
+                    //_teleService.SendMessage(_idUser, mes).GetAwaiter().GetResult();
                 });
             }
             catch (Exception ex)
@@ -84,43 +71,8 @@ namespace CoinPr.Service
                 if (liquid is null)
                     return mes;
 
-                var dot = 5;
-                if (liquid.Entry < (decimal)0.001)
-                {
-                    dot = 8;
-                }
-                else if (liquid.Entry < (decimal)0.01)
-                {
-                    dot = 7;
-                }
-                else if (liquid.Entry < (decimal)0.1)
-                {
-                    dot = 6;
-                }
-                
-                liquid.Entry = Math.Round(liquid.Entry, dot);
-                liquid.TP = Math.Round(liquid.TP, dot);
-                liquid.SL = Math.Round(liquid.SL, dot);
-                liquid.Rsi = Math.Round(liquid.Rsi, dot);
-
-                var sideText =  liquid.Side == Binance.Net.Enums.OrderSide.Buy ? "Long" : "Short";
-
-                mes = $"{liquid.Date.ToString("dd/MM/yyyy HH:mm")}|{liquid.s}|{sideText}|ENTRY: {liquid.Entry}|TP: {liquid.TP}|SL: {liquid.SL}\n" +
-                    $"Liquid: {liquid.Liquid}|Rsi: {liquid.Rsi}";
-                _tradingRepo.InsertOne(new DAL.Entity.Trading
-                {
-                    key = Guid.NewGuid().ToString(),
-                    s = liquid.s,
-                    d = (int)new DateTimeOffset(liquid.Date).ToUnixTimeSeconds(),
-                    Side = (int)liquid.Side,
-                    Entry = (double)liquid.Entry,
-                    TP = (double)liquid.TP,
-                    SL = (double)liquid.SL,
-                    Liquid = (double)liquid.Liquid,
-                    Date = liquid.Date,
-                    Rsi = (double)liquid.Rsi,
-                    RateVol = (double)liquid.RateVol,
-                });
+               
+                _tradingRepo.InsertOne(liquid);
             }
             catch (Exception ex)
             {
@@ -129,30 +81,24 @@ namespace CoinPr.Service
             return mes;
         }
 
-        private async Task<TradingResponse> CheckLiquid(BinanceFuturesStreamLiquidation msg)
+        private async Task<Trading> CheckLiquid(BinanceFuturesStreamLiquidation msg)
         {
             try
             {
-                var lData5M = await _apiService.GetData(msg.Symbol, EExchange.Binance, EInterval.M5);
+                var lData15M = await _apiService.GetData(msg.Symbol, EExchange.Binance, EInterval.M15);
                 Thread.Sleep(200);
-                var lRsi5M = lData5M.GetRsi();
-                var rsi = (decimal)lRsi5M.Last().Rsi;
-                if (rsi > 30 && rsi < 70)
+                if (lData15M == null)
                     return null;
 
-                //var lTopBot5M = lData5M.GetTopBottom_H(0);
-                //var lTop = lTopBot5M.Where(x => x.IsTop);
-                //var lBot = lTopBot5M.Where(x => x.IsBot);
-                //var topFirst = lTop?.LastOrDefault()?.Value ?? 0;
-                //var topNext = lTop?.SkipLast(1).LastOrDefault()?.Value ?? 0;
-                //var botFirst = lBot?.LastOrDefault()?.Value ?? 0;
-                //var botNext = lBot?.SkipLast(1).LastOrDefault()?.Value ?? 0;
-
-                var avgVol = lData5M.SkipLast(2).TakeLast(5).Select(x => x.Volume).Average();
-                var rateVol = Math.Round(lData5M.SkipLast(1).Last().Volume / avgVol, 2);
+                var lRsi15M = lData15M.GetRsi();
+                var rsi = lRsi15M.Last().Rsi;
+                if(rsi > 35 && rsi < 65) //rsi không nằm trong vùng tín hiệu
+                {
+                    return null;
+                }
 
                 var dat = await _apiService.CoinAnk_GetLiquidValue(msg.Symbol);
-                if (dat?.data?.liqHeatMap is null)
+                if (dat?.data?.liqHeatMap is null)//Không lấy đc liquid data
                     return null;
 
                 var cur = msg.AveragePrice;
@@ -162,7 +108,7 @@ namespace CoinPr.Service
                 if (flag <= 0)
                     return null;
 
-                var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 280 && x.ElementAt(0) <= 287);
+                var lLiquid = dat.data.liqHeatMap.data.Where(x => x.ElementAt(0) >= 286);
                 if (cur >= avgPrice)
                 {
                     var lMaxliquid = lLiquid.Where(x => x.ElementAt(1) > flag).Where(x => x.ElementAt(2) >= (decimal)0.88 * dat.data.liqHeatMap.maxLiqValue);
@@ -173,26 +119,17 @@ namespace CoinPr.Service
                     if (cur < priceAtMaxLiquid)
                         return null;
 
-                    if(rsi >= 80 ||
-                       (rsi >=  68 && rateVol < 1))
+                    var liquid = new Trading
                     {
-                        var sl = cur * (1 + STOP_LOSS);
-                        var liquid = new TradingResponse
-                        {
-                            s = msg.Symbol,
-                            Date = DateTime.Now,
-                            Side = Binance.Net.Enums.OrderSide.Sell,
-                            Entry = cur,
-                            TP = cur * (1 - ((decimal)25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
-                            SL = sl,
-                            Liquid = priceAtMaxLiquid,
-                            Rsi = rsi,
-                            RateVol = rateVol,
-                        };
-                        return liquid;
-                    }
-
-                    return null;
+                        s = msg.Symbol,
+                        d = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                        Date = DateTime.Now,
+                        Side = (int)Binance.Net.Enums.OrderSide.Sell,
+                        Price = (double)cur,
+                        Liquid = (double)priceAtMaxLiquid,
+                        Status = 0
+                    };
+                    return liquid;
                 }
                 else
                 {
@@ -204,25 +141,17 @@ namespace CoinPr.Service
                     if (cur > priceAtMaxLiquid)
                         return null;
 
-                    if (rsi <= 20 ||
-                       (rsi <= 32 && rateVol < 1))
+                    var liquid = new Trading
                     {
-                        var sl = cur * (1 - STOP_LOSS);
-                        var liquid = new TradingResponse
-                        {
-                            s = msg.Symbol,
-                            Date = DateTime.Now,
-                            Side = Binance.Net.Enums.OrderSide.Buy,
-                            Entry = cur,
-                            TP = cur * (1 + (25 / (100 * StaticVal._dicMargin.First(x => x.Key == msg.Symbol).Value))),
-                            SL = sl,
-                            Liquid = priceAtMaxLiquid,
-                            Rsi = rsi,
-                            RateVol = rateVol,
-                        };
-                        return liquid;
-                    }
-                    return null;
+                        s = msg.Symbol,
+                        d = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                        Date = DateTime.Now,
+                        Side = (int)Binance.Net.Enums.OrderSide.Buy,
+                        Price = (double)cur,
+                        Liquid = (double)priceAtMaxLiquid,
+                        Status = 0
+                    };
+                    return liquid;
                 }
             }
             catch (Exception ex)

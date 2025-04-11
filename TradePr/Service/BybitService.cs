@@ -15,7 +15,7 @@ namespace TradePr.Service
     }
     public class BybitService : IBybitService
     {
-        private readonly ILogger<BybitService1> _logger;
+        private readonly ILogger<BybitService> _logger;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ISymbolRepo _symRepo;
@@ -26,7 +26,7 @@ namespace TradePr.Service
         private const int _op = (int)EOption.Ma20;
 
         private readonly int _exchange = (int)EExchange.Bybit;
-        public BybitService(ILogger<BybitService1> logger,
+        public BybitService(ILogger<BybitService> logger,
                             IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, ISymbolConfigRepo symConfigRepo)
         {
             _logger = logger;

@@ -62,10 +62,8 @@ namespace CoinPr.Utils
             "LINKUSDT",
             "ARBUSDT",
             "WLDUSDT",
-            "MATICUSDT",
             "ADAUSDT",
             "OPUSDT",
-            "UNFIUSDT",
             "MKRUSDT",
             "PERPUSDT",
             "APTUSDT",
@@ -83,7 +81,6 @@ namespace CoinPr.Utils
             "AGLDUSDT",
             "SUSHIUSDT",
             "GRTUSDT",
-            "ANTUSDT",
             "1INCHUSDT",
             "JOEUSDT",
             "LINAUSDT",
@@ -96,19 +93,12 @@ namespace CoinPr.Utils
             "GMXUSDT",
             "IDUSDT",
             "THETAUSDT",
-            "VETAUSDT",
             "KNCUSDT",
-            "STORGUSDT",
-            "AGIXUSDT",
-            "OCEANUSDT",
             "STGUSDT",
             "C98USDT",
             "ZILUSDT",
-            "MDTUSDT",
-            "KLAYUSDT",
             "MINAUSDT",
-            "HIGHUSDT",
-            "STMXUSDT"
+            "HIGHUSDT"
         };
 
         public static Dictionary<string, int> _dicMargin = new Dictionary<string, int>
