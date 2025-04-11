@@ -1042,7 +1042,7 @@ namespace StockPr.Service
                     var linkedPages = doc.DocumentNode.Descendants("a")
                                                       .Select(a => a.GetAttributeValue("href", null))
                                                       .Where(u => !string.IsNullOrWhiteSpace(u))
-                                                      .Where(x => (x.Contains("2024") || x.Contains("2023"))
+                                                      .Where(x => x.Contains(DateTime.Now.Year.ToString())
                                                                 && (x.Contains("01") || x.Contains("02") || x.Contains("03") || x.Contains("04") || x.Contains("05") || x.Contains("06")
                                                                     || x.Contains("07") || x.Contains("08") || x.Contains("09") || x.Contains("10") || x.Contains("11") || x.Contains("12")));
 
