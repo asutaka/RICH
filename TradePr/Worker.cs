@@ -25,7 +25,7 @@ namespace TradePr
             //await _bybitService.Bybit_Trade();
             //return;
 
-            _socketService.BinanceAction();
+            //_socketService.BinanceAction();
             while (!stoppingToken.IsCancellationRequested)
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);

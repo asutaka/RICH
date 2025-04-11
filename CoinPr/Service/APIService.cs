@@ -12,7 +12,6 @@ namespace CoinPr.Service
     public interface IAPIService
     {
         Task<List<Quote>> GetData(string symbol, EExchange exchange, EInterval interval);
-        Task<List<Coin>> GetBinanceSymbol();
         Task<List<BybitSymbolDetail>> GetBybitSymbol();
         Task<List<Quote>> GetCoinData_Binance(string coin, string mode, long fromTime);
         Task<List<Quote>> GetCoinData_Binance(string coin, int num, string mode);
@@ -76,36 +75,6 @@ namespace CoinPr.Service
                 _logger.LogError(ex, $"APIService.GetData|EXCEPTION|INPUT: {symbol}| {ex.Message}");
             }
             return null;
-        }
-
-        public async Task<List<Coin>> GetBinanceSymbol()
-        {
-            var url = "https://api3.binance.com/sapi/v1/convert/exchangeInfo?toAsset=USDT";
-            try
-            {
-                using var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.DefaultRequestHeaders
-                      .Accept
-                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
-                request.Content = new StringContent("",
-                                                    Encoding.UTF8,
-                                                    "application/json");
-
-                var response = await client.SendAsync(request);
-                var contents = await response.Content.ReadAsStringAsync();
-                if (contents.Length < 200)
-                    return new List<Coin>();
-                var res = JsonConvert.DeserializeObject<List<Coin>>(contents);
-                return res;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"APIService.GetBinanceSymbol|EXCEPTION| {ex.Message}");
-            }
-            return new List<Coin>();
         }
 
         public async Task<List<BybitSymbolDetail>> GetBybitSymbol()

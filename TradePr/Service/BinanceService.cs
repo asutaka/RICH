@@ -31,7 +31,7 @@ namespace TradePr.Service
         private readonly decimal _SL_RATE = 0.017m;
         private readonly int _exchange = (int)EExchange.Binance;
         private object _locker = new object();
-        public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISignalTradeRepo signalTradeRepo, IErrorPartnerRepo errRepo,
+        public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, IErrorPartnerRepo errRepo,
                             IConfigDataRepo configRepo, IPrepareTradeRepo prepareRepo, 
                             IAPIService apiService, ITeleService teleService)
         {
@@ -63,9 +63,9 @@ namespace TradePr.Service
             {
                 var dt = DateTime.Now;
                 await Binance_TakeProfit(dt);
-                await Binance_TradeMA20(dt);
                 await Binance_TradeLiquid(dt);
-                await Binance_TradeRSI(dt);
+                //await Binance_TradeMA20(dt);
+                //await Binance_TradeRSI(dt);
             }
             catch (Exception ex)
             {
@@ -75,90 +75,88 @@ namespace TradePr.Service
 
         private async Task Binance_TradeLiquid(DateTime dt)
         {
-            //try
-            //{
-            //    if (dt.Minute % 15 != 0)
-            //        return;
+            try
+            {
+                if (dt.Minute % 15 != 0)
+                    return;
 
-            //    var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
-            //    var lTrade = _tradingRepo.GetByFilter(Builders<Trading>.Filter.Gte(x => x.d, time));
-            //    if (!(lTrade?.Any() ?? false))
-            //        return;
+                var builder = Builders<Trading>.Filter;
+                var lTrade = _tradingRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.Status, 0),
+                    builder.Gte(x => x.d, (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds()))
+                );
+                if (!(lTrade?.Any() ?? false))
+                    return;
 
-            //    var lSym = lTrade.Select(x => x.s).Distinct();
-            //    foreach (var sym in lSym)
-            //    {
-            //        var trade = lTrade.Where(x => x.s == sym).OrderByDescending(x => x.d).First();
-            //        var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(sym);
-            //        Thread.Sleep(500);
-            //        if (pos.Data.Any())
-            //            continue;
+                var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+                foreach ( var item in lTrade)
+                {
+                    try
+                    {
+                        if (pos.Data.Any(x => x.Symbol == item.s))
+                            continue;
 
-            //        //gia
-            //        var lData15m = await _apiService.GetData(sym, EInterval.M15);
-            //        var lRsi = lData15m.GetRsi();
-                   
-            //        var cur = lData15m.SkipLast(1).Last();
-            //        var rsi = lRsi.SkipLast(1).Last();
+                        //gia
+                        var l15m = await _apiService.GetData_Binance(item.s, EInterval.M15);
+                        Thread.Sleep(100);
+                        if (l15m is null
+                            || !l15m.Any())
+                            continue;
+                        var last = l15m.Last();
+                        var curPrice = last.Close;
+                        l15m.Remove(last);
 
-            //        var model = new PrepareTrade
-            //        {
-            //            s = sym,
-            //            ty = (int)EOption.Liquid,
-            //            detectTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-            //            detectDate = DateTime.Now
-            //        };
-            //        if (trade.Side == (int)OrderSide.Buy)
-            //        {
-            //            var curRate = Math.Round(Math.Abs(cur.Open - cur.Close) * 100 / Math.Abs(cur.High - cur.Low));
-            //            if (!StaticVal._lRsiLong.Contains(sym))
-            //                continue;
-            //            if (curRate >= 40)
-            //                continue;
-            //            if (rsi.Rsi >= 30 || rsi.Rsi <= 25)
-            //                continue;
-            //            if (Math.Abs(cur.Open - cur.Close) > (Math.Min(cur.Open, cur.Close) - cur.Low))
-            //                continue;
-            //            if ((cur.High - Math.Max(cur.Open, cur.Close)) > (Math.Min(cur.Open, cur.Close) - cur.Low))
-            //                continue;
-            //            if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi < 25))
-            //                continue;
+                        last = l15m.Last();
+                        var near = l15m.SkipLast(1).Last();
+                        var rateVol = Math.Round(last.Volume / near.Volume, 1);
+                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                            continue;
 
-            //            var low = cur.Low + 0.1m * (cur.High - cur.Low);
+                        var lRsi = l15m.GetRsi();
+                        var rsi = lRsi.Last();
+                        var lma = l15m.GetSma(20);
+                        var ma = lma.Last();
+                        var sideDetect = -1;
+                        if (rsi.Rsi >= 25 && rsi.Rsi <= 35 && curPrice < (decimal)ma.Sma.Value) //LONG
+                        {
+                            sideDetect = (int)OrderSide.Buy;
+                        }
+                        else if(rsi.Rsi >= 65 &&  rsi.Rsi <= 75 && curPrice > (decimal)ma.Sma.Value)//SHORT
+                        {
+                            sideDetect = (int)OrderSide.Sell;
+                        }
 
-            //            model.Side = (int)OrderSide.Buy;
-            //            model.Entry = (double)low;
-            //        }
-            //        else
-            //        {
-            //            if (!StaticVal._lRsiShort.Contains(sym))
-            //                continue;
+                        if (sideDetect > -1)
+                        {
+                            var res = await PlaceOrder(new SignalBase
+                            {
+                                s = item.s,
+                                ex = _exchange,
+                                Side = sideDetect,
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                            }, curPrice);
 
-            //            if (rsi.Rsi >= 80 || rsi.Rsi < 75)
-            //                continue;
+                            if (res != null)
+                            {
+                                var first = StaticVal._dicCoinAnk.First(x => x.Key == res.s);
+                                var side = ((OrderSide)res.Side).ToString().ToUpper();
+                                var price = Math.Round(res.priceEntry, first.Value.Item2);
 
-            //            if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi > 80))
-            //                continue;
-
-            //            model.Side = (int)OrderSide.Sell;
-            //            model.Entry = (double)cur.High;
-            //        }
-
-            //        if(model.Entry > 0)
-            //        {
-            //            _prepareRepo.InsertOne(model);
-            //            Monitor.Enter(_locker);
-            //            StaticVal._lPrepare.Add(model);
-            //            Monitor.Exit(_locker);
-            //            //await _teleService.SendMessage(_idUser, $"[PREPARE-Liquid] {model.s}|{(OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
-            //            Console.WriteLine($"[PREPARE-Liquid] {model.s}|{(OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeLiquid|EXCEPTION| {ex.Message}");
-            //}
+                                var mes = $"[ACTION - {side}|Liquid_Binance] {res.s}|ENTRY: {price}";
+                                await _teleService.SendMessage(_idUser, mes);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeLiquid|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeLiquid|EXCEPTION| {ex.Message}");
+            }
         }
 
         private async Task Binance_TradeRSI(DateTime dt)
