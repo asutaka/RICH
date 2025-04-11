@@ -26,9 +26,8 @@ namespace TradePr.Service
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
-        private readonly int _forceSell = 5;
-        private readonly int _HOUR = 2;
-        private readonly decimal _SL_RATE = 0.017m;
+        private readonly int _HOUR = 4;
+        private readonly decimal _SL_RATE = 0.025m;
         private readonly int _exchange = (int)EExchange.Binance;
         private object _locker = new object();
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, IErrorPartnerRepo errRepo,
@@ -375,7 +374,7 @@ namespace TradePr.Service
                 {
                     var side = item.PositionAmt < 0 ? OrderSide.Sell : OrderSide.Buy;
                     var curTime = (DateTime.UtcNow - item.UpdateTime.Value).TotalHours;
-                    if(curTime >= 2)
+                    if(curTime >= _HOUR)
                     {
                         index++;
                         await PlaceOrderClose(item);

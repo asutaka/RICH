@@ -23,6 +23,7 @@ namespace TradePr.Service
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
+        private readonly int _HOUR = 2;
         private const int _op = (int)EOption.Ma20;
 
         private readonly int _exchange = (int)EExchange.Bybit;
@@ -204,7 +205,7 @@ namespace TradePr.Service
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
 
                     var curTime = (dt - item.UpdateTime.Value).TotalHours;
-                    if (curTime >= 2)
+                    if (curTime >= _HOUR)
                     {
                         index++;
                         await PlaceOrderClose(item);
