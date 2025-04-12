@@ -12,7 +12,7 @@ namespace TradePr.Service
     {
         Task<BinanceUsdFuturesAccountBalance> Binance_GetAccountInfo();
         Task Binance_Trade();
-        Task<SignalBase> PlaceOrder(SignalBase entity, decimal lastPrice);
+        Task<bool> PlaceOrder(SignalBase entity, decimal lastPrice);
     }
     public class BinanceService : IBinanceService
     {
@@ -21,6 +21,7 @@ namespace TradePr.Service
         private readonly IPrepareTradeRepo _prepareRepo;
         private readonly IErrorPartnerRepo _errRepo;
         private readonly IConfigDataRepo _configRepo;
+        private readonly ISymbolConfigRepo _symConfigRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
@@ -31,7 +32,7 @@ namespace TradePr.Service
         private readonly int _exchange = (int)EExchange.Binance;
         private object _locker = new object();
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, IErrorPartnerRepo errRepo,
-                            IConfigDataRepo configRepo, IPrepareTradeRepo prepareRepo, 
+                            IConfigDataRepo configRepo, IPrepareTradeRepo prepareRepo, ISymbolConfigRepo symConfigRepo,
                             IAPIService apiService, ITeleService teleService)
         {
             _logger = logger;
@@ -39,6 +40,7 @@ namespace TradePr.Service
             _prepareRepo = prepareRepo;
             _errRepo = errRepo;
             _configRepo = configRepo;
+            _symConfigRepo = symConfigRepo;
             _apiService = apiService;
             _teleService = teleService;
         }
@@ -63,8 +65,7 @@ namespace TradePr.Service
                 var dt = DateTime.Now;
                 await Binance_TakeProfit(dt);
                 await Binance_TradeLiquid(dt);
-                //await Binance_TradeMA20(dt);
-                //await Binance_TradeRSI(dt);
+                await Binance_TradeRSI(dt);
             }
             catch (Exception ex)
             {
@@ -135,13 +136,10 @@ namespace TradePr.Service
                                 timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                             }, curPrice);
 
-                            if (res != null)
+                            if (res)
                             {
-                                var first = StaticVal._dicCoinAnk.First(x => x.Key == res.s);
-                                var side = ((OrderSide)res.Side).ToString().ToUpper();
-                                var price = Math.Round(res.priceEntry, first.Value.Item2);
-
-                                var mes = $"[ACTION - {side}|Liquid_Binance] {res.s}|ENTRY: {price}";
+                                var side = ((OrderSide)sideDetect).ToString().ToUpper();
+                                var mes = $"[ACTION - {side}|Liquid_Binance] {item.s}|ENTRY: {curPrice}";
                                 await _teleService.SendMessage(_idUser, mes);
 
                                 item.Status = 1;
@@ -168,69 +166,85 @@ namespace TradePr.Service
                 if (dt.Minute % 15 != 0)
                     return;
 
-                var time = (int)DateTimeOffset.Now.AddMinutes(-15).ToUnixTimeSeconds();
-                var lPrepare = _prepareRepo.GetByFilter(Builders<PrepareTrade>.Filter.Gte(x => x.detectTime, time));
-
-                var lSym = StaticVal._lRsiShort.Concat(StaticVal._lRsiLong);
+                var lSym = StaticVal._lRsiLong;
                 foreach (var sym in lSym)
                 {
-                    if (lPrepare.Any(x => x.s == sym))
-                        continue;
-
-                    //gia
-                    var lData15m = await _apiService.GetData(sym, EInterval.M15);
-                    Thread.Sleep(100);
-                    var lRsi = lData15m.GetRsi();
-
-                    var cur = lData15m.SkipLast(1).Last();
-                    var rsi = lRsi.SkipLast(1).Last();
-
-                    var model = new PrepareTrade
+                    try
                     {
-                        s = sym,
-                        ty = (int)EOption.RSI,
-                        detectTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-                        detectDate = DateTime.Now
-                    };
+                        //gia
+                        var l15m = await _apiService.GetData_Binance(sym, EInterval.M15);
+                        Thread.Sleep(100);
+                        if (l15m is null
+                              || !l15m.Any())
+                            continue;
+                        var pivot = l15m.Last();
+                        var curPrice = pivot.Close;
+                        l15m.Remove(pivot);
 
-                    if (rsi.Rsi > 25 && rsi.Rsi < 30)
-                    {
-                        var curRate = Math.Round(Math.Abs(cur.Open - cur.Close) * 100 / Math.Abs(cur.High - cur.Low));
-                        if (!StaticVal._lRsiLong.Contains(sym))
-                            continue;
-                        if (curRate >= 40)
-                            continue;
-                        if (Math.Abs(cur.Open - cur.Close) > (Math.Min(cur.Open, cur.Close) - cur.Low))
-                            continue;
-                        if ((cur.High - Math.Max(cur.Open, cur.Close)) > (Math.Min(cur.Open, cur.Close) - cur.Low))
-                            continue;
-                        if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi < 25))
+                        pivot = l15m.Last();
+                        var near = l15m.SkipLast(1).Last();
+                        var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
+                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                             continue;
 
-                        var low = cur.Low + 0.1m * (cur.High - cur.Low);
+                        var lRsi = l15m.GetRsi();
+                        var lbb = l15m.GetBollingerBands();
+                        var rsiPivot = lRsi.Last();
+                        var bbPivot = lbb.Last();
 
-                        model.Side = (int)OrderSide.Buy;
-                        model.Entry = (double)low;
+                        var rsi_near = lRsi.SkipLast(1).Last();
+                        var bb_near = lbb.SkipLast(1).Last();
+                        var sideDetect = -1;
+                        if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
+                        {
+                            //check nến liền trước
+                            if (near.Close >= near.Open
+                                || rsi_near.Rsi > 35
+                                || near.Low >= (decimal)bb_near.LowerBand.Value)
+                            {
+                                continue;
+                            }
+                            var minOpenClose = Math.Min(near.Open, near.Close);
+                            if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
+                                continue;
+                            //check tiếp nến pivot
+                            if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
+                                || pivot.High >= (decimal)bbPivot.Sma.Value
+                                || (pivot.Low >= near.Low && pivot.High <= near.High))
+                                continue;
+
+                            var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));
+                            if (ratePivot > (decimal)0.8)
+                            {
+                                /*
+                                    Nếu độ dài nến pivot >= độ dài nến tín hiệu thì bỏ qua
+                                 */
+                                var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(near.Open - near.Close);
+                                if (isValid)
+                                    continue;
+                            }
+
+                            sideDetect = (int)OrderSide.Buy;
+                        }
+                        else if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 75 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
+                        {
+                            //sideDetect = (int)OrderSide.Sell;
+                        }
+
+                        if (sideDetect > -1)
+                        {
+                            await PlaceOrder(new SignalBase
+                            {
+                                s = sym,
+                                ex = _exchange,
+                                Side = sideDetect,
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                            }, curPrice);
+                        }
                     }
-                    else if(rsi.Rsi >= 75 && rsi.Rsi < 80)
+                    catch(Exception ex)
                     {
-                        if (!StaticVal._lRsiShort.Contains(sym))
-                            continue;
-                        if (lRsi.SkipLast(2).TakeLast(5).Any(x => x.Rsi is null || x.Rsi > 80))
-                            continue;
-
-                        model.Side = (int)OrderSide.Sell;
-                        model.Entry = (double)cur.High;
-                    }
-
-                    if (model.Entry > 0)
-                    {
-                        _prepareRepo.InsertOne(model);
-                        Monitor.Enter(_locker);
-                        StaticVal._lPrepare.Add(model);
-                        Monitor.Exit(_locker);
-                        //await _teleService.SendMessage(_idUser, $"[PREPARE-RSI] {model.s}|{(OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
-                        Console.WriteLine($"[PREPARE-RSI] {model.s}|{(OrderSide)model.Side}|ENTRY: {model.Entry}| Time: {(int)DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI|INPUT: {sym}|EXCEPTION| {ex.Message}");
                     }
                 }
             }
@@ -307,23 +321,13 @@ namespace TradePr.Service
 
                         if (sideDetect > -1)
                         {
-                            var res = await PlaceOrder(new SignalBase
+                            await PlaceOrder(new SignalBase
                             {
                                 s = item,
                                 ex = _exchange,
                                 Side = sideDetect,
                                 timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
                             }, last.Close);
-
-                            if (res != null)
-                            {
-                                var first = StaticVal._dicCoinAnk.First(x => x.Key == res.s);
-                                var side = ((OrderSide)res.Side).ToString().ToUpper();
-                                var price = Math.Round(res.priceEntry, first.Value.Item2);
-
-                                var mes = $"[ACTION - {side}|BB_Binance] {res.s}|ENTRY: {price}";
-                                await _teleService.SendMessage(_idUser, mes);
-                            }
                         }
 
                         void ShortAction()
@@ -435,7 +439,7 @@ namespace TradePr.Service
             }
         }
 
-        public async Task<SignalBase> PlaceOrder(SignalBase entity, decimal lastPrice)
+        public async Task<bool> PlaceOrder(SignalBase entity, decimal lastPrice)
         {
             try
             {
@@ -444,15 +448,15 @@ namespace TradePr.Service
                 if (account == null)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR_binance] Không lấy được thông tin tài khoản");
-                    return null;
+                    return false;
                 }
 
                 if (account.WalletBalance * _margin <= _unit)
-                    return null;
+                    return false;
 
                 var marginType = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeMarginTypeAsync(entity.s, FuturesMarginType.Isolated);
                 if (!marginType.Success)
-                    return null;
+                    return false;
 
                 var eMargin = StaticVal._dicBinanceMargin.FirstOrDefault(x => x.Key == entity.s);
                 int margin = (int)_margin;
@@ -463,27 +467,43 @@ namespace TradePr.Service
 
                 var initLevel = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, margin);
                 if (!initLevel.Success)
-                    return null;
+                    return false;
 
                 var side = (OrderSide)entity.Side;
                 var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
 
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 if (pos.Data.Count() >= 3)
-                    return null;
+                    return false;
 
-                var near = 2;
-                if (lastPrice < 5)
+                var tronSL = 2;
+                var exists = _symConfigRepo.GetEntityByFilter(Builders<SymbolConfig>.Filter.Eq(x => x.s, entity.s));
+                if (exists != null)
                 {
-                    near = 0;
+                    tronSL = exists.amount;
                 }
-                var exists = StaticVal._dicCoinAnk.FirstOrDefault(x => x.Key == entity.s);
-                if(exists.Key != null)
+                else if (lastPrice < 5)
                 {
-                    near = exists.Value.Item1;
+                    tronSL = 0;
                 }
 
-                var soluong = Math.Round(_unit / lastPrice, near);
+                decimal soluong = _unit / lastPrice;
+                if (tronSL == -1)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 10;
+                    soluong -= odd;
+                }
+                else if (tronSL == -2)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 100;
+                    soluong -= odd;
+                }
+                else
+                {
+                    soluong = Math.Round(soluong, tronSL);
+                }
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
                                                                                                     side: side,
                                                                                                     type: FuturesOrderType.Market,
@@ -494,95 +514,71 @@ namespace TradePr.Service
                 //nếu lỗi return
                 if (!res.Success)
                 {
-                    var mes = $"[ERROR_binance] {entity.s}|{side}|AMOUNT: {soluong}| {res.Error?.Message}";
-                    _errRepo.InsertOne(new ErrorPartner
-                    {
-                        s = entity.s,
-                        time = curTime,
-                        des = mes
-                    });
-                    Console.WriteLine(mes);
-                    await _teleService.SendMessage(_idUser, mes);
-                    return null;
+                    await _teleService.SendMessage(_idUser, $"[ERROR_Binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    return false;
                 }
 
                 var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(entity.s);
                 Thread.Sleep(500);
                 if (!resPosition.Success)
                 {
-                    var mes = $"[ERROR_binance] {entity.s}|Error when get Position| {res.Error?.Message}";
-                    _errRepo.InsertOne(new ErrorPartner
+                    await _teleService.SendMessage(_idUser, $"[ERROR_Binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    return false;
+                }
+
+                if (resPosition.Data.Any())
+                {
+                    var first = resPosition.Data.First();
+                    var tronGia = 0;
+                    if (exists != null)
                     {
-                        s = entity.s,
-                        time = curTime,
-                        des = mes
-                    });
-                    Console.WriteLine(mes);
-                    await _teleService.SendMessage(_idUser, mes);
-                    return entity;
-                }
-
-                if (!resPosition.Data.Any())
-                    return null;
-
-
-                var first = resPosition.Data.First();
-                entity.priceEntry = (double)first.MarkPrice;
-
-                if (lastPrice < 5)
-                {
-                    var price = lastPrice.ToString().Split('.').Last();
-                    price = price.ReverseString();
-                    near = long.Parse(price).ToString().Length;
-                }
-                if (exists.Key != null)
-                {
-                    near = exists.Value.Item2;
-                }
-                var checkLenght = lastPrice.ToString().Split('.').Last();
-                decimal sl = 0;
-                if (side == OrderSide.Buy)
-                {
-                    sl = Math.Round(first.MarkPrice * (1 - _SL_RATE), near);
-                }
-                else
-                {
-                    sl = Math.Round(first.MarkPrice * (1 + _SL_RATE), near);
-                }
-
-                res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
-                                                                                                side: SL_side,
-                                                                                                type: FuturesOrderType.StopMarket,
-                                                                                                positionSide: PositionSide.Both,
-                                                                                                quantity: soluong,
-                                                                                                timeInForce: TimeInForce.GoodTillExpiredOrCanceled,
-                                                                                                reduceOnly: true,
-                                                                                                workingType: WorkingType.Mark,
-                                                                                                stopPrice: sl);
-                Thread.Sleep(500);
-                if (!res.Success)
-                {
-                    var mes = $"[ERROR_binance_SL] {entity.s}|{SL_side}|AMOUNT: {soluong}|Entry: {entity.priceEntry}|SL: {sl}| {res.Error?.Message}";
-                    _errRepo.InsertOne(new ErrorPartner
+                        tronGia = exists.price;
+                    }
+                    else if (lastPrice < 5)
                     {
-                        s = entity.s,
-                        time = curTime,
-                        des = mes
-                    });
-                    Console.WriteLine(mes);
-                    await _teleService.SendMessage(_idUser, mes);
-                    return null;
-                }
+                        var price = lastPrice.ToString().Split('.').Last();
+                        price = price.ReverseString();
+                        tronGia = long.Parse(price).ToString().Length;
+                    }
 
-                entity.timeStoploss = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                entity.priceStoploss = (double)sl;
-                return entity;
+                    decimal sl = 0;
+                    if (side == OrderSide.Buy)
+                    {
+                        sl = Math.Round(first.MarkPrice * (decimal)(1 - _SL_RATE), tronGia);
+                    }
+                    else
+                    {
+                        sl = Math.Round(first.MarkPrice * (decimal)(1 + _SL_RATE), tronGia);
+                    }
+                    res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
+                                                                                             side: SL_side,
+                                                                                             type: FuturesOrderType.StopMarket,
+                                                                                             positionSide: PositionSide.Both,
+                                                                                             quantity: soluong,
+                                                                                             timeInForce: TimeInForce.GoodTillExpiredOrCanceled,
+                                                                                             reduceOnly: true,
+                                                                                             workingType: WorkingType.Mark,
+                                                                                             stopPrice: sl);
+                    Thread.Sleep(500);
+                    if (!res.Success)
+                    {
+                        await _teleService.SendMessage(_idUser, $"[ERROR_Binance_SL] |{first.Symbol}|{res.Error.Code}:{res.Error.Message}");
+                        return false;
+                    }
+                    //Print
+                    var entry = Math.Round(first.EntryPrice, tronGia);
+
+                    var mes = $"[ACTION - {side}|Binance] {first.Symbol}|ENTRY: {entry}";
+                    await _teleService.SendMessage(_idUser, mes);
+
+                    return true;
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.PlaceOrder|EXCEPTION| {ex.Message}");
             }
-            return null;
+            return false;
         }
 
         private async Task<bool> PlaceOrderClose(BinancePositionV3 pos)
@@ -620,16 +616,12 @@ namespace TradePr.Service
                     await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}| {pos.MarkPrice}");
                     return true;
                 }
-                else
-                {
-                    var mes = $"[Binance] {pos.Symbol}|{side}|AMOUNT: {Math.Abs(pos.PositionAmt)}|Error Không thể đóng lệnh| {res.Error?.Message}";
-                    await _teleService.SendMessage(_idUser, mes);
-                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.PlaceOrderClose|EXCEPTION| {ex.Message}");
             }
+            await _teleService.SendMessage(_idUser, $"[Binance] Không thể đóng lệnh {side}: {pos.Symbol}!");
             return false;
         }
     }

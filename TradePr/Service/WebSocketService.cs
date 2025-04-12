@@ -48,18 +48,18 @@ namespace TradePr.Service
                     s = val.s,
                     Side = val.Side
                 }, lastPrice);
-                if (res is null)
-                    return;
+                //if (res is null)
+                //    return;
 
-                await _teleService.SendMessage(_idUser, $"[ACTION - {((Binance.Net.Enums.OrderSide)val.Side).ToString().ToUpper()}|Binance] {val.s}|ENTRY: {val.Entry}");
-                Console.WriteLine($"[ACTION - {((Binance.Net.Enums.OrderSide)val.Side).ToString().ToUpper()}|Binance] {val.s}|ENTRY: {val.Entry}");
-                val.Entry_Real = res.priceEntry;
-                val.SL_Real = res.priceStoploss;
-                val.entryDate = DateTime.Now;
-                val.entryTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
-                val.Status = 1;
-                _prepareRepo.Update(val);
-                RemoveValue(val);
+                //await _teleService.SendMessage(_idUser, $"[ACTION - {((Binance.Net.Enums.OrderSide)val.Side).ToString().ToUpper()}|Binance] {val.s}|ENTRY: {val.Entry}");
+                //Console.WriteLine($"[ACTION - {((Binance.Net.Enums.OrderSide)val.Side).ToString().ToUpper()}|Binance] {val.s}|ENTRY: {val.Entry}");
+                //val.Entry_Real = res.priceEntry;
+                //val.SL_Real = res.priceStoploss;
+                //val.entryDate = DateTime.Now;
+                //val.entryTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                //val.Status = 1;
+                //_prepareRepo.Update(val);
+                //RemoveValue(val);
             }
             catch (Exception ex)
             {
