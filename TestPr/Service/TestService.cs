@@ -1056,6 +1056,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
+        //LONG RSI Tong: 437.5%|W/L: 1375/917
         public async Task CheckAllBINANCE()
         {
             try
@@ -1072,58 +1073,71 @@ namespace TestPr.Service
 
                 var lMesAll = new List<string>();
                 var lModel = new List<LongMa20>();
-                var lRate = new List<decimal>();
                
                 var winTotal = 0;
                 var lossTotal = 0;
 
                 #region comment
-                //lTake.Clear();
-                //var lTmp = new List<string>
-                //{
-                //    "BTCUSDT",
-                //    //"KAVAUSDT",
-                //    //"LDOUSDT",
-                //    //"ARBUSDT",
-                //    //"BOMEUSDT",
-                //    //"ARUSDT",
-                //    //"KNCUSDT",
-                //    //"DGBUSDT",
-                //    //"BIGTIMEUSDT",
-                //    //"AAVEUSDT",
-                //    //"DATAUSDT",
-                //    //"ETHFIUSDT",
-                //    //"AIUSDT",
-                //    //"BATUSDT",
-                //    //"PEAQUSDT",
-                //    //"PEOPLEUSDT",
-                //    //"POLUSDT",
-                //    //"PENDLEUSDT",
-                //    //"ZILUSDT",
-                //    //"LINKUSDT",
-                //    //"LUNA2USDT",
-                //    //"NEIROETHUSDT",
-                //    //"MINAUSDT",
-                //    //"NILUSDT",
-                //    //"RPLUSDT",
-                //    //"SHELLUSDT",
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    //Tier 1
+                    "BTCUSDT",
+                    "ZRXUSDT",
+                    "GRTUSDT",
+                    "MTLUSDT",
+                    "ATAUSDT",
+                    "ETHFIUSDT",
+                    "DFUSDT",
+                    "PROMUSDT",
 
+                    //Tier 2
+                    "1000BONKUSDT",
+                    "AERGOUSDT",
+                    "EPICUSDT",
+                    "PLUMEUSDT",
+                    "JOEUSDT",
+                    "DODOXUSDT",
+                    "SEIUSDT",
+                    "SWELLUSDT",
+                    "B3USDT",
+                    "STORJUSDT",
+                    "INJUSDT",
+                    "ALTUSDT",
+                    "DEGENUSDT",
+                    "THEUSDT",
 
-                //    //"ALUUSDT",
-                //    //"BLUEUSDT",
-                //    //"CRVUSDT",
-                //    //"CTSIUSDT",
-                //    //"GUSDT",
-                //    //"NULSUSDT",
-                //    //"PERPUSDT",
-                //    //"PIXELUSDT",
-                //    //"PLUMEUSDT",
-                //    //"ROAMUSDT",
-                //    //"RSRUSDT",
-                //    //"SEIUSDT",
-                //    //"XIONUSDT",
-                //};
-                //lTake.AddRange(lTmp); 
+                    //Tier 3
+                    "QTUMUSDT",
+                    "KSMUSDT",
+                    "STGUSDT",
+                    "PHBUSDT",
+                    "AGLDUSDT",
+                    "TOKENUSDT",
+                    "RENDERUSDT",
+                    "TROYUSDT",
+                    "CETUSUSDT",
+                    "IOTAUSDT",
+                    "RLCUSDT",
+                    "ANKRUSDT",
+                    "NTRNUSDT",
+                    "NFPUSDT",
+                    "ONDOUSDT",
+                    "JUPUSDT",
+                    "TONUSDT",
+                    "BOMEUSDT",
+                    "IOUSDT",
+                    "CATIUSDT",
+                    "ORCAUSDT",
+                    "BIOUSDT",
+                    "LPTUSDT",
+                    "1000FLOKIUSDT",
+                    "BALUSDT",
+                    "ETHWUSDT",
+                    "OMUSDT",
+                    "QUICKUSDT",
+                };
+                lTake.AddRange(lTmp);
                 #endregion
                 foreach (var item in lTake)
                 {
@@ -1309,14 +1323,20 @@ namespace TestPr.Service
                         {
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
-                            foreach (var mes in lMes)
+                            //foreach (var mes in lMes)
+                            //{
+                            //    Console.WriteLine(mes);
+                            //}
+                            var realWin = 0;
+                            foreach (var model in lModel.Where(x => x.s == item))
                             {
-                                Console.WriteLine(mes);
+                                if(model.Rate > (decimal)0)
+                                    realWin++;
                             }
-                            foreach (var model in lModel)
-                            {
-                                lRate.Add(model.Rate);
-                            }
+                            var count = lModel.Count(x => x.s == item);
+                            var rate = Math.Round((double)realWin/ count, 1);
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%");
+
                             winTotal += winCount;
                             lossTotal += lossCount;
                             winCount = 0;
@@ -1335,7 +1355,7 @@ namespace TestPr.Service
                 //{
                 //    Console.WriteLine(mes);
                 //}
-                Console.WriteLine($"Tong: {lRate.Sum()}%|W/L: {winTotal}/{lossTotal}");
+                Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
 
                 // Note:
                 // + Nến xanh cắt lên MA20
