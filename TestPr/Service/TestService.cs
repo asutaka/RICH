@@ -1323,10 +1323,10 @@ namespace TestPr.Service
                         {
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
-                            //foreach (var mes in lMes)
-                            //{
-                            //    Console.WriteLine(mes);
-                            //}
+                            foreach (var mes in lMes)
+                            {
+                                Console.WriteLine(mes);
+                            }
                             var realWin = 0;
                             foreach (var model in lModel.Where(x => x.s == item))
                             {
@@ -1335,7 +1335,7 @@ namespace TestPr.Service
                             }
                             var count = lModel.Count(x => x.s == item);
                             var rate = Math.Round((double)realWin/ count, 1);
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%");
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {lModel.Where(x => x.s == item).Sum(x => x.Rate)}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
