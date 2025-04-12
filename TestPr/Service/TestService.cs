@@ -1130,7 +1130,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        //if (item.Key != "1INCHUSDT")
+                        //if (item != "B3USDT")
                         //    continue;
                         var lMes = new List<string>();
 
@@ -1170,7 +1170,7 @@ namespace TestPr.Service
                                 if (dtFlag >= ma20.Date)
                                     continue;
 
-                                //if (ma20.Date.Month == 4 && ma20.Date.Day == 12 && ma20.Date.Hour == 7 && ma20.Date.Minute == 0)
+                                //if (ma20.Date.Month == 2 && ma20.Date.Day == 28 && ma20.Date.Hour == 1 && ma20.Date.Minute == 30)
                                 //{
                                 //    var z = 1;
                                 //}
@@ -1208,6 +1208,17 @@ namespace TestPr.Service
                                 //if (rateVol > (decimal)0.6 || rateVol < (decimal)0.4) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                                 if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                                     continue;
+
+                                //độ dài nến hiện tại
+                                var rateCur = Math.Abs((cur.Open - cur.Close) / (cur.High - cur.Low));
+                                if(rateCur > (decimal)0.8)
+                                {
+                                    //check độ dài nến pivot
+                                    var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(cur.Open - cur.Close);
+                                    if (isValid)
+                                        continue;
+                                }
+
                                 cur = pivot;
                                 
                                 var next = lData15m.FirstOrDefault(x => x.Date == cur.Date.AddMinutes(15));
