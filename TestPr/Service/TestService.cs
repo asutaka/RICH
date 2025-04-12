@@ -17,7 +17,7 @@ namespace TestPr.Service
         Task LongMA20();
         Task ShortMA20();
         Task CheckAllBYBIT();
-        Task CheckAllBINANCE();
+        Task CheckAllBINANCE_LONG();
     }
     public class TestService : ITestService
     {
@@ -1056,8 +1056,8 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //LONG RSI Tong: 650.3%|W/L: 431/228
-        public async Task CheckAllBINANCE()
+        //LONG RSI Tong: 660.1%|W/L: 429/221
+        public async Task CheckAllBINANCE_LONG()
         {
             try
             {
