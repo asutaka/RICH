@@ -1056,7 +1056,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //LONG RSI Tong: 437.5%|W/L: 1375/917
+        //LONG RSI Tong: 650.3%|W/L: 431/228
         public async Task CheckAllBINANCE()
         {
             try
@@ -1081,50 +1081,45 @@ namespace TestPr.Service
                 lTake.Clear();
                 var lTmp = new List<string>
                 {
-                    //Tier 1
-                    "BTCUSDT",
-                    "ZRXUSDT",
                     "GRTUSDT",
-                    "MTLUSDT",
-                    "ATAUSDT",
-                    "ETHFIUSDT",
-                    "DFUSDT",
-                    "PROMUSDT",
-
-                    //Tier 2
-                    "1000BONKUSDT",
-                    "AERGOUSDT",
-                    "EPICUSDT",
-                    "PLUMEUSDT",
-                    "JOEUSDT",
-                    "DODOXUSDT",
-                    "SEIUSDT",
-                    "SWELLUSDT",
                     "B3USDT",
-                    "STORJUSDT",
+                    "AERGOUSDT",
+                    "1000BONKUSDT",
+                    "ZRXUSDT",
+                    "EPICUSDT",
+                    "DODOXUSDT",
                     "INJUSDT",
                     "ALTUSDT",
+                    "MTLUSDT",
+                    "ETHFIUSDT",
+                    "DFUSDT",
+                    "PLUMEUSDT",
+                    "QTUMUSDT",
+                    "TOKENUSDT",
+                    "CETUSUSDT",
+                    "ONDOUSDT",
+                    "OMUSDT",
+                    "BTCUSDT",
+                    "ATAUSDT",
+                    "SEIUSDT",
                     "DEGENUSDT",
                     "THEUSDT",
-
-                    //Tier 3
-                    "QTUMUSDT",
-                    "KSMUSDT",
-                    "STGUSDT",
                     "PHBUSDT",
-                    "TOKENUSDT",
+                    "1000FLOKIUSDT",
+                    "KSMUSDT",
+                    "PROMUSDT",
+                    "JOEUSDT",
+                    "SWELLUSDT",
+                    "STORJUSDT",
+                    "STGUSDT",
                     "RENDERUSDT",
-                    "CETUSUSDT",
                     "IOTAUSDT",
                     "ANKRUSDT",
                     "NFPUSDT",
-                    "ONDOUSDT",
                     "BOMEUSDT",
                     "BIOUSDT",
                     "LPTUSDT",
-                    "1000FLOKIUSDT",
                     "ETHWUSDT",
-                    "OMUSDT",
                 };
                 lTake.AddRange(lTmp);
                 #endregion
