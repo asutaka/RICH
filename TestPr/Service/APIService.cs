@@ -65,7 +65,7 @@ namespace TestPr.Service
         {
             try
             {
-                var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetMarkPriceKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
+                var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
                 if (!lres.Success)
                     return null;
                 if(lres.Data.List.Any())
@@ -76,6 +76,7 @@ namespace TestPr.Service
                         High = x.HighPrice,
                         Low = x.LowPrice,
                         Close = x.ClosePrice,
+                        Volume = x.Volume,
                         Date = x.StartTime
                     }).ToList();
                 }
@@ -91,7 +92,7 @@ namespace TestPr.Service
         {
             try
             {
-                var lres = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetMarkPriceKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
+                var lres = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
                 if (!lres.Success)
                     return null;
                 if (lres.Data.Any())
@@ -102,6 +103,7 @@ namespace TestPr.Service
                         High = x.HighPrice,
                         Low = x.LowPrice,
                         Close = x.ClosePrice,
+                        Volume = x.Volume,
                         Date = x.OpenTime
                     }).ToList();
                 }
