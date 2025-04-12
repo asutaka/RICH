@@ -143,6 +143,9 @@ namespace TradePr.Service
 
                                 var mes = $"[ACTION - {side}|Liquid_Binance] {res.s}|ENTRY: {price}";
                                 await _teleService.SendMessage(_idUser, mes);
+
+                                item.Status = 1;
+                                _tradingRepo.Update(item);
                             }
                         }
                     }
