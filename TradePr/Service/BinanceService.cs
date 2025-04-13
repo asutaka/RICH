@@ -198,7 +198,7 @@ namespace TradePr.Service
                         var rsi_near = lRsi.SkipLast(1).Last();
                         var bb_near = lbb.SkipLast(1).Last();
                         var sideDetect = -1;
-                        if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
+                        if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice > (decimal)bbPivot.Sma.Value) //LONG
                         {
                             Console.WriteLine($"1.LONG:RSI: {rsiPivot.Rsi}");
                             //check nến liền trước
@@ -292,7 +292,7 @@ namespace TradePr.Service
                         var rsi_near = lRsi.SkipLast(1).Last();
                         var bb_near = lbb.SkipLast(1).Last();
                         var sideDetect = -1;
-                       if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 80 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
+                       if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 80 && curPrice < (decimal)bbPivot.Sma.Value)//SHORT
                        {
                             Console.WriteLine($"1.SHORT:RSI: {rsiPivot.Rsi}");
                             //check nến liền trước
