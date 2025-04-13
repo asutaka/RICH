@@ -192,7 +192,6 @@ namespace TradePr.Utils
             "GUSDT",
             "OMNIUSDT",
             "SPELLUSDT",
-            "TROYUSDT",
             "STGUSDT",
             "VVVUSDT",
             "ZBCNUSDT",
@@ -224,7 +223,7 @@ namespace TradePr.Utils
             "NTRNUSDT",
             "OMUSDT",
             "PENGUUSDT",
-            "ROSEUSDT",
+            "ROSEUSDT",//
             "SERAPHUSDT",
             "TUSDT",
             "XTZUSDT",
