@@ -378,7 +378,7 @@ namespace TradePr.Service
                     //Print
                     var entry = Math.Round(first.AveragePrice.Value, tronGia);
 
-                    var mes = $"[ACTION - {side}|Bybit] {first.Symbol}|ENTRY: {entry}";
+                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
 
                     return true;

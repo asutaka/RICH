@@ -703,7 +703,7 @@ namespace TradePr.Service
                     //Print
                     var entry = Math.Round(first.EntryPrice, tronGia);
 
-                    var mes = $"[ACTION - {side}|Binance] {first.Symbol}|ENTRY: {entry}";
+                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Binance] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
 
                     return true;
