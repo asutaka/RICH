@@ -597,7 +597,7 @@ namespace TradePr.Service
                 if (!initLevel.Success)
                 {
                     await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được đòn bẩy| {entity.s}| Margin: {margin}");
-                    return false;
+                    //return false;
                 }    
                     
 
