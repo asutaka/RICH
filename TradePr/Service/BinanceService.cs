@@ -100,7 +100,7 @@ namespace TradePr.Service
                             continue;
 
                         //gia
-                        var l15m = await _apiService.GetData(item.s, EInterval.M15);
+                        var l15m = await _apiService.GetData_Binance(item.s, EInterval.M15);
                         Thread.Sleep(100);
                         if (l15m is null
                             || !l15m.Any())
@@ -175,7 +175,7 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var l15m = await _apiService.GetData(sym, EInterval.M15);
+                        var l15m = await _apiService.GetData_Binance(sym, EInterval.M15);
                         Thread.Sleep(100);
                         if (l15m is null
                               || !l15m.Any())
@@ -270,7 +270,7 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var l15m = await _apiService.GetData(sym, EInterval.M15);
+                        var l15m = await _apiService.GetData_Binance(sym, EInterval.M15);
                         Thread.Sleep(100);
                         if (l15m is null
                               || !l15m.Any())

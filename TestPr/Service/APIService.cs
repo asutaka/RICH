@@ -133,7 +133,7 @@ namespace TestPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"APIService.GetCoinData_Binance|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+                _logger.LogError(ex, $"APIService.GetData_Binance|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
             }
             return new List<Quote>();
         }

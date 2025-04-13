@@ -88,29 +88,50 @@ namespace TradePr.Service
 
         public async Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, long fromTime = 0)
         {
+            var url = string.Format("https://www.binance.com/fapi/v1/continuousKlines?startTime={2}&limit=1000&pair={0}&contractType=PERPETUAL&interval={1}", symbol, interval.GetDisplayName(), fromTime);
+            if (fromTime <= 0)
+            {
+                url = string.Format("https://www.binance.com/fapi/v1/continuousKlines?limit=1000&pair={0}&contractType=PERPETUAL&interval={1}", symbol, interval.GetDisplayName()); ;
+            }
+
             try
             {
-                var lres = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
-                if (!lres.Success)
-                    return null;
-                if (lres.Data.Any())
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return new List<Quote>();
+
+                var lArray = JArray.Parse(contents);
+                if (lArray.Any())
                 {
-                    return lres.Data.Select(x => new Quote
+                    var lOut = lArray.Select(x => new Quote
                     {
-                        Open = x.OpenPrice,
-                        High = x.HighPrice,
-                        Low = x.LowPrice,
-                        Close = x.ClosePrice,
-                        Volume= x.Volume,
-                        Date = x.OpenTime
+                        Date = long.Parse(x[0].ToString()).UnixTimeStampMinisecondToDateTime(),
+                        Open = decimal.Parse(x[1].ToString()),
+                        High = decimal.Parse(x[2].ToString()),
+                        Low = decimal.Parse(x[3].ToString()),
+                        Close = decimal.Parse(x[4].ToString()),
+                        Volume = decimal.Parse(x[5].ToString()),
                     }).ToList();
+                    return lOut;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"APIService.GetData_Binance|EXCEPTION|INPUT: {symbol}| {ex.Message}");
+                _logger.LogError(ex, $"APIService.GetData_Binance|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
             }
-            return null;
+            return new List<Quote>();
         }
 
         public async Task<List<Quote>> GetCoinData_Binance(string coin, string mode, long fromTime)
