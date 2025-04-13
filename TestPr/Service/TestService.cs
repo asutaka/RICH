@@ -1361,7 +1361,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //SHORT RSI
+        //SHORT RSI Tong: 745.8%|W/L: 527/293
         public async Task CheckAllBINANCE_SHORT()
         {
             try
@@ -1383,50 +1383,58 @@ namespace TestPr.Service
                 var lossTotal = 0;
 
                 #region comment
-                //lTake.Clear();
-                //var lTmp = new List<string>
-                //{
-                //    "GRTUSDT",
-                //    "B3USDT",
-                //    "AERGOUSDT",
-                //    "1000BONKUSDT",
-                //    "ZRXUSDT",
-                //    "EPICUSDT",
-                //    "DODOXUSDT",
-                //    "INJUSDT",
-                //    "ALTUSDT",
-                //    "MTLUSDT",
-                //    "ETHFIUSDT",
-                //    "DFUSDT",
-                //    "PLUMEUSDT",
-                //    "QTUMUSDT",
-                //    "TOKENUSDT",
-                //    "CETUSUSDT",
-                //    "ONDOUSDT",
-                //    "OMUSDT",
-                //    "BTCUSDT",
-                //    "ATAUSDT",
-                //    "SEIUSDT",
-                //    "DEGENUSDT",
-                //    "THEUSDT",
-                //    "PHBUSDT",
-                //    "1000FLOKIUSDT",
-                //    "KSMUSDT",
-                //    "PROMUSDT",
-                //    "JOEUSDT",
-                //    "SWELLUSDT",
-                //    "STORJUSDT",
-                //    "STGUSDT",
-                //    "RENDERUSDT",
-                //    "IOTAUSDT",
-                //    "ANKRUSDT",
-                //    "NFPUSDT",
-                //    "BOMEUSDT",
-                //    "BIOUSDT",
-                //    "LPTUSDT",
-                //    "ETHWUSDT",
-                //};
-                //lTake.AddRange(lTmp);
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    "EIGENUSDT",
+                    "NILUSDT",
+                    "HEIUSDT",
+                    "NEIROUSDT",
+                    "DUSKUSDT",
+                    "KASUSDT",
+                    "BROCCOLI714USDT",
+                    "CATIUSDT",
+                    "GPSUSDT",
+                    "BIOUSDT",
+                    "HIPPOUSDT",
+                    "DYDXUSDT",
+                    "VICUSDT",
+                    "PONKEUSDT",
+                    "MANTAUSDT",
+                    "OMUSDT",
+                    "MOODENGUSDT",
+                    "BERAUSDT",
+                    "AGLDUSDT",
+                    "LUMIAUSDT",
+                    "AXSUSDT",
+                    "RSRUSDT",
+                    "ZENUSDT",
+                    "ALPHAUSDT",
+                    "LTCUSDT",
+                    "LINKUSDT",
+                    "QTUMUSDT",
+                    "RLCUSDT",
+                    "CRVUSDT",
+                    "GALAUSDT",
+                    "ARPAUSDT",
+                    "CTSIUSDT",
+                    "EDUUSDT",
+                    "AIUSDT",
+                    "BEAMXUSDT",
+                    "ETHWUSDT",
+                    "XVGUSDT",
+                    "TWTUSDT",
+                    "CAKEUSDT",
+                    "1MBABYDOGEUSDT",
+                    "BADGERUSDT",
+                    "CHESSUSDT",
+                    "PROMUSDT",
+                    "LOKAUSDT",
+                    "PENGUUSDT",
+                    "INJUSDT",
+                    "1000PEPEUSDT",
+                };
+                lTake.AddRange(lTmp);
                 #endregion
                 foreach (var item in lTake)
                 {
@@ -1683,12 +1691,6 @@ namespace TestPr.Service
                 //    Console.WriteLine(mes);
                 //}
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
-
-                // Note:
-                // + Nến xanh cắt lên MA20
-                // + 2 nến ngay phía trước đều nằm dưới MA20
-                // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
-                // + Giữ 2 tiếng? hoặc nến chạm BB trên
             }
             catch (Exception ex)
             {
