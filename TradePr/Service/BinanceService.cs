@@ -608,6 +608,9 @@ namespace TradePr.Service
                 if (pos.Data.Count() >= 3)
                     return false;
 
+                if (pos.Data.Any(x => x.Symbol == entity.s))
+                    return false;
+
                 var tronSL = 2;
                 var exists = _symConfigRepo.GetEntityByFilter(Builders<SymbolConfig>.Filter.Eq(x => x.s, entity.s));
                 if (exists != null)
