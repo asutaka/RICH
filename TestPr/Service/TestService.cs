@@ -1738,12 +1738,12 @@ namespace TestPr.Service
                     "EPICUSDT",
                     "DGBUSDT",
                     "MASAUSDT",
-                    "BRUSDT",
-                    "BEAMUSDT",
-                    "MEMEUSDT",
+                    "BRUSDT",//
+                    "BEAMUSDT",//
+                    "MEMEUSDT",//
                     "PENDLEUSDT",
                     "NEIROETHUSDT",
-                    "GMTUSDT",
+                    "GMTUSDT",//
                     "GPSUSDT",
                     "CFXUSDT",
                     "MAGICUSDT",
