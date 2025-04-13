@@ -581,8 +581,8 @@ namespace TradePr.Service
                 var marginType = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeMarginTypeAsync(entity.s, FuturesMarginType.Isolated);
                 if (!marginType.Success)
                 {
-                    await _teleService.SendMessage(_idUser, "[ERROR_binance] Không chuyển được sang Isolated");
-                    return false;
+                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được sang Isolated| {entity.s}");
+                    //return false;
                 }
                    
 
@@ -596,7 +596,7 @@ namespace TradePr.Service
                 var initLevel = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, margin);
                 if (!initLevel.Success)
                 {
-                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được đòn bẩy|{entity.s}|Margin: {margin}");
+                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được đòn bẩy| {entity.s}| Margin: {margin}");
                     return false;
                 }    
                     
