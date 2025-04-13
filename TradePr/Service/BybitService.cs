@@ -23,8 +23,9 @@ namespace TradePr.Service
         private const long _idUser = 1066022551;
         private const decimal _unit = 50;
         private const decimal _margin = 10;
-        private readonly int _HOUR = 2;
-        private const int _op = (int)EOption.Ma20;
+        private readonly int _HOUR = 4;//MA20 là 2h
+        private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
+        private const int _op = (int)EOption.Ma20; 
 
         private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger,
@@ -57,7 +58,9 @@ namespace TradePr.Service
                 var dt = DateTime.Now;
 
                 await Bybit_TakeProfit();
-                await Bybit_TradeMA20(dt);
+                //await Bybit_TradeMA20(dt);
+                await Bybit_TradeRSI_LONG(dt);
+                await Bybit_TradeRSI_SHORT(dt);
             }
             catch(Exception ex)
             {
@@ -402,7 +405,6 @@ namespace TradePr.Service
         {
             try
             {
-                var index = 0;
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (!pos.Data.List.Any())
                     return;
@@ -417,7 +419,6 @@ namespace TradePr.Service
                     var curTime = (dt - item.UpdateTime.Value).TotalHours;
                     if (curTime >= _HOUR)
                     {
-                        index++;
                         await PlaceOrderClose(item);
                     }
                     else
@@ -434,9 +435,9 @@ namespace TradePr.Service
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
                         var flag = false;
-                        var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
-                        if (rate < 1)
-                            continue;
+                        //var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
+                        //if (rate < 1)
+                        //    continue;
 
                         if (side == OrderSide.Buy && cur.Close > (decimal)bb.UpperBand.Value)
                         {
@@ -449,7 +450,6 @@ namespace TradePr.Service
 
                         if(flag)
                         {
-                            index++;
                             await PlaceOrderClose(item);
                         }
                     }
@@ -466,7 +466,7 @@ namespace TradePr.Service
         {
             try
             {
-                var SL_RATE = 0.017;
+                //var SL_RATE = 0.017;
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                 var account = await Bybit_GetAccountInfo();
                 if (account == null)
@@ -558,11 +558,11 @@ namespace TradePr.Service
                     decimal sl = 0;
                     if (side == OrderSide.Buy)
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - SL_RATE), tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - _SL_RATE), tronGia);
                     }
                     else
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + SL_RATE), tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE), tronGia);
                     }
                     res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                             first.Symbol,

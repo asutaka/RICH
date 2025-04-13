@@ -259,7 +259,7 @@ namespace TradePr.Utils
             "AERGOUSDT",
             "ALICEUSDT",
             "PHBUSDT",
-            ////Tire 2
+            //Tier 2
             "MASKUSDT",
             "NEOUSDT",
             "VRUSDT",

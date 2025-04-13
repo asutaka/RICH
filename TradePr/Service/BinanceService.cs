@@ -493,7 +493,6 @@ namespace TradePr.Service
         {
             try
             {
-                var index = 0;
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 #region Sell
                 foreach (var item in pos.Data)
@@ -502,12 +501,11 @@ namespace TradePr.Service
                     var curTime = (DateTime.UtcNow - item.UpdateTime.Value).TotalHours;
                     if(curTime >= _HOUR)
                     {
-                        index++;
                         await PlaceOrderClose(item);
                     }
                     else
                     {
-                        var l15m = await _apiService.GetData(item.Symbol, EInterval.M15);
+                        var l15m = await _apiService.GetData_Binance(item.Symbol, EInterval.M15);
                         Thread.Sleep(100);
                         if (l15m is null || !l15m.Any())
                             continue;
@@ -530,7 +528,6 @@ namespace TradePr.Service
 
                         if (flag)
                         {
-                            index++;
                             await PlaceOrderClose(item);
                         }
                     }
