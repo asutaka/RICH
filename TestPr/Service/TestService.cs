@@ -1958,6 +1958,13 @@ namespace TestPr.Service
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
                         if (rateRes > (decimal)0.5 && winCount > 3)
                         {
+                            var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
+                            if (sumRate <= 1)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
                             //foreach (var mes in lMes)
@@ -1972,7 +1979,7 @@ namespace TestPr.Service
                             }
                             var count = lModel.Count(x => x.s == item);
                             var rate = Math.Round((double)realWin / count, 1);
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {lModel.Where(x => x.s == item).Sum(x => x.Rate)}%");
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
