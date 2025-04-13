@@ -6,6 +6,7 @@ using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
 using System.Runtime.ConstrainedExecution;
+using Newtonsoft.Json;
 
 namespace TradePr.Service
 {
@@ -199,6 +200,7 @@ namespace TradePr.Service
                         var sideDetect = -1;
                         if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
                         {
+                            Console.WriteLine($"1.LONG:RSI: {rsiPivot.Rsi}");
                             //check nến liền trước
                             if (near.Close >= near.Open
                                 || rsi_near.Rsi > 35
@@ -206,15 +208,17 @@ namespace TradePr.Service
                             {
                                 continue;
                             }
+                            Console.WriteLine($"2.LONG:RSI NEAR: {rsi_near.Rsi}");
                             var minOpenClose = Math.Min(near.Open, near.Close);
                             if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
                                 continue;
+                            Console.WriteLine($"3.LONG:Position");
                             //check tiếp nến pivot
                             if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
                                 || pivot.High >= (decimal)bbPivot.Sma.Value
                                 || (pivot.Low >= near.Low && pivot.High <= near.High))
                                 continue;
-
+                            Console.WriteLine($"4.LONG:Pivot");
                             var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));
                             if (ratePivot > (decimal)0.8)
                             {
@@ -290,6 +294,7 @@ namespace TradePr.Service
                         var sideDetect = -1;
                        if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 80 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
                        {
+                            Console.WriteLine($"1.SHORT:RSI: {rsiPivot.Rsi}");
                             //check nến liền trước
                             if (near.Close <= near.Open
                                 || rsi_near.Rsi < 65
@@ -297,20 +302,23 @@ namespace TradePr.Service
                             {
                                 continue;
                             }
+                            Console.WriteLine($"2.SHORT:RSI NEAR: {rsi_near.Rsi}");
                             var maxOpenClose = Math.Max(near.Open, near.Close);
                             if (Math.Abs(maxOpenClose - (decimal)bb_near.UpperBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - maxOpenClose))
                                 continue;
+                            Console.WriteLine($"3.SHORT:Position");
                             //check tiếp nến pivot
                             if (pivot.High <= (decimal)bbPivot.UpperBand.Value
                                 || pivot.Low <= (decimal)bbPivot.Sma.Value)
                                 continue;
-
+                            Console.WriteLine($"4.SHORT:Pivot");
                             //check div by zero
                             if (near.High == near.Low
                                 || pivot.High == pivot.Low
                                 || Math.Min(pivot.Open, pivot.Close) == pivot.Low)
                                 continue;
 
+                            Console.WriteLine($"5.SHORT:DIV ZERO");
                             var rateNear = Math.Abs((near.Open - near.Close) / (near.High - near.Low));  //độ dài nến hiện tại
                             var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));  //độ dài nến pivot
                             var isHammer = (near.High - near.Close) >= (decimal)1.2 * (near.Close - near.Low);
@@ -546,6 +554,7 @@ namespace TradePr.Service
         {
             try
             {
+                Console.WriteLine($"PlaceOrder: {JsonConvert.SerializeObject(entity)}");
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                 var account = await Binance_GetAccountInfo();
                 if (account == null)
