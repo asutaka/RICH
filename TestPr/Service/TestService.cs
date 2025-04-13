@@ -1316,10 +1316,10 @@ namespace TestPr.Service
                         {
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
-                            foreach (var mes in lMes)
-                            {
-                                Console.WriteLine(mes);
-                            }
+                            //foreach (var mes in lMes)
+                            //{
+                            //    Console.WriteLine(mes);
+                            //}
                             var realWin = 0;
                             foreach (var model in lModel.Where(x => x.s == item))
                             {
@@ -1451,6 +1451,8 @@ namespace TestPr.Service
                         if (lData15m == null || !lData15m.Any())
                             continue;
                         var last = lData15m.Last();
+                        if (last.Volume <= 0)
+                            continue;
                         Thread.Sleep(200);
 
                         var lData40 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
