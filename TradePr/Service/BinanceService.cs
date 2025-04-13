@@ -181,6 +181,9 @@ namespace TradePr.Service
                               || !l15m.Any())
                             continue;
                         var pivot = l15m.Last();
+                        if (pivot.Volume <= 0)
+                            continue;
+
                         var curPrice = pivot.Close;
                         l15m.Remove(pivot);
 
@@ -276,6 +279,9 @@ namespace TradePr.Service
                               || !l15m.Any())
                             continue;
                         var pivot = l15m.Last();
+                        if (pivot.Volume <= 0)
+                            continue;
+
                         var curPrice = pivot.Close;
                         l15m.Remove(pivot);
 
