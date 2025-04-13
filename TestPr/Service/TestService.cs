@@ -2352,8 +2352,16 @@ namespace TestPr.Service
                                     realWin++;
                             }
                             var count = lModel.Count(x => x.s == item);
+
+                            if (sumRate / count <= (decimal)0.5)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
+
                             var rate = Math.Round((double)realWin / count, 1);
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{count} = {rate}%|Rate: {sumRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
