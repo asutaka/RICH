@@ -2043,6 +2043,7 @@ namespace TestPr.Service
             }
         }
 
+        //SHORT RSI Tong(59): 1020.1%|W/L: 702/410
         public async Task CheckAllBYBIT_SHORT()
         {
             try
@@ -2064,58 +2065,72 @@ namespace TestPr.Service
                 var lossTotal = 0;
 
                 #region comment
-                //lTake.Clear();
-                //var lTmp = new List<string>
-                //{
-                //    "EIGENUSDT",
-                //    "NILUSDT",
-                //    "HEIUSDT",
-                //    "NEIROUSDT",
-                //    "DUSKUSDT",
-                //    "KASUSDT",
-                //    "BROCCOLI714USDT",
-                //    "CATIUSDT",
-                //    "GPSUSDT",
-                //    "BIOUSDT",
-                //    "HIPPOUSDT",
-                //    "DYDXUSDT",
-                //    "VICUSDT",
-                //    "PONKEUSDT",
-                //    "MANTAUSDT",
-                //    "OMUSDT",
-                //    "MOODENGUSDT",
-                //    "BERAUSDT",
-                //    "AGLDUSDT",
-                //    "LUMIAUSDT",
-                //    "AXSUSDT",
-                //    "RSRUSDT",
-                //    "ZENUSDT",
-                //    "ALPHAUSDT",
-                //    "LTCUSDT",
-                //    "LINKUSDT",
-                //    "QTUMUSDT",
-                //    "RLCUSDT",
-                //    "CRVUSDT",
-                //    "GALAUSDT",
-                //    "ARPAUSDT",
-                //    "CTSIUSDT",
-                //    "EDUUSDT",
-                //    "AIUSDT",
-                //    "BEAMXUSDT",
-                //    "ETHWUSDT",
-                //    "XVGUSDT",
-                //    "TWTUSDT",
-                //    "CAKEUSDT",
-                //    "1MBABYDOGEUSDT",
-                //    "BADGERUSDT",
-                //    "CHESSUSDT",
-                //    "PROMUSDT",
-                //    "LOKAUSDT",
-                //    "PENGUUSDT",
-                //    "INJUSDT",
-                //    "1000PEPEUSDT",
-                //};
-                //lTake.AddRange(lTmp);
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    //Tier 1
+                    "FWOGUSDT",
+                    "JUSDT",
+                    "XVSUSDT",
+                    "CATIUSDT",
+                    "HEIUSDT",
+                    "KOMAUSDT",
+                    "CAKEUSDT",
+                    "XEMUSDT",
+                    "NILUSDT",
+                    "OLUSDT",
+                    "DYDXUSDT",
+                    "FLUXUSDT",
+                    "IDEXUSDT",
+                    "KASUSDT",
+                    "XVGUSDT",
+                    "MAVIAUSDT",
+                    "MOODENGUSDT",
+                    "NCUSDT",
+                    "MAXUSDT",
+                    "MBLUSDT",
+                    "GUSDT",
+                    "OMNIUSDT",
+                    "SPELLUSDT",
+                    "TROYUSDT",
+                    "STGUSDT",
+                    "VVVUSDT",
+                    "ZBCNUSDT",
+                    ////Tier 2
+                    //"AGLDUSDT",
+                    //"AIOZUSDT",
+                    //"AIUSDT",
+                    //"ALEOUSDT",
+                    //"ALUUSDT",
+                    //"AVAILUSDT",
+                    //"AXLUSDT",
+                    //"BADGERUSDT",
+                    //"BELUSDT",
+                    //"BLASTUSDT",
+                    //"BLURUSDT",
+                    //"COOKUSDT",
+                    //"CPOOLUSDT",
+                    //"EGLDUSDT",
+                    //"EIGENUSDT",
+                    //"EOSUSDT",
+                    //"FLRUSDT",
+                    //"GPSUSDT",
+                    //"LSKUSDT",
+                    //"MBOXUSDT",
+                    //"MDTUSDT",
+                    //"MORPHOUSDT",
+                    //"MOVRUSDT",
+                    //"MVLUSDT",
+                    //"NTRNUSDT",
+                    //"OMUSDT",
+                    //"PENGUUSDT",
+                    //"ROSEUSDT",
+                    //"SERAPHUSDT",
+                    //"TUSDT",
+                    //"XTZUSDT",
+                    //"ZENUSDT",
+                };
+                lTake.AddRange(lTmp);
                 #endregion
                 foreach (var item in lTake)
                 {

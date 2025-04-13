@@ -285,6 +285,118 @@ namespace TradePr.Service
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_LONG|EXCEPTION| {ex.Message}");
             }
         }
+        private async Task Bybit_TradeRSI_SHORT(DateTime dt)
+        {
+            try
+            {
+                if (dt.Minute % 15 != 0)
+                    return;
+
+                var lSym = StaticVal._lRsiShort_Bybit;
+                foreach (var sym in lSym)
+                {
+                    try
+                    {
+                        //gia
+                        var l15m = await _apiService.GetData_Bybit(sym, EInterval.M15);
+                        Thread.Sleep(100);
+                        if (l15m is null
+                              || !l15m.Any())
+                            continue;
+                        var pivot = l15m.Last();
+                        if (pivot.Volume <= 0)
+                            continue;
+
+                        var curPrice = pivot.Close;
+                        l15m.Remove(pivot);
+
+                        pivot = l15m.Last();
+                        var near = l15m.SkipLast(1).Last();
+                        var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
+                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                            continue;
+
+                        var lRsi = l15m.GetRsi();
+                        var lbb = l15m.GetBollingerBands();
+                        var rsiPivot = lRsi.Last();
+                        var bbPivot = lbb.Last();
+
+                        var rsi_near = lRsi.SkipLast(1).Last();
+                        var bb_near = lbb.SkipLast(1).Last();
+                        var sideDetect = -1;
+                        //Console.WriteLine($"SHORT|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
+                        if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 80 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
+                        {
+                            //Console.WriteLine($"1.SHORT:RSI: {rsiPivot.Rsi}");
+                            //check nến liền trước
+                            if (near.Close <= near.Open
+                                || rsi_near.Rsi < 65
+                                || near.High <= (decimal)bb_near.UpperBand.Value)
+                            {
+                                continue;
+                            }
+                            //Console.WriteLine($"2.SHORT:RSI NEAR: {rsi_near.Rsi}");
+                            var maxOpenClose = Math.Max(near.Open, near.Close);
+                            if (Math.Abs(maxOpenClose - (decimal)bb_near.UpperBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - maxOpenClose))
+                                continue;
+                            //Console.WriteLine($"3.SHORT:Position");
+                            //check tiếp nến pivot
+                            if (pivot.High <= (decimal)bbPivot.UpperBand.Value
+                                || pivot.Low <= (decimal)bbPivot.Sma.Value)
+                                continue;
+                            //Console.WriteLine($"4.SHORT:Pivot");
+                            //check div by zero
+                            if (near.High == near.Low
+                                || pivot.High == pivot.Low
+                                || Math.Min(pivot.Open, pivot.Close) == pivot.Low)
+                                continue;
+
+                            //Console.WriteLine($"5.SHORT:DIV ZERO");
+                            var rateNear = Math.Abs((near.Open - near.Close) / (near.High - near.Low));  //độ dài nến hiện tại
+                            var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));  //độ dài nến pivot
+                            var isHammer = (near.High - near.Close) >= (decimal)1.2 * (near.Close - near.Low);
+                            if (isHammer) { }
+                            else if (ratePivot < (decimal)0.2)
+                            {
+                                var checkDoji = (pivot.High - Math.Max(pivot.Open, pivot.Close)) / (Math.Min(pivot.Open, pivot.Close) - pivot.Low);
+                                if (checkDoji >= (decimal)0.75 && checkDoji <= (decimal)1.25)
+                                {
+                                    continue;
+                                }
+                            }
+                            else if (rateNear > (decimal)0.8)
+                            {
+                                //check độ dài nến pivot
+                                var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(near.Open - near.Close);
+                                if (isValid)
+                                    continue;
+                            }
+
+                            sideDetect = (int)OrderSide.Sell;
+                        }
+
+                        if (sideDetect > -1)
+                        {
+                            await PlaceOrder(new SignalBase
+                            {
+                                s = sym,
+                                ex = _exchange,
+                                Side = sideDetect,
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                            }, curPrice);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|EXCEPTION| {ex.Message}");
+            }
+        }
 
         private async Task Bybit_TakeProfit()
         {
