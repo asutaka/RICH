@@ -268,17 +268,16 @@ namespace TradePr.Service
                 if (account.WalletBalance * _margin <= _unit)
                     return false;
 
-
-                var side = (OrderSide)entity.Side;
-                var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
-                var direction = side == OrderSide.Buy ? TriggerDirection.Fall : TriggerDirection.Rise;
-
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos.Data.List.Count() >= 3)
                     return false;
 
                 if (pos.Data.List.Any(x => x.Symbol == entity.s))
                     return false;
+
+                var side = (OrderSide)entity.Side;
+                var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
+                var direction = side == OrderSide.Buy ? TriggerDirection.Fall : TriggerDirection.Rise;
 
                 var tronSL = 2;
                 var exists = _symConfigRepo.GetEntityByFilter(Builders<SymbolConfig>.Filter.Eq(x => x.s, entity.s));

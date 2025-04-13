@@ -575,8 +575,14 @@ namespace TradePr.Service
                 {
                     Console.WriteLine($"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
                     return false;
-                }    
-                    
+                }
+
+                var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+                if (pos.Data.Count() >= 3)
+                    return false;
+
+                if (pos.Data.Any(x => x.Symbol == entity.s))
+                    return false;
 
                 var marginType = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeMarginTypeAsync(entity.s, FuturesMarginType.Isolated);
                 if (!marginType.Success)
@@ -603,13 +609,6 @@ namespace TradePr.Service
 
                 var side = (OrderSide)entity.Side;
                 var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
-
-                var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
-                if (pos.Data.Count() >= 3)
-                    return false;
-
-                if (pos.Data.Any(x => x.Symbol == entity.s))
-                    return false;
 
                 var tronSL = 2;
                 var exists = _symConfigRepo.GetEntityByFilter(Builders<SymbolConfig>.Filter.Eq(x => x.s, entity.s));
