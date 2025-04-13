@@ -1131,7 +1131,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        //if (item != "B3USDT")
+                        //if (item != "BTCUSDT")
                         //    continue;
                         var lMes = new List<string>();
 
