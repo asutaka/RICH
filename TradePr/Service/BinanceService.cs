@@ -5,6 +5,7 @@ using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
+using System.Runtime.ConstrainedExecution;
 
 namespace TradePr.Service
 {
@@ -65,7 +66,8 @@ namespace TradePr.Service
                 var dt = DateTime.Now;
                 await Binance_TakeProfit(dt);
                 await Binance_TradeLiquid(dt);
-                await Binance_TradeRSI(dt);
+                await Binance_TradeRSI_LONG(dt);
+                await Binance_TradeRSI_SHORT(dt);
             }
             catch (Exception ex)
             {
@@ -159,7 +161,7 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Binance_TradeRSI(DateTime dt)
+        private async Task Binance_TradeRSI_LONG(DateTime dt)
         {
             try
             {
@@ -226,10 +228,6 @@ namespace TradePr.Service
 
                             sideDetect = (int)OrderSide.Buy;
                         }
-                        else if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 75 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
-                        {
-                            //sideDetect = (int)OrderSide.Sell;
-                        }
 
                         if (sideDetect > -1)
                         {
@@ -244,13 +242,118 @@ namespace TradePr.Service
                     }
                     catch(Exception ex)
                     {
-                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI_LONG|INPUT: {sym}|EXCEPTION| {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI_LONG|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private async Task Binance_TradeRSI_SHORT(DateTime dt)
+        {
+            try
+            {
+                if (dt.Minute % 15 != 0)
+                    return;
+
+                var lSym = StaticVal._lRsiShort;
+                foreach (var sym in lSym)
+                {
+                    try
+                    {
+                        //gia
+                        var l15m = await _apiService.GetData_Binance(sym, EInterval.M15);
+                        Thread.Sleep(100);
+                        if (l15m is null
+                              || !l15m.Any())
+                            continue;
+                        var pivot = l15m.Last();
+                        var curPrice = pivot.Close;
+                        l15m.Remove(pivot);
+
+                        pivot = l15m.Last();
+                        var near = l15m.SkipLast(1).Last();
+                        var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
+                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                            continue;
+
+                        var lRsi = l15m.GetRsi();
+                        var lbb = l15m.GetBollingerBands();
+                        var rsiPivot = lRsi.Last();
+                        var bbPivot = lbb.Last();
+
+                        var rsi_near = lRsi.SkipLast(1).Last();
+                        var bb_near = lbb.SkipLast(1).Last();
+                        var sideDetect = -1;
+                       if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 80 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
+                       {
+                            //check nến liền trước
+                            if (near.Close <= near.Open
+                                || rsi_near.Rsi < 65
+                                || near.High <= (decimal)bb_near.UpperBand.Value)
+                            {
+                                continue;
+                            }
+                            var maxOpenClose = Math.Max(near.Open, near.Close);
+                            if (Math.Abs(maxOpenClose - (decimal)bb_near.UpperBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - maxOpenClose))
+                                continue;
+                            //check tiếp nến pivot
+                            if (pivot.High <= (decimal)bbPivot.UpperBand.Value
+                                || pivot.Low <= (decimal)bbPivot.Sma.Value)
+                                continue;
+
+                            //check div by zero
+                            if (near.High == near.Low
+                                || pivot.High == pivot.Low
+                                || Math.Min(pivot.Open, pivot.Close) == pivot.Low)
+                                continue;
+
+                            var rateNear = Math.Abs((near.Open - near.Close) / (near.High - near.Low));  //độ dài nến hiện tại
+                            var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));  //độ dài nến pivot
+                            var isHammer = (near.High - near.Close) >= (decimal)1.2 * (near.Close - near.Low);
+                            if (isHammer){}
+                            else if (ratePivot < (decimal)0.2)
+                            {
+                                var checkDoji = (pivot.High - Math.Max(pivot.Open, pivot.Close)) / (Math.Min(pivot.Open, pivot.Close) - pivot.Low);
+                                if (checkDoji >= (decimal)0.75 && checkDoji <= (decimal)1.25)
+                                {
+                                    continue;
+                                }
+                            }
+                            else if (rateNear > (decimal)0.8)
+                            {
+                                //check độ dài nến pivot
+                                var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(near.Open - near.Close);
+                                if (isValid)
+                                    continue;
+                            }
+
+                            sideDetect = (int)OrderSide.Sell;
+                       }
+
+                        if (sideDetect > -1)
+                        {
+                            await PlaceOrder(new SignalBase
+                            {
+                                s = sym,
+                                ex = _exchange,
+                                Side = sideDetect,
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                            }, curPrice);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI_SHORT|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.Binance_TradeRSI_SHORT|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -452,11 +555,19 @@ namespace TradePr.Service
                 }
 
                 if (account.WalletBalance * _margin <= _unit)
+                {
+                    Console.WriteLine($"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
                     return false;
+                }    
+                    
 
                 var marginType = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeMarginTypeAsync(entity.s, FuturesMarginType.Isolated);
                 if (!marginType.Success)
+                {
+                    await _teleService.SendMessage(_idUser, "[ERROR_binance] Không chuyển được sang Isolated");
                     return false;
+                }
+                   
 
                 var eMargin = StaticVal._dicBinanceMargin.FirstOrDefault(x => x.Key == entity.s);
                 int margin = (int)_margin;
@@ -467,7 +578,11 @@ namespace TradePr.Service
 
                 var initLevel = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, margin);
                 if (!initLevel.Success)
+                {
+                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được đòn bẩy|{entity.s}|Margin: {margin}");
                     return false;
+                }    
+                    
 
                 var side = (OrderSide)entity.Side;
                 var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
