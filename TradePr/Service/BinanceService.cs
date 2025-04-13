@@ -100,7 +100,7 @@ namespace TradePr.Service
                             continue;
 
                         //gia
-                        var l15m = await _apiService.GetData_Binance(item.s, EInterval.M15);
+                        var l15m = await _apiService.GetData(item.s, EInterval.M15);
                         Thread.Sleep(100);
                         if (l15m is null
                             || !l15m.Any())
@@ -198,6 +198,7 @@ namespace TradePr.Service
                         var rsi_near = lRsi.SkipLast(1).Last();
                         var bb_near = lbb.SkipLast(1).Last();
                         var sideDetect = -1;
+                        Console.WriteLine($"LONG|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
                         if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
                         {
                             Console.WriteLine($"1.LONG:RSI: {rsiPivot.Rsi}");
@@ -292,6 +293,7 @@ namespace TradePr.Service
                         var rsi_near = lRsi.SkipLast(1).Last();
                         var bb_near = lbb.SkipLast(1).Last();
                         var sideDetect = -1;
+                        Console.WriteLine($"SHORT|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
                        if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 80 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
                        {
                             Console.WriteLine($"1.SHORT:RSI: {rsiPivot.Rsi}");
