@@ -732,12 +732,12 @@ namespace TradePr.Service
                 {
                     var rate = Math.Round(100 * (-1 + pos.MarkPrice / pos.EntryPrice), 1);
                     var winloss = "LOSS";
-                    if (CLOSE_side == OrderSide.Buy && rate > 0)
+                    if (side == OrderSide.Buy && rate > 0)
                     {
                         winloss = "WIN";
                         rate = Math.Abs(rate);
                     }
-                    else if (CLOSE_side == OrderSide.Sell && rate < 0)
+                    else if (side == OrderSide.Sell && rate < 0)
                     {
                         winloss = "WIN";
                         rate = Math.Abs(rate);
