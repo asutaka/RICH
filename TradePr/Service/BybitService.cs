@@ -188,6 +188,104 @@ namespace TradePr.Service
             return;
         }
 
+        private async Task Bybit_TradeRSI_LONG(DateTime dt)
+        {
+            try
+            {
+                if (dt.Minute % 15 != 0)
+                    return;
+
+                var lSym = StaticVal._lRsiLong_Bybit;
+                foreach (var sym in lSym)
+                {
+                    try
+                    {
+                        //gia
+                        var l15m = await _apiService.GetData_Bybit(sym, EInterval.M15);
+                        Thread.Sleep(100);
+                        if (l15m is null
+                              || !l15m.Any())
+                            continue;
+                        var pivot = l15m.Last();
+                        if (pivot.Volume <= 0)
+                            continue;
+
+                        var curPrice = pivot.Close;
+                        l15m.Remove(pivot);
+
+                        pivot = l15m.Last();
+                        var near = l15m.SkipLast(1).Last();
+                        var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
+                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                            continue;
+
+                        var lRsi = l15m.GetRsi();
+                        var lbb = l15m.GetBollingerBands();
+                        var rsiPivot = lRsi.Last();
+                        var bbPivot = lbb.Last();
+
+                        var rsi_near = lRsi.SkipLast(1).Last();
+                        var bb_near = lbb.SkipLast(1).Last();
+                        var sideDetect = -1;
+                        //Console.WriteLine($"LONG|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
+                        if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
+                        {
+                            //Console.WriteLine($"1.LONG:RSI: {rsiPivot.Rsi}");
+                            //check nến liền trước
+                            if (near.Close >= near.Open
+                                || rsi_near.Rsi > 35
+                                || near.Low >= (decimal)bb_near.LowerBand.Value)
+                            {
+                                continue;
+                            }
+                            //Console.WriteLine($"2.LONG:RSI NEAR: {rsi_near.Rsi}");
+                            var minOpenClose = Math.Min(near.Open, near.Close);
+                            if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
+                                continue;
+                            //Console.WriteLine($"3.LONG:Position");
+                            //check tiếp nến pivot
+                            if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
+                                || pivot.High >= (decimal)bbPivot.Sma.Value
+                                || (pivot.Low >= near.Low && pivot.High <= near.High))
+                                continue;
+                            //Console.WriteLine($"4.LONG:Pivot");
+                            var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));
+                            if (ratePivot > (decimal)0.8)
+                            {
+                                /*
+                                    Nếu độ dài nến pivot >= độ dài nến tín hiệu thì bỏ qua
+                                 */
+                                var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(near.Open - near.Close);
+                                if (isValid)
+                                    continue;
+                            }
+
+                            sideDetect = (int)OrderSide.Buy;
+                        }
+
+                        if (sideDetect > -1)
+                        {
+                            await PlaceOrder(new SignalBase
+                            {
+                                s = sym,
+                                ex = _exchange,
+                                Side = sideDetect,
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
+                            }, curPrice);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_LONG|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_LONG|EXCEPTION| {ex.Message}");
+            }
+        }
+
         private async Task Bybit_TakeProfit()
         {
             try

@@ -73,13 +73,6 @@ namespace TradePr.Utils
             "SEI",
         };
 
-        public static List<string> _lIgnoreThreeSignal = new List<string>
-        {
-            "BTCUSDT",
-            "ETHUSDT",
-            "XRPUSDT"
-        };
-
         public static List<string> _lRsiShort = new List<string>
         {
             "EIGENUSDT",
@@ -174,6 +167,71 @@ namespace TradePr.Utils
             "ETHWUSDT",
         };
 
+        public static List<string> _lRsiLong_Bybit = new List<string>//Chuẩn
+        {
+            //Tier 1
+            "VIDTUSDT",
+            "EPICUSDT",
+            "DGBUSDT",
+            "MASAUSDT",
+            "BRUSDT",//
+            "BEAMUSDT",//
+            "MEMEUSDT",//
+            "PENDLEUSDT",
+            "NEIROETHUSDT",
+            "GMTUSDT",//
+            "GPSUSDT",
+            "CFXUSDT",
+            "MAGICUSDT",
+            "SLFUSDT",
+            "SANDUSDT",
+            "FIDAUSDT",
+            "XCHUSDT",
+            "VIRTUALUSDT",
+            "BIGTIMEUSDT",
+            "BNBUSDT",
+            "ETHFIUSDT",
+            "LUCEUSDT",
+            "RAREUSDT",
+            "AERGOUSDT",
+            "ALICEUSDT",
+            "PHBUSDT",
+            ////Tire 2
+            "MASKUSDT",
+            "NEOUSDT",
+            "VRUSDT",
+            "ENJUSDT",
+            "SEIUSDT",
+            "SNXUSDT",
+            "PROMUSDT",
+            "SOLOUSDT",
+            "TOKENUSDT",
+            "WUSDT",
+            "ZBCNUSDT",
+            "ZILUSDT",
+            "ADAUSDT",
+            "ALTUSDT",
+            "ANKRUSDT",
+            "ARKMUSDT",
+            "BATUSDT",
+            "BTCUSDT",
+            "DOGSUSDT",
+            "FILUSDT",
+            "FLOCKUSDT",
+            "FLUXUSDT",
+            "GLMRUSDT",
+            "GLMUSDT",
+            "INJUSDT",
+            "KAVAUSDT",
+            "LQTYUSDT",
+            "MEMEFIUSDT",
+            "NCUSDT",
+            "PLUMEUSDT",
+            "PORTALUSDT",
+            "QTUMUSDT",
+            "RAYDIUMUSDT",
+        };
+
         public static Dictionary<string, int> _dicBinanceMargin = new Dictionary<string, int>
         {
             { "1INCHUSDT", 75 },
@@ -218,10 +276,10 @@ namespace TradePr.Utils
             { "C98USDT", 25 },
             { "CYBERUSDT", 20 },
             { "BELUSDT", 20 },
-            { "ADAUSDT", 75 }
+            { "ADAUSDT", 75 },
+            { "OMUSDT", 5 }
         };
 
-        public static List<string> _lRsi = new List<string>();
         public static List<PrepareTrade> _lPrepare = new List<PrepareTrade>();
 
         public static List<string> _lMa20 = new List<string>
