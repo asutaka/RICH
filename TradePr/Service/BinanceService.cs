@@ -545,7 +545,7 @@ namespace TradePr.Service
 
                 if (account.WalletBalance * _margin <= _unit)
                 {
-                    Console.WriteLine($"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
+                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
                     return false;
                 }
 
