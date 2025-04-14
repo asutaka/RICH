@@ -38,7 +38,7 @@ namespace StockPr.Service
                 //2x1.7 best
                 //decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
                 decimal SL_RATE = 7m;//1.5,1.6,1.8,1.9,2
-                int hour = 14;//1h,2h,3h,4h
+                int hour = 7;//1h,2h,3h,4h
 
                 var lMesAll = new List<string>();
                 var lModel = new List<LongMa20>();
@@ -54,7 +54,6 @@ namespace StockPr.Service
                     {
                         var lMes = new List<string>();
 
-                        //var lData15m = await _apiService.SSI_GetDataStock("DPG");
                         var lData15m = await _apiService.SSI_GetDataStock(item);
                         Thread.Sleep(200);
                         if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 50000)
@@ -69,10 +68,10 @@ namespace StockPr.Service
                         {
                             try
                             {
-                                if (dtFlag >= ma20.Date)
-                                    continue;
+                                //if (dtFlag >= ma20.Date)
+                                //    continue;
 
-                                //if (ma20.Date.Month == 2 && ma20.Date.Day == 28 && ma20.Date.Hour == 1 && ma20.Date.Minute == 30)
+                                //if (ma20.Date.Month == 1 && ma20.Date.Day == 7 && ma20.Date.Year == 2025)
                                 //{
                                 //    var z = 1;
                                 //}
@@ -210,10 +209,13 @@ namespace StockPr.Service
                         //    Console.WriteLine(mes);
                         //}
                         //
-                        if (winCount <= lossCount)
+                        //if (winCount <= lossCount)
+                        //    continue;
+                        if (winCount + lossCount <= 0)
                             continue;
+
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        if (rateRes > (decimal)0.5 && winCount > 3)
+                        if (rateRes > (decimal)0.5)
                         {
                             var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
                             //if (sumRate <= 1)
@@ -224,10 +226,10 @@ namespace StockPr.Service
                             //}
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
-                            //foreach (var mes in lMes)
-                            //{
-                            //    Console.WriteLine(mes);
-                            //}
+                            foreach (var mes in lMes)
+                            {
+                                Console.WriteLine(mes);
+                            }
                             var realWin = 0;
                             foreach (var model in lModel.Where(x => x.s == item))
                             {
