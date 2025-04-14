@@ -21,7 +21,7 @@ namespace TradePr.Service
         private readonly ISymbolRepo _symRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         private const long _idUser = 1066022551;
-        private const decimal _unit = 50;
+        private const decimal _unit = 70;
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;//MA20 là 2h
         private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017

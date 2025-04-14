@@ -5,8 +5,6 @@ using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
-using System.Runtime.ConstrainedExecution;
-using Newtonsoft.Json;
 
 namespace TradePr.Service
 {
@@ -20,28 +18,20 @@ namespace TradePr.Service
     {
         private readonly ILogger<BinanceService> _logger;
         private readonly ITradingRepo _tradingRepo;
-        private readonly IPrepareTradeRepo _prepareRepo;
-        private readonly IErrorPartnerRepo _errRepo;
-        private readonly IConfigDataRepo _configRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
-        private const decimal _unit = 50;
+        private const decimal _unit = 60;
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;
         private readonly decimal _SL_RATE = 0.025m;
         private readonly int _exchange = (int)EExchange.Binance;
-        private object _locker = new object();
-        public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, IErrorPartnerRepo errRepo,
-                            IConfigDataRepo configRepo, IPrepareTradeRepo prepareRepo, ISymbolConfigRepo symConfigRepo,
+        public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISymbolConfigRepo symConfigRepo,
                             IAPIService apiService, ITeleService teleService)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
-            _prepareRepo = prepareRepo;
-            _errRepo = errRepo;
-            _configRepo = configRepo;
             _symConfigRepo = symConfigRepo;
             _apiService = apiService;
             _teleService = teleService;
