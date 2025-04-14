@@ -18,6 +18,7 @@ namespace StockPr
         private readonly IBaoCaoTaiChinhService _bctcService;
         private readonly IPortfolioService _portfolioService;
         private readonly IEPSRankService _epsService;
+        private readonly ITestService _testService;
 
         private const long _idGroup = -4237476810;
         private const long _idChannel = -1002247826353;
@@ -25,7 +26,7 @@ namespace StockPr
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService)
+                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -39,12 +40,15 @@ namespace StockPr
             _stockRepo = stockRepo;
             _portfolioService = portfolioService;
             _epsService = epsService;
+            _testService = testService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
-
+            //for Test
+            await _testService.Check2Buy();
+            return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;

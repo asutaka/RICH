@@ -18,6 +18,7 @@
             services.AddSingleton<IBaoCaoTaiChinhService, BaoCaoTaiChinhService>();
             services.AddSingleton<IPortfolioService, PortfolioService>();
             services.AddSingleton<IEPSRankService, EPSRankService>();
+            services.AddSingleton<ITestService, TestService>();
         }
     }
 }
