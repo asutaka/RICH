@@ -530,21 +530,6 @@ namespace TradePr.Service
             }
         }
 
-        private async Task ForceMarket(IEnumerable<BinancePositionV3> lData)
-        {
-            foreach (var item in lData)
-            {
-                try
-                {
-                    await PlaceOrderClose(item);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.ForceMarket|EXCEPTION| {ex.Message}");
-                }
-            }
-        }
-
         public async Task<bool> PlaceOrder(SignalBase entity, decimal lastPrice)
         {
             try
@@ -572,11 +557,11 @@ namespace TradePr.Service
                     return false;
 
                 var marginType = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeMarginTypeAsync(entity.s, FuturesMarginType.Isolated);
-                if (!marginType.Success)
-                {
-                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được sang Isolated| {entity.s}");
-                    //return false;
-                }
+                //if (!marginType.Success)
+                //{
+                //    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được sang Isolated| {entity.s}");
+                //    //return false;
+                //}
                    
 
                 var eMargin = StaticVal._dicBinanceMargin.FirstOrDefault(x => x.Key == entity.s);
@@ -589,7 +574,7 @@ namespace TradePr.Service
                 var initLevel = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, margin);
                 if (!initLevel.Success)
                 {
-                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được đòn bẩy| {entity.s}| Margin: {margin}");
+                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được đòn bẩy| {entity.s}(x{margin})");
                     //return false;
                 }    
                     
