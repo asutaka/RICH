@@ -1394,7 +1394,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //SHORT RSI Tong(40): 745.8%|W/L: 527/293
+        //SHORT RSI Tong(49): 826.9%|W/L: 529/299
         public async Task CheckAllBINANCE_SHORT()
         {
             try
@@ -1416,58 +1416,63 @@ namespace TestPr.Service
                 var lossTotal = 0;
 
                 #region comment
-                //lTake.Clear();
-                //var lTmp = new List<string>
-                //{
-                //    "EIGENUSDT",
-                //    "NILUSDT",
-                //    "HEIUSDT",
-                //    "NEIROUSDT",
-                //    "DUSKUSDT",
-                //    "KASUSDT",
-                //    "BROCCOLI714USDT",
-                //    "CATIUSDT",
-                //    "GPSUSDT",
-                //    "BIOUSDT",
-                //    "HIPPOUSDT",
-                //    "DYDXUSDT",
-                //    "VICUSDT",
-                //    "PONKEUSDT",
-                //    "MANTAUSDT",
-                //    "OMUSDT",
-                //    "MOODENGUSDT",
-                //    "BERAUSDT",
-                //    "AGLDUSDT",
-                //    "LUMIAUSDT",
-                //    "AXSUSDT",
-                //    "RSRUSDT",
-                //    "ZENUSDT",
-                //    "ALPHAUSDT",
-                //    "LTCUSDT",
-                //    "LINKUSDT",
-                //    "QTUMUSDT",
-                //    "RLCUSDT",
-                //    "CRVUSDT",
-                //    "GALAUSDT",
-                //    "ARPAUSDT",
-                //    "CTSIUSDT",
-                //    "EDUUSDT",
-                //    "AIUSDT",
-                //    "BEAMXUSDT",
-                //    "ETHWUSDT",
-                //    "XVGUSDT",
-                //    "TWTUSDT",
-                //    "CAKEUSDT",
-                //    "1MBABYDOGEUSDT",
-                //    "BADGERUSDT",
-                //    "CHESSUSDT",
-                //    "PROMUSDT",
-                //    "LOKAUSDT",
-                //    "PENGUUSDT",
-                //    "INJUSDT",
-                //    "1000PEPEUSDT",
-                //};
-                //lTake.AddRange(lTmp);
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    //Tier 1
+                    "BROCCOLI714USDT",
+                    "NILUSDT",
+                    "1000XUSDT",
+                    "CATIUSDT",
+                    "HEIUSDT",
+                    "GPSUSDT",
+                    "HIPPOUSDT",
+                    "LINKUSDT",
+                    "DUSKUSDT",
+                    "NEIROUSDT",
+                    "KASUSDT",
+                    "PONKEUSDT",
+                    "MORPHOUSDT",
+                    "AVAAIUSDT",
+                    "VICUSDT",
+                    //Tier 2
+                    "BAKEUSDT",
+                    "DYDXUSDT",
+                    "ARPAUSDT",
+                    "CAKEUSDT",
+                    "ONDOUSDT",
+                    "OMUSDT",
+                    "XVGUSDT",
+                    "OMNIUSDT",
+                    "1MBABYDOGEUSDT",
+                    "SAFEUSDT",
+                    "1000000MOGUSDT",
+                    "CHESSUSDT",
+                    "BERAUSDT",
+                    "MANTAUSDT",
+                    "PROMUSDT",
+                    //Tier 3
+                    "LTCUSDT",
+                    "RLCUSDT",
+                    "CRVUSDT",
+                    "KSMUSDT",
+                    "AXSUSDT",
+                    "ZENUSDT",
+                    "ANKRUSDT",
+                    "CTSIUSDT",
+                    "ACHUSDT",
+                    "TRUUSDT",
+                    "EDUUSDT",
+                    "AGLDUSDT",
+                    "TWTUSDT",
+                    "ETHWUSDT",
+                    "AIUSDT",
+                    "XAIUSDT",
+                    "FIOUSDT",
+                    "MOODENGUSDT",
+                    "BIOUSDT",
+                };
+                lTake.AddRange(lTmp);
                 #endregion
                 foreach (var item in lTake)
                 {
