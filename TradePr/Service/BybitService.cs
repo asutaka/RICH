@@ -656,7 +656,14 @@ namespace TradePr.Service
                         rate = -Math.Abs(rate);
                     }
 
-                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}");
+                    var balance = string.Empty;
+                    var account = await Bybit_GetAccountInfo();
+                    if (account != null)
+                    {
+                        balance = $"|Balance: {account.WalletBalance}$";
+                    }
+
+                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}");
 
                     var builder = Builders<PlaceOrderTrade>.Filter;
                     _placeRepo.DeleteMany(builder.And(

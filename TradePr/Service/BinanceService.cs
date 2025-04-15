@@ -740,8 +740,15 @@ namespace TradePr.Service
                     {
                         rate = -Math.Abs(rate);
                     }
+                    
+                    var balance = string.Empty;
+                    var account = await Binance_GetAccountInfo();
+                    if (account != null)
+                    {
+                        balance = $"|Balance: {account.WalletBalance}";
+                    }
 
-                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.EntryPrice}");
+                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.EntryPrice}{balance}");
                     var builder = Builders<PlaceOrderTrade>.Filter;
                     _placeRepo.DeleteMany(builder.And(
                                                         builder.Eq(x => x.ex, _exchange),
