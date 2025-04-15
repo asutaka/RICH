@@ -745,7 +745,7 @@ namespace TradePr.Service
                     var account = await Binance_GetAccountInfo();
                     if (account != null)
                     {
-                        balance = $"|Balance: {account.WalletBalance}";
+                        balance = $"|Balance: {Math.Round(account.WalletBalance, 1)}$";
                     }
 
                     await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.EntryPrice}{balance}");

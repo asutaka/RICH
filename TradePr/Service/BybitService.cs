@@ -660,7 +660,7 @@ namespace TradePr.Service
                     var account = await Bybit_GetAccountInfo();
                     if (account != null)
                     {
-                        balance = $"|Balance: {account.WalletBalance}$";
+                        balance = $"|Balance: {Math.Round(account.WalletBalance.Value, 1)}$";
                     }
 
                     await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}");
