@@ -1059,7 +1059,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //LONG RSI Tong(37): 660.1%|W/L: 429/221
+        //LONG RSI Tong(45): 928.7%|W/L: 578/309
         public async Task CheckAllBINANCE_LONG()
         {
             try
