@@ -1080,52 +1080,52 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                #region comment
-                lTake.Clear();
-                var lTmp = new List<string>
-                {
-                    "GRTUSDT",
-                    "B3USDT",
-                    "AERGOUSDT",
-                    "1000BONKUSDT",
-                    "ZRXUSDT",
-                    "EPICUSDT",
-                    "DODOXUSDT",
-                    "INJUSDT",
-                    "ALTUSDT",
-                    "MTLUSDT",
-                    "ETHFIUSDT",
-                    "DFUSDT",
-                    "PLUMEUSDT",
-                    "QTUMUSDT",
-                    "TOKENUSDT",
-                    "CETUSUSDT",
-                    "ONDOUSDT",
-                    "OMUSDT",
-                    "BTCUSDT",
-                    "ATAUSDT",
-                    "SEIUSDT",
-                    "DEGENUSDT",
-                    "THEUSDT",
-                    "PHBUSDT",
-                    "1000FLOKIUSDT",
-                    "KSMUSDT",
-                    "PROMUSDT",
-                    "JOEUSDT",
-                    "SWELLUSDT",
-                    "STORJUSDT",
-                    "STGUSDT",
-                    "RENDERUSDT",
-                    "IOTAUSDT",
-                    "ANKRUSDT",
-                    "NFPUSDT",
-                    "BOMEUSDT",
-                    "BIOUSDT",
-                    "LPTUSDT",
-                    "ETHWUSDT",
-                };
-                lTake.AddRange(lTmp);
-                #endregion
+                //#region comment
+                //lTake.Clear();
+                //var lTmp = new List<string>
+                //{
+                //    "GRTUSDT",
+                //    "B3USDT",
+                //    "AERGOUSDT",
+                //    "1000BONKUSDT",
+                //    "ZRXUSDT",
+                //    "EPICUSDT",
+                //    "DODOXUSDT",
+                //    "INJUSDT",
+                //    "ALTUSDT",
+                //    "MTLUSDT",
+                //    "ETHFIUSDT",
+                //    "DFUSDT",
+                //    "PLUMEUSDT",
+                //    "QTUMUSDT",
+                //    "TOKENUSDT",
+                //    "CETUSUSDT",
+                //    "ONDOUSDT",
+                //    "OMUSDT",
+                //    "BTCUSDT",
+                //    "ATAUSDT",
+                //    "SEIUSDT",
+                //    "DEGENUSDT",
+                //    "THEUSDT",
+                //    "PHBUSDT",
+                //    "1000FLOKIUSDT",
+                //    "KSMUSDT",
+                //    "PROMUSDT",
+                //    "JOEUSDT",
+                //    "SWELLUSDT",
+                //    "STORJUSDT",
+                //    "STGUSDT",
+                //    "RENDERUSDT",
+                //    "IOTAUSDT",
+                //    "ANKRUSDT",
+                //    "NFPUSDT",
+                //    "BOMEUSDT",
+                //    "BIOUSDT",
+                //    "LPTUSDT",
+                //    "ETHWUSDT",
+                //};
+                //lTake.AddRange(lTmp);
+                //#endregion
                 foreach (var item in lTake)
                 {
 
@@ -1336,7 +1336,14 @@ namespace TestPr.Service
                                     realWin++;
                             }
                             var count = lModel.Count(x => x.s == item);
-                            var rate = Math.Round((double)realWin/ count, 1);
+                            
+                            if (sumRate / count <= (decimal)0.5)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
+                            var rate = Math.Round((double)realWin / count, 1);
                             Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
 
                             winTotal += winCount;
@@ -1680,6 +1687,12 @@ namespace TestPr.Service
                                     realWin++;
                             }
                             var count = lModel.Count(x => x.s == item);
+                            if (sumRate / count <= (decimal)0.5)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
                             var rate = Math.Round((double)realWin / count, 1);
                             Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
 
@@ -2008,6 +2021,13 @@ namespace TestPr.Service
                                     realWin++;
                             }
                             var count = lModel.Count(x => x.s == item);
+                            if (sumRate / count <= (decimal)0.5)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
+
                             var rate = Math.Round((double)realWin / count, 1);
                             Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
 
