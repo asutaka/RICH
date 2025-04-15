@@ -20,6 +20,7 @@ namespace TradePr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly ISymbolRepo _symRepo;
+        private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         private const long _idUser = 1066022551;
         private const decimal _unit = 70;
@@ -29,15 +30,15 @@ namespace TradePr.Service
         private const int _op = (int)EOption.Ma20; 
 
         private readonly int _exchange = (int)EExchange.Bybit;
-        private Dictionary<string, DateTime> _dicOrder = new Dictionary<string, DateTime>();
         public BybitService(ILogger<BybitService> logger,
-                            IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, ISymbolConfigRepo symConfigRepo)
+                            IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _symRepo = symRepo;
             _symConfigRepo = symConfigRepo;
+            _placeRepo = placeRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -420,9 +421,18 @@ namespace TradePr.Service
 
                     var curTime = (dt - item.UpdateTime.Value).TotalHours;
                     double dicTime = 0;
-                    if(_dicOrder.Any(x => x.Key == item.Symbol))
+
+                    var builder = Builders<PlaceOrderTrade>.Filter;
+                    var place = _placeRepo.GetEntityByFilter(builder.And(
+                        builder.Eq(x => x.ex, _exchange),
+                        builder.Eq(x => x.s, item.Symbol),
+                        builder.Gte(x => x.time, DateTime.Now.AddHours(-5)),
+                        builder.Lte(x => x.time, DateTime.Now.AddHours(-4))
+                    ));
+
+                    if (place != null)
                     {
-                        dicTime = (dt - _dicOrder[item.Symbol]).TotalHours;
+                        dicTime = 10;
                     }    
 
                     if (curTime >= _HOUR || dicTime >= _HOUR)
@@ -598,15 +608,12 @@ namespace TradePr.Service
                     var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
 
-                    if(_dicOrder.Any(x => x.Key == first.Symbol))
+                    _placeRepo.InsertOne(new PlaceOrderTrade
                     {
-                        _dicOrder[first.Symbol] = DateTime.Now;
-                    }
-                    else
-                    {
-                        _dicOrder.Add(first.Symbol, DateTime.Now);
-                    }
-
+                        ex = _exchange,
+                        s = first.Symbol,
+                        time = DateTime.Now
+                    });
                     return true;
                 }
             }
@@ -651,10 +658,11 @@ namespace TradePr.Service
 
                     await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}");
 
-                    if (_dicOrder.Any(x => x.Key == pos.Symbol))
-                    {
-                        _dicOrder.Remove(pos.Symbol);
-                    }
+                    var builder = Builders<PlaceOrderTrade>.Filter;
+                    _placeRepo.DeleteMany(builder.And(
+                                                        builder.Eq(x => x.ex, _exchange),
+                                                        builder.Eq(x => x.s, pos.Symbol)
+                                                    ));
                     return true;
                 }
             }

@@ -13,6 +13,7 @@
             services.AddSingleton<IMa20TradeRepo, Ma20TradeRepo>();
             services.AddSingleton<ISymbolRepo, SymbolRepo>();
             services.AddSingleton<ISymbolConfigRepo, SymbolConfigRepo>();
+            services.AddSingleton<IPlaceOrderTradeRepo, PlaceOrderTradeRepo>();
         }
     }
 }

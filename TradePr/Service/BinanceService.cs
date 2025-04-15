@@ -19,6 +19,7 @@ namespace TradePr.Service
         private readonly ILogger<BinanceService> _logger;
         private readonly ITradingRepo _tradingRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
+        private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
@@ -26,16 +27,16 @@ namespace TradePr.Service
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;
         private readonly decimal _SL_RATE = 0.025m;
-        private Dictionary<string, DateTime> _dicOrder = new Dictionary<string, DateTime>();
         private readonly int _exchange = (int)EExchange.Binance;
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISymbolConfigRepo symConfigRepo,
-                            IAPIService apiService, ITeleService teleService)
+                            IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
             _symConfigRepo = symConfigRepo;
             _apiService = apiService;
             _teleService = teleService;
+            _placeRepo = placeRepo;
         }
         public async Task<BinanceUsdFuturesAccountBalance> Binance_GetAccountInfo()
         {
@@ -491,9 +492,17 @@ namespace TradePr.Service
                     var side = item.PositionAmt < 0 ? OrderSide.Sell : OrderSide.Buy;
                     var curTime = (DateTime.UtcNow - item.UpdateTime.Value).TotalHours;
                     double dicTime = 0;
-                    if (_dicOrder.Any(x => x.Key == item.Symbol))
+                    var builder = Builders<PlaceOrderTrade>.Filter;
+                    var place = _placeRepo.GetEntityByFilter(builder.And(
+                        builder.Eq(x => x.ex, _exchange),
+                        builder.Eq(x => x.s, item.Symbol),
+                        builder.Gte(x => x.time, DateTime.Now.AddHours(-5)),
+                        builder.Lte(x => x.time, DateTime.Now.AddHours(-4))
+                    ));
+
+                    if (place != null)
                     {
-                        dicTime = (dt - _dicOrder[item.Symbol]).TotalHours;
+                        dicTime = 10;
                     }
 
                     if (curTime >= _HOUR || dicTime >= _HOUR)
@@ -683,14 +692,12 @@ namespace TradePr.Service
 
                     var mes = $"[ACTION - {side.ToString().ToUpper()}|Binance] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
-                    if (_dicOrder.Any(x => x.Key == first.Symbol))
+                    _placeRepo.InsertOne(new PlaceOrderTrade
                     {
-                        _dicOrder[first.Symbol] = DateTime.Now;
-                    }
-                    else
-                    {
-                        _dicOrder.Add(first.Symbol, DateTime.Now);
-                    }
+                        ex = _exchange,
+                        s = first.Symbol,
+                        time = DateTime.Now
+                    });
 
                     return true;
                 }
@@ -735,10 +742,11 @@ namespace TradePr.Service
                     }
 
                     await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.EntryPrice}");
-                    if (_dicOrder.Any(x => x.Key == pos.Symbol))
-                    {
-                        _dicOrder.Remove(pos.Symbol);
-                    }
+                    var builder = Builders<PlaceOrderTrade>.Filter;
+                    _placeRepo.DeleteMany(builder.And(
+                                                        builder.Eq(x => x.ex, _exchange),
+                                                        builder.Eq(x => x.s, pos.Symbol)
+                                                    ));
                     return true;
                 }
             }
