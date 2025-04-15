@@ -6,10 +6,8 @@
         {
             services.AddSingleton<IBinanceService, BinanceService>();
             services.AddSingleton<IBybitService, BybitService>();
-            services.AddSingleton<ICacheService, CacheService>();
             services.AddSingleton<IAPIService, APIService>();
             services.AddSingleton<ITeleService, TeleService>();
-            services.AddSingleton<IWebSocketService, WebSocketService>();
         }
     }
 }

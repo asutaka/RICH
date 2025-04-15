@@ -1,5 +1,4 @@
 ﻿using Bybit.Net.Enums;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Skender.Stock.Indicators;
 using System.Net.Http.Headers;

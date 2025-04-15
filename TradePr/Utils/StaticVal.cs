@@ -1,7 +1,6 @@
 ﻿using Binance.Net.Clients;
 using Bybit.Net.Clients;
 using CryptoExchange.Net.Authentication;
-using TradePr.DAL.Entity;
 
 namespace TradePr.Utils
 {
@@ -52,26 +51,6 @@ namespace TradePr.Utils
             }
             return _bybit;
         }
-
-        public static List<string> _lTokenUnlockBlackList = new List<string>
-        {
-           
-            "LAZIO",
-            "PORTO",
-            "JUV",
-            "SANTOS",
-            "ATM",
-            "ASR",
-
-            "TORN",
-            "CFX",
-            "RAD",
-            "OGN",
-            "DAR",
-            "CGPT",
-            "VOXEL",
-            "SEI",
-        };
 
         public static List<string> _lRsiShort = new List<string>
         {
@@ -367,8 +346,6 @@ namespace TradePr.Utils
             { "ADAUSDT", 75 },
             { "OMUSDT", 5 }
         };
-
-        public static List<PrepareTrade> _lPrepare = new List<PrepareTrade>();
 
         public static List<string> _lMa20 = new List<string>
         {

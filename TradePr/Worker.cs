@@ -7,14 +7,12 @@ namespace TradePr
         private readonly ILogger<Worker> _logger;
         private readonly IBinanceService _binnanceService;
         private readonly IBybitService _bybitService;
-        private readonly IWebSocketService _socketService;
 
-        public Worker(ILogger<Worker> logger, IBinanceService binanceService, IBybitService bybitService, IWebSocketService socketService)
+        public Worker(ILogger<Worker> logger, IBinanceService binanceService, IBybitService bybitService)
         {
             _logger = logger;
             _binnanceService = binanceService;
             _bybitService = bybitService;
-            _socketService = socketService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,7 +23,6 @@ namespace TradePr
             //await _bybitService.Bybit_Trade();
             //return;
 
-            //_socketService.BinanceAction();
             while (!stoppingToken.IsCancellationRequested)
             {
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
