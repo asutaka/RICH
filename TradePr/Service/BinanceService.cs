@@ -26,6 +26,7 @@ namespace TradePr.Service
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;
         private readonly decimal _SL_RATE = 0.025m;
+        private Dictionary<string, DateTime> _dicOrder = new Dictionary<string, DateTime>();
         private readonly int _exchange = (int)EExchange.Binance;
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISymbolConfigRepo symConfigRepo,
                             IAPIService apiService, ITeleService teleService)
@@ -489,7 +490,13 @@ namespace TradePr.Service
                 {
                     var side = item.PositionAmt < 0 ? OrderSide.Sell : OrderSide.Buy;
                     var curTime = (DateTime.UtcNow - item.UpdateTime.Value).TotalHours;
-                    if(curTime >= _HOUR)
+                    double dicTime = 0;
+                    if (_dicOrder.Any(x => x.Key == item.Symbol))
+                    {
+                        dicTime = (dt - _dicOrder[item.Symbol]).TotalHours;
+                    }
+
+                    if (curTime >= _HOUR || dicTime >= _HOUR)
                     {
                         await PlaceOrderClose(item);
                     }
@@ -676,6 +683,14 @@ namespace TradePr.Service
 
                     var mes = $"[ACTION - {side.ToString().ToUpper()}|Binance] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
+                    if (_dicOrder.Any(x => x.Key == first.Symbol))
+                    {
+                        _dicOrder[first.Symbol] = DateTime.Now;
+                    }
+                    else
+                    {
+                        _dicOrder.Add(first.Symbol, DateTime.Now);
+                    }
 
                     return true;
                 }
@@ -720,6 +735,10 @@ namespace TradePr.Service
                     }
 
                     await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Binance] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.EntryPrice}");
+                    if (_dicOrder.Any(x => x.Key == pos.Symbol))
+                    {
+                        _dicOrder.Remove(pos.Symbol);
+                    }
                     return true;
                 }
             }

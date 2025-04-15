@@ -2,6 +2,7 @@
 using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
+using System.Collections.Generic;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -28,6 +29,7 @@ namespace TradePr.Service
         private const int _op = (int)EOption.Ma20; 
 
         private readonly int _exchange = (int)EExchange.Bybit;
+        private Dictionary<string, DateTime> _dicOrder = new Dictionary<string, DateTime>();
         public BybitService(ILogger<BybitService> logger,
                             IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, ISymbolConfigRepo symConfigRepo)
         {
@@ -417,7 +419,13 @@ namespace TradePr.Service
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
 
                     var curTime = (dt - item.UpdateTime.Value).TotalHours;
-                    if (curTime >= _HOUR)
+                    double dicTime = 0;
+                    if(_dicOrder.Any(x => x.Key == item.Symbol))
+                    {
+                        dicTime = (dt - _dicOrder[item.Symbol]).TotalHours;
+                    }    
+
+                    if (curTime >= _HOUR || dicTime >= _HOUR)
                     {
                         await PlaceOrderClose(item);
                     }
@@ -590,6 +598,15 @@ namespace TradePr.Service
                     var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
 
+                    if(_dicOrder.Any(x => x.Key == first.Symbol))
+                    {
+                        _dicOrder[first.Symbol] = DateTime.Now;
+                    }
+                    else
+                    {
+                        _dicOrder.Add(first.Symbol, DateTime.Now);
+                    }
+
                     return true;
                 }
             }
@@ -634,6 +651,10 @@ namespace TradePr.Service
 
                     await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}");
 
+                    if (_dicOrder.Any(x => x.Key == pos.Symbol))
+                    {
+                        _dicOrder.Remove(pos.Symbol);
+                    }
                     return true;
                 }
             }
