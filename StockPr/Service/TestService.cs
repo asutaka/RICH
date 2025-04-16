@@ -27,7 +27,7 @@ namespace StockPr.Service
             _apiService = apiService;
             _stockRepo = stockRepo;
         }
-       
+        
         public async Task Check2Buy()
         {
             try

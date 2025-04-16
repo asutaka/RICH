@@ -18,15 +18,17 @@ namespace StockPr
         private readonly IBaoCaoTaiChinhService _bctcService;
         private readonly IPortfolioService _portfolioService;
         private readonly IEPSRankService _epsService;
+        private readonly IF319Service _f319Service;
         private readonly ITestService _testService;
 
         private const long _idGroup = -4237476810;
+        private const long _idGroupF319 = -4739186506;
         private const long _idChannel = -1002247826353;
         private const long _idUser = 1066022551;
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService)
+                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService, IF319Service f319Service)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -41,13 +43,15 @@ namespace StockPr
             _portfolioService = portfolioService;
             _epsService = epsService;
             _testService = testService;
+            _f319Service = f319Service;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
-            ////for Test
+            //////for Test
             //await _testService.Check2Sell();
+            //await _f319Service.F319KOL();
             //return;
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -59,7 +63,7 @@ namespace StockPr
                 var isRealTime = (dt.Hour >= 9 && dt.Hour < 12) || (dt.Hour >= 13 && dt.Hour < 15);//từ 9h đến 3h
                 //Báo cáo phân tích
                 var lBCPT = await _bcptService.BaoCaoPhanTich();
-                if (lBCPT.Item1?.Any() ?? false) 
+                if (lBCPT.Item1?.Any() ?? false)
                 {
                     foreach (var item in lBCPT.Item1)
                     {
@@ -67,12 +71,22 @@ namespace StockPr
                         Thread.Sleep(200);
                     }
                 }
-                if(lBCPT.Item2?.Any() ?? false)
+                if (lBCPT.Item2?.Any() ?? false)
                 {
                     var mes = string.Join("\n", lBCPT.Item2);
                     await _teleService.SendMessage(_idUser, mes);
                     Thread.Sleep(200);
                 }
+
+                var f319 = await _f319Service.F319KOL();
+                if(f319.Any())
+                {
+                    foreach (var item in f319)
+                    {
+                        await _teleService.SendMessage(_idGroupF319, item.Message, true);
+                        Thread.Sleep(200);
+                    }
+                }    
 
                 if(dt.Day == 1)
                 {

@@ -19,6 +19,7 @@
             services.AddSingleton<IPortfolioService, PortfolioService>();
             services.AddSingleton<IEPSRankService, EPSRankService>();
             services.AddSingleton<ITestService, TestService>();
+            services.AddSingleton<IF319Service, F319Service>();
         }
     }
 }

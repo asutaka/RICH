@@ -10,6 +10,7 @@
             services.AddSingleton<IConfigDataRepo, ConfigDataRepo>();
             services.AddSingleton<IThongKeRepo, ThongKeRepo>();
             services.AddSingleton<IConfigBaoCaoPhanTichRepo, ConfigBaoCaoPhanTichRepo>();
+            services.AddSingleton<IConfigF319Repo, ConfigF319Repo>();
             services.AddSingleton<ICategoryRepo, CategoryRepo>();
             services.AddSingleton<IOrderBlockRepo, OrderBlockRepo>();
             services.AddSingleton<IMacroMicroRepo, MacroMicroRepo>();

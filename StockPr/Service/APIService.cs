@@ -58,6 +58,7 @@ namespace StockPr.Service
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
 
         Task<BCPT_Crawl_Data> DragonCapital_Portfolio();
+        Task<List<F319Model>> F319_Scout(string acc);
     }
     public class APIService : IAPIService
     {
@@ -1316,6 +1317,96 @@ namespace StockPr.Service
                 _logger.LogError($"APIService.SSI_GetFreeloadStock|EXCEPTION| {ex.Message}");
             }
             return 0;
+        }
+
+        public async Task<List<F319Model>> F319_Scout(string acc)
+        {
+            var lOutput = new List<F319Model>();
+            var url = $"https://f319.com/members/{acc}/recent-content?_xfNoRedirect=1&_xfResponseType=json";
+            try
+            {
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                requestMessage.Method = HttpMethod.Get;
+                var responseMessage = await client.SendAsync(requestMessage);
+
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    return lOutput;
+
+                var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<F319Raw>(responseMessageStr);
+                if(responseModel != null)
+                {
+                    //<div class="listBlock main">
+                    //Handle
+                    var lSplit = responseModel.TemplateHtml.Split(new string[] { "<div class=\"listBlock main\">" }, StringSplitOptions.None);
+                    if (lSplit.Count() <= 1)
+                        return lOutput;
+                    lSplit = lSplit.Skip(1).ToArray();
+                    foreach (var item in lSplit)
+                    {
+                        try
+                        {   
+                            var model = new F319Model();
+                            #region Title
+                            var indexH3_Start = item.IndexOf("<h3 class=\"title\">");
+                            var indexH3_End = item.IndexOf("</h3>");
+                            if (indexH3_Start < 0 || indexH3_End < 0)
+                                continue;
+
+                            var titleStr = item.Substring(indexH3_Start + 18, indexH3_End - (indexH3_Start + 18 + 4));
+                            var indexTitleStart = titleStr.IndexOf('"');
+                            var indexTitleEnd = titleStr.IndexOf(">");
+                            if (indexTitleStart < 0 || indexTitleEnd < 0)
+                                continue;
+
+                            var titleURL = titleStr.Substring(indexTitleStart + 1, indexTitleEnd - (indexTitleStart + 1 + 1));
+                            var title = titleStr.Substring(indexTitleEnd + 1);
+
+                            model.Url = titleURL;
+                            model.Title = title;
+                            #endregion
+
+                            #region Content
+                            var indexBlockquoteStart = item.IndexOf("<blockquote class=\"snippet\">");
+                            var indexBlockquoteEnd = item.IndexOf("</blockquote>");
+                            if (indexBlockquoteStart < 0 || indexBlockquoteEnd < 0)
+                                continue;
+
+                            var contentStr = item.Substring(indexBlockquoteStart + 28, indexBlockquoteEnd - (indexBlockquoteStart + 28 + 7)).Trim();
+                            var indexContentEnd = contentStr.IndexOf(">");
+                            if (indexContentEnd < 0)
+                                continue;
+
+                            var content = contentStr.Substring(indexContentEnd + 1);
+                            model.Content = content;
+                            #endregion
+
+                            #region Time
+                            var indexTime = item.IndexOf("data-time=");
+                            if (indexTime < 0)
+                                continue;
+                            var timeStr = item.Substring(indexTime + 11, 10);
+                            var time = int.Parse(timeStr);
+                            model.TimePost = time;
+                            #endregion
+                            lOutput.Add(model);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"APIService.F319_Scout|EXCEPTION| {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.F319_Scout|EXCEPTION| {ex.Message}");
+            }
+            return lOutput;
         }
 
         #region Báo cáo tài chính
