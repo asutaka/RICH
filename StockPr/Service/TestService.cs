@@ -45,7 +45,12 @@ namespace StockPr.Service
 
                 var winTotal = 0;
                 var lossTotal = 0;
-
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    "DPG"
+                };
+                lTake.AddRange(lTmp);
                 foreach (var item in lTake)
                 {
                     var winCount = 0;
@@ -61,6 +66,13 @@ namespace StockPr.Service
                         var last = lData15m.Last();
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
+
+                        var countRSI = lrsi.Where(x => x.Rsi != null && x.Rsi <= 40);
+                        Console.WriteLine($"{countRSI}");
+                        foreach (var rsi in countRSI)
+                        {
+                            Console.WriteLine(rsi.Date.ToString("dd/MM/yyyy"));
+                        }
 
                         DateTime dtFlag = DateTime.MinValue;
                         //var count = 0;
@@ -85,8 +97,7 @@ namespace StockPr.Service
                                 if (cur.Close >= cur.Open
                                     || ma20.Sma is null
                                     || rsi.Rsi > 35
-                                    || cur.Low >= (decimal)ma20.LowerBand.Value
-                                    //|| cur.High >= (decimal)ma20.Sma.Value
+                                    //|| cur.Low >= (decimal)ma20.LowerBand.Value
                                     || Math.Abs(minOpenClose - (decimal)ma20.LowerBand.Value) > Math.Abs((decimal)ma20.Sma.Value - minOpenClose)
                                     )
                                     continue;
@@ -97,8 +108,8 @@ namespace StockPr.Service
 
                                 var pivot = lData15m.First(x => x.Date > ma20.Date);
                                 var bbPivot = lbb.First(x => x.Date > ma20.Date);
-                                if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
-                                    || pivot.High >= (decimal)bbPivot.Sma.Value
+                                if (pivot.High >= (decimal)bbPivot.Sma.Value
+                                    //|| pivot.Low >= (decimal)bbPivot.LowerBand.Value
                                     || (pivot.Low >= cur.Low && pivot.High <= cur.High))
                                     continue;
 
