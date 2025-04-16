@@ -4,6 +4,7 @@ using StockPr.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -37,8 +38,8 @@ namespace StockPr.Service
                 //var lTake = lUsdt.Skip(0).Take(50).ToList();
                 //2x1.7 best
                 //decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
-                decimal SL_RATE = 7m;//1.5,1.6,1.8,1.9,2
-                int hour = 7;//1h,2h,3h,4h
+                decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
+                int hour = 10;//1h,2h,3h,4h
 
                 var lMesAll = new List<string>();
                 var lModel = new List<LongMa20>();
@@ -67,21 +68,14 @@ namespace StockPr.Service
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
 
-                        var countRSI = lrsi.Where(x => x.Rsi != null && x.Rsi <= 40);
-                        Console.WriteLine($"{countRSI}");
-                        foreach (var rsi in countRSI)
-                        {
-                            Console.WriteLine(rsi.Date.ToString("dd/MM/yyyy"));
-                        }
-
                         DateTime dtFlag = DateTime.MinValue;
                         //var count = 0;
                         foreach (var ma20 in lbb)
                         {
                             try
                             {
-                                //if (dtFlag >= ma20.Date)
-                                //    continue;
+                                if (dtFlag >= ma20.Date)
+                                    continue;
 
                                 //if (ma20.Date.Month == 1 && ma20.Date.Day == 7 && ma20.Date.Year == 2025)
                                 //{
@@ -91,20 +85,19 @@ namespace StockPr.Service
                                 var side = 0;
                                 var cur = lData15m.First(x => x.Date == ma20.Date);
                                 var rsi = lrsi.First(x => x.Date == ma20.Date);
-                                var maxOpenClose = Math.Max(cur.Open, cur.Close);
                                 var minOpenClose = Math.Min(cur.Open, cur.Close);
 
                                 if (cur.Close >= cur.Open
                                     || ma20.Sma is null
-                                    || rsi.Rsi > 35
+                                    || rsi.Rsi > 40
                                     //|| cur.Low >= (decimal)ma20.LowerBand.Value
                                     || Math.Abs(minOpenClose - (decimal)ma20.LowerBand.Value) > Math.Abs((decimal)ma20.Sma.Value - minOpenClose)
                                     )
                                     continue;
 
                                 var rsiPivot = lrsi.FirstOrDefault(x => x.Date > ma20.Date);
-                                if (rsiPivot is null || rsiPivot.Rsi > 35 || rsiPivot.Rsi < 25)
-                                    continue;
+                                //if (rsiPivot is null || rsiPivot.Rsi > 35 || rsiPivot.Rsi < 25)
+                                //    continue;
 
                                 var pivot = lData15m.First(x => x.Date > ma20.Date);
                                 var bbPivot = lbb.First(x => x.Date > ma20.Date);
@@ -128,7 +121,11 @@ namespace StockPr.Service
                                         continue;
                                 }
 
-                                cur = pivot;
+                                var buy = lData15m.FirstOrDefault(x => x.Date > rsiPivot.Date);
+                                if (buy is null)
+                                    continue;
+
+                                cur = buy;
 
                                 var next = lData15m.FirstOrDefault(x => x.Date > cur.Date);
                                 if (next is null)
@@ -136,24 +133,24 @@ namespace StockPr.Service
                                 var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
 
                                 var eEntry = cur;
-                                var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddDays(hour));
+                                var eClose = lData15m.Where(x => x.Date >= eEntry.Date).Skip(hour).FirstOrDefault();
                                 if (eClose is null)
                                     continue;
 
-                                var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddDays(hour));
+                                var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eClose.Date).Skip(2);
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
                                     if (itemClose.Close > (decimal)ma.UpperBand)
                                     {
-                                        eClose = itemClose;
+                                        eClose = lData15m.FirstOrDefault(x => x.Date > itemClose.Date);
                                         break;
                                     }
                                 }
 
                                 dtFlag = eClose.Date;
-                                var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
-                                var lRange = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eClose.Date);
+                                var rate = Math.Round(100 * (-1 + eClose.Open / eEntry.Open), 1);
+                                var lRange = lData15m.Where(x => x.Date >= eEntry.Date && x.Date <= eClose.Date).Skip(2);
                                 var maxH = lRange.Max(x => x.High);
                                 var minL = lRange.Min(x => x.Low);
 
@@ -164,16 +161,9 @@ namespace StockPr.Service
                                 }
 
                                 decimal maxTP = 0, maxSL = 0;
-                                if (side == 0)
-                                {
-                                    maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
-                                    maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
-                                }
-                                else
-                                {
-                                    maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
-                                    maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
-                                }
+                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Open), 1);
+                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Open), 1);
+
                                 if (maxSL <= -SL_RATE)
                                 {
                                     rate = -SL_RATE;
@@ -237,10 +227,10 @@ namespace StockPr.Service
                             //}
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
-                            foreach (var mes in lMes)
-                            {
-                                Console.WriteLine(mes);
-                            }
+                            //foreach (var mes in lMes)
+                            //{
+                            //    Console.WriteLine(mes);
+                            //}
                             var realWin = 0;
                             foreach (var model in lModel.Where(x => x.s == item))
                             {
