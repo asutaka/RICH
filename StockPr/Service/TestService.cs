@@ -49,7 +49,77 @@ namespace StockPr.Service
                 lTake.Clear();
                 var lTmp = new List<string>
                 {
-                    "DPG"
+                    "ASM",
+                    "BCE",
+                    "BFC",
+                    "BMP",
+                    "CNG",
+                    "CSM",
+                    "CSV",
+                    "CTG",
+                    "CTI",
+                    "DC4",
+                    "DIG",
+                    "DLG",
+                    "DPG",
+                    "DPR",
+                    "ELC",
+                    "GEX",
+                    "GIL",
+                    "GMD",
+                    "GVR",
+                    "HAR",
+                    "HCM",
+                    "HDC",
+                    "HDG",
+                    "HSG",
+                    "KBC",
+                    "LHG",
+                    "MSB",
+                    "MSH",
+                    "NAB",
+                    "NAF",
+                    "NHA",
+                    "OCB",
+                    "PC1",
+                    "PET",
+                    "PHR",
+                    "PVT",
+                    "SBT",
+                    "STB",
+                    "SZC",
+                    "TCL",
+                    "TCM",
+                    "TIP",
+                    "TLG",
+                    "TNT",
+                    "TTF",
+                    "VGC",
+                    "VIP",
+                    "VPB",
+                    "VPG",
+                    "VRE",
+                    "VSC",
+                    "VTO",
+                    "DST",
+                    "LAS",
+                    "MST",
+                    "PSD",
+                    "PVB",
+                    "PVC",
+                    "TC6",
+                    "TIG",
+                    "TKG",
+                    "TNG",
+                    "VCS",
+                    "VGS",
+                    "BOT",
+                    "DDV",
+                    "DVN",
+                    "FOX",
+                    "HNM",
+                    "PXT",
+                    "VGT",
                 };
                 lTake.AddRange(lTmp);
                 foreach (var item in lTake)
@@ -75,6 +145,9 @@ namespace StockPr.Service
                             try
                             {
                                 if (dtFlag >= ma20.Date)
+                                    continue;
+
+                                if (ma20.Date >= DateTime.Now.AddDays(-3))
                                     continue;
 
                                 //if (ma20.Date.Month == 1 && ma20.Date.Day == 7 && ma20.Date.Year == 2025)
@@ -197,7 +270,8 @@ namespace StockPr.Service
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+                                break;
+                                //_logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
                             }
 
                         }
@@ -210,8 +284,8 @@ namespace StockPr.Service
                         //    Console.WriteLine(mes);
                         //}
                         //
-                        //if (winCount <= lossCount)
-                        //    continue;
+                        if (winCount <= lossCount)
+                            continue;
                         if (winCount + lossCount <= 0)
                             continue;
 
@@ -219,12 +293,12 @@ namespace StockPr.Service
                         if (rateRes > (decimal)0.5)
                         {
                             var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
-                            //if (sumRate <= 1)
-                            //{
-                            //    var lRemove = lModel.Where(x => x.s == item);
-                            //    lModel = lModel.Except(lRemove).ToList();
-                            //    continue;
-                            //}
+                            if (sumRate <= 1)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
                             //foreach (var mes in lMes)
