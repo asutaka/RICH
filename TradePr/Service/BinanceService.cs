@@ -566,7 +566,7 @@ namespace TradePr.Service
                 }
 
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
-                if (pos.Data.Count() >= 3)
+                if (pos.Data.Count() >= 4)
                     return false;
 
                 if (pos.Data.Any(x => x.Symbol == entity.s))

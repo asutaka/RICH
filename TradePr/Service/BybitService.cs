@@ -496,7 +496,7 @@ namespace TradePr.Service
                     return false;
 
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                if (pos.Data.List.Count() >= 3)
+                if (pos.Data.List.Count() >= 4)
                     return false;
 
                 if (pos.Data.List.Any(x => x.Symbol == entity.s))
