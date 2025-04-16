@@ -1011,7 +1011,7 @@ namespace TestPr.Service
                                 var next = lData15m.FirstOrDefault(x => x.Date == cur.Date.AddMinutes(15));
                                 if (next is null)
                                     continue;
-                                var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
+                                var rateEntry = Math.Round(100 * (-1 + cur.Close / next.High), 1);// tỉ lệ từ entry đến giá thấp nhất
 
                                 var eEntry = cur;
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
@@ -1710,7 +1710,7 @@ namespace TestPr.Service
                                 var next = lData15m.FirstOrDefault(x => x.Date == cur.Date.AddMinutes(15));
                                 if (next is null)
                                     continue;
-                                var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
+                                var rateEntry = Math.Round(100 * (-1 + cur.Close / next.High), 1);// tỉ lệ từ entry đến giá thấp nhất
 
                                 var eEntry = cur;
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));

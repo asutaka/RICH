@@ -47,7 +47,7 @@ namespace StockPr
         {
             StockInstance();
             ////for Test
-            //await _testService.Check2Buy();
+            //await _testService.Check2Sell();
             //return;
             while (!stoppingToken.IsCancellationRequested)
             {
