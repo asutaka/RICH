@@ -777,6 +777,12 @@ namespace TestPr.Service
                             }
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
+                            if (perRate < 0.6)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
                             Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
@@ -1133,6 +1139,13 @@ namespace TestPr.Service
                             }
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
+                            if(perRate < 0.6)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
+
                             Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
@@ -1469,6 +1482,12 @@ namespace TestPr.Service
 
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
+                            if (perRate < 0.6)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
                             Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
@@ -1836,6 +1855,12 @@ namespace TestPr.Service
 
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
+                            if (perRate < 0.6)
+                            {
+                                var lRemove = lModel.Where(x => x.s == item);
+                                lModel = lModel.Except(lRemove).ToList();
+                                continue;
+                            }
                             Console.WriteLine($"{item}| W/Total: {realWin}/{count} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
