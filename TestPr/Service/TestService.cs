@@ -776,7 +776,8 @@ namespace TestPr.Service
                                 continue;
                             }
                             var rate = Math.Round((double)realWin / count, 1);
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
+                            var perRate = Math.Round((float)sumRate / count, 1);
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
@@ -1131,7 +1132,8 @@ namespace TestPr.Service
                                 continue;
                             }
                             var rate = Math.Round((double)realWin / count, 1);
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
+                            var perRate = Math.Round((float)sumRate / count, 1);
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
@@ -1466,7 +1468,8 @@ namespace TestPr.Service
                             }
 
                             var rate = Math.Round((double)realWin / count, 1);
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
+                            var perRate = Math.Round((float)sumRate / count, 1);
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
@@ -1832,7 +1835,8 @@ namespace TestPr.Service
                             }
 
                             var rate = Math.Round((double)realWin / count, 1);
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{count} = {rate}%|Rate: {sumRate}%");
+                            var perRate = Math.Round((float)sumRate / count, 1);
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{count} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
