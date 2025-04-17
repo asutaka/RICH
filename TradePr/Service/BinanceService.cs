@@ -23,7 +23,7 @@ namespace TradePr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
-        private const decimal _unit = 60;
+        private const decimal _unit = 70;
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;
         private readonly decimal _SL_RATE = 0.025m;
