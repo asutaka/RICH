@@ -80,6 +80,13 @@ namespace StockPr.Service
                 {
                     lOutput.AddRange(lKOL7Clean);
                 }
+
+                var lKOL8 = await _apiService.F319_Scout("hoctusailam.528279");//FA
+                var lKOL8Clean = Handle(lKOL8, "hoctusailam");
+                if (lKOL8Clean.Any())
+                {
+                    lOutput.AddRange(lKOL8Clean);
+                }
             }
             catch (Exception ex)
             {
