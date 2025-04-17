@@ -816,7 +816,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //SHORT RSI Tong(49): 826.9%|W/L: 529/299
+        //SHORT RSI Tong(52): 850.7%|W/L: 561/313
         public async Task CheckAllBINANCE_SHORT()
         {
             try
