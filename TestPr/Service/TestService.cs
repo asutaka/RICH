@@ -1173,7 +1173,7 @@ namespace TestPr.Service
             }
         }
 
-        //LONG RSI Tong(60): 1045.5%|W/L: 731/476
+        //LONG RSI Tong(42): 850.3%|W/L: 549/336
         public async Task CheckAllBYBIT_LONG()
         {
             try
@@ -1194,74 +1194,55 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                //#region comment
-                //lTake.Clear();
-                //var lTmp = new List<string>
-                //{
-                //    //Tier 1
-                //    "VIDTUSDT",
-                //    "EPICUSDT",
-                //    "DGBUSDT",
-                //    "MASAUSDT",
-                //    "BRUSDT",//
-                //    "BEAMUSDT",//
-                //    "MEMEUSDT",//
-                //    "PENDLEUSDT",
-                //    "NEIROETHUSDT",
-                //    "GMTUSDT",//
-                //    "GPSUSDT",
-                //    "CFXUSDT",
-                //    "MAGICUSDT",
-                //    "SLFUSDT",
-                //    "SANDUSDT",
-                //    "FIDAUSDT",
-                //    "XCHUSDT",
-                //    "VIRTUALUSDT",
-                //    "BIGTIMEUSDT",
-                //    "BNBUSDT",
-                //    "ETHFIUSDT",
-                //    "LUCEUSDT",
-                //    "RAREUSDT",
-                //    "AERGOUSDT",
-                //    "ALICEUSDT",
-                //    "PHBUSDT",
-                //    ////Tire 2
-                //    "MASKUSDT",
-                //    "NEOUSDT",
-                //    "VRUSDT",
-                //    "ENJUSDT",
-                //    "SEIUSDT",
-                //    "SNXUSDT",
-                //    "PROMUSDT",
-                //    "SOLOUSDT",
-                //    "TOKENUSDT",
-                //    "WUSDT",
-                //    "ZBCNUSDT",
-                //    "ZILUSDT",
-                //    "ADAUSDT",
-                //    "ALTUSDT",
-                //    "ANKRUSDT",
-                //    "ARKMUSDT",
-                //    "BATUSDT",
-                //    "BTCUSDT",
-                //    "DOGSUSDT",
-                //    "FILUSDT",
-                //    "FLOCKUSDT",
-                //    "FLUXUSDT",
-                //    "GLMRUSDT",
-                //    "GLMUSDT",
-                //    "INJUSDT",
-                //    "KAVAUSDT",
-                //    "LQTYUSDT",
-                //    "MEMEFIUSDT",
-                //    "NCUSDT",
-                //    "PLUMEUSDT",
-                //    "PORTALUSDT",
-                //    "QTUMUSDT",
-                //    "RAYDIUMUSDT",
-                //};
-                //lTake.AddRange(lTmp);
-                //#endregion
+                #region comment
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    "DGBUSDT",
+                    "AERGOUSDT",
+                    "GMTUSDT",
+                    "GPSUSDT",
+                    "MEMEUSDT",
+                    "XCHUSDT",
+                    "RAYDIUMUSDT",
+                    "VIRTUALUSDT",
+                    "PENDLEUSDT",
+                    "BEAMUSDT",
+                    "PHBUSDT",
+                    "ZBCNUSDT",
+                    "SLFUSDT",
+                    "GOATUSDT",
+                    "MANEKIUSDT",
+                    "PYTHUSDT",
+                    "BIGTIMEUSDT",
+                    "BNBUSDT",
+                    "CFXUSDT",
+                    "FIDAUSDT",
+                    "NEOUSDT",
+                    "LQTYUSDT",
+                    "RAREUSDT",
+                    "SANDUSDT",
+                    "WUSDT",
+                    "ZILUSDT",
+                    "ADAUSDT",
+                    "ALICEUSDT",
+                    "ALTUSDT",
+                    "ARKMUSDT",
+                    "FLUXUSDT",
+                    "PLUMEUSDT",
+                    "BTCUSDT",
+                    "COMPUSDT",
+                    "PROMUSDT",
+                    "DATAUSDT",
+                    "ENJUSDT",
+                    "ETHFIUSDT",
+                    "GLMRUSDT",
+                    "RLCUSDT",
+                    "SOLOUSDT",
+                    "VRUSDT",
+                };
+                lTake.AddRange(lTmp);
+                #endregion
                 foreach (var item in lTake)
                 {
 
@@ -1888,85 +1869,6 @@ namespace TestPr.Service
         }
     }
 }
-
-
-
-//Tier 1
-"VIDTUSDT",
-"EPICUSDT",
-"MASAUSDT",
-"NEIROETHUSDT",
-"MAGICUSDT",
-"LUCEUSDT",
-////Tire 2
-"MASKUSDT",
-"SEIUSDT",
-"SNXUSDT",
-"TOKENUSDT",
-"ANKRUSDT",
-"BATUSDT",
-"DOGSUSDT",
-"FILUSDT",
-"GLMUSDT",
-"NCUSDT",
-"QTUMUSDT",
-
-
-DGBUSDT | W / Total: 10 / 13 = 0.8 %| Rate: 24.3 %| Per: 1.9 %
-AERGOUSDT | W / Total: 12 / 20 = 0.6 %| Rate: 25.9 %| Per: 1.3 %
-GMTUSDT | W / Total: 10 / 14 = 0.7 %| Rate: 18.8 %| Per: 1.3 %
-GPSUSDT | W / Total: 7 / 11 = 0.6 %| Rate: 13.9 %| Per: 1.3 %
-MEMEUSDT | W / Total: 13 / 21 = 0.6 %| Rate: 27.0 %| Per: 1.3 %
-XCHUSDT | W / Total: 11 / 19 = 0.6 %| Rate: 24.1 %| Per: 1.3 %
-VIRTUALUSDT | W / Total: 16 / 23 = 0.7 %| Rate: 27.6 %| Per: 1.2 %
-PENDLEUSDT | W / Total: 14 / 24 = 0.6 %| Rate: 29.1 %| Per: 1.2 %
-RAYDIUMUSDT | W / Total: 14 / 22 = 0.6 %| Rate: 27.4 %| Per: 1.2 %
-BEAMUSDT | W / Total: 14 / 21 = 0.7 %| Rate: 23.9 %| Per: 1.1 %
-PHBUSDT | W / Total: 20 / 31 = 0.6 %| Rate: 35.4 %| Per: 1.1 %
-ZBCNUSDT | W / Total: 9 / 14 = 0.6 %| Rate: 13.9 %| Per: 1 %
-GOATUSDT | W / Total: 10 / 18 = 0.6 %| Rate: 18.8 %| Per: 1 %//
-MANEKIUSDT | W / Total: 12 / 18 = 0.7 %| Rate: 18.0 %| Per: 1 %//
-PYTHUSDT | W / Total: 13 / 25 = 0.5 %| Rate: 23.8 %| Per: 1 %
-SLFUSDT | W / Total: 10 / 18 = 0.6 %| Rate: 17.4 %| Per: 1 %
-BIGTIMEUSDT | W / Total: 20 / 34 = 0.6 %| Rate: 30.5 %| Per: 0.9 %
-BNBUSDT | W / Total: 9 / 12 = 0.8 %| Rate: 10.6 %| Per: 0.9 %
-CFXUSDT | W / Total: 11 / 21 = 0.5 %| Rate: 18.3 %| Per: 0.9 %
-FIDAUSDT | W / Total: 12 / 21 = 0.6 %| Rate: 18.6 %| Per: 0.9 %
-LQTYUSDT | W / Total: 18 / 27 = 0.7 %| Rate: 24.2 %| Per: 0.9 %
-NEOUSDT | W / Total: 11 / 16 = 0.7 %| Rate: 14.6 %| Per: 0.9 %
-SANDUSDT | W / Total: 11 / 18 = 0.6 %| Rate: 17.0 %| Per: 0.9 %
-RAREUSDT | W / Total: 16 / 24 = 0.7 %| Rate: 22.0 %| Per: 0.9 %
-ZILUSDT | W / Total: 15 / 24 = 0.6 %| Rate: 21.8 %| Per: 0.9 %
-WUSDT | W / Total: 16 / 25 = 0.6 %| Rate: 22.6 %| Per: 0.9 %
-ADAUSDT | W / Total: 18 / 27 = 0.7 %| Rate: 22.0 %| Per: 0.8 %
-ALICEUSDT | W / Total: 15 / 26 = 0.6 %| Rate: 20.9 %| Per: 0.8 %
-ALTUSDT | W / Total: 17 / 29 = 0.6 %| Rate: 23.6 %| Per: 0.8 %
-ARKMUSDT | W / Total: 14 / 23 = 0.6 %| Rate: 17.3 %| Per: 0.8 %
-BTCUSDT | W / Total: 9 / 14 = 0.6 %| Rate: 11.4 %| Per: 0.8 %
-COMPUSDT | W / Total: 13 / 20 = 0.6 %| Rate: 16.3 %| Per: 0.8 %//
-DATAUSDT | W / Total: 8 / 14 = 0.6 %| Rate: 10.5 %| Per: 0.8 %
-ENJUSDT | W / Total: 22 / 34 = 0.6 %| Rate: 26.2 %| Per: 0.8 %
-ETHFIUSDT | W / Total: 13 / 21 = 0.6 %| Rate: 16.8 %| Per: 0.8 %
-FLUXUSDT | W / Total: 17 / 29 = 0.6 %| Rate: 23.6 %| Per: 0.8 %
-GLMRUSDT | W / Total: 16 / 27 = 0.6 %| Rate: 22.0 %| Per: 0.8 %
-PLUMEUSDT | W / Total: 7 / 13 = 0.5 %| Rate: 10.4 %| Per: 0.8 %
-PROMUSDT | W / Total: 13 / 18 = 0.7 %| Rate: 15.2 %| Per: 0.8 %
-RLCUSDT | W / Total: 11 / 19 = 0.6 %| Rate: 14.5 %| Per: 0.8 %
-SOLOUSDT | W / Total: 9 / 17 = 0.5 %| Rate: 13.6 %| Per: 0.8 %
-VRUSDT | W / Total: 11 / 17 = 0.6 %| Rate: 13.5 %| Per: 0.8 %
-BRUSDT | W / Total: 4 / 7 = 0.6 %| Rate: 4.6 %| Per: 0.7 %
-DENTUSDT | W / Total: 16 / 29 = 0.6 %| Rate: 19.9 %| Per: 0.7 %//
-DOGEUSDT | W / Total: 17 / 25 = 0.7 %| Rate: 16.7 %| Per: 0.7 %
-FLOCKUSDT | W / Total: 11 / 18 = 0.6 %| Rate: 12.8 %| Per: 0.7 %
-INJUSDT | W / Total: 7 / 12 = 0.6 %| Rate: 8.8 %| Per: 0.7 %
-IOSTUSDT | W / Total: 12 / 23 = 0.5 %| Rate: 16.5 %| Per: 0.7 %//
-KAVAUSDT | W / Total: 7 / 12 = 0.6 %| Rate: 8.6 %| Per: 0.7 %
-MEMEFIUSDT | W / Total: 10 / 17 = 0.6 %| Rate: 12.5 %| Per: 0.7 %
-NSUSDT | W / Total: 12 / 19 = 0.6 %| Rate: 13.3 %| Per: 0.7 %//
-POPCATUSDT | W / Total: 12 / 22 = 0.5 %| Rate: 15.4 %| Per: 0.7 %//
-PORTALUSDT | W / Total: 14 / 23 = 0.6 %| Rate: 16.2 %| Per: 0.7 %
-STXUSDT | W / Total: 13 / 23 = 0.6 %| Rate: 15.6 %| Per: 0.7 %//
-TLMUSDT | W / Total: 11 / 21 = 0.5 %| Rate: 15.1 %| Per: 0.7 %
 
 
 
