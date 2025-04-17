@@ -1194,74 +1194,74 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                #region comment
-                lTake.Clear();
-                var lTmp = new List<string>
-                {
-                    //Tier 1
-                    "VIDTUSDT",
-                    "EPICUSDT",
-                    "DGBUSDT",
-                    "MASAUSDT",
-                    "BRUSDT",//
-                    "BEAMUSDT",//
-                    "MEMEUSDT",//
-                    "PENDLEUSDT",
-                    "NEIROETHUSDT",
-                    "GMTUSDT",//
-                    "GPSUSDT",
-                    "CFXUSDT",
-                    "MAGICUSDT",
-                    "SLFUSDT",
-                    "SANDUSDT",
-                    "FIDAUSDT",
-                    "XCHUSDT",
-                    "VIRTUALUSDT",
-                    "BIGTIMEUSDT",
-                    "BNBUSDT",
-                    "ETHFIUSDT",
-                    "LUCEUSDT",
-                    "RAREUSDT",
-                    "AERGOUSDT",
-                    "ALICEUSDT",
-                    "PHBUSDT",
-                    ////Tire 2
-                    "MASKUSDT",
-                    "NEOUSDT",
-                    "VRUSDT",
-                    "ENJUSDT",
-                    "SEIUSDT",
-                    "SNXUSDT",
-                    "PROMUSDT",
-                    "SOLOUSDT",
-                    "TOKENUSDT",
-                    "WUSDT",
-                    "ZBCNUSDT",
-                    "ZILUSDT",
-                    "ADAUSDT",
-                    "ALTUSDT",
-                    "ANKRUSDT",
-                    "ARKMUSDT",
-                    "BATUSDT",
-                    "BTCUSDT",
-                    "DOGSUSDT",
-                    "FILUSDT",
-                    "FLOCKUSDT",
-                    "FLUXUSDT",
-                    "GLMRUSDT",
-                    "GLMUSDT",
-                    "INJUSDT",
-                    "KAVAUSDT",
-                    "LQTYUSDT",
-                    "MEMEFIUSDT",
-                    "NCUSDT",
-                    "PLUMEUSDT",
-                    "PORTALUSDT",
-                    "QTUMUSDT",
-                    "RAYDIUMUSDT",
-                };
-                lTake.AddRange(lTmp);
-                #endregion
+                //#region comment
+                //lTake.Clear();
+                //var lTmp = new List<string>
+                //{
+                //    //Tier 1
+                //    "VIDTUSDT",
+                //    "EPICUSDT",
+                //    "DGBUSDT",
+                //    "MASAUSDT",
+                //    "BRUSDT",//
+                //    "BEAMUSDT",//
+                //    "MEMEUSDT",//
+                //    "PENDLEUSDT",
+                //    "NEIROETHUSDT",
+                //    "GMTUSDT",//
+                //    "GPSUSDT",
+                //    "CFXUSDT",
+                //    "MAGICUSDT",
+                //    "SLFUSDT",
+                //    "SANDUSDT",
+                //    "FIDAUSDT",
+                //    "XCHUSDT",
+                //    "VIRTUALUSDT",
+                //    "BIGTIMEUSDT",
+                //    "BNBUSDT",
+                //    "ETHFIUSDT",
+                //    "LUCEUSDT",
+                //    "RAREUSDT",
+                //    "AERGOUSDT",
+                //    "ALICEUSDT",
+                //    "PHBUSDT",
+                //    ////Tire 2
+                //    "MASKUSDT",
+                //    "NEOUSDT",
+                //    "VRUSDT",
+                //    "ENJUSDT",
+                //    "SEIUSDT",
+                //    "SNXUSDT",
+                //    "PROMUSDT",
+                //    "SOLOUSDT",
+                //    "TOKENUSDT",
+                //    "WUSDT",
+                //    "ZBCNUSDT",
+                //    "ZILUSDT",
+                //    "ADAUSDT",
+                //    "ALTUSDT",
+                //    "ANKRUSDT",
+                //    "ARKMUSDT",
+                //    "BATUSDT",
+                //    "BTCUSDT",
+                //    "DOGSUSDT",
+                //    "FILUSDT",
+                //    "FLOCKUSDT",
+                //    "FLUXUSDT",
+                //    "GLMRUSDT",
+                //    "GLMUSDT",
+                //    "INJUSDT",
+                //    "KAVAUSDT",
+                //    "LQTYUSDT",
+                //    "MEMEFIUSDT",
+                //    "NCUSDT",
+                //    "PLUMEUSDT",
+                //    "PORTALUSDT",
+                //    "QTUMUSDT",
+                //    "RAYDIUMUSDT",
+                //};
+                //lTake.AddRange(lTmp);
+                //#endregion
                 foreach (var item in lTake)
                 {
 
