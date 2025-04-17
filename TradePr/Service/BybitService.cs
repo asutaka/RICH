@@ -18,7 +18,6 @@ namespace TradePr.Service
         private readonly ILogger<BybitService> _logger;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
-        private readonly ISymbolRepo _symRepo;
         private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         private const long _idUser = 1066022551;
@@ -30,12 +29,11 @@ namespace TradePr.Service
 
         private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger,
-                            IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo)
+                            IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
-            _symRepo = symRepo;
             _symConfigRepo = symConfigRepo;
             _placeRepo = placeRepo;
         }
@@ -68,129 +66,6 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Trade|EXCEPTION| {ex.Message}");
             }
-        }
-
-        private async Task Bybit_TradeMA20(DateTime dt)
-        {
-            try
-            {
-                if (dt.Minute % 15 != 0)
-                    return;
-                var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                var time = (int)DateTimeOffset.Now.AddMinutes(-60).ToUnixTimeSeconds();
-                var builder = Builders<Symbol>.Filter;
-                var lSym = _symRepo.GetByFilter(builder.And(
-                        builder.Eq(x => x.ex, _exchange),
-                        builder.Eq(x => x.op, _op)
-                    ));
-                var lBuy = lSym.Where(x => x.ty == (int)OrderSide.Buy || x.ty == -1);
-                var lSell = lSym.Where(x => x.ty == (int)OrderSide.Sell || x.ty == -1);
-
-                foreach (var item in lSym)
-                {
-                    try
-                    {
-                        if (pos.Data.List.Any(x => x.Symbol == item.s))
-                            continue;
-                        //gia
-                        var l15m = await _apiService.GetData_Bybit(item.s, EInterval.M15);
-                        Thread.Sleep(100);
-                        if (l15m is null
-                            || !l15m.Any())
-                            continue;
-                        var last = l15m.Last();
-                        l15m.Remove(last);
-                        var lbb = l15m.GetBollingerBands();
-                        var cur = l15m.Last();
-                        var prev = l15m.SkipLast(1).Last();
-                        var prev2 = l15m.SkipLast(2).Last();
-
-                        var bb = lbb.Last();
-                        var bb_Prev = lbb.SkipLast(1).Last();
-                        var bb_Prev2 = lbb.SkipLast(2).Last();
-
-                        var lPrev = l15m.SkipLast(1).TakeLast(5);
-                        var indexPrev = 0;
-                        decimal totalPrev = 0;
-                        foreach (var itemPrev in lPrev)
-                        {
-                            var prevRate = Math.Round(Math.Abs(itemPrev.Open - itemPrev.Close) * 100 / Math.Abs(itemPrev.High - itemPrev.Low));
-                            if (prevRate > 10)
-                            {
-                                indexPrev++;
-                                totalPrev += Math.Abs(itemPrev.Open - itemPrev.Close);
-                            }
-                        }
-                        if (indexPrev <= 0)
-                            continue;
-
-                        var avgPrev = totalPrev / indexPrev;
-                        if (Math.Abs(cur.Open - cur.Close) <= 2 * avgPrev
-                               || Math.Abs(cur.Open - cur.Close) > avgPrev * 4)
-                            continue;
-
-                        var sideDetect = -1;
-                        //Short
-                        if (lSell.Any(x => x.s == item.s))
-                        {
-                            ShortAction();
-                        }
-
-                        //Long
-                        if (lBuy.Any(x => x.s == item.s))
-                        {
-                            LongAction();
-                        }
-
-                        if(sideDetect > -1)
-                        {
-                            await PlaceOrder(new SignalBase
-                            {
-                                s = item.s,
-                                ex = _exchange,
-                                Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                            }, last.Close);
-                        }
-
-                        void ShortAction()
-                        {
-                            if ( cur.Open <= cur.Close
-                               || cur.Close >= (decimal)bb.Sma.Value
-                               || cur.Open <= (decimal)bb.Sma.Value
-                               || prev.Low < (decimal)bb_Prev.Sma.Value
-                               || prev2.Low < (decimal)bb_Prev2.Sma.Value
-                               || (((decimal)bb.Sma - cur.Close) > (cur.Close - (decimal)bb.LowerBand)))
-                                return;
-                            //SHORT
-                            sideDetect = (int)OrderSide.Sell;
-                        }
-
-                        void LongAction()
-                        {
-                            if (cur.Open >= cur.Close
-                               || cur.Close <= (decimal)bb.Sma.Value
-                               || cur.Open >= (decimal)bb.Sma.Value
-                               || prev.High > (decimal)bb_Prev.Sma.Value
-                               || prev2.High > (decimal)bb_Prev2.Sma.Value
-                               || ((cur.Close - (decimal)bb.Sma) > ((decimal)bb.UpperBand - cur.Close))
-                               || (cur.Close - (decimal)bb.Sma) * 2 < ((decimal)bb.Sma - cur.Open))
-                                return;
-                            //LONG
-                            sideDetect = (int)OrderSide.Buy;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeMA20|EXCEPTION|{item.s}| {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeMA20|EXCEPTION| {ex.Message}");
-            }
-            return;
         }
 
         private async Task Bybit_TradeRSI_LONG(DateTime dt)
@@ -290,6 +165,7 @@ namespace TradePr.Service
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_LONG|EXCEPTION| {ex.Message}");
             }
         }
+        
         private async Task Bybit_TradeRSI_SHORT(DateTime dt)
         {
             try

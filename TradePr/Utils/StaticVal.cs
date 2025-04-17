@@ -52,7 +52,7 @@ namespace TradePr.Utils
             return _bybit;
         }
 
-        public static List<string> _lRsiShort = new List<string>
+        public static List<string> _lRsiShort_Binance = new List<string>
         {
             //Tier 1
             "BROCCOLI714USDT",
@@ -108,7 +108,7 @@ namespace TradePr.Utils
             "BIOUSDT",
         };
 
-        public static List<string> _lRsiLong = new List<string>//Chuẩn
+        public static List<string> _lRsiLong_Binance = new List<string>//Chuẩn
         {
             //Tier 1
             "GRTUSDT",
@@ -345,98 +345,6 @@ namespace TradePr.Utils
             { "BELUSDT", 20 },
             { "ADAUSDT", 75 },
             { "OMUSDT", 5 }
-        };
-
-        public static List<string> _lMa20 = new List<string>
-        {
-            "XRPUSDT",
-            "DOGEUSDT",
-            "LTCUSDT",
-            "BCHUSDT",
-            "LINKUSDT",
-            "WLDUSDT",
-            "ADAUSDT",
-            "OPUSDT",
-            "1INCHUSDT",
-            "JOEUSDT",
-            "MAGICUSDT",
-            "IDUSDT",
-            "STGUSDT",
-            "ZILUSDT"
-        };
-        public static List<string> _lMa20Short = new List<string>
-        {
-            "AVAXUSDT",
-            "HIGHUSDT",
-            "XTZUSDT",
-            "OPUSDT",
-            "KNCUSDT",
-            "ZILUSDT",
-            "NEOUSDT",
-            "APEUSDT",
-            "FILUSDT",
-            "DYDXUSDT",
-            "DOTUSDT",
-            "EOSUSDT",
-            "CYBERUSDT",
-            "WLDUSDT",
-            "JOEUSDT",
-            "BNBUSDT",
-            "PERPUSDT",
-            "TRBUSDT",
-            "THETAUSDT",
-            "STGUSDT",
-            "BELUSDT",
-            "MDTUSDT",
-            "APTUSDT"
-        };
-
-        public static List<string> _lMa20_Bybit = new List<string>
-        {
-            "ARBUSDT",
-            "MINAUSDT",
-            "QIUSDT",
-            "ADAUSDT",
-            "LINKUSDT",
-            "DOGEUSDT",
-            "1INCHUSDT",
-            "JOEUSDT",
-            "IDUSDT",
-            "KNCUSDT",
-            "OPUSDT",
-            "XRPUSDT",
-            "DYDXUSDT",
-            "PIXELUSDT",
-        };
-        public static List<string> _lMa20Short_Bybit = new List<string>
-        {
-            "HIGHUSDT",
-            "AVAXUSDT",
-            "WLDUSDT",
-            "NEOUSDT",
-            "OPUSDT",
-            "KNCUSDT",
-            "MOODENGUSDT",
-            "TRBUSDT",
-            "XTZUSDT",
-            "MDTUSDT",
-            "QIUSDT",
-            "BNBUSDT",
-            "EOSUSDT",
-            "STGUSDT",
-            "CYBERUSDT",
-            "APEUSDT",
-            "PERPUSDT",
-            "ZILUSDT",
-            "GRTUSDT",
-            "JOEUSDT",
-            "MINAUSDT",
-            "DOTUSDT",
-            "C98USDT",
-            "DYDXUSDT",
-             "1INCHUSDT",
-            "MAGICUSDT",
-            "ZKJUSDT",
         };
     }
 }
