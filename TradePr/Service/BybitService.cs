@@ -58,7 +58,6 @@ namespace TradePr.Service
                 var dt = DateTime.Now;
 
                 await Bybit_TakeProfit();
-                //await Bybit_TradeMA20(dt);
                 await Bybit_TradeRSI_LONG(dt);
                 await Bybit_TradeRSI_SHORT(dt);
             }
