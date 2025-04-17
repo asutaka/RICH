@@ -777,7 +777,7 @@ namespace TestPr.Service
                             }
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
-                            if (perRate < 0.6)
+                            if (perRate < 0.7)
                             {
                                 var lRemove = lModel.Where(x => x.s == item);
                                 lModel = lModel.Except(lRemove).ToList();
@@ -1140,7 +1140,7 @@ namespace TestPr.Service
                             }
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
-                            if(perRate < 0.6)
+                            if(perRate < 0.7)
                             {
                                 var lRemove = lModel.Where(x => x.s == item);
                                 lModel = lModel.Except(lRemove).ToList();
@@ -1483,7 +1483,7 @@ namespace TestPr.Service
 
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
-                            if (perRate < 0.6)
+                            if (perRate < 0.7)
                             {
                                 var lRemove = lModel.Where(x => x.s == item);
                                 lModel = lModel.Except(lRemove).ToList();
@@ -1543,74 +1543,74 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                #region comment
-                lTake.Clear();
-                var lTmp = new List<string>
-                {
-                    //Tier 1
-                    "FWOGUSDT",
-                    "JUSDT",
-                    "XVSUSDT",
-                    "CATIUSDT",
-                    "HEIUSDT",
-                    "KOMAUSDT",
-                    "CAKEUSDT",
-                    "XEMUSDT",
-                    "NILUSDT",
-                    "OLUSDT",
-                    "DYDXUSDT",
-                    "FLUXUSDT",
-                    "IDEXUSDT",
-                    "KASUSDT",
-                    "XVGUSDT",
-                    "MAVIAUSDT",
-                    "MOODENGUSDT",
-                    "NCUSDT",
-                    "MAXUSDT",
-                    "MBLUSDT",
-                    "GUSDT",
-                    "OMNIUSDT",
-                    "SPELLUSDT",
-                    "TROYUSDT",
-                    "STGUSDT",
-                    "VVVUSDT",
-                    "ZBCNUSDT",
-                    ////Tier 2
-                    //"AGLDUSDT",
-                    //"AIOZUSDT",
-                    //"AIUSDT",
-                    //"ALEOUSDT",
-                    //"ALUUSDT",
-                    //"AVAILUSDT",
-                    //"AXLUSDT",
-                    //"BADGERUSDT",
-                    //"BELUSDT",
-                    //"BLASTUSDT",
-                    //"BLURUSDT",
-                    //"COOKUSDT",
-                    //"CPOOLUSDT",
-                    //"EGLDUSDT",
-                    //"EIGENUSDT",
-                    //"EOSUSDT",
-                    //"FLRUSDT",
-                    //"GPSUSDT",
-                    //"LSKUSDT",
-                    //"MBOXUSDT",
-                    //"MDTUSDT",
-                    //"MORPHOUSDT",
-                    //"MOVRUSDT",
-                    //"MVLUSDT",
-                    //"NTRNUSDT",
-                    //"OMUSDT",
-                    //"PENGUUSDT",
-                    //"ROSEUSDT",
-                    //"SERAPHUSDT",
-                    //"TUSDT",
-                    //"XTZUSDT",
-                    //"ZENUSDT",
-                };
-                lTake.AddRange(lTmp);
-                #endregion
+                //#region comment
+                //lTake.Clear();
+                //var lTmp = new List<string>
+                //{
+                //    //Tier 1
+                //    "FWOGUSDT",
+                //    "JUSDT",
+                //    "XVSUSDT",
+                //    "CATIUSDT",
+                //    "HEIUSDT",
+                //    "KOMAUSDT",
+                //    "CAKEUSDT",
+                //    "XEMUSDT",
+                //    "NILUSDT",
+                //    "OLUSDT",
+                //    "DYDXUSDT",
+                //    "FLUXUSDT",
+                //    "IDEXUSDT",
+                //    "KASUSDT",
+                //    "XVGUSDT",
+                //    "MAVIAUSDT",
+                //    "MOODENGUSDT",
+                //    "NCUSDT",
+                //    "MAXUSDT",
+                //    "MBLUSDT",
+                //    "GUSDT",
+                //    "OMNIUSDT",
+                //    "SPELLUSDT",
+                //    "TROYUSDT",
+                //    "STGUSDT",
+                //    "VVVUSDT",
+                //    "ZBCNUSDT",
+                //    //Tier 2
+                //    "AGLDUSDT",
+                //    "AIOZUSDT",
+                //    "AIUSDT",
+                //    "ALEOUSDT",
+                //    "ALUUSDT",
+                //    "AVAILUSDT",
+                //    "AXLUSDT",
+                //    "BADGERUSDT",
+                //    "BELUSDT",
+                //    "BLASTUSDT",
+                //    "BLURUSDT",
+                //    "COOKUSDT",
+                //    "CPOOLUSDT",
+                //    "EGLDUSDT",
+                //    "EIGENUSDT",
+                //    "EOSUSDT",
+                //    "FLRUSDT",
+                //    "GPSUSDT",
+                //    "LSKUSDT",
+                //    "MBOXUSDT",
+                //    "MDTUSDT",
+                //    "MORPHOUSDT",
+                //    "MOVRUSDT",
+                //    "MVLUSDT",
+                //    "NTRNUSDT",
+                //    "OMUSDT",
+                //    "PENGUUSDT",
+                //    "ROSEUSDT",
+                //    "SERAPHUSDT",
+                //    "TUSDT",
+                //    "XTZUSDT",
+                //    "ZENUSDT",
+                //};
+                //lTake.AddRange(lTmp);
+                //#endregion
                 foreach (var item in lTake)
                 {
 
@@ -1856,7 +1856,7 @@ namespace TestPr.Service
 
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
-                            if (perRate < 0.6)
+                            if (perRate < 0.7)
                             {
                                 var lRemove = lModel.Where(x => x.s == item);
                                 lModel = lModel.Except(lRemove).ToList();
