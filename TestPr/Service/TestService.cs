@@ -670,6 +670,15 @@ namespace TestPr.Service
                                         eClose = itemClose;
                                         break;
                                     }
+
+                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1);
+                                    if (rateCheck > 10)
+                                    {
+                                        var close = eEntry.Close * (decimal)1.1;
+                                        itemClose.Close = close;
+                                        eClose = itemClose;
+                                        break;
+                                    }
                                 }
 
                                 dtFlag = eClose.Date;
@@ -1033,6 +1042,15 @@ namespace TestPr.Service
                                         eClose = itemClose;
                                         break;
                                     }
+
+                                    var rateCheck = Math.Round(100 * (-1 + eEntry.Close / itemClose.Low), 1);
+                                    if (rateCheck > 10)
+                                    {
+                                        var close = eEntry.Close * (decimal)0.9;
+                                        itemClose.Close = close;
+                                        eClose = itemClose;
+                                        break;
+                                    }
                                 }
 
                                 dtFlag = eClose.Date;
@@ -1357,6 +1375,15 @@ namespace TestPr.Service
                                         eClose = itemClose;
                                         break;
                                     }
+
+                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1);
+                                    if(rateCheck > 10)
+                                    {
+                                        var close = eEntry.Close * (decimal)1.1;
+                                        itemClose.Close = close;
+                                        eClose = itemClose;
+                                        break;
+                                    }    
                                 }
 
                                 dtFlag = eClose.Date;
@@ -1713,6 +1740,15 @@ namespace TestPr.Service
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
                                     if (itemClose.Close < (decimal)ma.LowerBand)
                                     {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    var rateCheck = Math.Round(100 * (-1 + eEntry.Close / itemClose.Low), 1);
+                                    if (rateCheck > 10)
+                                    {
+                                        var close = eEntry.Close * (decimal)0.9;
+                                        itemClose.Close = close;
                                         eClose = itemClose;
                                         break;
                                     }
