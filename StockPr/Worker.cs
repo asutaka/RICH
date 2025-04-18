@@ -50,8 +50,7 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            //await _testService.Check2Sell();
-            //await _f319Service.F319KOL();
+            //await _testService.Check2Buy();
             //return;
             while (!stoppingToken.IsCancellationRequested)
             {

@@ -436,21 +436,21 @@ namespace StockPr.Service
                         //    Console.WriteLine(mes);
                         //}
                         //
-                        if (winCount <= lossCount)
-                            continue;
-                        if (winCount + lossCount <= 0)
-                            continue;
+                        //if (winCount <= lossCount)
+                        //    continue;
+                        //if (winCount + lossCount <= 0)
+                        //    continue;
 
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
                         if (rateRes > (decimal)0.5)
                         {
                             var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
-                            if (sumRate <= 1)
-                            {
-                                var lRemove = lModel.Where(x => x.s == item);
-                                lModel = lModel.Except(lRemove).ToList();
-                                continue;
-                            }
+                            //if (sumRate <= 1)
+                            //{
+                            //    var lRemove = lModel.Where(x => x.s == item);
+                            //    lModel = lModel.Except(lRemove).ToList();
+                            //    continue;
+                            //}
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
                             //foreach (var mes in lMes)
