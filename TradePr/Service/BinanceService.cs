@@ -407,13 +407,25 @@ namespace TradePr.Service
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
                         var flag = false;
-                        if (side == OrderSide.Buy && cur.Close > (decimal)bb.UpperBand.Value)
+                        if (side == OrderSide.Buy && Math.Max(last.Close, cur.Close) > (decimal)bb.UpperBand.Value)
                         {
                             flag = true;
                         }
-                        else if (side == OrderSide.Sell && cur.Close < (decimal)bb.LowerBand.Value)
+                        else if (side == OrderSide.Sell && Math.Min(last.Close, cur.Close) < (decimal)bb.LowerBand.Value)
                         {
                             flag = true;
+                        }
+
+                        if (StaticVal._lCoinRecheck.Contains(item.Symbol))
+                        {
+                            if (side == OrderSide.Buy && Math.Max(last.High, cur.High) > (decimal)bb.UpperBand.Value)
+                            {
+                                flag = true;
+                            }
+                            else if (side == OrderSide.Sell && Math.Min(last.Low, cur.Low) < (decimal)bb.LowerBand.Value)
+                            {
+                                flag = true;
+                            }
                         }
 
                         var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.EntryPrice), 1));

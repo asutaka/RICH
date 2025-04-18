@@ -266,6 +266,11 @@ namespace TradePr.Utils
             "VRUSDT",
         };
 
+        public static List<string> _lCoinRecheck = new List<string>
+        {
+            "ZBCNUSDT"
+        };
+
         public static Dictionary<string, int> _dicBinanceMargin = new Dictionary<string, int>
         {
             { "1INCHUSDT", 75 },
