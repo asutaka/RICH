@@ -57,7 +57,7 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.Now;
-                await Binance_TakeProfit(dt);
+                await Binance_TakeProfit();
                 await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI_LONG(dt);
                 await Binance_TradeRSI_SHORT(dt);
@@ -365,7 +365,7 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Binance_TakeProfit(DateTime dt)
+        private async Task Binance_TakeProfit()
         {
             try
             {
@@ -412,6 +412,12 @@ namespace TradePr.Service
                             flag = true;
                         }
                         else if (side == OrderSide.Sell && cur.Close < (decimal)bb.LowerBand.Value)
+                        {
+                            flag = true;
+                        }
+
+                        var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.EntryPrice), 1));
+                        if (rate >= 10)
                         {
                             flag = true;
                         }

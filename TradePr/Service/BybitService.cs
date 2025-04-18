@@ -340,7 +340,13 @@ namespace TradePr.Service
                             flag = true;
                         }
 
-                        if(flag)
+                        var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
+                        if (rate >= 10)
+                        {
+                            flag = true;
+                        }
+
+                        if (flag)
                         {
                             await PlaceOrderClose(item);
                         }
