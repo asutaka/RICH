@@ -5,6 +5,7 @@ using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
+using System.Runtime.ConstrainedExecution;
 
 namespace TradePr.Service
 {
@@ -190,13 +191,20 @@ namespace TradePr.Service
                         var rsiPivot = lRsi.Last();
                         var bbPivot = lbb.Last();
 
+                        var lVol = l15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
+
                         var rsi_near = lRsi.SkipLast(1).Last();
                         var bb_near = lbb.SkipLast(1).Last();
+                        var maVol_near = lMaVol.SkipLast(1).Last();
                         var sideDetect = -1;
                         //Console.WriteLine($"LONG|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
                         if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
                         {
-                            Console.WriteLine($"1.LONG:RSI: {rsiPivot.Rsi}");
                             //check nến liền trước
                             if (near.Close >= near.Open
                                 || rsi_near.Rsi > 35
@@ -204,17 +212,20 @@ namespace TradePr.Service
                             {
                                 continue;
                             }
-                            Console.WriteLine($"2.LONG:RSI NEAR: {rsi_near.Rsi}");
+                            if (!StaticVal._lCoinSpecial.Contains(sym))
+                            {
+                                if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
+                                    continue;
+                            }
+
                             var minOpenClose = Math.Min(near.Open, near.Close);
                             if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
                                 continue;
-                            Console.WriteLine($"3.LONG:Position");
                             //check tiếp nến pivot
                             if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
                                 || pivot.High >= (decimal)bbPivot.Sma.Value
                                 || (pivot.Low >= near.Low && pivot.High <= near.High))
                                 continue;
-                            Console.WriteLine($"4.LONG:Pivot");
                             var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));
                             if (ratePivot > (decimal)0.8)
                             {

@@ -103,8 +103,16 @@ namespace TradePr.Service
                         var rsiPivot = lRsi.Last();
                         var bbPivot = lbb.Last();
 
+                        var lVol = l15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
+
                         var rsi_near = lRsi.SkipLast(1).Last();
                         var bb_near = lbb.SkipLast(1).Last();
+                        var maVol_near = lMaVol.SkipLast(1).Last();
                         var sideDetect = -1;
                         //Console.WriteLine($"LONG|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
                         if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
@@ -116,6 +124,11 @@ namespace TradePr.Service
                                 || near.Low >= (decimal)bb_near.LowerBand.Value)
                             {
                                 continue;
+                            }
+                            if (!StaticVal._lCoinSpecial.Contains(sym))
+                            {
+                                if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
+                                    continue;
                             }
                             //Console.WriteLine($"2.LONG:RSI NEAR: {rsi_near.Rsi}");
                             var minOpenClose = Math.Min(near.Open, near.Close);

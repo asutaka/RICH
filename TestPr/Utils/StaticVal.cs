@@ -47,6 +47,16 @@ namespace TestPr.Utils
             "BTCUSDT",
         };
 
+        public static List<string> _lCoinRecheck = new List<string>
+        {
+            "ZBCNUSDT"
+        };
+
+        public static List<string> _lCoinSpecial = new List<string>
+        {
+            "MUBARAKUSDT"
+        };
+
         public static Dictionary<string, (int, int)> _dicCoinAnk = new Dictionary<string, (int, int)>
         {
             { "BTCUSDT", ( 3,1 ) },
