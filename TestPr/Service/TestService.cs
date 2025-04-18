@@ -1177,7 +1177,7 @@ namespace TestPr.Service
                                 continue;
                             }
 
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
+                            Console.WriteLine($"{item}\t\t\t| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
@@ -1205,7 +1205,7 @@ namespace TestPr.Service
             }
         }
 
-        //LONG RSI Tong(42): 850.3%|W/L: 549/336
+        //LONG RSI Tong(55): 918.2%|W/L: 507/282
         public async Task CheckAllBYBIT_LONG()
         {
             try
@@ -1231,47 +1231,60 @@ namespace TestPr.Service
                 var lTmp = new List<string>
                 {
                     "DGBUSDT",
-                    "AERGOUSDT",
-                    "GMTUSDT",
                     "GPSUSDT",
+                    "AUDIOUSDT",
+                    "ZBCNUSDT",
+                    "GMTUSDT",
                     "MEMEUSDT",
-                    "XCHUSDT",
-                    "RAYDIUMUSDT",
+                    "SERAPHUSDT",
                     "VIRTUALUSDT",
                     "PENDLEUSDT",
-                    "BEAMUSDT",
-                    "PHBUSDT",
-                    "ZBCNUSDT",
-                    "SLFUSDT",
-                    "GOATUSDT",
-                    "MANEKIUSDT",
-                    "PYTHUSDT",
-                    "BIGTIMEUSDT",
-                    "BNBUSDT",
-                    "CFXUSDT",
-                    "FIDAUSDT",
-                    "NEOUSDT",
-                    "LQTYUSDT",
+                    "AERGOUSDT",
                     "RAREUSDT",
-                    "SANDUSDT",
-                    "WUSDT",
-                    "ZILUSDT",
-                    "ADAUSDT",
-                    "ALICEUSDT",
+                    "RAYDIUMUSDT",
+                    "PYTHUSDT",
+                    "FLRUSDT",
+                    "GOATUSDT",
+                    "DATAUSDT",
+                    "MANEKIUSDT",
+                    "MAXUSDT",
+                    "PHBUSDT",
+                    "AI16ZUSDT",
+                    "SLFUSDT",
+                    "XCHUSDT",
                     "ALTUSDT",
+                    "GLMUSDT",
+                    "POPCATUSDT",
+                    "ZILUSDT",
+                    "PROMUSDT",
+                    "BIGTIMEUSDT",
+                    "FIDAUSDT",
+                    "BNBUSDT",
+                    "KNCUSDT",
+                    "LUMIAUSDT",
+                    "LUCEUSDT",
+                    "MOVRUSDT",
+                    "ANKRUSDT",
+                    "GLMRUSDT",
+                    "BSWUSDT",
+                    "BTCUSDT",
+                    "FLOCKUSDT",
+                    "LPTUSDT",
+                    "KAVAUSDT",
+                    "TLMUSDT",
+                    "MAVUSDT",
+                    "TOKENUSDT",
+                    "QTUMUSDT",
+                    "ACXUSDT",
                     "ARKMUSDT",
                     "FLUXUSDT",
+                    "INJUSDT",
+                    "LDOUSDT",
+                    "LQTYUSDT",
+                    "MTLUSDT",
                     "PLUMEUSDT",
-                    "BTCUSDT",
-                    "COMPUSDT",
-                    "PROMUSDT",
-                    "DATAUSDT",
-                    "ENJUSDT",
-                    "ETHFIUSDT",
-                    "GLMRUSDT",
-                    "RLCUSDT",
-                    "SOLOUSDT",
-                    "VRUSDT",
+                    "XVGUSDT",
+                    "SUNDOGUSDT",
                 };
                 lTake.AddRange(lTmp);
                 #endregion
@@ -1312,6 +1325,12 @@ namespace TestPr.Service
                         lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
+                        var lVol = lData15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
 
                         DateTime dtFlag = DateTime.MinValue;
                         //var count = 0;
@@ -1332,6 +1351,7 @@ namespace TestPr.Service
                                 var rsi = lrsi.First(x => x.Date == ma20.Date);
                                 var maxOpenClose = Math.Max(cur.Open, cur.Close);
                                 var minOpenClose = Math.Min(cur.Open, cur.Close);
+                                var maVol = lMaVol.First(x => x.Date == ma20.Date);
 
                                 if (cur.Close >= cur.Open
                                     || ma20.Sma is null
@@ -1341,6 +1361,13 @@ namespace TestPr.Service
                                     || Math.Abs(minOpenClose - (decimal)ma20.LowerBand.Value) > Math.Abs((decimal)ma20.Sma.Value - minOpenClose)
                                     )
                                     continue;
+
+                                if (true)
+                                //if (!StaticVal._lCoinSpecial.Contains(item))
+                                {
+                                    if (cur.Volume < (decimal)(maVol.Sma.Value * 1.5))
+                                        continue;
+                                }
 
                                 var rsiPivot = lrsi.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
                                 if (rsiPivot is null || rsiPivot.Rsi > 35 || rsiPivot.Rsi < 25)
@@ -1451,7 +1478,7 @@ namespace TestPr.Service
                                     MaxSL = maxSL,
                                     RateEntry = rateEntry,
                                 });
-                                var mes = $"{item}\t\t\t|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{cur.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%|RSI: {rsiPivot.Rsi}";
+                                var mes = $"{item}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{cur.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%|RSI: {rsiPivot.Rsi}";
                                 lMes.Add(mes);
                             }
                             catch (Exception ex)
@@ -1503,13 +1530,13 @@ namespace TestPr.Service
 
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
-                            if (perRate < 0.7)
+                            if (perRate < 0.8)
                             {
                                 var lRemove = lModel.Where(x => x.s == item);
                                 lModel = lModel.Except(lRemove).ToList();
                                 continue;
                             }
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
+                            Console.WriteLine($"{item}\t\t\t| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
@@ -1879,7 +1906,7 @@ namespace TestPr.Service
                                 lModel = lModel.Except(lRemove).ToList();
                                 continue;
                             }
-                            Console.WriteLine($"{item}| W/Total: {realWin}/{count} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
+                            Console.WriteLine($"{item}\t\t\t| W/Total: {realWin}/{count} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;
