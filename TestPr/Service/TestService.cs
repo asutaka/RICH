@@ -837,7 +837,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
-        //SHORT RSI Tong(52): 850.7%|W/L: 561/313
+        //SHORT RSI Tong(52): 654.5%|W/L: 344/167
         public async Task CheckAllBINANCE_SHORT()
         {
             try
@@ -858,66 +858,65 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                //#region comment
-                //lTake.Clear();
-                //var lTmp = new List<string>
-                //{
-                //    "BROCCOLI714USDT",
-                //    "NILUSDT",
-                //    "HEIUSDT",
-                //    "OMUSDT",
-                //    "CATIUSDT",
-                //    "GRIFFAINUSDT",
-                //    "GPSUSDT",
-                //    "DUSKUSDT",
-                //    "NEIROUSDT",
-                //    "PONKEUSDT",
-                //    "LINKUSDT",
-                //    "MORPHOUSDT",
-                //    "AVAAIUSDT",
-                //    "VICUSDT",
-                //    "KASUSDT",
-                //    "DYDXUSDT",
-                //    "BADGERUSDT",
-                //    "BAKEUSDT",
-                //    "CAKEUSDT",
-                //    "ONDOUSDT",
-                //    "OMNIUSDT",
-                //    "1MBABYDOGEUSDT",
-                //    "SAFEUSDT",
-                //    "1000000MOGUSDT",
-                //    "RUNEUSDT",
-                //    "BERAUSDT",
-                //    "MANTAUSDT",
-                //    "AGLDUSDT",
-                //    "CRVUSDT",
-                //    "TRUUSDT",
-                //    "TWTUSDT",
-                //    "DEXEUSDT",
-                //    "IPUSDT",
-                //    "CHESSUSDT",
-                //    "PROMUSDT",
-                //    "AXSUSDT",
-                //    "ANKRUSDT",
-                //    "CTSIUSDT",
-                //    "ACHUSDT",
-                //    "EDUUSDT",
-                //    "ETHWUSDT",
-                //    "AIUSDT",
-                //    "XAIUSDT",
-                //    "FIOUSDT",
-                //    "MOODENGUSDT",
-                //    "QTUMUSDT",
-                //    "ALPHAUSDT",
-                //    "APEUSDT",
-                //    "ORDIUSDT",
-                //    "LSKUSDT",
-                //    "LISTAUSDT",
-                //    "EIGENUSDT",
-                //    "MOVEUSDT",
-                //};
-                //lTake.AddRange(lTmp);
-                //#endregion
+                #region comment
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    "BROCCOLI714USDT",
+                    "NILUSDT",
+                    "1000XUSDT",
+                    "HEIUSDT",
+                    "OMUSDT",
+                    "CATIUSDT",
+                    "GRIFFAINUSDT",
+                    "GPSUSDT",
+                    "DUSKUSDT",
+                    "LTCUSDT",
+                    "BIOUSDT",
+                    "NEIROUSDT",
+                    "PONKEUSDT",
+                    "LINKUSDT",
+                    "MORPHOUSDT",
+                    "AVAAIUSDT",
+                    "VICUSDT",
+                    "KASUSDT",
+                    "DYDXUSDT",
+                    "HOOKUSDT",
+                    "XVGUSDT",
+                    "PENGUUSDT",
+                    "BADGERUSDT",
+                    "BAKEUSDT",
+                    "CAKEUSDT",
+                    "ONDOUSDT",
+                    "OMNIUSDT",
+                    "1MBABYDOGEUSDT",
+                    "SAFEUSDT",
+                    "VETUSDT",
+                    "API3USDT",
+                    "1000000MOGUSDT",
+                    "RUNEUSDT",
+                    "BERAUSDT",
+                    "AGLDUSDT",
+                    "CRVUSDT",
+                    "TRUUSDT",
+                    "TWTUSDT",
+                    "DEXEUSDT",
+                    "IPUSDT",
+                    "CHESSUSDT",
+                    "PROMUSDT",
+                    "CTSIUSDT",
+                    "EDUUSDT",
+                    "ETHWUSDT",
+                    "FIOUSDT",
+                    "MOODENGUSDT",
+                    "QTUMUSDT",
+                    "ALPHAUSDT",
+                    "APEUSDT",
+                    "ORDIUSDT",
+                    "LISTAUSDT",
+                };
+                lTake.AddRange(lTmp);
+                #endregion
                 foreach (var item in lTake)
                 {
 
