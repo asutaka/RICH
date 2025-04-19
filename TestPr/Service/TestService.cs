@@ -1925,7 +1925,7 @@ namespace TestPr.Service
 
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
-                            if (perRate < 0.7)
+                            if (perRate < 0.8)
                             {
                                 var lRemove = lModel.Where(x => x.s == item);
                                 lModel = lModel.Except(lRemove).ToList();
