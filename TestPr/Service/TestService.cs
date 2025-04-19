@@ -858,66 +858,66 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                #region comment
-                lTake.Clear();
-                var lTmp = new List<string>
-                {
-                    "BROCCOLI714USDT",
-                    "NILUSDT",
-                    "HEIUSDT",
-                    "OMUSDT",
-                    "CATIUSDT",
-                    "GRIFFAINUSDT",
-                    "GPSUSDT",
-                    "DUSKUSDT",
-                    "NEIROUSDT",
-                    "PONKEUSDT",
-                    "LINKUSDT",
-                    "MORPHOUSDT",
-                    "AVAAIUSDT",
-                    "VICUSDT",
-                    "KASUSDT",
-                    "DYDXUSDT",
-                    "BADGERUSDT",
-                    "BAKEUSDT",
-                    "CAKEUSDT",
-                    "ONDOUSDT",
-                    "OMNIUSDT",
-                    "1MBABYDOGEUSDT",
-                    "SAFEUSDT",
-                    "1000000MOGUSDT",
-                    "RUNEUSDT",
-                    "BERAUSDT",
-                    "MANTAUSDT",
-                    "AGLDUSDT",
-                    "CRVUSDT",
-                    "TRUUSDT",
-                    "TWTUSDT",
-                    "DEXEUSDT",
-                    "IPUSDT",
-                    "CHESSUSDT",
-                    "PROMUSDT",
-                    "AXSUSDT",
-                    "ANKRUSDT",
-                    "CTSIUSDT",
-                    "ACHUSDT",
-                    "EDUUSDT",
-                    "ETHWUSDT",
-                    "AIUSDT",
-                    "XAIUSDT",
-                    "FIOUSDT",
-                    "MOODENGUSDT",
-                    "QTUMUSDT",
-                    "ALPHAUSDT",
-                    "APEUSDT",
-                    "ORDIUSDT",
-                    "LSKUSDT",
-                    "LISTAUSDT",
-                    "EIGENUSDT",
-                    "MOVEUSDT",
-                };
-                lTake.AddRange(lTmp);
-                #endregion
+                //#region comment
+                //lTake.Clear();
+                //var lTmp = new List<string>
+                //{
+                //    "BROCCOLI714USDT",
+                //    "NILUSDT",
+                //    "HEIUSDT",
+                //    "OMUSDT",
+                //    "CATIUSDT",
+                //    "GRIFFAINUSDT",
+                //    "GPSUSDT",
+                //    "DUSKUSDT",
+                //    "NEIROUSDT",
+                //    "PONKEUSDT",
+                //    "LINKUSDT",
+                //    "MORPHOUSDT",
+                //    "AVAAIUSDT",
+                //    "VICUSDT",
+                //    "KASUSDT",
+                //    "DYDXUSDT",
+                //    "BADGERUSDT",
+                //    "BAKEUSDT",
+                //    "CAKEUSDT",
+                //    "ONDOUSDT",
+                //    "OMNIUSDT",
+                //    "1MBABYDOGEUSDT",
+                //    "SAFEUSDT",
+                //    "1000000MOGUSDT",
+                //    "RUNEUSDT",
+                //    "BERAUSDT",
+                //    "MANTAUSDT",
+                //    "AGLDUSDT",
+                //    "CRVUSDT",
+                //    "TRUUSDT",
+                //    "TWTUSDT",
+                //    "DEXEUSDT",
+                //    "IPUSDT",
+                //    "CHESSUSDT",
+                //    "PROMUSDT",
+                //    "AXSUSDT",
+                //    "ANKRUSDT",
+                //    "CTSIUSDT",
+                //    "ACHUSDT",
+                //    "EDUUSDT",
+                //    "ETHWUSDT",
+                //    "AIUSDT",
+                //    "XAIUSDT",
+                //    "FIOUSDT",
+                //    "MOODENGUSDT",
+                //    "QTUMUSDT",
+                //    "ALPHAUSDT",
+                //    "APEUSDT",
+                //    "ORDIUSDT",
+                //    "LSKUSDT",
+                //    "LISTAUSDT",
+                //    "EIGENUSDT",
+                //    "MOVEUSDT",
+                //};
+                //lTake.AddRange(lTmp);
+                //#endregion
                 foreach (var item in lTake)
                 {
 
@@ -957,6 +957,12 @@ namespace TestPr.Service
                         lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
+                        var lVol = lData15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
 
                         DateTime dtFlag = DateTime.MinValue;
                         //var count = 0;
@@ -976,6 +982,7 @@ namespace TestPr.Service
                                 var cur = lData15m.First(x => x.Date == ma20.Date);
                                 var rsi = lrsi.First(x => x.Date == ma20.Date);
                                 var maxOpenClose = Math.Max(cur.Open, cur.Close);
+                                var maVol = lMaVol.First(x => x.Date == ma20.Date);
 
                                 if (
                                     cur.Close <= cur.Open
@@ -986,6 +993,12 @@ namespace TestPr.Service
                                    || Math.Abs(maxOpenClose - (decimal)ma20.UpperBand.Value) > Math.Abs((decimal)ma20.Sma.Value - maxOpenClose)
                                    )
                                     continue;
+
+                                if (!StaticVal._lCoinSpecial.Contains(item))
+                                {
+                                    if (cur.Volume < (decimal)(maVol.Sma.Value * 1.5))
+                                        continue;
+                                }
 
                                 var rsiPivot = lrsi.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
                                 if (rsiPivot is null || rsiPivot.Rsi > 80 || rsiPivot.Rsi < 65)
@@ -1142,12 +1155,12 @@ namespace TestPr.Service
                         if (rateRes > (decimal)0.5 && winCount > 3)
                         {
                             var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
-                            if (sumRate <= 1)
-                            {
-                                var lRemove = lModel.Where(x => x.s == item);
-                                lModel = lModel.Except(lRemove).ToList();
-                                continue;
-                            }
+                            //if (sumRate <= 1)
+                            //{
+                            //    var lRemove = lModel.Where(x => x.s == item);
+                            //    lModel = lModel.Except(lRemove).ToList();
+                            //    continue;
+                            //}
                                 
                             //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
                             lMesAll.AddRange(lMes);
@@ -1162,15 +1175,15 @@ namespace TestPr.Service
                                     realWin++;
                             }
                             var count = lModel.Count(x => x.s == item);
-                            if (sumRate / count <= (decimal)0.5)
-                            {
-                                var lRemove = lModel.Where(x => x.s == item);
-                                lModel = lModel.Except(lRemove).ToList();
-                                continue;
-                            }
+                            //if (sumRate / count <= (decimal)0.5)
+                            //{
+                            //    var lRemove = lModel.Where(x => x.s == item);
+                            //    lModel = lModel.Except(lRemove).ToList();
+                            //    continue;
+                            //}
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
-                            if(perRate < 0.7)
+                            if (perRate < 0.8)
                             {
                                 var lRemove = lModel.Where(x => x.s == item);
                                 lModel = lModel.Except(lRemove).ToList();

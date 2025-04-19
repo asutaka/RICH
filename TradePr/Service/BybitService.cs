@@ -114,10 +114,8 @@ namespace TradePr.Service
                         var bb_near = lbb.SkipLast(1).Last();
                         var maVol_near = lMaVol.SkipLast(1).Last();
                         var sideDetect = -1;
-                        //Console.WriteLine($"LONG|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
                         if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
                         {
-                            //Console.WriteLine($"1.LONG:RSI: {rsiPivot.Rsi}");
                             //check nến liền trước
                             if (near.Close >= near.Open
                                 || rsi_near.Rsi > 35
@@ -130,17 +128,14 @@ namespace TradePr.Service
                                 if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
                                     continue;
                             }
-                            //Console.WriteLine($"2.LONG:RSI NEAR: {rsi_near.Rsi}");
                             var minOpenClose = Math.Min(near.Open, near.Close);
                             if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
                                 continue;
-                            //Console.WriteLine($"3.LONG:Position");
                             //check tiếp nến pivot
                             if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
                                 || pivot.High >= (decimal)bbPivot.Sma.Value
                                 || (pivot.Low >= near.Low && pivot.High <= near.High))
                                 continue;
-                            //Console.WriteLine($"4.LONG:Pivot");
                             var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));
                             if (ratePivot > (decimal)0.8)
                             {
@@ -214,13 +209,20 @@ namespace TradePr.Service
                         var rsiPivot = lRsi.Last();
                         var bbPivot = lbb.Last();
 
+                        var lVol = l15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
+
                         var rsi_near = lRsi.SkipLast(1).Last();
                         var bb_near = lbb.SkipLast(1).Last();
+                        var maVol_near = lMaVol.SkipLast(1).Last();
                         var sideDetect = -1;
                         //Console.WriteLine($"SHORT|{sym}|{curPrice}|{bbPivot.Sma.Value}|{rsiPivot.Rsi}");
                         if (rsiPivot.Rsi >= 65 && rsiPivot.Rsi <= 80 && curPrice > (decimal)bbPivot.Sma.Value)//SHORT
                         {
-                            //Console.WriteLine($"1.SHORT:RSI: {rsiPivot.Rsi}");
                             //check nến liền trước
                             if (near.Close <= near.Open
                                 || rsi_near.Rsi < 65
@@ -228,23 +230,24 @@ namespace TradePr.Service
                             {
                                 continue;
                             }
-                            //Console.WriteLine($"2.SHORT:RSI NEAR: {rsi_near.Rsi}");
+                            if (!StaticVal._lCoinSpecial.Contains(sym))
+                            {
+                                if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
+                                    continue;
+                            }
                             var maxOpenClose = Math.Max(near.Open, near.Close);
                             if (Math.Abs(maxOpenClose - (decimal)bb_near.UpperBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - maxOpenClose))
                                 continue;
-                            //Console.WriteLine($"3.SHORT:Position");
                             //check tiếp nến pivot
                             if (pivot.High <= (decimal)bbPivot.UpperBand.Value
                                 || pivot.Low <= (decimal)bbPivot.Sma.Value)
                                 continue;
-                            //Console.WriteLine($"4.SHORT:Pivot");
                             //check div by zero
                             if (near.High == near.Low
                                 || pivot.High == pivot.Low
                                 || Math.Min(pivot.Open, pivot.Close) == pivot.Low)
                                 continue;
 
-                            //Console.WriteLine($"5.SHORT:DIV ZERO");
                             var rateNear = Math.Abs((near.Open - near.Close) / (near.High - near.Low));  //độ dài nến hiện tại
                             var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));  //độ dài nến pivot
                             var isHammer = (near.High - near.Close) >= (decimal)1.2 * (near.Close - near.Low);
