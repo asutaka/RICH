@@ -13,7 +13,7 @@ namespace StockPr.Service
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
         Task<string> ThongKeGDNN_Week();
-        Task<(int, string)> ChiBaoKyThuat(DateTime dt);
+        Task<(int, string, IEnumerable<string>)> ChiBaoKyThuat(DateTime dt);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
     }
     public class AnalyzeService : IAnalyzeService
@@ -626,7 +626,7 @@ namespace StockPr.Service
             return (0, null);
         }
 
-        public async Task<(int, string)> ChiBaoKyThuat(DateTime dt)
+        public async Task<(int, string, IEnumerable<string>)> ChiBaoKyThuat(DateTime dt)
         {
             try
             {
@@ -636,7 +636,7 @@ namespace StockPr.Service
                 if (lConfig.Any())
                 {
                     if (lConfig.Any(x => x.t == t))
-                        return (0, null);
+                        return (0, null, null);
 
                     _configRepo.DeleteMany(filterConfig);
                 }
@@ -671,9 +671,11 @@ namespace StockPr.Service
                 strOutput.AppendLine($" - Số cp tăng giá: {Math.Round((float)lReport.Count(x => x.isPriceUp) * 100 / count, 1)}%");
                 strOutput.AppendLine($" - Số cp trên MA20: {Math.Round((float)lReport.Count(x => x.isGEMA20) * 100 / count, 1)}%");
 
-                var lTrenMa20 = lReport.Where(x => x.isPriceUp && x.isCrossMa20Up && StaticVal._lFocus.Contains(x.s))
+                var lFocus = lReport.Where(x => StaticVal._lFocus.Contains(x.s));
+                var lTrenMa20 = lFocus.Where(x => x.isPriceUp && x.isCrossMa20Up)
                                     .OrderBy(x => x.rank)
                                     .Take(20);
+                var lAcceptFocus = lFocus.Where(x => x.isFocus).Select(x => x.s);
                 if (lTrenMa20.Any())
                 {
                     strOutput.AppendLine();
@@ -690,7 +692,7 @@ namespace StockPr.Service
                     }
                 }
                 //
-                var lOrderBlockBuy = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.BotPinbar || x.ob.Mode == (int)EOrderBlockMode.BotInsideBar))
+                var lOrderBlockBuy = lFocus.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.BotPinbar || x.ob.Mode == (int)EOrderBlockMode.BotInsideBar))
                                   .OrderBy(x => x.rank)
                                   .Take(10);
                 if(lOrderBlockBuy.Any())
@@ -705,7 +707,7 @@ namespace StockPr.Service
                     }
                 }
 
-                var lOrderBlockSell = lReport.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.TopPinbar || x.ob.Mode == (int)EOrderBlockMode.TopInsideBar))
+                var lOrderBlockSell = lFocus.Where(x => x.ob != null && (x.ob.Mode == (int)EOrderBlockMode.TopPinbar || x.ob.Mode == (int)EOrderBlockMode.TopInsideBar))
                                  .OrderBy(x => x.rank)
                                  .Take(10);
                 if (lOrderBlockSell.Any())
@@ -726,14 +728,14 @@ namespace StockPr.Service
                     t = t
                 });
 
-                return (1, strOutput.ToString());
+                return (1, strOutput.ToString(), lAcceptFocus);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"AnalyzeService.ChiBaoKyThuat|EXCEPTION| {ex.Message}");
             }
 
-            return (0, null);
+            return (0, null, null);
         }
 
         private async Task<ReportPTKT> ChiBaoKyThuatOnlyStock(string code, int limitvol)
@@ -778,8 +780,8 @@ namespace StockPr.Service
             {
                 if (lData.Count() < 250)
                     return null;
-                var last = lData.Last();
-                var val = last.Close * last.Volume;
+                var entity = lData.Last();
+                var val = entity.Close * entity.Volume;
                 if (val < 100000)//Giá trị giao dịch < 100tr
                     return null;
 
@@ -790,17 +792,15 @@ namespace StockPr.Service
 
                 var lIchi = lData.GetIchimoku();
                 var lBb = lData.GetBollingerBands();
-                //var lEma21 = lData.GetEma(21);
-                //var lEma50 = lData.GetEma(50);
-                //var lEma200 = lData.GetEma(200);
                 var lRsi = lData.GetRsi();
 
                 //MA20
-                var entity = lData.Last();
                 var bb = lBb.Last();
-                var entityNear = lData.SkipLast(1).TakeLast(1).First();
-                var bbNear = lBb.SkipLast(1).TakeLast(1).First();
+                var entityNear = lData.SkipLast(1).Last();
+                var bbNear = lBb.SkipLast(1).Last();
+                var rateVol = Math.Round(entity.Volume / entityNear.Volume, 1);
 
+                model.isFocus = rateVol <= (decimal)0.6;
                 model.isGEMA20 = entity.Close >= (decimal)bb.Sma;
                 model.isCrossMa20Up = entityNear.Close < (decimal)bbNear.Sma && entity.Close >= (decimal)bb.Sma && entity.Open <= (decimal)bb.Sma;
                 model.isPriceUp = entity.Close > entity.Open;

@@ -165,6 +165,10 @@ namespace StockPr
                             {
                                 await _teleService.SendMessage(_idChannel, res.Item2, true);
                             }
+                            if (res.Item3?.Any() ?? false)
+                            {
+                                await _teleService.SendMessage(_idUser, string.Join("\n", res.Item3.Select((x, index) => $"{index + 1}. {x}")));
+                            }
                         }
 
                         if(dt.Hour >= 15)

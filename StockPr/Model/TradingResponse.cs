@@ -146,6 +146,7 @@ namespace StockPr.Model
         public bool isGEMA20 { get; set; }//Nằm trên MA20
         public bool isIchi { get; set; }//giá vượt trên ichi
         public bool isPriceUp { get; set; }//cp tăng giá hay ko
+        public bool isFocus { get; set; }//cp cần quan tâm(có vol giảm 1 nửa)
         public OrderBlock ob { get; set; }
     }
 
