@@ -312,6 +312,9 @@ namespace StockPr.Service
                                         continue;
                                 }
 
+                                if (Math.Abs(100 * (-1 + cur.Close / pivot.Close)) >= (decimal)6.8)
+                                    continue;
+
                                 var buy = lData15m.FirstOrDefault(x => x.Date > pivot.Date);
                                 if (buy is null)
                                     continue;

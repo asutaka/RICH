@@ -557,7 +557,11 @@ namespace TradePr.Service
                 //nếu lỗi return
                 if (!res.Success)
                 {
-                    await _teleService.SendMessage(_idUser, $"[ERROR_Binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    if (!_lIgnoreCode.Any(x => x == res.Error.Code))
+                    {
+                        await _teleService.SendMessage(_idUser, $"[ERROR_Binance] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    }
+                    
                     return false;
                 }
 
@@ -685,5 +689,9 @@ namespace TradePr.Service
             await _teleService.SendMessage(_idUser, $"[Binance] Không thể đóng lệnh {side}: {pos.Symbol}!");
             return false;
         }
+
+        private List<long> _lIgnoreCode = new List<long>
+        {
+        };
     }
 }

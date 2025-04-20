@@ -2,6 +2,7 @@
 using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
+using System.Linq;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -454,7 +455,10 @@ namespace TradePr.Service
                 //nếu lỗi return
                 if (!res.Success)
                 {
-                    await _teleService.SendMessage(_idUser, $"[ERROR_Bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    if (!_lIgnoreCode.Any(x => x == res.Error.Code))
+                    {
+                        await _teleService.SendMessage(_idUser, $"[ERROR_Bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    }
                     return false;
                 }
 
@@ -588,5 +592,10 @@ namespace TradePr.Service
             await _teleService.SendMessage(_idUser, $"[Bybit] Không thể đóng lệnh {side}: {pos.Symbol}!");
             return false;
         }
+
+        private List<long> _lIgnoreCode = new List<long>
+        {
+            110007
+        };
     }
 }
