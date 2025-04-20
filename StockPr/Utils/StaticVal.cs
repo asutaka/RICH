@@ -41,7 +41,7 @@ namespace StockPr.Utils
             {"SJ1",4 },
         };
 
-        public static List<string> _lMaAnalyze = new List<string>
+        public static List<string> _lFocus = new List<string>
         {
             //HSX
             "AAA",

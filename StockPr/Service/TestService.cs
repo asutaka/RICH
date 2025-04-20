@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -15,6 +16,7 @@ namespace StockPr.Service
     {
         Task Check2Buy();
         Task Check2Sell();
+        Task CheckSomething();
     }
     public class TestService : ITestService
     {
@@ -847,6 +849,463 @@ namespace StockPr.Service
                             var rate = Math.Round((double)realWin / count, 1);
                             var perRate = Math.Round((float)sumRate / count, 1);
                             Console.WriteLine($"{item}| W/Total: {realWin}/{count} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
+
+                            winTotal += winCount;
+                            lossTotal += lossCount;
+                            winCount = 0;
+                            lossCount = 0;
+                        }
+
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                //foreach (var mes in lMesAll)
+                //{
+                //    Console.WriteLine(mes);
+                //}
+                Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
+
+                // Note:
+                // + Nến xanh cắt lên MA20
+                // + 2 nến ngay phía trước đều nằm dưới MA20
+                // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
+                // + Giữ 2 tiếng? hoặc nến chạm BB trên
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task CheckSomething()
+        {
+            try
+            {
+                var lStock = _stockRepo.GetAll();
+                var lUsdt = lStock.Select(x => x.s);
+                var countUSDT = lUsdt.Count();//461
+                var lTake = lUsdt.ToList();
+                //var lTake = lUsdt.Skip(0).Take(50).ToList();
+                //2x1.7 best
+                //decimal SL_RATE = 1.7m;//1.5,1.6,1.8,1.9,2
+                decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
+                int hour = 10;//1h,2h,3h,4h
+
+                var lMesAll = new List<string>();
+                var lModel = new List<LongMa20>();
+
+                var winTotal = 0;
+                var lossTotal = 0;
+                lTake.Clear();
+                var lTmp = new List<string>
+                {
+                    "DC4",
+                    "GIL",
+                    "GVR",
+                    "DPG",
+                    "CTG",
+                    "BFC",
+                    "VRE",
+                    "PVB",
+                    "GEX",
+                    "SZC",
+                    "HDG",
+                    "BMP",
+                    "TLG",
+                    "VPB",
+                    "DIG",
+                    "KBC",
+                    "HSG",
+                    "PET",
+                    "TNG",
+                    "SBT",
+                    "MSH",
+                    "NAB",
+                    "VGC",
+                    "CSV",
+                    "VCS",
+                    "CSM",
+                    "PHR",
+                    "PVT",
+                    "PC1",
+                    "ASM",
+                    "LAS",
+                    "DXG",
+                    "HCM",
+                    "CTI",
+                    "NHA",
+                    "DPR",
+                    "ANV",
+                    "OCB",
+                    "TVB",
+                    "STB",
+                    "HDC",
+                    "POW",
+                    "VSC",
+                    "L18",
+                    "DDV",
+                    "VCI",
+                    "GMD",
+                    "NTP",
+                    "KSV",
+                    "TTF",
+                    "NT2",
+                    "TCM",
+                    "LSS",
+                    "GEG",
+                    "HHS",
+                    "MSB",
+                    "TCH",
+                    "VHC",
+                    "PVD",
+                    "FOX",
+                    "SSI",
+                    "NKG",
+                    "BSI",
+                    "ACB",
+                    "REE",
+                    "VHM",
+                    "PAN",
+                    "SIP",
+                    "PTB",
+                    "BSR",
+                    "BID",
+                    "PVS",
+                    "CTS",
+                    "FTS",
+                    "HPG",
+                    "DBC",
+                    "MSR",
+                    "THG",
+                    "CTD",
+                    "VOS",
+                    "FMC",
+                    "PHP",
+                    "GAS",
+                    "DCM",
+                    "KSB",
+                    "MSN",
+                    "BVB",
+                    "MBB",
+                    "TRC",
+                    "VPI",
+                    "EIB",
+                    "KDH",
+                    "VCB",
+                    "FPT",
+                    "DRC",
+                    "CMG",
+                    "HAG",
+                    "SHB",
+                    "CII",
+                    "CTR",
+                    "IDC",
+                    "GEE",
+                    "NVB",
+                    "BVS",
+                    "BWE",
+                    "HAX",
+                    "QNS",
+                    "VEA",
+                    "TVS",
+                    "DGC",
+                    "HAH",
+                    "NVL",
+                    "PAC",
+                    "AAA",
+                    "TNH",
+                    "ACV",
+                    "BCC",
+                    "FRT",
+                    "HT1",
+                    "SCS",
+                    "TLH",
+                    "MIG",
+                    "SKG",
+                    "DGC",
+                    "VAB",
+                    "NLG",
+                    "HVN",
+                    "HNG",
+                    "PDR",
+                    "VDS",
+                    "SJE",
+                    "PNJ",
+                    "CEO",
+                    "YEG",
+                    "KLB",
+                    "BCM",
+                    "BVH",
+                    "NTL",
+                    "TDH",
+                    "MBS",
+                    "HUT",
+                    "VIB",
+                    "BAF",
+                    "HHV",
+                    "NDN",
+                    "SGP",
+                    "MCH",
+                    "FCN",
+                    "SCR",
+                    "TCB",
+                    "LPB",
+                    "VTP",
+                    "AGR",
+                    "VCG",
+                    "DPM",
+                    "IDJ",
+                    "DXS",
+                    "OIL",
+                    "AGG",
+                    "VND",
+                    "PSI",
+                    "DHA",
+                    "VIC",
+                    "ITA",
+                    "BCG",
+                    "TPB",
+                    "VIX",
+                    "IJC",
+                    "DGW",
+                    "SBS",
+                    "MFS",
+                    "PLX",
+                    "DRI",
+                    "EVF",
+                    "ORS",
+                    "SAB",
+                    "TDC",
+                    "VNM",
+                    "TV2",
+                    "C4G",
+                    "MWG",
+                    "JVC",
+                    "GDA",
+                    "VGI",
+                    "DSC",
+                    "SMC",
+                    "DTD",
+                    "QCG",
+                };
+                lTake.AddRange(lTmp);
+                foreach (var item in lTake)
+                {
+                    var winCount = 0;
+                    var lossCount = 0;
+                    try
+                    {
+                        var lMes = new List<string>();
+
+                        var lData15m = await _apiService.SSI_GetDataStock(item);
+                        Thread.Sleep(200);
+                        if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 50000)
+                            continue;
+                        var last = lData15m.Last();
+                        var near = lData15m.SkipLast(1).Last();
+                        var lbb = lData15m.GetBollingerBands();
+                        var lrsi = lData15m.GetRsi();
+                        var lVol = lData15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
+                        var near_MaVol = lMaVol.SkipLast(1).Last();
+                        //if ((decimal)(near_MaVol.Sma.Value * 1.5) > near.Volume)
+                        //    continue;
+
+                        var rateVol = Math.Round(last.Volume / near.Volume, 1);
+                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                            continue;
+
+                        Console.WriteLine(item);
+                        continue;
+
+
+
+
+                        DateTime dtFlag = DateTime.MinValue;
+                        //var count = 0;
+                        foreach (var ma20 in lbb)
+                        {
+                            try
+                            {
+                                if (dtFlag >= ma20.Date
+                                    || ma20.Date >= DateTime.Now.AddDays(-3))
+                                    continue;
+
+                                //if (ma20.Date.Month == 1 && ma20.Date.Day == 7 && ma20.Date.Year == 2025)
+                                //{
+                                //    var z = 1;
+                                //}
+
+                                var side = 0;
+                                var cur = lData15m.First(x => x.Date == ma20.Date);
+                                var rsi = lrsi.First(x => x.Date == ma20.Date);
+                                var minOpenClose = Math.Min(cur.Open, cur.Close);
+                                var maVol = lMaVol.First(x => x.Date == ma20.Date);
+
+                                //var 
+                                if (ma20.Sma is null
+                                    || cur.Close >= cur.Open
+                                    || (decimal)ma20.Sma.Value <= cur.High
+                                    || cur.Volume < (decimal)(maVol.Sma.Value * 1.5)
+                                    || Math.Abs(minOpenClose - (decimal)ma20.LowerBand.Value) > Math.Abs((decimal)ma20.Sma.Value - minOpenClose)
+                                    )
+                                    continue;
+
+                                var pivot = lData15m.First(x => x.Date > ma20.Date);
+                                var bbPivot = lbb.First(x => x.Date > ma20.Date);
+                                if (pivot.High >= (decimal)bbPivot.Sma.Value
+                                    || (pivot.Low >= cur.Low && pivot.High <= cur.High))
+                                    continue;
+
+                                //độ dài nến hiện tại
+                                var rateCur = Math.Abs((cur.Open - cur.Close) / (cur.High - cur.Low));
+                                if (rateCur > (decimal)0.8)
+                                {
+                                    //check độ dài nến pivot
+                                    var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(cur.Open - cur.Close);
+                                    if (isValid)
+                                        continue;
+                                }
+
+                                if (Math.Abs(100 * (-1 + cur.Close / pivot.Close)) >= (decimal)6.8)
+                                    continue;
+
+                                var buy = lData15m.FirstOrDefault(x => x.Date > pivot.Date);
+                                if (buy is null)
+                                    continue;
+
+                                //if ((decimal)bbPivot.Sma.Value - buy.Open < buy.Open - (decimal)bbPivot.LowerBand.Value)
+                                //    continue;
+
+                                if (buy.Open > Math.Max(pivot.Open, pivot.Close) * (decimal)1.01)
+                                    continue;
+
+                                cur = buy;
+
+                                var next = lData15m.FirstOrDefault(x => x.Date > cur.Date);
+                                if (next is null)
+                                    continue;
+                                var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Open), 1);// tỉ lệ từ entry đến giá thấp nhất
+
+                                var eEntry = cur;
+                                var eClose = lData15m.Where(x => x.Date >= eEntry.Date).Skip(hour).FirstOrDefault();
+                                if (eClose is null)
+                                    continue;
+
+                                var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eClose.Date).Skip(2);
+                                foreach (var itemClose in lClose)
+                                {
+                                    var ma = lbb.First(x => x.Date == itemClose.Date);
+                                    if (itemClose.Close > (decimal)ma.UpperBand)
+                                    {
+                                        eClose = lData15m.FirstOrDefault(x => x.Date > itemClose.Date);
+                                        break;
+                                    }
+                                }
+
+                                dtFlag = eClose.Date;
+                                var rate = Math.Round(100 * (-1 + eClose.Open / eEntry.Open), 1);
+                                var lRange = lData15m.Where(x => x.Date >= eEntry.Date && x.Date <= eClose.Date).Skip(2);
+                                var maxH = lRange.Max(x => x.High);
+                                var minL = lRange.Min(x => x.Low);
+
+                                var winloss = "W";
+                                if (rate <= (decimal)0)
+                                {
+                                    winloss = "L";
+                                }
+
+                                decimal maxTP = 0, maxSL = 0;
+                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Open), 1);
+                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Open), 1);
+
+                                if (maxSL <= -SL_RATE)
+                                {
+                                    rate = -SL_RATE;
+                                    winloss = "L";
+                                }
+
+                                if (winloss == "W")
+                                {
+                                    rate = Math.Abs(rate);
+                                    winCount++;
+                                }
+                                else
+                                {
+                                    rate = -Math.Abs(rate);
+                                    lossCount++;
+                                }
+
+                                //lRate.Add(rate);
+                                lModel.Add(new LongMa20
+                                {
+                                    s = item,
+                                    IsWin = winloss == "W",
+                                    Date = cur.Date,
+                                    Rate = rate,
+                                    MaxTP = maxTP,
+                                    MaxSL = maxSL,
+                                    RateEntry = rateEntry,
+                                });
+                                var mes = $"{item}|{winloss}|BUY|{cur.Date.ToString("dd/MM/yyyy HH:mm")}|E: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%";
+                                lMes.Add(mes);
+                            }
+                            catch (Exception ex)
+                            {
+                                break;
+                                //_logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+                            }
+
+                        }
+
+                        //Console.WriteLine(count);
+                        //return;
+
+                        //foreach (var mes in lMes)
+                        //{
+                        //    Console.WriteLine(mes);
+                        //}
+                        //
+                        //if (winCount <= lossCount)
+                        //    continue;
+                        if (winCount + lossCount <= 0)
+                            continue;
+
+                        var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
+                        if (true)
+                        //if (rateRes > (decimal)0.5)
+                        {
+                            var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
+                            //if (sumRate <= 1)
+                            //{
+                            //    var lRemove = lModel.Where(x => x.s == item);
+                            //    lModel = lModel.Except(lRemove).ToList();
+                            //    continue;
+                            //}
+                            //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
+                            lMesAll.AddRange(lMes);
+                            foreach (var mes in lMes)
+                            {
+                                Console.WriteLine(mes);
+                            }
+                            var realWin = 0;
+                            foreach (var model in lModel.Where(x => x.s == item))
+                            {
+                                if (model.Rate > (decimal)0)
+                                    realWin++;
+                            }
+                            var count = lModel.Count(x => x.s == item);
+                            var rate = Math.Round((double)realWin / count, 1);
+                            Console.WriteLine($"{item}| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%");
 
                             winTotal += winCount;
                             lossTotal += lossCount;

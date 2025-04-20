@@ -4,7 +4,6 @@ using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
-using System;
 using System.Text;
 
 namespace StockPr.Service
@@ -652,7 +651,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var model = await ChiBaoKyThuatOnlyStock(item.s, 50000);
+                        var model = await ChiBaoKyThuatOnlyStock(item.s, 500);
                         if (model is null)
                             continue;
                         model.rank = item.rank;
@@ -672,7 +671,7 @@ namespace StockPr.Service
                 strOutput.AppendLine($" - Số cp tăng giá: {Math.Round((float)lReport.Count(x => x.isPriceUp) * 100 / count, 1)}%");
                 strOutput.AppendLine($" - Số cp trên MA20: {Math.Round((float)lReport.Count(x => x.isGEMA20) * 100 / count, 1)}%");
 
-                var lTrenMa20 = lReport.Where(x => x.isPriceUp && x.isCrossMa20Up)
+                var lTrenMa20 = lReport.Where(x => x.isPriceUp && x.isCrossMa20Up && StaticVal._lFocus.Contains(x.s))
                                     .OrderBy(x => x.rank)
                                     .Take(20);
                 if (lTrenMa20.Any())
@@ -779,6 +778,11 @@ namespace StockPr.Service
             {
                 if (lData.Count() < 250)
                     return null;
+                var last = lData.Last();
+                var val = last.Close * last.Volume;
+                if (val < 100000)//Giá trị giao dịch < 100tr
+                    return null;
+
                 if (limitvol > 0 && lData.Last().Volume < limitvol)
                     return null;
 
