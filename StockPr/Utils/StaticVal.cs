@@ -44,6 +44,7 @@ namespace StockPr.Utils
         public static List<string> _lFocus = new List<string>
         {
             //HSX
+            "VNINDEX",
             "AAA",
             "ACB",
             "ACG",

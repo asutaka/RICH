@@ -904,6 +904,7 @@ namespace StockPr.Service
                 lTake.Clear();
                 var lTmp = new List<string>
                 {
+                    "VNINDEX",
                     "DC4",
                     "GIL",
                     "GVR",
