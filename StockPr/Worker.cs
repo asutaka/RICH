@@ -50,8 +50,8 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            await _testService.CheckSomething();
-            return;
+            //await _testService.CheckSomething();
+            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
