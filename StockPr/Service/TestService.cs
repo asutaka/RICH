@@ -1151,7 +1151,8 @@ namespace StockPr.Service
                                 var entity_Pre = lData15m.Last(x => x.Date < ma20.Date);
 
                                 var rateVol = entity_Pivot.Volume / entity_Sig.Volume;
-                                if (rateVol > (decimal)0.6)
+                                if (rateVol > (decimal)0.6
+                                    || (decimal)(maVol_Sig.Sma.Value * 0.9)> entity_Sig.Volume)
                                     continue;
 
 
