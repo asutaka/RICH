@@ -949,7 +949,6 @@ namespace TestPr.Service
                                     continue;
 
                                 var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
-                                Quote tmpClose = null;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -960,29 +959,13 @@ namespace TestPr.Service
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
-                                    if(rateCheck > 10)
+                                    if(rateCheck > 4)
                                     {
                                         var close = eEntry.Close * (decimal)1.1;
                                         itemClose.Close = close;
                                         eClose = itemClose;
                                         break;
                                     }
-
-                                    if (tmpClose != null)
-                                    {
-                                        if (tmpClose.Close > tmpClose.Open
-                                            && itemClose.Volume / tmpClose.Volume < (decimal)0.6)
-                                        {
-                                            var bbTmp = lbb.First(x => x.Date == itemClose.Date);
-                                            if (Math.Max(itemClose.Close, itemClose.Open) > (decimal)bbTmp.Sma.Value
-                                                && (itemClose.Close - (decimal)bbTmp.Sma.Value) > ((decimal)bbTmp.UpperBand.Value - itemClose.Close))
-                                            {
-                                                eClose = itemClose;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    tmpClose = itemClose;
                                 }
 
                                 dtFlag = eClose.Date;
@@ -1046,27 +1029,21 @@ namespace TestPr.Service
                         var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
                         var count = lModel.Count(x => x.s == item);
                         var items = lModel.Where(x => x.s == item);
+                        var perRate = Math.Round((float)sumRate / count, 1);
                         //Special 
-                        //if (rateRes <= (decimal)0.5
-                        //  || sumRate <= 1
-                        //  || sumRate / count <= (decimal)0.5)
-                        //{
-                        //    lModel = lModel.Except(items).ToList();
-                        //    continue;
-                        //}
+                        if (rateRes <= (decimal)0.5
+                          || sumRate <= 1
+                          || perRate <= 0.9)
+                        {
+                            lModel = lModel.Except(items).ToList();
+                            continue;
+                        }
 
                         var realWin = 0;
                         foreach (var model in items)
                         {
                             if (model.Rate > (decimal)0)
                                 realWin++;
-                        }
-
-                        var perRate = Math.Round((float)sumRate / count, 1);
-                        if (perRate < 0.8)
-                        {
-                            lModel = lModel.Except(items).ToList();
-                            continue;
                         }
 
                         winTotal += winCount;
