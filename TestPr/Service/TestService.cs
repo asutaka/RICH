@@ -784,7 +784,6 @@ namespace TestPr.Service
                 decimal SL_RATE = 2.5m;//1.5,1.6,1.8,1.9,2
                 int hour = 4;//1h,2h,3h,4h
 
-                var lMesAll = new List<string>();
                 var lModel = new List<LongMa20>();
 
                 var winTotal = 0;
@@ -861,7 +860,6 @@ namespace TestPr.Service
                     {
                         //if (item != "BTCUSDT")
                         //    continue;
-                        var lMes = new List<string>();
 
                         var lData15m = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                         if (lData15m == null || !lData15m.Any())
@@ -902,7 +900,8 @@ namespace TestPr.Service
                         {
                             try
                             {
-                                if (dtFlag >= ma20.Date)
+                                if (ma20.Sma is null 
+                                    || dtFlag >= ma20.Date)
                                     continue;
 
                                 //if (ma20.Date.Month == 2 && ma20.Date.Day == 28 && ma20.Date.Hour == 1 && ma20.Date.Minute == 30)
@@ -910,63 +909,41 @@ namespace TestPr.Service
                                 //    var z = 1;
                                 //}
 
-                                var side = (int)Binance.Net.Enums.OrderSide.Buy;
-                                var cur = lData15m.First(x => x.Date == ma20.Date);
-                                var rsi = lrsi.First(x => x.Date == ma20.Date);
-                                var maxOpenClose = Math.Max(cur.Open, cur.Close);
-                                var minOpenClose = Math.Min(cur.Open, cur.Close);
-                                var maVol = lMaVol.First(x => x.Date == ma20.Date);
+                                var entity_Sig = lData15m.First(x => x.Date == ma20.Date);
+                                var rsi_Sig = lrsi.First(x => x.Date == ma20.Date);
+                                var maVol_Sig = lMaVol.First(x => x.Date == ma20.Date);
+                                //var minOpenClose = Math.Min(entity_Sig.Open, entity_Sig.Close);
 
-                                if (cur.Close >= cur.Open
-                                    || ma20.Sma is null
-                                    || rsi.Rsi > 35
-                                    || cur.Low >= (decimal)ma20.LowerBand.Value
-                                    //|| cur.High >= (decimal)ma20.Sma.Value
-                                    || Math.Abs(minOpenClose - (decimal)ma20.LowerBand.Value) > Math.Abs((decimal)ma20.Sma.Value - minOpenClose)
+                                var entity_Pivot = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
+                                var rsi_Pivot = lrsi.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
+                                var bb_Pivot = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
+
+                                if (entity_Sig.Close >= entity_Sig.Open
+                                    || rsi_Sig.Rsi > 35
+                                    || entity_Sig.Low >= (decimal)ma20.LowerBand.Value
+                                    || entity_Sig.Close - (decimal)ma20.LowerBand.Value >= (decimal)ma20.Sma.Value - entity_Sig.Close
+                                    || entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5)
                                     )
                                     continue;
 
-                                if (true)
-                                //if (!StaticVal._lCoinSpecial.Contains(item))
-                                {
-                                    if (cur.Volume < (decimal)(maVol.Sma.Value * 1.5))
-                                        continue;
-                                }
-
-                                var rsiPivot = lrsi.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-                                if (rsiPivot is null || rsiPivot.Rsi > 35 || rsiPivot.Rsi < 25)
+                                if (entity_Pivot is null
+                                   || rsi_Pivot.Rsi > 35 || rsi_Pivot.Rsi < 25
+                                   || entity_Pivot.Low >= (decimal)bb_Pivot.LowerBand.Value
+                                   || entity_Pivot.High >= (decimal)bb_Pivot.Sma.Value
+                                   || (entity_Pivot.Low >= entity_Sig.Low && entity_Pivot.High <= entity_Sig.High)
+                                   )
                                     continue;
 
-                                var pivot = lData15m.First(x => x.Date == ma20.Date.AddMinutes(15));
-                                var bbPivot = lbb.First(x => x.Date == ma20.Date.AddMinutes(15));
-                                if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
-                                    || pivot.High >= (decimal)bbPivot.Sma.Value
-                                    || (pivot.Low >= cur.Low && pivot.High <= cur.High))
-                                    continue;
-
-                                var rateVol = Math.Round(pivot.Volume / cur.Volume, 1);
-                                //if (rateVol > (decimal)0.6 || rateVol < (decimal)0.4) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                                var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 1);
                                 if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                                     continue;
 
-                                //độ dài nến hiện tại
-                                var rateCur = Math.Abs((cur.Open - cur.Close) / (cur.High - cur.Low));
-                                if (rateCur > (decimal)0.8)
-                                {
-                                    //check độ dài nến pivot
-                                    var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(cur.Open - cur.Close);
-                                    if (isValid)
-                                        continue;
-                                }
-
-                                cur = pivot;
-
-                                var next = lData15m.FirstOrDefault(x => x.Date == cur.Date.AddMinutes(15));
+                                var next = lData15m.FirstOrDefault(x => x.Date == entity_Pivot.Date.AddMinutes(15));
                                 if (next is null)
                                     continue;
-                                var rateEntry = Math.Round(100 * (-1 + next.Low / cur.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
+                                var rateEntry = Math.Round(100 * (-1 + next.Low / entity_Pivot.Close), 1);// tỉ lệ từ entry đến giá thấp nhất
 
-                                var eEntry = cur;
+                                var eEntry = entity_Pivot;
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
                                 if (eClose is null)
                                     continue;
@@ -975,13 +952,13 @@ namespace TestPr.Service
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
-                                    if (itemClose.Close > (decimal)ma.UpperBand)
+                                    if (itemClose.Close > (decimal)ma.UpperBand)//do something
                                     {
                                         eClose = itemClose;
                                         break;
                                     }
 
-                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1);
+                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
                                     if(rateCheck > 10)
                                     {
                                         var close = eEntry.Close * (decimal)1.1;
@@ -998,22 +975,14 @@ namespace TestPr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0)
+                                if (rate <= (decimal)0.5)
                                 {
                                     winloss = "L";
                                 }
 
                                 decimal maxTP = 0, maxSL = 0;
-                                if (side == (int)Binance.Net.Enums.OrderSide.Buy)
-                                {
-                                    maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
-                                    maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
-                                }
-                                else
-                                {
-                                    maxTP = Math.Round(100 * (-1 + eEntry.Close / minL), 1);
-                                    maxSL = Math.Round(100 * (-1 + eEntry.Close / maxH), 1);
-                                }
+                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
+                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
                                 if (maxSL <= -SL_RATE)
                                 {
                                     rate = -SL_RATE;
@@ -1036,14 +1005,13 @@ namespace TestPr.Service
                                 {
                                     s = item,
                                     IsWin = winloss == "W",
-                                    Date = cur.Date,
+                                    Date = entity_Sig.Date,
                                     Rate = rate,
                                     MaxTP = maxTP,
                                     MaxSL = maxSL,
                                     RateEntry = rateEntry,
                                 });
-                                var mes = $"{item}|{winloss}|{((Binance.Net.Enums.OrderSide)side).ToString()}|{cur.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%|RSI: {rsiPivot.Rsi}";
-                                lMes.Add(mes);
+                                Console.WriteLine($"{item}|{winloss}|BUY|{entity_Sig.Date.ToString("dd/MM/yyyy HH:mm")}|{rate}%|TPMax: {maxTP}%|SLMax: {maxSL}%|RateEntry: {rateEntry}%|RSI: {rsi_Pivot.Rsi}");
                             }
                             catch (Exception ex)
                             {
@@ -1052,63 +1020,44 @@ namespace TestPr.Service
 
                         }
 
-                        //Console.WriteLine(count);
-                        //return;
-
-                        //foreach (var mes in lMes)
-                        //{
-                        //    Console.WriteLine(mes);
-                        //}
-                        //
-                        if (winCount <= lossCount)
+                        //if (winCount <= lossCount)
+                        //    continue;
+                        if (winCount + lossCount <= 3)
                             continue;
+
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        if (rateRes > (decimal)0.5 && winCount > 3)
+                        var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
+                        var count = lModel.Count(x => x.s == item);
+                        var items = lModel.Where(x => x.s == item);
+                        //Special 
+                        if (rateRes <= (decimal)0.5
+                          || sumRate <= 1
+                          || sumRate / count <= (decimal)0.5)
                         {
-                            var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
-                            if (sumRate <= 1)
-                            {
-                                var lRemove = lModel.Where(x => x.s == item);
-                                lModel = lModel.Except(lRemove).ToList();
-                                continue;
-                            }
-                            //Console.WriteLine($"{item}: {rateRes}({winCount}/{lossCount})");
-                            lMesAll.AddRange(lMes);
-                            //foreach (var mes in lMes)
-                            //{
-                            //    Console.WriteLine(mes);
-                            //}
-                            var realWin = 0;
-                            foreach (var model in lModel.Where(x => x.s == item))
-                            {
-                                if (model.Rate > (decimal)0)
-                                    realWin++;
-                            }
-                            var count = lModel.Count(x => x.s == item);
-                            if (sumRate / count <= (decimal)0.5)
-                            {
-                                var lRemove = lModel.Where(x => x.s == item);
-                                lModel = lModel.Except(lRemove).ToList();
-                                continue;
-                            }
-
-                            var rate = Math.Round((double)realWin / count, 1);
-                            var perRate = Math.Round((float)sumRate / count, 1);
-                            if (perRate < 0.8)
-                            {
-                                var lRemove = lModel.Where(x => x.s == item);
-                                lModel = lModel.Except(lRemove).ToList();
-                                continue;
-                            }
-                            Console.WriteLine($"{item}\t\t\t| W/Total: {realWin}/{lModel.Count(x => x.s == item)} = {rate}%|Rate: {sumRate}%|Per: {perRate}%");
-
-                            winTotal += winCount;
-                            lossTotal += lossCount;
-                            winCount = 0;
-                            lossCount = 0;
+                            lModel = lModel.Except(items).ToList();
+                            continue;
                         }
 
+                        var realWin = 0;
+                        foreach (var model in items)
+                        {
+                            if (model.Rate > (decimal)0)
+                                realWin++;
+                        }
 
+                        var perRate = Math.Round((float)sumRate / count, 1);
+                        if (perRate < 0.8)
+                        {
+                            lModel = lModel.Except(items).ToList();
+                            continue;
+                        }
+
+                        winTotal += winCount;
+                        lossTotal += lossCount;
+                        winCount = 0;
+                        lossCount = 0;
+
+                        Console.WriteLine($"{item}\t\t\t| W/Total: {realWin}/{count} = {Math.Round((double)realWin / count, 1)}%|Rate: {sumRate}%|Per: {perRate}%");
                     }
                     catch (Exception ex)
                     {
@@ -1116,17 +1065,7 @@ namespace TestPr.Service
                     }
                 }
 
-                //foreach (var mes in lMesAll)
-                //{
-                //    Console.WriteLine(mes);
-                //}
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
-
-                // Note:
-                // + Nến xanh cắt lên MA20
-                // + 2 nến ngay phía trước đều nằm dưới MA20
-                // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
-                // + Giữ 2 tiếng? hoặc nến chạm BB trên
             }
             catch (Exception ex)
             {
