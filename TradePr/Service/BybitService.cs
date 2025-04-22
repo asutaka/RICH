@@ -2,7 +2,6 @@
 using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
-using System.Linq;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -26,6 +25,7 @@ namespace TradePr.Service
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;//MA20 là 2h
         private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
+        private readonly decimal _TP_RATE = 5;
         private const int _op = (int)EOption.Ma20; 
 
         private readonly int _exchange = (int)EExchange.Bybit;
@@ -370,7 +370,7 @@ namespace TradePr.Service
                         }
 
                         var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
-                        if (rate >= 10)
+                        if (rate >= _TP_RATE)
                         {
                             flag = true;
                         }

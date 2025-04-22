@@ -5,7 +5,6 @@ using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
-using System.Runtime.ConstrainedExecution;
 
 namespace TradePr.Service
 {
@@ -28,6 +27,7 @@ namespace TradePr.Service
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;
         private readonly decimal _SL_RATE = 0.025m;
+        private readonly decimal _TP_RATE = 10;
         private readonly int _exchange = (int)EExchange.Binance;
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISymbolConfigRepo symConfigRepo,
                             IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo)
@@ -448,7 +448,7 @@ namespace TradePr.Service
                         }
 
                         var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.EntryPrice), 1));
-                        if (rate >= 10)
+                        if (rate >= _TP_RATE)
                         {
                             flag = true;
                         }
