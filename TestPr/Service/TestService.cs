@@ -794,60 +794,55 @@ namespace TestPr.Service
                 var lTmp = new List<string>
                 {
                     "DGBUSDT",
-                    "GPSUSDT",
-                    "AUDIOUSDT",
+                    "SERAPHUSDT",
                     "ZBCNUSDT",
                     "GMTUSDT",
-                    "MEMEUSDT",
-                    "SERAPHUSDT",
-                    "VIRTUALUSDT",
-                    "PENDLEUSDT",
-                    "AERGOUSDT",
-                    "RAREUSDT",
-                    "RAYDIUMUSDT",
-                    "PYTHUSDT",
-                    "FLRUSDT",
-                    "GOATUSDT",
-                    "DATAUSDT",
-                    "MANEKIUSDT",
-                    "MAXUSDT",
-                    "PHBUSDT",
-                    "AI16ZUSDT",
-                    "SLFUSDT",
-                    "XCHUSDT",
-                    "ALTUSDT",
-                    "GLMUSDT",
-                    "POPCATUSDT",
-                    "ZILUSDT",
-                    "PROMUSDT",
-                    "BIGTIMEUSDT",
-                    "FIDAUSDT",
-                    "BNBUSDT",
-                    "KNCUSDT",
-                    "LUMIAUSDT",
-                    "LUCEUSDT",
-                    "MOVRUSDT",
-                    "ANKRUSDT",
-                    "GLMRUSDT",
-                    "BSWUSDT",
-                    "BTCUSDT",
-                    "FLOCKUSDT",
-                    "LPTUSDT",
-                    "KAVAUSDT",
+                    "AUDIOUSDT",
+                    "A8USDT",
+                    "MAGICUSDT",
                     "TLMUSDT",
+                    "BANANAS31USDT",
+                    "PHBUSDT",
+                    "FLRUSDT",
+                    "RAREUSDT",
+                    "ZILUSDT",
+                    "RAYDIUMUSDT",
+                    "FLOCKUSDT",
+                    "KOMAUSDT",
+                    "ZENTUSDT",
+                    "HEIUSDT",
+                    "ALTUSDT",
+                    "ARCUSDT",
+                    "DATAUSDT",
+                    "GLMRUSDT",
+                    "KNCUSDT",
+                    "MAXUSDT",
+                    "MOVRUSDT",
+                    "QUICKUSDT",
+                    "ORCAUSDT",
+                    "PYTHUSDT",
+                    "ALICEUSDT",
+                    "ANKRUSDT",
+                    "FIDAUSDT",
+                    "LPTUSDT",
+                    "PARTIUSDT",
+                    "SPXUSDT",
+                    "RLCUSDT",
+                    "VIRTUALUSDT",
+                    "BSWUSDT",
+                    "CARVUSDT",
+                    "CELRUSDT",
+                    "CFXUSDT",
                     "MAVUSDT",
-                    "TOKENUSDT",
+                    "MERLUSDT",
+                    "GNOUSDT",
+                    "NTRNUSDT",
+                    "OXTUSDT",
+                    "PEAQUSDT",
+                    "POPCATUSDT",
                     "QTUMUSDT",
-                    "ACXUSDT",
-                    "ARKMUSDT",
-                    "FLUXUSDT",
-                    "INJUSDT",
-                    "LDOUSDT",
-                    "LQTYUSDT",
-                    "MTLUSDT",
-                    "PLUMEUSDT",
-                    "XVGUSDT",
-                    "SUNDOGUSDT",
+                    "TAIUSDT",
+                    "TRUUSDT",
                 };
                 lTake.AddRange(lTmp);
                 #endregion
@@ -961,7 +956,7 @@ namespace TestPr.Service
                                     var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
                                     if(rateCheck > 4)
                                     {
-                                        var close = eEntry.Close * (decimal)1.1;
+                                        var close = eEntry.Close * (decimal)1.04;
                                         itemClose.Close = close;
                                         eClose = itemClose;
                                         break;
@@ -1020,9 +1015,7 @@ namespace TestPr.Service
 
                         }
 
-                        //if (winCount <= lossCount)
-                        //    continue;
-                        if (winCount + lossCount <= 0)
+                        if (winCount + lossCount <= 4)
                             continue;
 
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
@@ -1031,13 +1024,14 @@ namespace TestPr.Service
                         var items = lModel.Where(x => x.s == item);
                         var perRate = Math.Round((float)sumRate / count, 1);
                         //Special 
-                        if (rateRes <= (decimal)0.5
-                          || sumRate <= 1
-                          || perRate <= 0.9)
-                        {
-                            lModel = lModel.Except(items).ToList();
-                            continue;
-                        }
+                        ////if (perRate <= 0.7)
+                        //if (rateRes <= (decimal)0.5
+                        //  || sumRate <= 1
+                        //  || perRate <= 0.7)
+                        //{
+                        //    lModel = lModel.Except(items).ToList();
+                        //    continue;
+                        //}
 
                         var realWin = 0;
                         foreach (var model in items)
