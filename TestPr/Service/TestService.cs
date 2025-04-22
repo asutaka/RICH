@@ -1047,63 +1047,63 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                #region comment
-                lTake.Clear();
-                var lTmp = new List<string>
-                {
-                    "NILUSDT",
-                    "MAVIAUSDT",
-                    "HEIUSDT",
-                    "JUSDT",
-                    "CATIUSDT",
-                    "OLUSDT",
-                    "MORPHOUSDT",
-                    "NCUSDT",
-                    "IDEXUSDT",
-                    "XVSUSDT",
-                    "ZBCNUSDT",
-                    "AIOZUSDT",
-                    "CPOOLUSDT",
-                    "TROYUSDT",
-                    "ALUUSDT",
-                    "XVGUSDT",
-                    "MAJORUSDT",
-                    "XCHUSDT",
-                    "OMNIUSDT",
-                    "XNOUSDT",
-                    "OMUSDT",
-                    "ZENUSDT",
-                    "FWOGUSDT",
-                    "FLUXUSDT",
-                    "VICUSDT",
-                    "PENGUUSDT",
-                    "PERPUSDT",
-                    "EGLDUSDT",
-                    "RDNTUSDT",
-                    "FLOCKUSDT",
-                    "MEMEFIUSDT",
-                    "SHELLUSDT",
-                    "ENSUSDT",
-                    "SPECUSDT",
-                    "KASUSDT",
-                    "FOXYUSDT",
-                    "DYDXUSDT",
-                    "PORTALUSDT",
-                    "ROSEUSDT",
-                    "ZRCUSDT",
-                    "AEROUSDT",
-                    "ALICEUSDT",
-                    "GODSUSDT",
-                    "LINKUSDT",
-                    "XTZUSDT",
-                    "SPELLUSDT",
-                    "BLURUSDT",
-                    "VTHOUSDT",
-                    "ANKRUSDT",
-                    "LISTAUSDT",
-                };
-                lTake.AddRange(lTmp);
-                #endregion
+                //#region comment
+                //lTake.Clear();
+                //var lTmp = new List<string>
+                //{
+                //    "NILUSDT",
+                //    "MAVIAUSDT",
+                //    "HEIUSDT",
+                //    "JUSDT",
+                //    "CATIUSDT",
+                //    "OLUSDT",
+                //    "MORPHOUSDT",
+                //    "NCUSDT",
+                //    "IDEXUSDT",
+                //    "XVSUSDT",
+                //    "ZBCNUSDT",
+                //    "AIOZUSDT",
+                //    "CPOOLUSDT",
+                //    "TROYUSDT",
+                //    "ALUUSDT",
+                //    "XVGUSDT",
+                //    "MAJORUSDT",
+                //    "XCHUSDT",
+                //    "OMNIUSDT",
+                //    "XNOUSDT",
+                //    "OMUSDT",
+                //    "ZENUSDT",
+                //    "FWOGUSDT",
+                //    "FLUXUSDT",
+                //    "VICUSDT",
+                //    "PENGUUSDT",
+                //    "PERPUSDT",
+                //    "EGLDUSDT",
+                //    "RDNTUSDT",
+                //    "FLOCKUSDT",
+                //    "MEMEFIUSDT",
+                //    "SHELLUSDT",
+                //    "ENSUSDT",
+                //    "SPECUSDT",
+                //    "KASUSDT",
+                //    "FOXYUSDT",
+                //    "DYDXUSDT",
+                //    "PORTALUSDT",
+                //    "ROSEUSDT",
+                //    "ZRCUSDT",
+                //    "AEROUSDT",
+                //    "ALICEUSDT",
+                //    "GODSUSDT",
+                //    "LINKUSDT",
+                //    "XTZUSDT",
+                //    "SPELLUSDT",
+                //    "BLURUSDT",
+                //    "VTHOUSDT",
+                //    "ANKRUSDT",
+                //    "LISTAUSDT",
+                //};
+                //lTake.AddRange(lTmp);
+                //#endregion
                 foreach (var item in lTake)
                 {
 
@@ -1320,14 +1320,14 @@ namespace TestPr.Service
                         var perRate = Math.Round((float)sumRate / count, 1);
 
                         //Special 
-                        ////if (perRate <= 0.7)
+                        if (perRate <= 0.7)
                         //if (rateRes <= (decimal)0.5
                         //  || sumRate <= 1
                         //  || perRate <= 0.7)
-                        //{
-                        //    lModel = lModel.Except(items).ToList();
-                        //    continue;
-                        //}
+                        {
+                            lModel = lModel.Except(items).ToList();
+                            continue;
+                        }
 
                         var realWin = 0;
                         foreach (var model in lModel.Where(x => x.s == item))
