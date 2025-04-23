@@ -300,7 +300,8 @@ namespace TradePr.Service
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
                 if(lAddNew.Any())
                 {
-                    await _teleService.SendMessage(_idUser, string.Join(",", $"*{lAddNew.Select(x => x).ToArray()}*"));
+                    Console.WriteLine($"BINANCE| {string.Join(",", $"{lAddNew.Select(x => x).ToArray()}")}");
+                    await _teleService.SendMessage(_idUser, $"BINANCE| {string.Join(",", $"{lAddNew.Select(x => x).ToArray()}")}");
                 }
 
                 var end = DateTime.Now;
@@ -582,7 +583,8 @@ namespace TradePr.Service
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
                 if (lAddNew.Any())
                 {
-                    await _teleService.SendMessage(_idUser, string.Join(",", $"*{lAddNew.Select(x => x).ToArray()}*"));
+                    Console.WriteLine($"BYBIT| {string.Join(",", $"{lAddNew.Select(x => x).ToArray()}")}");
+                    await _teleService.SendMessage(_idUser, $"BYBIT| {string.Join(",", $"{lAddNew.Select(x => x).ToArray()}")}");
                 }
 
                 var end = DateTime.Now;
