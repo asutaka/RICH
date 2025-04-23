@@ -5,6 +5,7 @@ namespace StockPr.Model.BCPT
     public class TradingEconomics_Data
     {
         public string Code { get; set; }
+        public decimal Price { get; set; }
         public decimal Weekly { get; set; }
         public decimal Monthly { get; set; }
         public decimal YTD { get; set; }
@@ -75,6 +76,7 @@ namespace StockPr.Model.BCPT
         public decimal monthly { get; set; }
         public decimal yearly { get; set; }
         public decimal YTD { get; set; }
+        public decimal price { get; set; }
         public string description { get; set; }
     }
 }

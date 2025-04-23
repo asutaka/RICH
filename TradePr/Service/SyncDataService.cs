@@ -13,14 +13,29 @@ namespace TradePr.Service
     }
     public class SyncDataService : ISyncDataService
     {
-        //public SyncDataService(ILogger<SyncDataService> logger,
-        //                   IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo)
-        //{
-        //    _logger = logger;
-        //    _apiService = apiService;
-        //    _teleService = teleService;
-        //    _symConfigRepo = symConfigRepo;
-        //    _placeRepo = placeRepo;
-        //}
+        private readonly ILogger<SyncDataService> _logger;
+        private readonly IAPIService _apiService;
+        private readonly ITeleService _teleService;
+        private readonly ISymbolConfigRepo _symConfigRepo;
+        public SyncDataService(ILogger<SyncDataService> logger,
+                           IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo)
+        {
+            _logger = logger;
+            _apiService = apiService;
+            _teleService = teleService;
+            _symConfigRepo = symConfigRepo;
+        }
+
+        public async Task DetectLong()
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
     }
 }

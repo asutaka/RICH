@@ -876,6 +876,17 @@ namespace StockPr.Service
                             {
                                 model.Code = columnsArray[i].InnerText.Trim().Split("\r")[0].Trim();
                             }
+                            else if (i == 1)
+                            {
+                                var isFloat = decimal.TryParse(columnsArray[i].InnerText.Replace(",", "").Trim(), out var val);
+                                if (isFloat)
+                                {
+                                    val = Math.Round(val, 1);
+                                    val = decimal.Parse(val.ToString("#.##"));
+
+                                    model.Price = val;
+                                }
+                            }
                             else if (i == 4)
                             {
                                 var isFloat = decimal.TryParse(columnsArray[i].InnerText.Replace("%", "").Trim(), out var val);

@@ -46,6 +46,7 @@ namespace StockPr.Service
                     try
                     {
                         var last = pig.Last();
+                        modelPig.price = last.Value;
                         //weekly
                         var dtPrev = dt.AddDays(-2);
                         if (last.Date >= dtPrev)
@@ -127,6 +128,7 @@ namespace StockPr.Service
                 model.monthly = (decimal)entity.M;
                 model.yearly = (decimal)entity.Y;
                 model.YTD = (decimal)entity.YTD;
+                model.price = (decimal)entity.price;
                 if (model.weekly >= _flag || model.weekly <= -_flag)
                 {
                     isPrint = true;
@@ -250,6 +252,7 @@ namespace StockPr.Service
                             item.metalsPrice.Date = item.metalsPrice.renewDate.ToDateTime("yyyy-MM-dd");
                         }
                         var cur = lPhotpho.First();
+                        modelPhotpho.price = cur.metalsPrice.average;
                         //weekly
                         var dtPrev = dt.AddDays(-2);
                         if (cur.metalsPrice.Date >= dtPrev)
@@ -324,7 +327,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Natural_gas.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -336,7 +340,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Replace("-", "").Replace(" ", "").Equals(EPrice.kraftpulp.GetDisplayName().Replace("-","").Replace(" ", ""), StringComparison.CurrentCultureIgnoreCase))
@@ -348,7 +353,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Coal.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -360,7 +366,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Gold.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -372,7 +379,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Steel.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -384,7 +392,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.HRC_Steel.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -396,7 +405,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Rubber.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -408,7 +418,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Coffee.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -420,7 +431,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Rice.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -432,7 +444,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Sugar.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -444,7 +457,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Urea.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -456,7 +470,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.DAP.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -468,7 +483,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.polyvinyl.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -480,7 +496,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Nickel.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -492,7 +509,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.milk.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -504,7 +522,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                         else if (item.Code.Equals(EPrice.Cotton.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -516,7 +535,8 @@ namespace StockPr.Service
                                 weekly = item.Weekly,
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
-                                YTD = item.YTD
+                                YTD = item.YTD,
+                                price = item.Price
                             });
                         }
                     }
@@ -531,7 +551,7 @@ namespace StockPr.Service
         }
         private string PrintTraceGia(TraceGiaModel model)
         {
-            var res = $"   - {model.content}: W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
+            var res = $"   - {model.content}({model.price}): W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
             if (!string.IsNullOrWhiteSpace(model.description))
             {
                 var strSplit = model.description.Split(',');
