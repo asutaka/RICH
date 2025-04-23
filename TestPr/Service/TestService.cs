@@ -288,7 +288,6 @@ namespace TestPr.Service
                                 lModel.Add(new LongMa20
                                 {
                                     s = item,
-                                    IsWin = winloss == "W",
                                     Date = entity_Sig.Date,
                                     Rate = rate,
                                     MaxTP = maxTP,
@@ -607,7 +606,6 @@ namespace TestPr.Service
                                 lModel.Add(new LongMa20
                                 {
                                     s = item,
-                                    IsWin = winloss == "W",
                                     Date = entity_Sig.Date,
                                     Rate = rate,
                                     MaxTP = maxTP,
@@ -925,7 +923,6 @@ namespace TestPr.Service
                                 lModel.Add(new LongMa20
                                 {
                                     s = item,
-                                    IsWin = winloss == "W",
                                     Date = entity_Sig.Date,
                                     Rate = rate,
                                     MaxTP = maxTP,
@@ -1261,7 +1258,6 @@ namespace TestPr.Service
                                 lModel.Add(new LongMa20
                                 {
                                     s = item,
-                                    IsWin = winloss == "W",
                                     Date = entity_Sig.Date,
                                     Rate = rate,
                                     MaxTP = maxTP,
@@ -1327,7 +1323,6 @@ namespace TestPr.Service
         public class LongMa20
         {
             public string s { get; set; }
-            public bool IsWin { get; set; }
             public DateTime Date { get; set; }
             public decimal Rate { get; set; }
             public decimal MaxTP { get; set; }

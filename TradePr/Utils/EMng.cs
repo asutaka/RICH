@@ -2,14 +2,6 @@
 
 namespace TradePr.Utils
 {
-    public enum ELiquidMode
-    {
-        MuaCungChieu = 1,
-        MuaNguocChieu = 2,
-        BanCungChieu = 3,
-        BanNguocChieu = 4
-    }
-
     public enum EInterval
     {
         [Display(Name = "15m")]
@@ -28,34 +20,10 @@ namespace TradePr.Utils
         M5 = 7
     }
 
-    public enum ETypeBot
-    {
-        TokenUnlock = 1,
-        ThreeSignal = 2
-    }
-
-    public enum EAction
-    {
-        Long = 0,
-        Short = 1,
-        Short_SL = 2,
-        GetPosition = 3
-    }
-
     public enum EExchange
     {
         Binance = 0,
         Bybit = 1
-    }
-
-    public enum EOption
-    {
-        Unlock = 1,
-        Signal = 2,
-        ThreeSignal = 3,
-        Liquid = 4,
-        RSI = 5,
-        Ma20 = 6
     }
 
 

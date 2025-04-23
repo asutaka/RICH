@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Skender.Stock.Indicators;
 using TradePr.DAL;
+using TradePr.Utils;
 
 namespace TradePr.Service
 {
     public interface ISyncDataService
     {
-
+        Task Binance();
     }
     public class SyncDataService : ISyncDataService
     {
@@ -26,16 +23,252 @@ namespace TradePr.Service
             _symConfigRepo = symConfigRepo;
         }
 
-        public async Task DetectLong()
+        public async Task Binance()
+        {
+            await Binance_LONG();
+        }
+
+        private async Task Binance_LONG()
         {
             try
             {
+                var lAll = await StaticVal.BinanceInstance().UsdFuturesApi.CommonFuturesClient.GetSymbolsAsync();
+                var lUsdt = lAll.Data.Where(x => x.Name.EndsWith("USDT")).Select(x => x.Name);
+                var countUSDT = lUsdt.Count();//461
+                var lTake = lUsdt.ToList();
+                decimal SL_RATE = 2.5m;
+                int hour = 4;
+                decimal rateProfit = 10;
 
+                var lModel = new List<clsData>();
+                var lResult = new List<clsResult>();
+
+                var winTotal = 0;
+                var lossTotal = 0;
+
+                foreach (var item in lTake)
+                {
+
+                    var winCount = 0;
+                    var lossCount = 0;
+                    try
+                    {
+                        var lData15m = new List<Quote>();
+                        var last = new Quote();
+                        var lData10 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                        var lbb = lData15m.GetBollingerBands();
+                        var lrsi = lData15m.GetRsi();
+                        var lVol = lData15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
+
+                        DateTime dtFlag = DateTime.MinValue;
+                        foreach (var ma20 in lbb)
+                        {
+                            try
+                            {
+                                if (ma20.Sma is null
+                                    || dtFlag >= ma20.Date)
+                                    continue;
+
+                                var entity_Sig = lData15m.First(x => x.Date == ma20.Date);
+                                var rsi_Sig = lrsi.First(x => x.Date == ma20.Date);
+                                var maVol_Sig = lMaVol.First(x => x.Date == ma20.Date);
+
+                                var entity_Pivot = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
+                                var rsi_Pivot = lrsi.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
+                                var bb_Pivot = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
+
+                                if (entity_Sig.Close >= entity_Sig.Open
+                                    || rsi_Sig.Rsi > 35
+                                    || entity_Sig.Low >= (decimal)ma20.LowerBand.Value
+                                    || entity_Sig.Close - (decimal)ma20.LowerBand.Value >= (decimal)ma20.Sma.Value - entity_Sig.Close
+                                    )
+                                    continue;
+
+                                if (!StaticVal._lCoinSpecial.Contains(item))
+                                {
+                                    if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
+                                        continue;
+                                }
+
+                                if (entity_Pivot is null
+                                   || rsi_Pivot.Rsi > 35 || rsi_Pivot.Rsi < 25
+                                   || entity_Pivot.Low >= (decimal)bb_Pivot.LowerBand.Value
+                                   || entity_Pivot.High >= (decimal)bb_Pivot.Sma.Value
+                                   || (entity_Pivot.Low >= entity_Sig.Low && entity_Pivot.High <= entity_Sig.High)
+                                   )
+                                    continue;
+
+                                //độ dài nến hiện tại
+                                var rateCur = Math.Abs((entity_Sig.Open - entity_Sig.Close) / (entity_Sig.High - entity_Sig.Low));
+                                if (rateCur > (decimal)0.8)
+                                {
+                                    //check độ dài nến pivot
+                                    var isValid = Math.Abs(entity_Pivot.Open - entity_Pivot.Close) >= Math.Abs(entity_Sig.Open - entity_Sig.Close);
+                                    if (isValid)
+                                        continue;
+                                }
+
+                                var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 1);
+                                if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                                    continue;
+
+                                var eEntry = entity_Pivot;
+                                var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
+                                if (eClose is null)
+                                    continue;
+
+                                var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
+                                foreach (var itemClose in lClose)
+                                {
+                                    var ma = lbb.First(x => x.Date == itemClose.Date);
+                                    if (itemClose.Close > (decimal)ma.UpperBand)//do something
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
+                                    if (rateCheck > rateProfit)
+                                    {
+                                        var close = eEntry.Close * (decimal)(1 + rateProfit / 100);
+                                        itemClose.Close = close;
+                                        eClose = itemClose;
+                                        break;
+                                    }
+                                }
+
+                                dtFlag = eClose.Date;
+                                var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
+                                var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
+                                var maxH = lRange.Max(x => x.High);
+                                var minL = lRange.Min(x => x.Low);
+
+                                var winloss = "W";
+                                if (rate <= (decimal)0.5)
+                                {
+                                    winloss = "L";
+                                }
+
+                                decimal maxTP = 0, maxSL = 0;
+                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
+                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
+                                if (maxSL <= -SL_RATE)
+                                {
+                                    rate = -SL_RATE;
+                                    winloss = "L";
+                                }
+
+                                if (winloss == "W")
+                                {
+                                    rate = Math.Abs(rate);
+                                    winCount++;
+                                }
+                                else
+                                {
+                                    rate = -Math.Abs(rate);
+                                    lossCount++;
+                                }
+
+                                //lRate.Add(rate);
+                                lModel.Add(new clsData
+                                {
+                                    s = item,
+                                    Date = entity_Sig.Date,
+                                    Rate = rate,
+                                    MaxTP = maxTP,
+                                    MaxSL = maxSL,
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+                            }
+
+                        }
+
+                        if (winCount + lossCount <= 1)
+                            continue;
+
+                        var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
+                        var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
+                        var count = lModel.Count(x => x.s == item);
+                        var items = lModel.Where(x => x.s == item);
+                        var perRate = Math.Round((float)sumRate / count, 1);
+                        //Special
+                        if (rateRes < (decimal)0.5
+                          || perRate <= 0.7)
+                        {
+                            lModel = lModel.Except(items).ToList();
+                            continue;
+                        }
+
+                        var realWin = 0;
+                        foreach (var model in items)
+                        {
+                            if (model.Rate > (decimal)0.5)
+                                realWin++;
+                        }
+
+                        winTotal += winCount;
+                        lossTotal += lossCount;
+                        winCount = 0;
+                        lossCount = 0;
+
+                        var winrate = Math.Round((double)realWin / count, 1);
+
+                        var mes = $"{item}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
+                        //Console.WriteLine(mes);
+
+                        lResult.Add(new clsResult
+                        {
+                            s = item,
+                            Winrate = winrate,
+                            Perate = perRate,
+                            Mes = mes
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Perate).ToList();
+                foreach (var item in lRes)
+                {
+                    Console.WriteLine(item.Mes);
+                }
+
+                Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, $"SyncDataService.Binance_LONG|EXCEPTION| {ex.Message}");
             }
         }
+    }
+
+    public class clsData
+    {
+        public string s { get; set; }
+        public DateTime Date { get; set; }
+        public decimal Rate { get; set; }
+        public decimal MaxTP { get; set; }
+        public decimal MaxSL { get; set; }
+    }
+
+    public class clsResult
+    {
+        public string s { get; set; }
+        public double Winrate { get; set; }
+        public double Perate { get; set; }
+        public string Mes { get; set; }
     }
 }

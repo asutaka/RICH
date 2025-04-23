@@ -26,7 +26,6 @@ namespace TradePr.Service
         private readonly int _HOUR = 4;//MA20 là 2h
         private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
         private readonly decimal _TP_RATE = 5;
-        private const int _op = (int)EOption.Ma20; 
 
         private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger,
