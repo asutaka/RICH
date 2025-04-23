@@ -551,7 +551,7 @@ namespace StockPr.Service
         }
         private string PrintTraceGia(TraceGiaModel model)
         {
-            var res = $"   - {model.content}({model.price}): W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
+            var res = $"   - {model.content}: W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
             if (!string.IsNullOrWhiteSpace(model.description))
             {
                 var strSplit = model.description.Split(',');
@@ -561,7 +561,7 @@ namespace StockPr.Service
                     var mes = $"[{item}](https://finance.vietstock.vn/{item}/phan-tich-ky-thuat.htm)";
                     lMes.Add(mes);
                 }
-                res += $"\n       => {string.Join(", ", lMes)}\n";
+                res += $"\n       => Giá hiện tại: {model.price}| {string.Join(", ", lMes)}\n";
             }
             return res;
         }
