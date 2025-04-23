@@ -90,70 +90,6 @@ namespace TradePr.Utils
             "IOUSDT",
         };
 
-        public static List<string> _lRsiLong_Binance = new List<string>//Chuẩn
-        {
-            "MUBARAKUSDT",
-            "1000BONKUSDT",
-            "1000WHYUSDT",
-            "B3USDT",
-            "SAFEUSDT",
-            "PLUMEUSDT",
-            "GRTUSDT",
-            "QTUMUSDT",
-            "RAREUSDT",
-            "LUMIAUSDT",
-            "1000CHEEMSUSDT",
-            "VTHOUSDT",
-            "INJUSDT",
-            "ZRXUSDT",
-            "ALTUSDT",
-            "CETUSUSDT",
-            "PHBUSDT",
-            "DODOXUSDT",
-            "BADGERUSDT",
-            "GUNUSDT",
-            "STOUSDT",
-            "EOSUSDT",
-            "NFPUSDT",
-            "BSWUSDT",
-            "RAYSOLUSDT",
-            "ALICEUSDT",
-            "OXTUSDT",
-            "UMAUSDT",
-            "BIOUSDT",
-            "SEIUSDT",
-            "ONDOUSDT",
-            "LPTUSDT",
-            "CFXUSDT",
-            "PHAUSDT",
-            "IOSTUSDT",
-            "RENDERUSDT",
-            "ALGOUSDT",
-            "KSMUSDT",
-            "GLMUSDT",
-            "ARKMUSDT",
-            "TOKENUSDT",
-            "ACXUSDT",
-            "ANKRUSDT",
-            "ORDIUSDT",
-            "MTLUSDT",
-            "THEUSDT",
-            "CATIUSDT",
-            "EPICUSDT",
-            "IOTAUSDT",
-            "STORJUSDT",
-            "LQTYUSDT",
-            "AGLDUSDT",
-            "ATAUSDT",
-            "BANUSDT",
-            "ICXUSDT",
-            "MOODENGUSDT",
-            "ETCUSDT",
-            "BBUSDT",
-            "VIRTUALUSDT",
-            "BRETTUSDT",
-        };
-
         public static List<string> _lRsiShort_Bybit = new List<string>
         {
             "KERNELUSDT",
@@ -264,10 +200,6 @@ namespace TradePr.Utils
             "TRUUSDT",
         };
 
-        public static List<string> _lCoinRecheck = new List<string>
-        {
-            "ZBCNUSDT"
-        };
 
         public static List<string> _lCoinSpecial = new List<string>
         {

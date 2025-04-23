@@ -18,6 +18,7 @@ namespace TradePr.Service
     {
         private readonly ILogger<BinanceService> _logger;
         private readonly ITradingRepo _tradingRepo;
+        private readonly ISymbolRepo _symRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly IAPIService _apiService;
@@ -27,10 +28,11 @@ namespace TradePr.Service
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;
         private readonly decimal _SL_RATE = 0.025m;
-        private readonly decimal _TP_RATE = 10;
+        private readonly decimal _TP_RATE_MIN = 0.025m;
+        private readonly decimal _TP_RATE_MAX = 0.07m;
         private readonly int _exchange = (int)EExchange.Binance;
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISymbolConfigRepo symConfigRepo,
-                            IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo)
+                            IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
@@ -38,6 +40,7 @@ namespace TradePr.Service
             _apiService = apiService;
             _teleService = teleService;
             _placeRepo = placeRepo;
+            _symRepo = symRepo;
         }
         public async Task<BinanceUsdFuturesAccountBalance> Binance_GetAccountInfo()
         {
@@ -162,8 +165,13 @@ namespace TradePr.Service
                 if (dt.Minute % 15 != 0)
                     return;
 
-                var lSym = StaticVal._lRsiLong_Binance;
-                foreach (var sym in lSym)
+                var builder = Builders<Symbol>.Filter;
+                var lSym = _symRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, _exchange),
+                    builder.Gte(x => x.ty, (int)OrderSide.Buy)
+                ));
+
+                foreach (var sym in lSym.Select(x => x.s))
                 {
                     try
                     {
@@ -389,6 +397,26 @@ namespace TradePr.Service
             try
             {
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+
+                //Nếu trong 2 tiếng gần nhất có 4 lệnh thua và tổng âm thì ko mua mới
+                var globalFlag = false;
+                var lIncome = await StaticVal.BinanceInstance().UsdFuturesApi.Account.GetIncomeHistoryAsync(incomeType: "REALIZED_PNL");
+                if (lIncome != null && lIncome.Success)
+                {
+                    if (lIncome.Data.Any())
+                    {
+                        var lIncomeCheck = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-2));
+                        var countIncome = lIncomeCheck.Count(x => x.Income <= 0);
+                        var sumIncome = lIncomeCheck.Sum(x => x.Income);
+
+                        if (countIncome >= 4 && sumIncome <= 0)
+                        {
+                            globalFlag = true;
+                        }    
+                    }
+                }
+               
+
                 #region Sell
                 foreach (var item in pos.Data)
                 {
@@ -425,30 +453,28 @@ namespace TradePr.Service
                         var cur = l15m.Last();
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
-                        var flag = false;
-                        if (side == OrderSide.Buy && Math.Max(last.Close, cur.Close) > (decimal)bb.UpperBand.Value)
+                        var flag = globalFlag;
+                        if (side == OrderSide.Buy && Math.Max(last.High, cur.High) > (decimal)bb.UpperBand.Value)
                         {
                             flag = true;
                         }
-                        else if (side == OrderSide.Sell && Math.Min(last.Close, cur.Close) < (decimal)bb.LowerBand.Value)
+                        else if (side == OrderSide.Sell && Math.Min(last.Low, cur.Low) < (decimal)bb.LowerBand.Value)
                         {
                             flag = true;
                         }
 
-                        if (StaticVal._lCoinRecheck.Contains(item.Symbol))
+                        var rateBB = (decimal)(Math.Round((-1 + bb.UpperBand.Value / bb.LowerBand.Value)) - 1);
+                        if (rateBB < _TP_RATE_MIN - 1)
                         {
-                            if (side == OrderSide.Buy && Math.Max(last.High, cur.High) > (decimal)bb.UpperBand.Value)
-                            {
-                                flag = true;
-                            }
-                            else if (side == OrderSide.Sell && Math.Min(last.Low, cur.Low) < (decimal)bb.LowerBand.Value)
-                            {
-                                flag = true;
-                            }
+                           
+                        }
+                        else if (rateBB > _TP_RATE_MAX)
+                        {
+                            rateBB = _TP_RATE_MAX;
                         }
 
-                        var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.EntryPrice), 1));
-                        if (rate >= _TP_RATE)
+                        var rate = Math.Abs(Math.Round((-1 + cur.Close / item.EntryPrice), 1));
+                        if (rate >= rateBB)
                         {
                             flag = true;
                         }
@@ -499,7 +525,7 @@ namespace TradePr.Service
                     var countIncome = lIncomeCheck.Count(x => x.Income <= 0);
                     var sumIncome = lIncomeCheck.Sum(x => x.Income);
 
-                    if (countIncome <= 4 && sumIncome <= 0)
+                    if (countIncome >= 4 && sumIncome <= 0)
                         return false;
                 }
 

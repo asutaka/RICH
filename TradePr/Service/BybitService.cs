@@ -19,23 +19,26 @@ namespace TradePr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly IPlaceOrderTradeRepo _placeRepo;
+        private readonly ISymbolRepo _symRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         private const long _idUser = 1066022551;
         private const decimal _unit = 70;
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;//MA20 là 2h
         private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
-        private readonly decimal _TP_RATE = 5;
+        private readonly decimal _TP_RATE_MIN = 0.025m;
+        private readonly decimal _TP_RATE_MAX = 0.07m;
 
         private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger,
-                            IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo)
+                            IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _symConfigRepo = symConfigRepo;
             _placeRepo = placeRepo;
+            _symRepo = symRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -74,8 +77,12 @@ namespace TradePr.Service
                 if (dt.Minute % 15 != 0)
                     return;
 
-                var lSym = StaticVal._lRsiLong_Bybit;
-                foreach (var sym in lSym)
+                var builder = Builders<Symbol>.Filter;
+                var lSym = _symRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, _exchange),
+                    builder.Gte(x => x.ty, (int)OrderSide.Buy)
+                ));
+                foreach (var sym in lSym.Select(x => x.s))
                 {
                     try
                     {
@@ -304,6 +311,27 @@ namespace TradePr.Service
 
                 var dt = DateTime.UtcNow;
 
+                //Nếu trong 2 tiếng gần nhất giảm quá 10% thì không mua mới
+                var globalFlag = false;
+                var lIncome = await StaticVal.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
+                if (lIncome != null && lIncome.Success)
+                {
+                    var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-2));
+                    if (lIncomeCheck.Count() >= 2)
+                    {
+                        var first = lIncomeCheck.First();
+                        var last = lIncomeCheck.Last();
+                        if (first.CashBalance > 0)
+                        {
+                            var rateCheck = Math.Round(100 * (-1 + last.CashBalance.Value / first.CashBalance.Value), 1);
+                            if (rateCheck >= 10)
+                            {
+                                globalFlag = true;
+                            }
+                        }
+                    }
+                }
+                
                 #region Sell
                 foreach (var item in pos.Data.List)
                 {
@@ -342,34 +370,32 @@ namespace TradePr.Service
                         var cur = l15m.Last();
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
-                        var flag = false;
+                        var flag = globalFlag;
                         //var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
                         //if (rate < 1)
                         //    continue;
 
-                        if (side == OrderSide.Buy && Math.Max(last.Close, cur.Close) > (decimal)bb.UpperBand.Value)
+                        if (side == OrderSide.Buy && Math.Max(last.High, cur.High) > (decimal)bb.UpperBand.Value)
                         {
                             flag = true;
                         }
-                        else if(side == OrderSide.Sell && Math.Min(last.Close, cur.Close) < (decimal)bb.LowerBand.Value)
+                        else if (side == OrderSide.Sell && Math.Min(last.Low, cur.Low) < (decimal)bb.LowerBand.Value)
                         {
                             flag = true;
                         }
 
-                        if(StaticVal._lCoinRecheck.Contains(item.Symbol))
+                        var rateBB = (decimal)(Math.Round((-1 + bb.UpperBand.Value / bb.LowerBand.Value)) - 1);
+                        if (rateBB < _TP_RATE_MIN - 1)
                         {
-                            if (side == OrderSide.Buy && Math.Max(last.High, cur.High) > (decimal)bb.UpperBand.Value)
-                            {
-                                flag = true;
-                            }
-                            else if (side == OrderSide.Sell && Math.Min(last.Low, cur.Low) < (decimal)bb.LowerBand.Value)
-                            {
-                                flag = true;
-                            }
+                            
+                        }
+                        else if (rateBB > _TP_RATE_MAX)
+                        {
+                            rateBB = _TP_RATE_MAX;
                         }
 
-                        var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
-                        if (rate >= _TP_RATE)
+                        var rate = Math.Abs(Math.Round((-1 + cur.Close / item.AveragePrice.Value), 1));
+                        if (rate >= rateBB)
                         {
                             flag = true;
                         }
@@ -409,6 +435,7 @@ namespace TradePr.Service
                 if (lIncome == null || !lIncome.Success)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được lịch sử thay đổi số dư");
+                    return false;
                 }
                 var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-2));
                 if (lIncomeCheck.Count() >= 2)
