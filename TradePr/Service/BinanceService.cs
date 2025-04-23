@@ -480,9 +480,9 @@ namespace TradePr.Service
                     return false;
                 }
 
-                if (account.WalletBalance * _margin <= _unit)
+                if (account.AvailableBalance * _margin <= _unit)
                 {
-                    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
+                    //await _teleService.SendMessage(_idUser, $"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
                     return false;
                 }
 

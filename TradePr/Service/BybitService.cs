@@ -402,7 +402,7 @@ namespace TradePr.Service
                     return false;
                 }
 
-                if (account.WalletBalance * _margin <= _unit)
+                if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= _unit)
                     return false;
 
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
