@@ -7,6 +7,7 @@
         public decimal monthly { get; set; }
         public decimal yearly { get; set; }
         public decimal YTD { get; set; }
+        public decimal price { get; set; }
         public string description { get; set; }
     }
 }

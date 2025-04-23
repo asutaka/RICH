@@ -62,7 +62,15 @@ namespace StockExtendPr.Service
                 var res = await MacroMicro_GetAuthorize();
                 if (string.IsNullOrWhiteSpace(res.Item1)
                     || string.IsNullOrWhiteSpace(res.Item2))
-                    return null;
+                {
+                    Thread.Sleep(1000);
+                    res = await MacroMicro_GetAuthorize();
+                    if (string.IsNullOrWhiteSpace(res.Item1)
+                    || string.IsNullOrWhiteSpace(res.Item2))
+                    {
+                        return null;
+                    }
+                }
 
                 var client = _client.CreateClient();
                 var request = new HttpRequestMessage(HttpMethod.Get, $"https://en.macromicro.me/charts/data/{key}");

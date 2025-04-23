@@ -49,7 +49,7 @@ namespace StockExtendPr.Service
                 //WCI
                 var wci_key = "44756";
                 var wci = await MacroMicro(isAll, wci_key);
-                if (wci != null)
+                if (wci != null && wci.price > 0)
                 {
                     lTraceGia.Add(wci);
                     var builderM = Builders<MacroMicro>.Filter;
@@ -84,7 +84,7 @@ namespace StockExtendPr.Service
                 //BDTI
                 var bdti_key = "946";
                 var bdti = await MacroMicro(isAll, bdti_key);
-                if (bdti != null)
+                if (bdti != null && bdti.price > 0)
                 {
                     lTraceGia.Add(bdti);
                     var builderM = Builders<MacroMicro>.Filter;
@@ -164,6 +164,7 @@ namespace StockExtendPr.Service
                         if (lData.Any())
                         {
                             var last = lData.Last();
+                            modelWCI.price = last.Value;
                             //weekly
                             var dtPrev = dt.AddDays(-2);
                             if (last.Date >= dtPrev)
