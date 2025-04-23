@@ -38,7 +38,8 @@ namespace TradePr.Service
                 var lTake = lUsdt.ToList();
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
-                decimal rateProfit = 10;
+                decimal rateProfit_Min = 2.5m;
+                decimal rateProfit_Max = 5m;
 
                 var lModel = new List<clsData>();
                 var lResult = new List<clsResult>();
@@ -55,6 +56,11 @@ namespace TradePr.Service
                     {
                         var lData15m = new List<Quote>();
                         var last = new Quote();
+                        var lData20 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                        Thread.Sleep(200);
+                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                        last = lData15m.Last();
+
                         var lData10 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                         Thread.Sleep(200);
                         lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
@@ -124,20 +130,30 @@ namespace TradePr.Service
                                 if (eClose is null)
                                     continue;
 
+                                var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
+                                if(rateBB < rateProfit_Min - 1)
+                                {
+                                    continue;
+                                }    
+                                else if(rateBB > rateProfit_Max)
+                                {
+                                    rateBB = rateProfit_Max;
+                                }
+
                                 var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
-                                    if (itemClose.Close > (decimal)ma.UpperBand)//do something
+                                    if (itemClose.High > (decimal)ma.UpperBand)//do something
                                     {
                                         eClose = itemClose;
                                         break;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
-                                    if (rateCheck > rateProfit)
+                                    if (rateCheck > rateBB)
                                     {
-                                        var close = eEntry.Close * (decimal)(1 + rateProfit / 100);
+                                        var close = eEntry.Close * (decimal)(1 + rateBB / 100);
                                         itemClose.Close = close;
                                         eClose = itemClose;
                                         break;
@@ -156,9 +172,7 @@ namespace TradePr.Service
                                     winloss = "L";
                                 }
 
-                                decimal maxTP = 0, maxSL = 0;
-                                maxTP = Math.Round(100 * (-1 + maxH / eEntry.Close), 1);
-                                maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
+                                var maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
                                 if (maxSL <= -SL_RATE)
                                 {
                                     rate = -SL_RATE;
@@ -182,8 +196,6 @@ namespace TradePr.Service
                                     s = item,
                                     Date = entity_Sig.Date,
                                     Rate = rate,
-                                    MaxTP = maxTP,
-                                    MaxSL = maxSL,
                                 });
                             }
                             catch (Exception ex)
@@ -229,6 +241,7 @@ namespace TradePr.Service
                         lResult.Add(new clsResult
                         {
                             s = item,
+                            Win = realWin,
                             Winrate = winrate,
                             Perate = perRate,
                             Mes = mes
@@ -240,7 +253,7 @@ namespace TradePr.Service
                     }
                 }
 
-                var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Perate).ToList();
+                var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).Take(40).ToList();
                 foreach (var item in lRes)
                 {
                     Console.WriteLine(item.Mes);
@@ -260,13 +273,12 @@ namespace TradePr.Service
         public string s { get; set; }
         public DateTime Date { get; set; }
         public decimal Rate { get; set; }
-        public decimal MaxTP { get; set; }
-        public decimal MaxSL { get; set; }
     }
 
     public class clsResult
     {
         public string s { get; set; }
+        public int Win { get; set; }
         public double Winrate { get; set; }
         public double Perate { get; set; }
         public string Mes { get; set; }
