@@ -486,6 +486,20 @@ namespace TradePr.Service
                     return false;
                 }
 
+                //Nếu trong 4 tiếng gần nhất có 4 lệnh thua thì ko mua mới
+                var lIncome = await StaticVal.BinanceInstance().UsdFuturesApi.Account.GetIncomeHistoryAsync(incomeType: "REALIZED_PNL");
+                if (lIncome == null || !lIncome.Success)
+                {
+                    await _teleService.SendMessage(_idUser, "[ERROR_binance] Không lấy được lịch sử thay đổi số dư");
+                    return false;
+                }
+                if (lIncome.Data.Any())
+                {
+                    var countIncome = lIncome.Data.Count(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4) && x.Income <= 0);
+                    if (countIncome <= 4)
+                        return false;
+                }
+
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 if (pos.Data.Count() >= 4)
                     return false;
