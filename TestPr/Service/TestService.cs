@@ -47,73 +47,73 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
-                #region comment
-                lTake.Clear();
-                var lTmp = new List<string>
-                {
-                    "MUBARAKUSDT",
-                    "1000BONKUSDT",
-                    "1000WHYUSDT",
-                    "B3USDT",
-                    "SAFEUSDT",
-                    "PLUMEUSDT",
-                    "GRTUSDT",
-                    "QTUMUSDT",
-                    "RAREUSDT",
-                    "LUMIAUSDT",
-                    "1000CHEEMSUSDT",
-                    "VTHOUSDT",
-                    "INJUSDT",
-                    "ZRXUSDT",
-                    "ALTUSDT",
-                    "CETUSUSDT",
-                    "PHBUSDT",
-                    "DODOXUSDT",
-                    "BADGERUSDT",
-                    "GUNUSDT",
-                    "STOUSDT",
-                    "EOSUSDT",
-                    "NFPUSDT",
-                    "BSWUSDT",
-                    "RAYSOLUSDT",
-                    "ALICEUSDT",
-                    "OXTUSDT",
-                    "UMAUSDT",
-                    "BIOUSDT",
-                    "SEIUSDT",
-                    "ONDOUSDT",
-                    "LPTUSDT",
-                    "CFXUSDT",
-                    "PHAUSDT",
-                    "IOSTUSDT",
-                    "RENDERUSDT",
-                    "ALGOUSDT",
-                    "KSMUSDT",
-                    "GLMUSDT",
-                    "ARKMUSDT",
-                    "TOKENUSDT",
-                    "ACXUSDT",
-                    "ANKRUSDT",
-                    "ORDIUSDT",
-                    "MTLUSDT",
-                    "THEUSDT",
-                    "CATIUSDT",
-                    "EPICUSDT",
-                    "IOTAUSDT",
-                    "STORJUSDT",
-                    "LQTYUSDT",
-                    "AGLDUSDT",
-                    "ATAUSDT",
-                    "BANUSDT",
-                    "ICXUSDT",
-                    "MOODENGUSDT",
-                    "ETCUSDT",
-                    "BBUSDT",
-                    "VIRTUALUSDT",
-                    "BRETTUSDT",
-                };
-                lTake.AddRange(lTmp);
-                #endregion
+                //#region comment
+                //lTake.Clear();
+                //var lTmp = new List<string>
+                //{
+                //    "MUBARAKUSDT",
+                //    "1000BONKUSDT",
+                //    "1000WHYUSDT",
+                //    "B3USDT",
+                //    "SAFEUSDT",
+                //    "PLUMEUSDT",
+                //    "GRTUSDT",
+                //    "QTUMUSDT",
+                //    "RAREUSDT",
+                //    "LUMIAUSDT",
+                //    "1000CHEEMSUSDT",
+                //    "VTHOUSDT",
+                //    "INJUSDT",
+                //    "ZRXUSDT",
+                //    "ALTUSDT",
+                //    "CETUSUSDT",
+                //    "PHBUSDT",
+                //    "DODOXUSDT",
+                //    "BADGERUSDT",
+                //    "GUNUSDT",
+                //    "STOUSDT",
+                //    "EOSUSDT",
+                //    "NFPUSDT",
+                //    "BSWUSDT",
+                //    "RAYSOLUSDT",
+                //    "ALICEUSDT",
+                //    "OXTUSDT",
+                //    "UMAUSDT",
+                //    "BIOUSDT",
+                //    "SEIUSDT",
+                //    "ONDOUSDT",
+                //    "LPTUSDT",
+                //    "CFXUSDT",
+                //    "PHAUSDT",
+                //    "IOSTUSDT",
+                //    "RENDERUSDT",
+                //    "ALGOUSDT",
+                //    "KSMUSDT",
+                //    "GLMUSDT",
+                //    "ARKMUSDT",
+                //    "TOKENUSDT",
+                //    "ACXUSDT",
+                //    "ANKRUSDT",
+                //    "ORDIUSDT",
+                //    "MTLUSDT",
+                //    "THEUSDT",
+                //    "CATIUSDT",
+                //    "EPICUSDT",
+                //    "IOTAUSDT",
+                //    "STORJUSDT",
+                //    "LQTYUSDT",
+                //    "AGLDUSDT",
+                //    "ATAUSDT",
+                //    "BANUSDT",
+                //    "ICXUSDT",
+                //    "MOODENGUSDT",
+                //    "ETCUSDT",
+                //    "BBUSDT",
+                //    "VIRTUALUSDT",
+                //    "BRETTUSDT",
+                //};
+                //lTake.AddRange(lTmp);
+                //#endregion
                 foreach (var item in lTake)
                 {
 
@@ -304,7 +304,7 @@ namespace TestPr.Service
 
                         }
 
-                        if (winCount + lossCount <= 0)
+                        if (winCount + lossCount <= 1)
                             continue;
 
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
@@ -313,14 +313,12 @@ namespace TestPr.Service
                         var items = lModel.Where(x => x.s == item);
                         var perRate = Math.Round((float)sumRate / count, 1);
                         //Special
-                        //if (perRate <= 0.7)
-                        //if (rateRes <= (decimal)0.5
-                        //  || sumRate <= 1
-                        //  || perRate <= 0.7)
-                        //{
-                        //    lModel = lModel.Except(items).ToList();
-                        //    continue;
-                        //}
+                        if (rateRes < (decimal)0.5
+                          || perRate <= 0.7)
+                        {
+                            lModel = lModel.Except(items).ToList();
+                            continue;
+                        }
 
                         var realWin = 0;
                         foreach (var model in items)
