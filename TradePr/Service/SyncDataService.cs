@@ -1,5 +1,8 @@
-﻿using Skender.Stock.Indicators;
+﻿using Binance.Net.Enums;
+using MongoDB.Driver;
+using Skender.Stock.Indicators;
 using TradePr.DAL;
+using TradePr.DAL.Entity;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -13,14 +16,16 @@ namespace TradePr.Service
         private readonly ILogger<SyncDataService> _logger;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
+        private readonly ISymbolRepo _symRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         public SyncDataService(ILogger<SyncDataService> logger,
-                           IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo)
+                           IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, ISymbolRepo symRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _symConfigRepo = symConfigRepo;
+            _symRepo = symRepo;
         }
 
         public async Task Binance()
@@ -32,6 +37,8 @@ namespace TradePr.Service
         {
             try
             {
+                var start = DateTime.Now;
+                var exchange = (int)EExchange.Binance;
                 var lAll = await StaticVal.BinanceInstance().UsdFuturesApi.CommonFuturesClient.GetSymbolsAsync();
                 var lUsdt = lAll.Data.Where(x => x.Name.EndsWith("USDT")).Select(x => x.Name);
                 var countUSDT = lUsdt.Count();//461
@@ -254,12 +261,33 @@ namespace TradePr.Service
                 }
 
                 var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).Take(40).ToList();
+                if (!lRes.Any())
+                    return;
+
+                //Delete
+                var builder = Builders<Symbol>.Filter;
+                _symRepo.DeleteMany(builder.And(
+                    builder.Eq(x => x.ex, exchange),
+                    builder.Gte(x => x.ty, (int)OrderSide.Buy)
+                ));
+
+                var rank = 1;
                 foreach (var item in lRes)
                 {
                     Console.WriteLine(item.Mes);
+                    _symRepo.InsertOne(new Symbol
+                    {
+                        s = item.s,
+                        ex = exchange,
+                        ty = (int)OrderSide.Buy,
+                        rank = rank++
+                    });
                 }
 
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
+                var end = DateTime.Now;
+                Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
+               
             }
             catch (Exception ex)
             {
