@@ -126,7 +126,7 @@ namespace TestPr.Service
                         var lData15m = new List<Quote>();
                         var last = new Quote();
 
-                        if(isNear)
+                        if(!isNear)
                         {
                             var lData50 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                             if (lData50 == null || !lData50.Any())
@@ -314,13 +314,13 @@ namespace TestPr.Service
                         var perRate = Math.Round((float)sumRate / count, 1);
                         //Special
                         //if (perRate <= 0.7)
-                        if (rateRes <= (decimal)0.5
-                          || sumRate <= 1
-                          || perRate <= 0.7)
-                        {
-                            lModel = lModel.Except(items).ToList();
-                            continue;
-                        }
+                        //if (rateRes <= (decimal)0.5
+                        //  || sumRate <= 1
+                        //  || perRate <= 0.7)
+                        //{
+                        //    lModel = lModel.Except(items).ToList();
+                        //    continue;
+                        //}
 
                         var realWin = 0;
                         foreach (var model in items)
@@ -425,7 +425,7 @@ namespace TestPr.Service
                         var lData15m = new List<Quote>();
                         var last = new Quote();
 
-                        if (isNear)
+                        if (!isNear)
                         {
                             var lData50 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                             if (lData50 == null || !lData50.Any())
@@ -765,7 +765,7 @@ namespace TestPr.Service
                         var lData15m = new List<Quote>();
                         var last = new Quote();
 
-                        if (isNear)
+                        if (!isNear)
                         {
                             var lData50 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                             if (lData50 == null || !lData50.Any())
@@ -1079,7 +1079,7 @@ namespace TestPr.Service
                         var lData15m = new List<Quote>();
                         var last = new Quote();
 
-                        if (isNear)
+                        if (!isNear)
                         {
                             var lData50 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
                             if (lData50 == null || !lData50.Any())
