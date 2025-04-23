@@ -405,6 +405,27 @@ namespace TradePr.Service
                 if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= _unit)
                     return false;
 
+                //Nếu trong 2 tiếng gần nhất giảm quá 10% thì không mua mới
+                var lIncome = await StaticVal.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
+                if (lIncome == null || !lIncome.Success)
+                {
+                    await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được lịch sử thay đổi số dư");
+                }
+                var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-2));
+                if (lIncomeCheck.Count() >= 2)
+                {
+                    var first = lIncomeCheck.First();
+                    var last = lIncomeCheck.Last();
+                    if (first.CashBalance > 0)
+                    {
+                        var rateCheck = Math.Round(100 * (-1 + last.CashBalance.Value / first.CashBalance.Value), 1);
+                        if (rateCheck >= 10)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos.Data.List.Count() >= 4)
                     return false;

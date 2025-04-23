@@ -486,7 +486,7 @@ namespace TradePr.Service
                     return false;
                 }
 
-                //Nếu trong 4 tiếng gần nhất có 4 lệnh thua thì ko mua mới
+                //Nếu trong 2 tiếng gần nhất có 4 lệnh thua và tổng âm thì ko mua mới
                 var lIncome = await StaticVal.BinanceInstance().UsdFuturesApi.Account.GetIncomeHistoryAsync(incomeType: "REALIZED_PNL");
                 if (lIncome == null || !lIncome.Success)
                 {
@@ -495,8 +495,11 @@ namespace TradePr.Service
                 }
                 if (lIncome.Data.Any())
                 {
-                    var countIncome = lIncome.Data.Count(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4) && x.Income <= 0);
-                    if (countIncome <= 4)
+                    var lIncomeCheck = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-2));
+                    var countIncome = lIncomeCheck.Count(x => x.Income <= 0);
+                    var sumIncome = lIncomeCheck.Sum(x => x.Income);
+
+                    if (countIncome <= 4 && sumIncome <= 0)
                         return false;
                 }
 
