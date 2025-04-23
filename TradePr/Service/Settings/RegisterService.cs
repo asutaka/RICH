@@ -8,6 +8,7 @@
             services.AddSingleton<IBybitService, BybitService>();
             services.AddSingleton<IAPIService, APIService>();
             services.AddSingleton<ITeleService, TeleService>();
+            services.AddSingleton<ISyncDataService, SyncDataService>();
         }
     }
 }

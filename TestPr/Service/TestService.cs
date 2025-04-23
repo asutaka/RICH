@@ -9,10 +9,10 @@ namespace TestPr.Service
 {
     public interface ITestService
     {
-        Task CheckAllBINANCE_LONG();
-        Task CheckAllBINANCE_SHORT();
-        Task CheckAllBYBIT_LONG();
-        Task CheckAllBYBIT_SHORT();
+        Task CheckAllBINANCE_LONG(bool isNear = false);
+        Task CheckAllBINANCE_SHORT(bool isNear = false);
+        Task CheckAllBYBIT_LONG(bool isNear = false);
+        Task CheckAllBYBIT_SHORT(bool isNear = false);
     }
     public class TestService : ITestService
     {
@@ -27,7 +27,7 @@ namespace TestPr.Service
         }
 
         //LONG RSI Tong(55): 883.0%|W/L: 468/225
-        public async Task CheckAllBINANCE_LONG()
+        public async Task CheckAllBINANCE_LONG(bool isNear = false)
         {
             try
             {
@@ -123,27 +123,33 @@ namespace TestPr.Service
                     {
                         //if (item != "BTCUSDT")
                         //    continue;
+                        var lData15m = new List<Quote>();
+                        var last = new Quote();
 
-                        var lData15m = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
-                        if (lData15m == null || !lData15m.Any())
-                            continue;
-                        var last = lData15m.Last();
-                        Thread.Sleep(200);
+                        if(isNear)
+                        {
+                            var lData50 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                            if (lData50 == null || !lData50.Any())
+                                continue;
+                            lData15m.AddRange(lData50.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                            Thread.Sleep(200);
 
-                        var lData40 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData40 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
 
-                        var lData30 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData30 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
 
-                        var lData20 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData20 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                        }    
 
                         var lData10 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                         Thread.Sleep(200);
@@ -345,7 +351,7 @@ namespace TestPr.Service
         }
 
         //SHORT RSI Tong(52): 654.5%|W/L: 344/167
-        public async Task CheckAllBINANCE_SHORT()
+        public async Task CheckAllBINANCE_SHORT(bool isNear = false)
         {
             try
             {
@@ -416,28 +422,35 @@ namespace TestPr.Service
                         //if (item != "EOSUSDT")
                         //    continue;
 
-                        var lData15m = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
-                        if (lData15m == null || !lData15m.Any())
-                            continue;
-                        var last = lData15m.Last();
-                        if (last.Volume <= 0)
-                            continue;
-                        Thread.Sleep(200);
+                        var lData15m = new List<Quote>();
+                        var last = new Quote();
 
-                        var lData40 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                        if (isNear)
+                        {
+                            var lData50 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                            if (lData50 == null || !lData50.Any())
+                                continue;
+                            lData15m.AddRange(lData50.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                            if (last.Volume <= 0)
+                                continue;
+                            Thread.Sleep(200);
 
-                        var lData30 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData40 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
 
-                        var lData20 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData30 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+
+                            var lData20 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                        }
 
                         var lData10 = await _apiService.GetData_Binance(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                         Thread.Sleep(200);
@@ -660,7 +673,7 @@ namespace TestPr.Service
         }
 
         //LONG RSI Tong(55): 918.2%|W/L: 507/282
-        public async Task CheckAllBYBIT_LONG()
+        public async Task CheckAllBYBIT_LONG(bool isNear = false)
         {
             try
             {
@@ -749,26 +762,33 @@ namespace TestPr.Service
                         //if (item != "BTCUSDT")
                         //    continue;
 
-                        var lData15m = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
-                        if (lData15m == null || !lData15m.Any())
-                            continue;
-                        var last = lData15m.Last();
-                        Thread.Sleep(200);
+                        var lData15m = new List<Quote>();
+                        var last = new Quote();
 
-                        var lData40 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                        if (isNear)
+                        {
+                            var lData50 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                            if (lData50 == null || !lData50.Any())
+                                continue;
+                            lData15m.AddRange(lData50.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                            Thread.Sleep(200);
 
-                        var lData30 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData40 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
 
-                        var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData30 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+
+                            var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                        }
 
                         var lData10 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                         Thread.Sleep(200);
@@ -969,7 +989,7 @@ namespace TestPr.Service
             }
         }
         //SHORT RSI Tong(50): 837.0%|W/L: 429/236
-        public async Task CheckAllBYBIT_SHORT()
+        public async Task CheckAllBYBIT_SHORT(bool isNear = false)
         {
             try
             {
@@ -1056,28 +1076,35 @@ namespace TestPr.Service
                         //if (item != "EOSUSDT")
                         //    continue;
 
-                        var lData15m = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
-                        if (lData15m == null || !lData15m.Any())
-                            continue;
-                        var last = lData15m.Last();
-                        if (last.Volume <= 0)
-                            continue;
-                        Thread.Sleep(200);
+                        var lData15m = new List<Quote>();
+                        var last = new Quote();
 
-                        var lData40 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                        if (isNear)
+                        {
+                            var lData50 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-50).ToUnixTimeMilliseconds());
+                            if (lData50 == null || !lData50.Any())
+                                continue;
+                            lData15m.AddRange(lData50.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                            if (last.Volume <= 0)
+                                continue;
+                            Thread.Sleep(200);
 
-                        var lData30 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData40 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-40).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData40.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
 
-                        var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
+                            var lData30 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-30).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData30.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+
+                            var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                            Thread.Sleep(200);
+                            lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                            last = lData15m.Last();
+                        }
 
                         var lData10 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
                         Thread.Sleep(200);
