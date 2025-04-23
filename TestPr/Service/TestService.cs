@@ -32,7 +32,7 @@ namespace TestPr.Service
             try
             {
                 var lAll = await StaticVal.BinanceInstance().UsdFuturesApi.CommonFuturesClient.GetSymbolsAsync();
-                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                var lUsdt = lAll.Data.Where(x => x.Name.EndsWith("USDT")).Select(x => x.Name);
                 var countUSDT = lUsdt.Count();//461
                 var lTake = lUsdt.ToList();
                 //var lTake = lUsdt.Skip(0).Take(50).ToList();
@@ -354,7 +354,7 @@ namespace TestPr.Service
             try
             {
                 var lAll = await StaticVal.BinanceInstance().UsdFuturesApi.CommonFuturesClient.GetSymbolsAsync();
-                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                var lUsdt = lAll.Data.Where(x => x.Name.EndsWith("USDT")).Select(x => x.Name);
                 var countUSDT = lUsdt.Count();//461
                 var lTake = lUsdt.ToList();
                 //var lTake = lUsdt.Skip(0).Take(50).ToList();
