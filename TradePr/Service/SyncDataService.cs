@@ -285,7 +285,7 @@ namespace TradePr.Service
                         _symConfigRepo.InsertOne(new SymbolConfig
                         {
                             s = item.s,
-                            amount = 0,
+                            amount = -1,
                             price = 4
                         });
 
@@ -570,7 +570,7 @@ namespace TradePr.Service
                         _symConfigRepo.InsertOne(new SymbolConfig
                         {
                             s = item.s,
-                            amount = 0,
+                            amount = -1,
                             price = 4
                         });
 
@@ -877,7 +877,7 @@ namespace TradePr.Service
                         _symConfigRepo.InsertOne(new SymbolConfig
                         {
                             s = item.s,
-                            amount = 0,
+                            amount = -1,
                             price = 4
                         });
 
@@ -1184,7 +1184,7 @@ namespace TradePr.Service
                         _symConfigRepo.InsertOne(new SymbolConfig
                         {
                             s = item.s,
-                            amount = 0,
+                            amount = -1,
                             price = 4
                         });
 
