@@ -264,7 +264,7 @@ namespace TradePr.Service
                 }
 
                 var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).Take(_TAKE).ToList();
-                if (!lRes.Any())
+                if (lRes.Count() < _TAKE - 15)
                     return;
 
                 //Delete
@@ -549,7 +549,7 @@ namespace TradePr.Service
                 }
 
                 var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).Take(_TAKE).ToList();
-                if (!lRes.Any())
+                if (lRes.Count() < _TAKE - 15)
                     return;
 
                 //Delete
@@ -856,7 +856,7 @@ namespace TradePr.Service
                 }
 
                 var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).Take(_TAKE).ToList();
-                if (!lRes.Any())
+                if (lRes.Count() < _TAKE - 15)
                     return;
 
                 //Delete
@@ -1163,7 +1163,7 @@ namespace TradePr.Service
                 }
 
                 var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).Take(_TAKE).ToList();
-                if (!lRes.Any())
+                if (lRes.Count() < _TAKE - 15)
                     return;
 
                 //Delete
