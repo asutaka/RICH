@@ -21,8 +21,8 @@ namespace TradePr.Service
         private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly ISymbolRepo _symRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
+        private readonly IConfigDataRepo _configRepo;
         private const long _idUser = 1066022551;
-        private const decimal _unit = 70;
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;//MA20 là 2h
         private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
@@ -31,7 +31,8 @@ namespace TradePr.Service
 
         private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger,
-                            IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo)
+                            IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
+                            IConfigDataRepo configRepo)
         {
             _logger = logger;
             _apiService = apiService;
@@ -39,6 +40,7 @@ namespace TradePr.Service
             _symConfigRepo = symConfigRepo;
             _placeRepo = placeRepo;
             _symRepo = symRepo;
+            _configRepo = configRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -430,8 +432,11 @@ namespace TradePr.Service
                     await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được thông tin tài khoản");
                     return false;
                 }
+                //Lay Unit tu database
+                var lConfig = _configRepo.GetAll();
+                var config = lConfig.First(x => x.op == (int)EOption.Unit && x.ex == (int)EExchange.Bybit);
 
-                if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= _unit)
+                if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= (decimal)config.value)
                     return false;
 
                 //Nếu trong 2 tiếng gần nhất giảm quá 10% thì không mua mới
@@ -478,7 +483,7 @@ namespace TradePr.Service
                     tronSL = 0;
                 }
               
-                decimal soluong = _unit / lastPrice;
+                decimal soluong = (decimal)config.value / lastPrice;
                 if(tronSL == -1)
                 {
                     soluong = Math.Round(soluong);

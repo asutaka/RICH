@@ -21,10 +21,10 @@ namespace TradePr.Service
         private readonly ISymbolRepo _symRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
         private readonly IPlaceOrderTradeRepo _placeRepo;
+        private readonly IConfigDataRepo _configRepo;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private const long _idUser = 1066022551;
-        private const decimal _unit = 70;
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;
         private readonly decimal _SL_RATE = 0.025m;
@@ -32,7 +32,8 @@ namespace TradePr.Service
         private readonly decimal _TP_RATE_MAX = 0.07m;
         private readonly int _exchange = (int)EExchange.Binance;
         public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISymbolConfigRepo symConfigRepo,
-                            IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo)
+                            IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
+                            IConfigDataRepo configRepo)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
@@ -41,6 +42,7 @@ namespace TradePr.Service
             _teleService = teleService;
             _placeRepo = placeRepo;
             _symRepo = symRepo;
+            _configRepo = configRepo;
         }
         public async Task<BinanceUsdFuturesAccountBalance> Binance_GetAccountInfo()
         {
@@ -511,7 +513,11 @@ namespace TradePr.Service
                     return false;
                 }
 
-                if (account.AvailableBalance * _margin <= _unit)
+                //Lay Unit tu database
+                var lConfig = _configRepo.GetAll();
+                var config = lConfig.First(x => x.op == (int)EOption.Unit && x.ex == (int)EExchange.Binance);
+
+                if (account.AvailableBalance * _margin <= (decimal)config.value)
                 {
                     //await _teleService.SendMessage(_idUser, $"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
                     return false;
@@ -578,7 +584,7 @@ namespace TradePr.Service
                     tronSL = 0;
                 }
 
-                decimal soluong = _unit / lastPrice;
+                decimal soluong = (decimal)config.value / lastPrice;
                 if (tronSL == -1)
                 {
                     soluong = Math.Round(soluong);

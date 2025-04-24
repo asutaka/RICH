@@ -9,6 +9,8 @@ namespace TradePr.Service
 {
     public interface ISyncDataService
     {
+        Task UnitSetting();
+
         Task Binance_LONG();
         Task Bybit_LONG();
 
@@ -20,18 +22,70 @@ namespace TradePr.Service
         private readonly ILogger<SyncDataService> _logger;
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
+        private readonly IConfigDataRepo _configRepo;
         private readonly ISymbolRepo _symRepo;
         private readonly ISymbolConfigRepo _symConfigRepo;
+        private readonly IBinanceService _binanceService;
+        private readonly IBybitService _bybitService;
         private const long _idUser = 1066022551;
         private const int _TAKE = 50;//số bản ghi mỗi loại
         public SyncDataService(ILogger<SyncDataService> logger,
-                           IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, ISymbolRepo symRepo)
+                           IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, ISymbolRepo symRepo, IConfigDataRepo configRepo,
+                           IBinanceService binanceService, IBybitService bybitService)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _symConfigRepo = symConfigRepo;
             _symRepo = symRepo;
+            _configRepo = configRepo;
+            _binanceService = binanceService;
+            _bybitService = bybitService;
+        }
+
+        public async Task UnitSetting()
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var lConfig = _configRepo.GetAll();
+                var lConfigUnit = lConfig.Where(x => x.op == (int)EOption.Unit);
+                //
+                //BINANCE
+                var configBinance = lConfigUnit.First(x => x.ex == (int)EExchange.Binance);
+                var binance = await _binanceService.Binance_GetAccountInfo();
+                if (binance != null)
+                {
+                    var cur = binance.WalletBalance;
+                    var unit = Math.Round(cur / 5) * 10;
+                    if(unit > 70)
+                    {
+                        unit = 70;
+                    }
+                    configBinance.value = (double)unit;
+                    configBinance.t = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                    _configRepo.Update(configBinance);
+                }
+                //BYBIT
+                var configBybit = lConfigUnit.First(x => x.ex == (int)EExchange.Bybit);
+                var bybit = await _bybitService.Bybit_GetAccountInfo();
+                if (bybit != null)
+                {
+                    var cur = bybit.WalletBalance.Value;
+                    var unit = Math.Round(cur / 5) * 10;
+                    if (unit > 70)
+                    {
+                        unit = 70;
+                    }
+                    configBybit.value = (double)unit;
+                    configBybit.t = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                    _configRepo.Update(configBybit);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"SyncDataService.UnitSetting|EXCEPTION| {ex.Message}");
+            }
         }
 
         public async Task Binance_LONG()

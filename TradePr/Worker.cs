@@ -56,6 +56,11 @@ namespace TradePr
                     }   
                 }
 
+                if(dt.Hour == 7 && dt.Minute == 0)
+                {
+                    await _syncService.UnitSetting();
+                }
+
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }

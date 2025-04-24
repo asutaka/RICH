@@ -26,5 +26,8 @@ namespace TradePr.Utils
         Bybit = 1
     }
 
-
+    public enum EOption
+    {
+        Unit = 1,// Giá trị lệnh 
+    }
 }
