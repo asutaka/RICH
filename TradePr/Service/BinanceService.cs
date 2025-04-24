@@ -405,25 +405,6 @@ namespace TradePr.Service
             {
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
 
-                //Nếu trong 2 tiếng gần nhất có 4 lệnh thua và tổng âm thì ko mua mới
-                var globalFlag = false;
-                var lIncome = await StaticVal.BinanceInstance().UsdFuturesApi.Account.GetIncomeHistoryAsync(incomeType: "REALIZED_PNL");
-                if (lIncome != null && lIncome.Success)
-                {
-                    if (lIncome.Data.Any())
-                    {
-                        var lIncomeCheck = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-2));
-                        var countIncome = lIncomeCheck.Count(x => x.Income <= 0);
-                        var sumIncome = lIncomeCheck.Sum(x => x.Income);
-
-                        if (countIncome >= 4 && sumIncome <= 0)
-                        {
-                            globalFlag = true;
-                        }    
-                    }
-                }
-               
-
                 #region Sell
                 foreach (var item in pos.Data)
                 {
@@ -460,7 +441,7 @@ namespace TradePr.Service
                         var cur = l15m.Last();
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
-                        var flag = globalFlag;
+                        var flag = false;
                         if (side == OrderSide.Buy && Math.Max(last.High, cur.High) > (decimal)bb.UpperBand.Value)
                         {
                             flag = true;
@@ -532,11 +513,10 @@ namespace TradePr.Service
                 }
                 if (lIncome.Data.Any())
                 {
-                    var lIncomeCheck = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-2));
-                    var countIncome = lIncomeCheck.Count(x => x.Income <= 0);
-                    var sumIncome = lIncomeCheck.Sum(x => x.Income);
+                    var lIncomeCheck = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4));
+                    var rate = lIncomeCheck.Sum(x => x.Income) / account.WalletBalance;
 
-                    if (countIncome >= 4 && sumIncome <= 0)
+                    if (rate <= -0.2m) 
                         return false;
                 }
 

@@ -317,27 +317,6 @@ namespace TradePr.Service
 
                 var dt = DateTime.UtcNow;
 
-                //Nếu trong 2 tiếng gần nhất giảm quá 10% thì không mua mới
-                var globalFlag = false;
-                var lIncome = await StaticVal.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
-                if (lIncome != null && lIncome.Success)
-                {
-                    var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-2));
-                    if (lIncomeCheck.Count() >= 2)
-                    {
-                        var first = lIncomeCheck.First();
-                        var last = lIncomeCheck.Last();
-                        if (first.CashBalance > 0)
-                        {
-                            var rateCheck = Math.Round(100 * (-1 + last.CashBalance.Value / first.CashBalance.Value), 1);
-                            if (rateCheck >= 10)
-                            {
-                                globalFlag = true;
-                            }
-                        }
-                    }
-                }
-                
                 #region Sell
                 foreach (var item in pos.Data.List)
                 {
@@ -376,7 +355,7 @@ namespace TradePr.Service
                         var cur = l15m.Last();
                         var lbb = l15m.GetBollingerBands();
                         var bb = lbb.Last();
-                        var flag = globalFlag;
+                        var flag = false;
                         //var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
                         //if (rate < 1)
                         //    continue;
@@ -446,18 +425,16 @@ namespace TradePr.Service
                     await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được lịch sử thay đổi số dư");
                     return false;
                 }
-                var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-2));
+                var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-4));
                 if (lIncomeCheck.Count() >= 2)
                 {
-                    var first = lIncomeCheck.First();
-                    var last = lIncomeCheck.Last();
+                    var first = lIncomeCheck.First();//giá trị mới nhất
+                    var last = lIncomeCheck.Last();//giá trị cũ nhất
                     if (first.CashBalance > 0)
                     {
-                        var rateCheck = Math.Round(100 * (-1 + last.CashBalance.Value / first.CashBalance.Value), 1);
-                        if (rateCheck >= 10)
-                        {
+                        var rate = 1 - last.CashBalance.Value/first.CashBalance.Value;
+                        if (rate <= -0.2m)
                             return false;
-                        }
                     }
                 }
 
