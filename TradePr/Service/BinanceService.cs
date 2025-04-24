@@ -466,7 +466,7 @@ namespace TradePr.Service
                         var rateBB = (decimal)(Math.Round((-1 + bb.UpperBand.Value / bb.LowerBand.Value)) - 1);
                         if (rateBB < _TP_RATE_MIN - 0.01m)
                         {
-                           
+                            rateBB = _TP_RATE_MIN;
                         }
                         else if (rateBB > _TP_RATE_MAX)
                         {
