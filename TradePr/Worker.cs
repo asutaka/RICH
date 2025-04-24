@@ -27,12 +27,12 @@ namespace TradePr
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                var dt = DateTime.Now;
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 var binance = _binnanceService.Binance_Trade();
                 var bybit = _bybitService.Bybit_Trade();
                 Task.WaitAll(binance, bybit);
 
-                var dt = DateTime.Now;
                 if(dt.DayOfWeek == DayOfWeek.Monday)
                 {
                     if(dt.Hour == 9)
