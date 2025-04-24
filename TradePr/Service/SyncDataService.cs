@@ -53,7 +53,7 @@ namespace TradePr.Service
 
                 foreach (var item in lTake)
                 {
-                    if (item.Contains("-"))
+                    if (item.Contains('-'))
                         continue;
 
                     var winCount = 0;
@@ -337,7 +337,7 @@ namespace TradePr.Service
 
                 foreach (var item in lTake)
                 {
-                    if (item.Contains("-"))
+                    if (item.Contains('-'))
                         continue;
                     var winCount = 0;
                     var lossCount = 0;
