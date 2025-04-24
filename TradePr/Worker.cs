@@ -25,8 +25,8 @@ namespace TradePr
             //await _bybitService.Bybit_Trade();
 
             //await _syncService.Bybit_LONG();
-            await _syncService.Bybit_SHORT();
-            return;
+            //await _syncService.Bybit_SHORT();
+            //return;
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -34,6 +34,31 @@ namespace TradePr
                 var binance = _binnanceService.Binance_Trade();
                 var bybit = _bybitService.Bybit_Trade();
                 Task.WaitAll(binance, bybit);
+
+                var dt = DateTime.Now;
+                if(dt.DayOfWeek == DayOfWeek.Monday)
+                {
+                    if(dt.Hour == 9)
+                    {
+                        if(dt.Minute == 0)
+                        {
+                            _syncService.Binance_LONG();
+                        }
+                        else if(dt.Minute == 15)
+                        {
+                            _syncService.Bybit_LONG();
+                        }    
+                        else if(dt.Minute == 30)
+                        {
+                            _syncService.Binance_SHORT();
+                        }    
+                        else if(dt.Minute == 45)
+                        {
+                            _syncService.Bybit_SHORT();
+                        }    
+                    }   
+                }
+
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }
