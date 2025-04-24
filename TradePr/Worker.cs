@@ -25,7 +25,7 @@ namespace TradePr
             //await _bybitService.Bybit_Trade();
 
             //await _syncService.Bybit_LONG();
-            await _syncService.Binance_SHORT();
+            await _syncService.Bybit_SHORT();
             return;
 
             while (!stoppingToken.IsCancellationRequested)
