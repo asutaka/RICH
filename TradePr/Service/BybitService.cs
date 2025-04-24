@@ -385,7 +385,7 @@ namespace TradePr.Service
                         }
 
                         var rateBB = (decimal)(Math.Round((-1 + bb.UpperBand.Value / bb.LowerBand.Value)) - 1);
-                        if (rateBB < _TP_RATE_MIN - 1)
+                        if (rateBB < _TP_RATE_MIN - 0.01m)
                         {
                             
                         }
