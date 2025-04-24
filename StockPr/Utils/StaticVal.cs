@@ -178,7 +178,6 @@ namespace StockPr.Utils
             "TNH",
             "TPB",
             "TRC",
-            "TTF",
             "TV2",
             "TVB",
             "TVS",
