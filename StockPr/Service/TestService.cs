@@ -1895,36 +1895,36 @@ namespace StockPr.Service
                                     Console.WriteLine($"LONG_BB({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
                                 }
                             }
-                            else if (min == sig_upper)
-                            {
-                                Console.WriteLine($"SHORT_BB({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
-                            }
-                            else
-                            {
-                                if (entity_Sig.Close < (decimal)bb_Sig.Sma.Value)
-                                {
-                                    if (entity_Pivot.Close <= (decimal)bb_Pivot.Sma.Value
-                                        && near2.Close < (decimal)bb2.Sma.Value
-                                        && near3.Close < (decimal)bb3.Sma.Value
-                                        )
-                                    {
-                                        Console.WriteLine($"SHORT_MA({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
-                                    }
-                                }
-                                else
-                                {
-                                    if (entity_Pivot.Close >= (decimal)bb_Pivot.Sma.Value
-                                        && near2.Close > (decimal)bb2.Sma.Value
-                                        && near3.Close > (decimal)bb3.Sma.Value
-                                        )
-                                    {
-                                        Console.WriteLine($"LONG_MA({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
-                                    }
-                                }
-                            }
+                            //else if (min == sig_upper)
+                            //{
+                            //    Console.WriteLine($"SHORT_BB({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
+                            //}
+                            //else
+                            //{
+                            //    if (entity_Sig.Close < (decimal)bb_Sig.Sma.Value)
+                            //    {
+                            //        if (entity_Pivot.Close <= (decimal)bb_Pivot.Sma.Value
+                            //            && near2.Close < (decimal)bb2.Sma.Value
+                            //            && near3.Close < (decimal)bb3.Sma.Value
+                            //            )
+                            //        {
+                            //            Console.WriteLine($"SHORT_MA({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
+                            //        }
+                            //    }
+                            //    else
+                            //    {
+                            //        if (entity_Pivot.Close >= (decimal)bb_Pivot.Sma.Value
+                            //            && near2.Close > (decimal)bb2.Sma.Value
+                            //            && near3.Close > (decimal)bb3.Sma.Value
+                            //            )
+                            //        {
+                            //            Console.WriteLine($"LONG_MA({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
+                            //        }
+                            //    }
+                            //}
                         }
                         while (i < lData.Count - 1);
-                        break;
+                        //break;
                     }
                     catch (Exception ex)
                     {
