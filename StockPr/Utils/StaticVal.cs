@@ -243,7 +243,6 @@ namespace StockPr.Utils
             "GDA",
             "HNG",
             "ICN",
-            "ITA",
             "KLB",
             "LAI",
             "MCH",
