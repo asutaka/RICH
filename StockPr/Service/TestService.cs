@@ -9,6 +9,7 @@ namespace StockPr.Service
         Task Check2Sell();
         Task CheckSomething();
         Task CheckCurrentDay();
+        Task CheckAllDay();
     }
     public class TestService : ITestService
     {
@@ -1623,6 +1624,313 @@ namespace StockPr.Service
                 // + 2 nến ngay phía trước đều nằm dưới MA20
                 // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
                 // + Giữ 2 tiếng? hoặc nến chạm BB trên
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task CheckAllDay()
+        {
+            try
+            {
+                decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
+                int hour = 10;//1h,2h,3h,4h
+
+                var lMesAll = new List<string>();
+                var lModel = new List<LongMa20>();
+
+                var winTotal = 0;
+                var lossTotal = 0;
+                var lTake = new List<string>
+                {
+                    "VNINDEX",
+                    "DC4",
+                    "GIL",
+                    "GVR",
+                    "DPG",
+                    "CTG",
+                    "BFC",
+                    "VRE",
+                    "PVB",
+                    "GEX",
+                    "SZC",
+                    "HDG",
+                    "BMP",
+                    "TLG",
+                    "VPB",
+                    "DIG",
+                    "KBC",
+                    "HSG",
+                    "PET",
+                    "TNG",
+                    "SBT",
+                    "MSH",
+                    "NAB",
+                    "VGC",
+                    "CSV",
+                    "VCS",
+                    "CSM",
+                    "PHR",
+                    "PVT",
+                    "PC1",
+                    "ASM",
+                    "LAS",
+                    "DXG",
+                    "HCM",
+                    "CTI",
+                    "NHA",
+                    "DPR",
+                    "ANV",
+                    "OCB",
+                    "TVB",
+                    "STB",
+                    "HDC",
+                    "POW",
+                    "VSC",
+                    "L18",
+                    "DDV",
+                    "VCI",
+                    "GMD",
+                    "NTP",
+                    "KSV",
+                    "NT2",
+                    "TCM",
+                    "LSS",
+                    "GEG",
+                    "HHS",
+                    "MSB",
+                    "TCH",
+                    "VHC",
+                    "PVD",
+                    "FOX",
+                    "SSI",
+                    "NKG",
+                    "BSI",
+                    "ACB",
+                    "REE",
+                    "VHM",
+                    "PAN",
+                    "SIP",
+                    "PTB",
+                    "BSR",
+                    "BID",
+                    "PVS",
+                    "CTS",
+                    "FTS",
+                    "HPG",
+                    "DBC",
+                    "MSR",
+                    "THG",
+                    "CTD",
+                    "VOS",
+                    "FMC",
+                    "PHP",
+                    "GAS",
+                    "DCM",
+                    "KSB",
+                    "MSN",
+                    "BVB",
+                    "MBB",
+                    "TRC",
+                    "VPI",
+                    "EIB",
+                    "KDH",
+                    "VCB",
+                    "FPT",
+                    "DRC",
+                    "CMG",
+                    "HAG",
+                    "SHB",
+                    "CII",
+                    "CTR",
+                    "IDC",
+                    "GEE",
+                    "NVB",
+                    "BVS",
+                    "BWE",
+                    "HAX",
+                    "QNS",
+                    "VEA",
+                    "TVS",
+                    "DGC",
+                    "HAH",
+                    "NVL",
+                    "PAC",
+                    "AAA",
+                    "TNH",
+                    "ACV",
+                    "BCC",
+                    "FRT",
+                    "HT1",
+                    "SCS",
+                    "TLH",
+                    "MIG",
+                    "SKG",
+                    "DGC",
+                    "VAB",
+                    "NLG",
+                    "HVN",
+                    "HNG",
+                    "PDR",
+                    "VDS",
+                    "SJE",
+                    "PNJ",
+                    "CEO",
+                    "YEG",
+                    "KLB",
+                    "BCM",
+                    "BVH",
+                    "NTL",
+                    "TDH",
+                    "MBS",
+                    "HUT",
+                    "VIB",
+                    "BAF",
+                    "HHV",
+                    "NDN",
+                    "SGP",
+                    "MCH",
+                    "FCN",
+                    "SCR",
+                    "TCB",
+                    "LPB",
+                    "VTP",
+                    "AGR",
+                    "VCG",
+                    "DPM",
+                    "IDJ",
+                    "DXS",
+                    "OIL",
+                    "AGG",
+                    "VND",
+                    "PSI",
+                    "DHA",
+                    "VIC",
+                    "ITA",
+                    "BCG",
+                    "TPB",
+                    "VIX",
+                    "IJC",
+                    "DGW",
+                    "SBS",
+                    "MFS",
+                    "PLX",
+                    "DRI",
+                    "EVF",
+                    "ORS",
+                    "SAB",
+                    "TDC",
+                    "VNM",
+                    "TV2",
+                    "C4G",
+                    "MWG",
+                    "JVC",
+                    "GDA",
+                    "VGI",
+                    "DSC",
+                    "SMC",
+                    "DTD",
+                    "QCG",
+                };
+                foreach (var item in lTake)
+                {
+                    var winCount = 0;
+                    var lossCount = 0;
+                    try
+                    {
+                        var lMes = new List<string>();
+
+                        var lData = await _apiService.SSI_GetDataStock(item);
+                        Thread.Sleep(200);
+                        if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 50000)
+                            continue;
+
+                        var i = 30;
+                        do
+                        {
+                            var lData15m = lData.Take(i++).ToList();
+                            var lbb = lData15m.GetBollingerBands();
+                            var lrsi = lData15m.GetRsi();
+                            var lMaVol = lData15m.Select(x => new Quote
+                            {
+                                Date = x.Date,
+                                Close = x.Volume
+                            }).GetSma(20);
+
+                            var entity_Pivot = lData15m.Last();
+                            var bb_Pivot = lbb.Last();
+
+                            var entity_Sig = lData15m.SkipLast(1).Last();
+                            var maVol_Sig = lMaVol.SkipLast(1).Last();
+                            var bb_Sig = lbb.SkipLast(1).Last();
+
+                            var near2 = lData15m.SkipLast(2).Last();
+                            var near3 = lData15m.SkipLast(3).Last();
+                            var near4 = lData15m.SkipLast(4).Last();
+                            var near5 = lData15m.SkipLast(5).Last();
+
+                            var bb2 = lbb.SkipLast(2).Last();
+                            var bb3 = lbb.SkipLast(3).Last();
+                            var bb4 = lbb.SkipLast(4).Last();
+                            var bb5 = lbb.SkipLast(5).Last();
+
+                            var rateVol = entity_Pivot.Volume / entity_Sig.Volume;
+                            if (rateVol > (decimal)0.6)
+                                continue;
+
+                            var sig_lower = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value);
+                            var sig_ma = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.Sma.Value);
+                            var sig_upper = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.UpperBand.Value);
+                            var min = Math.Min(Math.Min(sig_lower, sig_ma), sig_upper);
+
+                            if (min == sig_lower)
+                            {
+                                var maxPivot = Math.Max(entity_Pivot.Open, entity_Pivot.Close);
+                                if (maxPivot < Math.Max(entity_Sig.Open, entity_Sig.Close)
+                                    && ((decimal)bb_Pivot.Sma.Value - maxPivot) > (maxPivot - (decimal)bb_Pivot.LowerBand.Value))
+                                {
+                                    //good 
+                                    Console.WriteLine($"LONG_BB({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
+                                }
+                            }
+                            else if (min == sig_upper)
+                            {
+                                Console.WriteLine($"SHORT_BB({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
+                            }
+                            else
+                            {
+                                if (entity_Sig.Close < (decimal)bb_Sig.Sma.Value)
+                                {
+                                    if (entity_Pivot.Close <= (decimal)bb_Pivot.Sma.Value
+                                        && near2.Close < (decimal)bb2.Sma.Value
+                                        && near3.Close < (decimal)bb3.Sma.Value
+                                        )
+                                    {
+                                        Console.WriteLine($"SHORT_MA({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
+                                    }
+                                }
+                                else
+                                {
+                                    if (entity_Pivot.Close >= (decimal)bb_Pivot.Sma.Value
+                                        && near2.Close > (decimal)bb2.Sma.Value
+                                        && near3.Close > (decimal)bb3.Sma.Value
+                                        )
+                                    {
+                                        Console.WriteLine($"LONG_MA({entity_Pivot.Date.ToString("dd/MM/yyyy")}): {item}");
+                                    }
+                                }
+                            }
+                        }
+                        while (i < lData.Count - 1);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
             }
             catch (Exception ex)
             {
