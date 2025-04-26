@@ -39,7 +39,8 @@ namespace TestPr.Service
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)OrderSide.Buy)
+                    builder.Eq(x => x.ty, (int)OrderSide.Buy),
+                    builder.Eq(x => x.status, 0)
                 ));
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
@@ -288,7 +289,8 @@ namespace TestPr.Service
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)OrderSide.Sell)
+                    builder.Eq(x => x.ty, (int)OrderSide.Sell),
+                    builder.Eq(x => x.status, 0)
                 ));
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
@@ -558,7 +560,8 @@ namespace TestPr.Service
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)OrderSide.Buy)
+                    builder.Eq(x => x.ty, (int)OrderSide.Buy),
+                    builder.Eq(x => x.status, 0)
                 ));
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
@@ -806,7 +809,8 @@ namespace TestPr.Service
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)OrderSide.Sell)
+                    builder.Eq(x => x.ty, (int)OrderSide.Sell),
+                    builder.Eq(x => x.status, 0)
                 ));
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
