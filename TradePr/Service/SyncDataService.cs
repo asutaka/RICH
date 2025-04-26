@@ -96,7 +96,6 @@ namespace TradePr.Service
                 var exchange = (int)EExchange.Binance;
                 var lAll = await StaticVal.BinanceInstance().UsdFuturesApi.CommonFuturesClient.GetSymbolsAsync();
                 var lUsdt = lAll.Data.Where(x => x.Name.EndsWith("USDT")).Select(x => x.Name);
-                var countUSDT = lUsdt.Count();//461
                 var lTake = lUsdt.ToList();
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
@@ -382,7 +381,6 @@ namespace TradePr.Service
                 var exchange = (int)EExchange.Bybit;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var countUSDT = lUsdt.Count();
                 var lTake = lUsdt.ToList();
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
@@ -667,7 +665,6 @@ namespace TradePr.Service
                 var exchange = (int)EExchange.Binance;
                 var lAll = await StaticVal.BinanceInstance().UsdFuturesApi.CommonFuturesClient.GetSymbolsAsync();
                 var lUsdt = lAll.Data.Where(x => x.Name.EndsWith("USDT")).Select(x => x.Name);
-                var countUSDT = lUsdt.Count();
                 var lTake = lUsdt.ToList();
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
@@ -974,7 +971,6 @@ namespace TradePr.Service
                 var exchange = (int)EExchange.Bybit;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var countUSDT = lUsdt.Count();
                 var lTake = lUsdt.ToList();
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
