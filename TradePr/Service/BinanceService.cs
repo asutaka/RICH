@@ -170,7 +170,7 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, _exchange),
-                    builder.Gte(x => x.ty, (int)OrderSide.Buy)
+                    builder.Eq(x => x.ty, (int)OrderSide.Buy)
                 ));
 
                 foreach (var sym in lSym.Select(x => x.s))
@@ -283,7 +283,7 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, _exchange),
-                    builder.Gte(x => x.ty, (int)OrderSide.Sell)
+                    builder.Eq(x => x.ty, (int)OrderSide.Sell)
                 ));
 
                 foreach (var sym in lSym.Select(x => x.s))
