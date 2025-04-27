@@ -62,6 +62,7 @@ namespace StockExtendPr.Service
                         {
                             s = "wci",
                             key = wci_key,
+                            price = (double)Math.Round(wci.price, 1),
                             W = (double)Math.Round(wci.weekly, 1),
                             M = (double)Math.Round(wci.monthly, 1),
                             Y = (double)Math.Round(wci.yearly, 1),
@@ -72,6 +73,7 @@ namespace StockExtendPr.Service
                     else
                     {
                         last.key = wci_key;
+                        last.price = (double)Math.Round(wci.price, 1);
                         last.W = (double)Math.Round(wci.weekly, 1);
                         last.M = (double)Math.Round(wci.monthly, 1);
                         last.Y = (double)Math.Round(wci.yearly, 1);
@@ -95,8 +97,9 @@ namespace StockExtendPr.Service
                     {
                         _macromicroRepo.InsertOne(new MacroMicro
                         {
-                            key = bdti_key,
                             s = "bdti",
+                            key = bdti_key,
+                            price = (double)Math.Round(bdti.price, 1),
                             W = (double)Math.Round(bdti.weekly, 1),
                             M = (double)Math.Round(bdti.monthly, 1),
                             Y = (double)Math.Round(bdti.yearly, 1),
@@ -107,6 +110,7 @@ namespace StockExtendPr.Service
                     else
                     {
                         last.key = bdti_key;
+                        last.price = (double)Math.Round(bdti.price, 1);
                         last.W = (double)Math.Round(bdti.weekly, 1);
                         last.M = (double)Math.Round(bdti.monthly, 1);
                         last.Y = (double)Math.Round(bdti.yearly, 1);

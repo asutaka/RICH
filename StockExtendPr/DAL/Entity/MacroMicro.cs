@@ -11,6 +11,7 @@ namespace StockExtendPr.DAL.Entity
         public double M { get; set; }
         public double Y { get; set; }
         public double YTD { get; set; }
+        public double price { get; set; }
         public int t { get; set; }
     }
 }
