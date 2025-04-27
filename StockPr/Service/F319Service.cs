@@ -87,6 +87,13 @@ namespace StockPr.Service
                 {
                     lOutput.AddRange(lKOL8Clean);
                 }
+
+                var lKOL9 = await _apiService.F319_Scout("silencers_one_shot.591225");//PTKT
+                var lKOL9Clean = Handle(lKOL9, "silencers_one_shot");
+                if (lKOL9Clean.Any())
+                {
+                    lOutput.AddRange(lKOL9Clean);
+                }
             }
             catch (Exception ex)
             {
