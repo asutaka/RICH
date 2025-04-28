@@ -1,5 +1,7 @@
-﻿using Skender.Stock.Indicators;
+﻿using Microsoft.AspNetCore.Mvc.Razor.Infrastructure;
+using Skender.Stock.Indicators;
 using StockPr.DAL;
+using System.Net.WebSockets;
 
 namespace StockPr.Service
 {
@@ -2174,7 +2176,7 @@ namespace StockPr.Service
                     "DTD",
                     "QCG",
                 };
-                foreach (var item in lTake.Skip(0).Take(5))
+                foreach (var item in lTake.Skip(0).Take(2))
                 {
                     var winCount = 0;
                     var lossCount = 0;
@@ -2183,6 +2185,7 @@ namespace StockPr.Service
                         var lMes = new List<string>();
 
                         var lData = await _apiService.SSI_GetDataStock(item);
+                        var lbbGlobal = lData.GetBollingerBands();
                         Thread.Sleep(200);
                         if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 50000)
                             continue;
@@ -2205,6 +2208,7 @@ namespace StockPr.Service
                             var entity_Sig = lData15m.SkipLast(1).Last();
                             var maVol_Sig = lMaVol.SkipLast(1).Last();
                             var bb_Sig = lbb.SkipLast(1).Last();
+                            var UpOrLow_Pivot = entity_Pivot.Close > (decimal)bb_Pivot.Sma.Value ? (decimal)bb_Pivot.UpperBand.Value : (decimal)bb_Pivot.LowerBand.Value;
 
                             var near2 = lData15m.SkipLast(2).Last();
                             var near3 = lData15m.SkipLast(3).Last();
@@ -2216,8 +2220,9 @@ namespace StockPr.Service
                             var bb4 = lbb.SkipLast(4).Last();
                             var bb5 = lbb.SkipLast(5).Last();
 
-                            var rateVol = Math.Round(entity_Sig.Volume / entity_Pivot.Volume, 2);
-                            var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value);
+                            var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 2);
+                            var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value,2);
+                            var rateNear = Math.Round(entity_Sig.Volume / near2.Volume,2);
                             var ma20_Sig = (decimal)bb_Sig.Sma.Value;
                             var upper_Sig = (decimal)bb_Sig.UpperBand.Value;
                             var lower_Sig = (decimal)bb_Sig.LowerBand.Value;
@@ -2225,12 +2230,51 @@ namespace StockPr.Service
                             var UpOrLow_Sig = close_Sig > ma20_Sig ? upper_Sig : lower_Sig;
                             var mes = close_Sig > ma20_Sig ? "SELL" : "BUY";
                             var pos_Sig = Math.Abs((close_Sig - ma20_Sig) / (close_Sig - UpOrLow_Sig));
+                            var pos_Pivot = Math.Abs((entity_Pivot.Close - (decimal)bb_Pivot.Sma.Value) / (entity_Pivot.Close - UpOrLow_Pivot));
 
-                            if(rateVol >= 2.5m 
-                                && rateMaVol >= 2.5m
-                                && pos_Sig >= 2)
+                            if(rateVol <= 0.6m 
+                                && (rateMaVol >= 1.5m || rateNear >= 2)
+                                && pos_Sig >= 2
+                                && pos_Pivot >= 2)
                             {
-                                Console.WriteLine($"{mes}|({entity_Sig.Date.ToString("dd/MM/yyyy")} - {rateVol}% - {rateMaVol}%): {item}");
+                                if(entity_Sig.Date.Day == 27)
+                                {
+                                    var tmp = 1;
+                                }
+
+                                if(close_Sig > ma20_Sig)
+                                {
+                                    //Console.WriteLine($"{mes}|({entity_Sig.Date.ToString("dd/MM/yyyy")}): {item}");
+                                }
+                                else
+                                {
+                                    var lCheck = lData.Where(x => x.Date > entity_Sig.Date).Take(5);
+                                    foreach (var itemCheck in lCheck)
+                                    {
+                                        if (itemCheck.Date.Day == 27)
+                                        {
+                                            var tmp = 1;
+                                        }
+                                        //var bbCheck = lbb.First(x => x.Date == itemCheck.Date);
+                                        //var pos_Check = Math.Abs((itemCheck.Close - (decimal)bbCheck.Sma.Value) / (itemCheck.Close - (decimal)bbCheck.LowerBand));
+                                        //if (pos_Check < 1)
+                                        //    continue;
+                                        //if (itemCheck.Close > (decimal)bbCheck.Sma.Value)
+                                        //    break;
+
+                                        var isPinbar = (Math.Min(itemCheck.Open, itemCheck.Close) - itemCheck.Low) >= 3 * (itemCheck.High - Math.Min(itemCheck.Open, itemCheck.Close));
+                                        if(isPinbar
+                                            || itemCheck.Close >= itemCheck.Open)
+                                        {
+                                            if(itemCheck.Low < entity_Sig.Low
+                                                || itemCheck.High > entity_Sig.High)
+                                            {
+                                                Console.WriteLine($"{mes}|({itemCheck.Date.ToString("dd/MM/yyyy")}): {item}");
+                                                break;
+                                            }
+                                        }   
+                                    }
+                                }
                             }
                             continue;
                             var sig_lower = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value);
