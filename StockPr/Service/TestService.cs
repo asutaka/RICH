@@ -1428,17 +1428,16 @@ namespace StockPr.Service
                     "DTD",
                     "QCG",
                 };
+                var lPoint = new List<clsPoint>();
                 foreach (var item in lTake)
                 {
-                    var winCount = 0;
-                    var lossCount = 0;
                     try
                     {
                         var lMes = new List<string>();
 
                         var lData15m = await _apiService.SSI_GetDataStock(item);
                         Thread.Sleep(200);
-                        if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 50000)
+                        if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 10000)
                             continue;
                        
                         var lbb = lData15m.GetBollingerBands();
@@ -1449,198 +1448,110 @@ namespace StockPr.Service
                             Close = x.Volume
                         }).GetSma(20);
 
-                        var entity_Pivot = lData15m.Last();
-                        var maVol_Pivot = lMaVol.Last();
-                        var bb_Pivot = lbb.Last();
 
-                        var entity_Sig = lData15m.SkipLast(1).Last();
-                        var maVol_Sig = lMaVol.SkipLast(1).Last();
-                        var bb_Sig = lbb.SkipLast(1).Last();
+                        Quote entity_Sig = null;
+                        SmaResult maVol_Sig = null;
+                        BollingerBandsResult bb_Sig = null;
 
-                        var near2 = lData15m.SkipLast(2).Last();
-                        var near3 = lData15m.SkipLast(3).Last();
-                        var near4 = lData15m.SkipLast(4).Last();
-                        var near5 = lData15m.SkipLast(5).Last();
+                        Quote entity_Pivot = null;
+                        SmaResult maVol_Pivot = null;
+                        BollingerBandsResult bb_Pivot = null;
+                        RsiResult rsi_Pivot = null;
 
-                        var bb2 = lbb.SkipLast(2).Last();
-                        var bb3 = lbb.SkipLast(3).Last();
-                        var bb4 = lbb.SkipLast(4).Last();
-                        var bb5 = lbb.SkipLast(5).Last();
+                        Quote entity_NearSig = null;
+                        BollingerBandsResult bb_NearSig = null;
 
-                        var ma20_Sig = (decimal)bb_Sig.Sma.Value;
-                        var upper_Sig = (decimal)bb_Sig.UpperBand.Value;
-                        var lower_Sig = (decimal)bb_Sig.LowerBand.Value;
-                        var close_Sig = entity_Sig.Close;
-                        var UpOrLow_Sig = close_Sig > ma20_Sig ? upper_Sig : lower_Sig;
-                        var mes = close_Sig > ma20_Sig ? "SELL" : "BUY";
-                        var pos_Sig = Math.Abs((close_Sig - ma20_Sig) / (close_Sig - UpOrLow_Sig));
-                        var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value, 2);
-                        var rateVol = entity_Pivot.Volume / entity_Sig.Volume;
-
-                        if (pos_Sig >= 2
-                            //&& rateVol <= 0.5m
-                            && rateMaVol >= 2m)
-                        //&& rateMaVol >= 2.5m)
+                        var passSignal = false;
+                        var lCheckSignal = lData15m.TakeLast(5);
+                        foreach (var itemCheckSignal in lCheckSignal)
                         {
-                            Console.WriteLine($"{mes}|CHUAN|{item}");
-                        }
+                            var maVol = lMaVol.First(x => x.Date == itemCheckSignal.Date);
+                            if(itemCheckSignal.Volume > (decimal)maVol.Sma.Value)
+                            {
+                                var next = lData15m.FirstOrDefault(x => x.Date > itemCheckSignal.Date);
+                                if (next is null)
+                                    break;
 
-                        var ma20_Pivot = (decimal)bb_Pivot.Sma.Value;
-                        var upper_Pivot = (decimal)bb_Pivot.UpperBand.Value;
-                        var lower_Pivot = (decimal)bb_Pivot.LowerBand.Value;
-                        var close_Pivot = entity_Pivot.Close;
-                        var UpOrLow_Pivot = close_Pivot > ma20_Pivot ? upper_Pivot : lower_Pivot;
-                        var mes_Pivot = close_Pivot > ma20_Pivot ? "SELL" : "BUY";
-                        var pos_Pivot = Math.Abs((close_Pivot - ma20_Pivot) / (close_Pivot - UpOrLow_Pivot));
-                        var rateMaVol_Pivot = Math.Round(entity_Pivot.Volume / (decimal)maVol_Pivot.Sma.Value, 2);
-                        if (pos_Pivot >= 2
-                          && rateMaVol_Pivot >= 2m)
-                          //&& rateMaVol_Pivot >= 2.5m)
-                        {
-                            Console.WriteLine($"{mes}|TheoDoi|{item}");
-                        }
-                        continue;
+                                if (next.Volume / itemCheckSignal.Volume <= 0.6m)
+                                {
+                                    entity_Sig = itemCheckSignal;
+                                    maVol_Sig = lMaVol.First(x => x.Date == entity_Sig.Date);
+                                    bb_Sig = lbb.First(x => x.Date == entity_Sig.Date);
 
-                        
-                        if (rateVol > (decimal)0.6)
+                                    entity_Pivot = next;
+                                    maVol_Pivot = lMaVol.First(x => x.Date == entity_Pivot.Date);
+                                    bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
+                                    rsi_Pivot = lrsi.First(x => x.Date == entity_Pivot.Date);
+
+                                    entity_NearSig = lData15m.Last(x => x.Date < entity_Sig.Date);
+                                    bb_NearSig = lbb.First(x => x.Date == entity_NearSig.Date);
+
+                                    passSignal = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!passSignal) 
                             continue;
 
-                        var sig_lower = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value);
-                        var sig_ma = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.Sma.Value);
-                        var sig_upper = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.UpperBand.Value);
-                        var min = Math.Min(Math.Min(sig_lower, sig_ma), sig_upper);
+                        var entityLast = lData15m.Last();
+                        var bbLast = lbb.Last();
+                        var pos_Last = Math.Abs((entityLast.Close - (decimal)bbLast.Sma.Value) / (entityLast.Close - (decimal)bbLast.LowerBand.Value));
+                        if (pos_Last < 2)
+                            continue;
 
-                        if(min == sig_lower)
+                        var ma20_Sig = (decimal)bb_Sig.Sma.Value;
+                        var lower_Sig = (decimal)bb_Sig.LowerBand.Value;
+                        var close_Sig = entity_Sig.Close;
+                        if (close_Sig >= ma20_Sig)
+                            continue;
+
+                        var mes = close_Sig > ma20_Sig ? "SELL" : "BUY";
+                        var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 2);
+                        var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value, 2);
+                        var rateNear = Math.Round(entity_Sig.Volume / entity_NearSig.Volume, 2);
+
+                        var point = 0;
+                        if (pos_Last >= 2)
+                            point += 25;
+
+                        if (rateVol <= 0.6m)
+                            point += 15;
+
+                        if (rateNear >= 1.5m)
+                            point += 10;
+
+                        if (rateMaVol >= 1.5m)
+                            point += 10;
+
+                        var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).Take(5);
+                        foreach (var itemCheck in lCheck)
                         {
-                            var maxPivot = Math.Max(entity_Pivot.Open, entity_Pivot.Close);
-                            if (maxPivot < Math.Max(entity_Sig.Open, entity_Sig.Close)
-                                && ((decimal)bb_Pivot.Sma.Value - maxPivot) > (maxPivot - (decimal)bb_Pivot.LowerBand.Value))
+                            var isPinbar = (Math.Min(itemCheck.Open, itemCheck.Close) - itemCheck.Low) >= 3 * (itemCheck.High - Math.Min(itemCheck.Open, itemCheck.Close));
+                            if (isPinbar || itemCheck.Close >= itemCheck.Open)
                             {
-                                //good 
-                                Console.WriteLine($"LONG_BB: {item}");
+                                point += 15;
+
+                                if (itemCheck.Low < entity_Sig.Low)
+                                    point += 10;
+
+                                var rsiCheck = lrsi.First(x => x.Date == itemCheck.Date);
+                                if (rsiCheck.Rsi.Value <= 30)
+                                    point += 10;
+
+                                var bbCheck = lbb.First(x => x.Date == itemCheck.Date);
+                                if (itemCheck.Low < (decimal)bbCheck.LowerBand.Value)
+                                    point += 5;
+
+                                break;
                             }
-                        }   
-                        else if(min == sig_upper)
-                        {
-                            Console.WriteLine($"SHORT_BB: {item}");
                         }
-                        else
+
+                        lPoint.Add(new clsPoint
                         {
-                            if(entity_Sig.Close < (decimal)bb_Sig.Sma.Value)
-                            {
-                                if(entity_Pivot.Close <= (decimal)bb_Pivot.Sma.Value
-                                    && near2.Close < (decimal)bb2.Sma.Value
-                                    && near3.Close < (decimal)bb3.Sma.Value
-                                    )
-                                {
-                                    Console.WriteLine($"SHORT_MA: {item}");
-                                }
-                            }
-                            else
-                            {
-                                if (entity_Pivot.Close >= (decimal)bb_Pivot.Sma.Value
-                                    && near2.Close > (decimal)bb2.Sma.Value
-                                    && near3.Close > (decimal)bb3.Sma.Value
-                                    )
-                                {
-                                    Console.WriteLine($"LONG_MA: {item}");
-                                }
-                            }
-                        }
-
-                        //if (entity_Sig.Volume <= (decimal)maVol_Sig.Sma.Value * 1.1m)
-                        //    continue;
-
-                        //Console.WriteLine(item);
-
-                        //DateTime dtFlag = DateTime.MinValue;
-                        ////var count = 0;
-                        //foreach (var ma20 in lbb)
-                        //{
-                        //    //try
-                        //    //{
-                        //    //    if (ma20.Sma is null)
-                        //    //        continue;
-                        //    //    //if (dtFlag >= ma20.Date
-                        //    //    //    || ma20.Date >= DateTime.Now.AddDays(-3))
-                        //    //    //    continue;
-
-                        //    //    //if (ma20.Date.Day == 7 && ma20.Date.Month == 3 && ma20.Date.Year == 2025)
-                        //    //    //{
-                        //    //    //    var z = 1;
-                        //    //    //}
-
-                        //    //    //SIGNAL
-                        //    //    var side = 0;
-                        //    //    var entity_Sig = lData15m.First(x => x.Date == ma20.Date);
-                        //    //    var bb_Sig = lbb.First(x => x.Date == ma20.Date);
-                        //    //    //var rsi_Sig = lrsi.First(x => x.Date == ma20.Date);
-                        //    //    var maVol_Sig = lMaVol.First(x => x.Date == ma20.Date);
-
-                        //    //    //PIVOT
-                        //    //    var entity_Pivot = lData15m.First(x => x.Date > ma20.Date);
-                        //    //    var bb_Pivot = lbb.First(x => x.Date > ma20.Date);
-                        //    //    var maVol_Pivot = lMaVol.First(x => x.Date > ma20.Date);
-                        //    //    //PreSig
-                        //    //    var entity_Pre = lData15m.Last(x => x.Date < ma20.Date);
-
-                        //    //    var rateVol = entity_Pivot.Volume / entity_Sig.Volume;
-                        //    //    if (rateVol > (decimal)0.6
-                        //    //        || (decimal)(maVol_Sig.Sma.Value * 0.9) > entity_Sig.Volume)
-                        //    //        continue;
-
-
-                        //    //    var isGreen_Sig = entity_Sig.Close >= entity_Sig.Open;
-                        //    //    if (isGreen_Sig)
-                        //    //    {
-                        //    //        if (entity_Sig.Close > (decimal)bb_Sig.Sma.Value
-                        //    //            && (entity_Sig.Close - (decimal)bb_Sig.Sma.Value) >= ((decimal)bb_Sig.UpperBand.Value - entity_Sig.Close)
-                        //    //            && entity_Pivot.Low > (decimal)bb_Pivot.Sma.Value
-                        //    //            && (entity_Pivot.Close - (decimal)bb_Pivot.Sma.Value) >= ((decimal)bb_Pivot.UpperBand.Value - entity_Pivot.Close))
-                        //    //        {
-                        //    //            Console.WriteLine($"{item}|1.SELL: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
-                        //    //        }
-                        //    //        else if (entity_Sig.Open < (decimal)bb_Sig.Sma.Value
-                        //    //               && ((decimal)bb_Sig.Sma.Value - entity_Sig.Close) <= (entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value)
-                        //    //               && ((decimal)bb_Sig.UpperBand.Value - entity_Sig.Close) >= (entity_Sig.Close - (decimal)bb_Sig.Sma.Value)
-                        //    //               && entity_Pivot.Close < (decimal)bb_Pivot.Sma.Value
-                        //    //               && ((decimal)bb_Pivot.Sma.Value - entity_Pivot.Close) <= (entity_Pivot.Close - (decimal)bb_Pivot.LowerBand.Value)
-                        //    //               && Math.Max(entity_Pre.Open, entity_Pre.Close) < (decimal)bb_Sig.Sma.Value)
-                        //    //        {
-                        //    //            Console.WriteLine($"{item}|2.SELL: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
-                        //    //        }
-                        //    //    }
-                        //    //    else
-                        //    //    {
-                        //    //        if (entity_Sig.Close < (decimal)bb_Sig.Sma.Value
-                        //    //            && (entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value) <= ((decimal)bb_Sig.Sma.Value - entity_Sig.Close)
-                        //    //            && entity_Pivot.High < (decimal)bb_Pivot.Sma.Value
-                        //    //            && (entity_Pivot.Close - (decimal)bb_Pivot.LowerBand.Value) <= ((decimal)bb_Pivot.Sma.Value - entity_Pivot.Close))
-                        //    //        {
-                        //    //            Console.WriteLine($"{item}|1.BUY: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
-                        //    //        }
-                        //    //        else if (entity_Sig.Open > (decimal)bb_Sig.Sma.Value
-                        //    //                && (entity_Sig.Close - (decimal)bb_Sig.Sma.Value) <= ((decimal)bb_Sig.UpperBand.Value - entity_Sig.Close)
-                        //    //                && (entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value) >= ((decimal)bb_Sig.Sma.Value - entity_Sig.Close)
-                        //    //                && entity_Pivot.Close > (decimal)bb_Pivot.Sma.Value
-                        //    //                && (entity_Pivot.Close - (decimal)bb_Pivot.Sma.Value) <= ((decimal)bb_Pivot.UpperBand.Value - entity_Pivot.Close)
-                        //    //                && Math.Min(entity_Pre.Open, entity_Pre.Close) > (decimal)bb_Sig.Sma.Value)
-                        //    //        {
-                        //    //            Console.WriteLine($"{item}|2.BUY: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
-                        //    //        }
-                        //    //    }
-
-
-
-
-                        //    //}
-                        //    //catch (Exception ex)
-                        //    //{
-                        //    //    break;
-                        //    //    //_logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
-                        //    //}
-
-                        //}
+                            s = item,
+                            TotalPoint = point,
+                        });
                     }
                     catch (Exception ex)
                     {
@@ -1648,23 +1559,459 @@ namespace StockPr.Service
                     }
                 }
 
-                //foreach (var mes in lMesAll)
-                //{
-                //    Console.WriteLine(mes);
-                //}
-                Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
 
-                // Note:
-                // + Nến xanh cắt lên MA20
-                // + 2 nến ngay phía trước đều nằm dưới MA20
-                // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
-                // + Giữ 2 tiếng? hoặc nến chạm BB trên
+                foreach (var item in lPoint.OrderByDescending(x => x.TotalPoint))
+                {
+                    Console.WriteLine($"{item.s}: {item.TotalPoint}");
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
+
+        //public async Task CheckCurrentDay()
+        //{
+        //    try
+        //    {
+        //        decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
+        //        int hour = 10;//1h,2h,3h,4h
+
+        //        var lMesAll = new List<string>();
+        //        var lModel = new List<LongMa20>();
+
+        //        var winTotal = 0;
+        //        var lossTotal = 0;
+        //        var lTake = new List<string>
+        //        {
+        //            "VNINDEX",
+        //            "DC4",
+        //            "GIL",
+        //            "GVR",
+        //            "DPG",
+        //            "CTG",
+        //            "BFC",
+        //            "VRE",
+        //            "PVB",
+        //            "GEX",
+        //            "SZC",
+        //            "HDG",
+        //            "BMP",
+        //            "TLG",
+        //            "VPB",
+        //            "DIG",
+        //            "KBC",
+        //            "HSG",
+        //            "PET",
+        //            "TNG",
+        //            "SBT",
+        //            "MSH",
+        //            "NAB",
+        //            "VGC",
+        //            "CSV",
+        //            "VCS",
+        //            "CSM",
+        //            "PHR",
+        //            "PVT",
+        //            "PC1",
+        //            "ASM",
+        //            "LAS",
+        //            "DXG",
+        //            "HCM",
+        //            "CTI",
+        //            "NHA",
+        //            "DPR",
+        //            "ANV",
+        //            "OCB",
+        //            "TVB",
+        //            "STB",
+        //            "HDC",
+        //            "POW",
+        //            "VSC",
+        //            "L18",
+        //            "DDV",
+        //            "VCI",
+        //            "GMD",
+        //            "NTP",
+        //            "KSV",
+        //            "NT2",
+        //            "TCM",
+        //            "LSS",
+        //            "GEG",
+        //            "HHS",
+        //            "MSB",
+        //            "TCH",
+        //            "VHC",
+        //            "PVD",
+        //            "FOX",
+        //            "SSI",
+        //            "NKG",
+        //            "BSI",
+        //            "ACB",
+        //            "REE",
+        //            "VHM",
+        //            "PAN",
+        //            "SIP",
+        //            "PTB",
+        //            "BSR",
+        //            "BID",
+        //            "PVS",
+        //            "CTS",
+        //            "FTS",
+        //            "HPG",
+        //            "DBC",
+        //            "MSR",
+        //            "THG",
+        //            "CTD",
+        //            "VOS",
+        //            "FMC",
+        //            "PHP",
+        //            "GAS",
+        //            "DCM",
+        //            "KSB",
+        //            "MSN",
+        //            "BVB",
+        //            "MBB",
+        //            "TRC",
+        //            "VPI",
+        //            "EIB",
+        //            "KDH",
+        //            "VCB",
+        //            "FPT",
+        //            "DRC",
+        //            "CMG",
+        //            "HAG",
+        //            "SHB",
+        //            "CII",
+        //            "CTR",
+        //            "IDC",
+        //            "GEE",
+        //            "NVB",
+        //            "BVS",
+        //            "BWE",
+        //            "HAX",
+        //            "QNS",
+        //            "VEA",
+        //            "TVS",
+        //            "DGC",
+        //            "HAH",
+        //            "NVL",
+        //            "PAC",
+        //            "AAA",
+        //            "TNH",
+        //            "ACV",
+        //            "BCC",
+        //            "FRT",
+        //            "HT1",
+        //            "SCS",
+        //            "TLH",
+        //            "MIG",
+        //            "SKG",
+        //            "DGC",
+        //            "VAB",
+        //            "NLG",
+        //            "HVN",
+        //            "HNG",
+        //            "PDR",
+        //            "VDS",
+        //            "SJE",
+        //            "PNJ",
+        //            "CEO",
+        //            "YEG",
+        //            "KLB",
+        //            "BCM",
+        //            "BVH",
+        //            "NTL",
+        //            "TDH",
+        //            "MBS",
+        //            "HUT",
+        //            "VIB",
+        //            "BAF",
+        //            "HHV",
+        //            "NDN",
+        //            "SGP",
+        //            "MCH",
+        //            "FCN",
+        //            "SCR",
+        //            "TCB",
+        //            "LPB",
+        //            "VTP",
+        //            "AGR",
+        //            "VCG",
+        //            "DPM",
+        //            "IDJ",
+        //            "DXS",
+        //            "OIL",
+        //            "AGG",
+        //            "VND",
+        //            "PSI",
+        //            "DHA",
+        //            "VIC",
+        //            "BCG",
+        //            "TPB",
+        //            "VIX",
+        //            "IJC",
+        //            "DGW",
+        //            "SBS",
+        //            "MFS",
+        //            "PLX",
+        //            "DRI",
+        //            "EVF",
+        //            "ORS",
+        //            "SAB",
+        //            "TDC",
+        //            "VNM",
+        //            "TV2",
+        //            "C4G",
+        //            "MWG",
+        //            "JVC",
+        //            "GDA",
+        //            "VGI",
+        //            "DSC",
+        //            "SMC",
+        //            "DTD",
+        //            "QCG",
+        //        };
+        //        var lPoint = new List<clsPoint>();
+        //        foreach (var item in lTake)
+        //        {
+        //            var winCount = 0;
+        //            var lossCount = 0;
+        //            try
+        //            {
+        //                var lMes = new List<string>();
+
+        //                var lData15m = await _apiService.SSI_GetDataStock(item);
+        //                Thread.Sleep(200);
+        //                if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 50000)
+        //                    continue;
+
+        //                var lbb = lData15m.GetBollingerBands();
+        //                var lrsi = lData15m.GetRsi();
+        //                var lMaVol = lData15m.Select(x => new Quote
+        //                {
+        //                    Date = x.Date,
+        //                    Close = x.Volume
+        //                }).GetSma(20);
+
+        //                var entity_Pivot = lData15m.Last();
+        //                var maVol_Pivot = lMaVol.Last();
+        //                var bb_Pivot = lbb.Last();
+
+        //                var entity_Sig = lData15m.SkipLast(1).Last();
+        //                var maVol_Sig = lMaVol.SkipLast(1).Last();
+        //                var bb_Sig = lbb.SkipLast(1).Last();
+
+        //                var near2 = lData15m.SkipLast(2).Last();
+        //                var near3 = lData15m.SkipLast(3).Last();
+        //                var near4 = lData15m.SkipLast(4).Last();
+        //                var near5 = lData15m.SkipLast(5).Last();
+
+        //                var bb2 = lbb.SkipLast(2).Last();
+        //                var bb3 = lbb.SkipLast(3).Last();
+        //                var bb4 = lbb.SkipLast(4).Last();
+        //                var bb5 = lbb.SkipLast(5).Last();
+
+        //                var ma20_Sig = (decimal)bb_Sig.Sma.Value;
+        //                var upper_Sig = (decimal)bb_Sig.UpperBand.Value;
+        //                var lower_Sig = (decimal)bb_Sig.LowerBand.Value;
+        //                var close_Sig = entity_Sig.Close;
+        //                var UpOrLow_Sig = close_Sig > ma20_Sig ? upper_Sig : lower_Sig;
+        //                var mes = close_Sig > ma20_Sig ? "SELL" : "BUY";
+        //                var pos_Sig = Math.Abs((close_Sig - ma20_Sig) / (close_Sig - UpOrLow_Sig));
+        //                var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value, 2);
+        //                var rateVol = entity_Pivot.Volume / entity_Sig.Volume;
+
+        //                if (pos_Sig >= 2
+        //                    //&& rateVol <= 0.5m
+        //                    && rateMaVol >= 2m)
+        //                //&& rateMaVol >= 2.5m)
+        //                {
+        //                    Console.WriteLine($"{mes}|CHUAN|{item}");
+        //                }
+
+        //                var ma20_Pivot = (decimal)bb_Pivot.Sma.Value;
+        //                var upper_Pivot = (decimal)bb_Pivot.UpperBand.Value;
+        //                var lower_Pivot = (decimal)bb_Pivot.LowerBand.Value;
+        //                var close_Pivot = entity_Pivot.Close;
+        //                var UpOrLow_Pivot = close_Pivot > ma20_Pivot ? upper_Pivot : lower_Pivot;
+        //                var mes_Pivot = close_Pivot > ma20_Pivot ? "SELL" : "BUY";
+        //                var pos_Pivot = Math.Abs((close_Pivot - ma20_Pivot) / (close_Pivot - UpOrLow_Pivot));
+        //                var rateMaVol_Pivot = Math.Round(entity_Pivot.Volume / (decimal)maVol_Pivot.Sma.Value, 2);
+        //                if (pos_Pivot >= 2
+        //                  && rateMaVol_Pivot >= 2m)
+        //                //&& rateMaVol_Pivot >= 2.5m)
+        //                {
+        //                    Console.WriteLine($"{mes}|TheoDoi|{item}");
+        //                }
+        //                continue;
+
+
+        //                if (rateVol > (decimal)0.6)
+        //                    continue;
+
+        //                var sig_lower = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value);
+        //                var sig_ma = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.Sma.Value);
+        //                var sig_upper = Math.Abs(entity_Sig.Close - (decimal)bb_Sig.UpperBand.Value);
+        //                var min = Math.Min(Math.Min(sig_lower, sig_ma), sig_upper);
+
+        //                if (min == sig_lower)
+        //                {
+        //                    var maxPivot = Math.Max(entity_Pivot.Open, entity_Pivot.Close);
+        //                    if (maxPivot < Math.Max(entity_Sig.Open, entity_Sig.Close)
+        //                        && ((decimal)bb_Pivot.Sma.Value - maxPivot) > (maxPivot - (decimal)bb_Pivot.LowerBand.Value))
+        //                    {
+        //                        //good 
+        //                        Console.WriteLine($"LONG_BB: {item}");
+        //                    }
+        //                }
+        //                else if (min == sig_upper)
+        //                {
+        //                    Console.WriteLine($"SHORT_BB: {item}");
+        //                }
+        //                else
+        //                {
+        //                    if (entity_Sig.Close < (decimal)bb_Sig.Sma.Value)
+        //                    {
+        //                        if (entity_Pivot.Close <= (decimal)bb_Pivot.Sma.Value
+        //                            && near2.Close < (decimal)bb2.Sma.Value
+        //                            && near3.Close < (decimal)bb3.Sma.Value
+        //                            )
+        //                        {
+        //                            Console.WriteLine($"SHORT_MA: {item}");
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        if (entity_Pivot.Close >= (decimal)bb_Pivot.Sma.Value
+        //                            && near2.Close > (decimal)bb2.Sma.Value
+        //                            && near3.Close > (decimal)bb3.Sma.Value
+        //                            )
+        //                        {
+        //                            Console.WriteLine($"LONG_MA: {item}");
+        //                        }
+        //                    }
+        //                }
+
+        //                //if (entity_Sig.Volume <= (decimal)maVol_Sig.Sma.Value * 1.1m)
+        //                //    continue;
+
+        //                //Console.WriteLine(item);
+
+        //                //DateTime dtFlag = DateTime.MinValue;
+        //                ////var count = 0;
+        //                //foreach (var ma20 in lbb)
+        //                //{
+        //                //    //try
+        //                //    //{
+        //                //    //    if (ma20.Sma is null)
+        //                //    //        continue;
+        //                //    //    //if (dtFlag >= ma20.Date
+        //                //    //    //    || ma20.Date >= DateTime.Now.AddDays(-3))
+        //                //    //    //    continue;
+
+        //                //    //    //if (ma20.Date.Day == 7 && ma20.Date.Month == 3 && ma20.Date.Year == 2025)
+        //                //    //    //{
+        //                //    //    //    var z = 1;
+        //                //    //    //}
+
+        //                //    //    //SIGNAL
+        //                //    //    var side = 0;
+        //                //    //    var entity_Sig = lData15m.First(x => x.Date == ma20.Date);
+        //                //    //    var bb_Sig = lbb.First(x => x.Date == ma20.Date);
+        //                //    //    //var rsi_Sig = lrsi.First(x => x.Date == ma20.Date);
+        //                //    //    var maVol_Sig = lMaVol.First(x => x.Date == ma20.Date);
+
+        //                //    //    //PIVOT
+        //                //    //    var entity_Pivot = lData15m.First(x => x.Date > ma20.Date);
+        //                //    //    var bb_Pivot = lbb.First(x => x.Date > ma20.Date);
+        //                //    //    var maVol_Pivot = lMaVol.First(x => x.Date > ma20.Date);
+        //                //    //    //PreSig
+        //                //    //    var entity_Pre = lData15m.Last(x => x.Date < ma20.Date);
+
+        //                //    //    var rateVol = entity_Pivot.Volume / entity_Sig.Volume;
+        //                //    //    if (rateVol > (decimal)0.6
+        //                //    //        || (decimal)(maVol_Sig.Sma.Value * 0.9) > entity_Sig.Volume)
+        //                //    //        continue;
+
+
+        //                //    //    var isGreen_Sig = entity_Sig.Close >= entity_Sig.Open;
+        //                //    //    if (isGreen_Sig)
+        //                //    //    {
+        //                //    //        if (entity_Sig.Close > (decimal)bb_Sig.Sma.Value
+        //                //    //            && (entity_Sig.Close - (decimal)bb_Sig.Sma.Value) >= ((decimal)bb_Sig.UpperBand.Value - entity_Sig.Close)
+        //                //    //            && entity_Pivot.Low > (decimal)bb_Pivot.Sma.Value
+        //                //    //            && (entity_Pivot.Close - (decimal)bb_Pivot.Sma.Value) >= ((decimal)bb_Pivot.UpperBand.Value - entity_Pivot.Close))
+        //                //    //        {
+        //                //    //            Console.WriteLine($"{item}|1.SELL: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
+        //                //    //        }
+        //                //    //        else if (entity_Sig.Open < (decimal)bb_Sig.Sma.Value
+        //                //    //               && ((decimal)bb_Sig.Sma.Value - entity_Sig.Close) <= (entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value)
+        //                //    //               && ((decimal)bb_Sig.UpperBand.Value - entity_Sig.Close) >= (entity_Sig.Close - (decimal)bb_Sig.Sma.Value)
+        //                //    //               && entity_Pivot.Close < (decimal)bb_Pivot.Sma.Value
+        //                //    //               && ((decimal)bb_Pivot.Sma.Value - entity_Pivot.Close) <= (entity_Pivot.Close - (decimal)bb_Pivot.LowerBand.Value)
+        //                //    //               && Math.Max(entity_Pre.Open, entity_Pre.Close) < (decimal)bb_Sig.Sma.Value)
+        //                //    //        {
+        //                //    //            Console.WriteLine($"{item}|2.SELL: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
+        //                //    //        }
+        //                //    //    }
+        //                //    //    else
+        //                //    //    {
+        //                //    //        if (entity_Sig.Close < (decimal)bb_Sig.Sma.Value
+        //                //    //            && (entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value) <= ((decimal)bb_Sig.Sma.Value - entity_Sig.Close)
+        //                //    //            && entity_Pivot.High < (decimal)bb_Pivot.Sma.Value
+        //                //    //            && (entity_Pivot.Close - (decimal)bb_Pivot.LowerBand.Value) <= ((decimal)bb_Pivot.Sma.Value - entity_Pivot.Close))
+        //                //    //        {
+        //                //    //            Console.WriteLine($"{item}|1.BUY: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
+        //                //    //        }
+        //                //    //        else if (entity_Sig.Open > (decimal)bb_Sig.Sma.Value
+        //                //    //                && (entity_Sig.Close - (decimal)bb_Sig.Sma.Value) <= ((decimal)bb_Sig.UpperBand.Value - entity_Sig.Close)
+        //                //    //                && (entity_Sig.Close - (decimal)bb_Sig.LowerBand.Value) >= ((decimal)bb_Sig.Sma.Value - entity_Sig.Close)
+        //                //    //                && entity_Pivot.Close > (decimal)bb_Pivot.Sma.Value
+        //                //    //                && (entity_Pivot.Close - (decimal)bb_Pivot.Sma.Value) <= ((decimal)bb_Pivot.UpperBand.Value - entity_Pivot.Close)
+        //                //    //                && Math.Min(entity_Pre.Open, entity_Pre.Close) > (decimal)bb_Sig.Sma.Value)
+        //                //    //        {
+        //                //    //            Console.WriteLine($"{item}|2.BUY: {bb_Pivot.Date.ToString("dd/MM/yyyy")}");
+        //                //    //        }
+        //                //    //    }
+
+
+
+
+        //                //    //}
+        //                //    //catch (Exception ex)
+        //                //    //{
+        //                //    //    break;
+        //                //    //    //_logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+        //                //    //}
+
+        //                //}
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Console.WriteLine($"{item}| {ex.Message}");
+        //            }
+        //        }
+
+        //        //foreach (var mes in lMesAll)
+        //        //{
+        //        //    Console.WriteLine(mes);
+        //        //}
+        //        Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
+
+        //        // Note:
+        //        // + Nến xanh cắt lên MA20
+        //        // + 2 nến ngay phía trước đều nằm dưới MA20
+        //        // + Vol nến hiện tại > ít nhất 8/9 nến trước đó
+        //        // + Giữ 2 tiếng? hoặc nến chạm BB trên
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+        //    }
+        //}
+
 
         public async Task CheckAllDay()
         {
@@ -2347,5 +2694,11 @@ namespace StockPr.Service
         public decimal MaxTP { get; set; }
         public decimal MaxSL { get; set; }
         public decimal RateEntry { get; set; }
+    }
+
+    public class clsPoint
+    {
+        public string s { get; set; }
+        public float TotalPoint { get; set; }
     }
 }

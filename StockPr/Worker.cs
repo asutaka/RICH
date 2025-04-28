@@ -50,7 +50,7 @@ namespace StockPr
         {
             StockInstance();
             ////////for Test
-            await _testService.CheckAllDay_OnlyVolume();
+            await _testService.CheckCurrentDay();
             return;
             while (!stoppingToken.IsCancellationRequested)
             {
