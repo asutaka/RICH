@@ -49,9 +49,9 @@ namespace StockPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
-            //////for Test
-            await _testService.CheckCurrentDay();
-            return;
+            ////////for Test
+            //await _testService.CheckCurrentDay();
+            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
