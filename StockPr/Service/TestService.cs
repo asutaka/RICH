@@ -2176,7 +2176,7 @@ namespace StockPr.Service
                     "DTD",
                     "QCG",
                 };
-                foreach (var item in lTake.Skip(0).Take(2))
+                foreach (var item in lTake.Skip(0))
                 {
                     var winCount = 0;
                     var lossCount = 0;
@@ -2251,7 +2251,7 @@ namespace StockPr.Service
                                     var lCheck = lData.Where(x => x.Date > entity_Sig.Date).Take(5);
                                     foreach (var itemCheck in lCheck)
                                     {
-                                        if (itemCheck.Date.Day == 27)
+                                        if (itemCheck.Date.Day == 22)
                                         {
                                             var tmp = 1;
                                         }
