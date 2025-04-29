@@ -202,17 +202,13 @@ namespace StockPr.Service
                 if (entityValid != null)
                     return null;
 
-                var dc = await _apiService.DragonCapital_Portfolio();
-                if (dc is null)
-                    return null;
-
                 _configRepo.InsertOne(new ConfigPortfolio
                 {
                     key = $"{dt.Year}{dt.Month.To2Digit()}",
                     ty = ty
                 });
 
-                return dc.path;
+                return "https://www.veil.uk/the-fund/";
             }
             catch (Exception ex)
             {

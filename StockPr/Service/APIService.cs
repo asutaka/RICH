@@ -57,7 +57,6 @@ namespace StockPr.Service
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body);
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
 
-        Task<BCPT_Crawl_Data> DragonCapital_Portfolio();
         Task<List<F319Model>> F319_Scout(string acc);
     }
     public class APIService : IAPIService
@@ -1610,55 +1609,6 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.GetFinanceIndexDataValue|EXCEPTION| {ex.Message}");
-            }
-            return null;
-        }
-        #endregion
-
-        #region Portfolio
-        public async Task<BCPT_Crawl_Data> DragonCapital_Portfolio()
-        {
-            var lResult = new List<BCPT_Crawl_Data>();
-            var url = $"https://www.veil-dragoncapital.com/fund/reports/";
-
-            var dt = DateTime.Now;
-            if(dt.Day <= 20)
-            {
-                dt = dt.AddMonths(-1);
-            }
-            string dFormat = $"{dt.Year}/{dt.Month.To2Digit()}";
-
-            try
-            {
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(15);
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Add("user-agent", "zz");
-                var response = await client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                var html = await response.Content.ReadAsStringAsync();
-                var doc = new HtmlDocument();
-                doc.LoadHtml(html);
-
-                var link = doc.DocumentNode.Descendants("a")
-                                                    .Select(a => a.GetAttributeValue("href", null))
-                                                    .Where(u => !string.IsNullOrWhiteSpace(u));
-                var path = link.FirstOrDefault(x => x.Contains(".pdf") && x.Contains(dFormat));
-                if (path is null)
-                    return null;
-
-                return new BCPT_Crawl_Data
-                {
-                    id = $"{dt.Year}{dt.Month.To2Digit()}",
-                    title = $"Dragon Capital - Tháng {dt.Month}",
-                    date = dt,
-                    path = path,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"APIService.PynElite_Portfolio|EXCEPTION| {ex.Message}");
             }
             return null;
         }
