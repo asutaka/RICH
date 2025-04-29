@@ -1433,6 +1433,9 @@ namespace StockPr.Service
                 {
                     try
                     {
+                        //if (item != "CTS")
+                        //    continue;
+
                         var lMes = new List<string>();
 
                         var lData15m = await _apiService.SSI_GetDataStock(item);
@@ -1462,78 +1465,73 @@ namespace StockPr.Service
                         BollingerBandsResult bb_NearSig = null;
 
                         var passSignal = false;
-                        var lCheckSignal = lData15m.TakeLast(5);
+                        var lCheckSignal = lData15m.TakeLast(6);
                         foreach (var itemCheckSignal in lCheckSignal)
                         {
+                            var ma = lbb.First(x => x.Date == itemCheckSignal.Date);
+                            if (itemCheckSignal.Close >= (decimal)ma.Sma.Value)
+                                continue;
+
                             var maVol = lMaVol.First(x => x.Date == itemCheckSignal.Date);
-                            if(itemCheckSignal.Volume > (decimal)maVol.Sma.Value)
-                            {
-                                var next = lData15m.FirstOrDefault(x => x.Date > itemCheckSignal.Date);
-                                if (next is null)
-                                    break;
+                            if (itemCheckSignal.Volume <= (decimal)maVol.Sma.Value) //Chỉ cần > ma20 hay cần > 1.5 * ma20?
+                                continue;
 
-                                if (next.Volume / itemCheckSignal.Volume <= 0.6m)
-                                {
-                                    entity_Sig = itemCheckSignal;
-                                    maVol_Sig = lMaVol.First(x => x.Date == entity_Sig.Date);
-                                    bb_Sig = lbb.First(x => x.Date == entity_Sig.Date);
+                            var next = lData15m.FirstOrDefault(x => x.Date > itemCheckSignal.Date);
+                            if (next is null)
+                                break;
 
-                                    entity_Pivot = next;
-                                    maVol_Pivot = lMaVol.First(x => x.Date == entity_Pivot.Date);
-                                    bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
-                                    rsi_Pivot = lrsi.First(x => x.Date == entity_Pivot.Date);
+                            if ((next.Volume / itemCheckSignal.Volume) > 0.6m)
+                                continue;
+                            //Sig
+                            entity_Sig = itemCheckSignal;
+                            maVol_Sig = lMaVol.First(x => x.Date == entity_Sig.Date);
+                            bb_Sig = lbb.First(x => x.Date == entity_Sig.Date);
 
-                                    entity_NearSig = lData15m.Last(x => x.Date < entity_Sig.Date);
-                                    bb_NearSig = lbb.First(x => x.Date == entity_NearSig.Date);
+                            //Pivot
+                            entity_Pivot = next;
+                            maVol_Pivot = lMaVol.First(x => x.Date == entity_Pivot.Date);
+                            bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
+                            rsi_Pivot = lrsi.First(x => x.Date == entity_Pivot.Date);
 
-                                    passSignal = true;
-                                    break;
-                                }
-                            }
+                            //Near Sig
+                            entity_NearSig = lData15m.Last(x => x.Date < entity_Sig.Date);
+                            bb_NearSig = lbb.First(x => x.Date == entity_NearSig.Date);
+
+                            passSignal = true;
+                            break;
                         }
                         if (!passSignal) 
                             continue;
 
-                        var entityLast = lData15m.Last();
-                        var bbLast = lbb.Last();
-                        var pos_Last = Math.Abs((entityLast.Close - (decimal)bbLast.Sma.Value) / (entityLast.Close - (decimal)bbLast.LowerBand.Value));
-                        if (pos_Last < 2)
-                            continue;
+                        //var entityLast = lData15m.Last();
+                        //var bbLast = lbb.Last();
+                        //var pos_Last = Math.Abs((entityLast.Close - (decimal)bbLast.Sma.Value) / (entityLast.Close - (decimal)bbLast.LowerBand.Value));
+                        //if (pos_Last < 2)
+                        //    continue;
 
-                        var ma20_Sig = (decimal)bb_Sig.Sma.Value;
-                        var lower_Sig = (decimal)bb_Sig.LowerBand.Value;
-                        var close_Sig = entity_Sig.Close;
-                        if (close_Sig >= ma20_Sig)
-                            continue;
-
-                        var mes = close_Sig > ma20_Sig ? "SELL" : "BUY";
-                        var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 2);
                         var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value, 2);
                         var rateNear = Math.Round(entity_Sig.Volume / entity_NearSig.Volume, 2);
 
                         var point = 0;
-                        if (pos_Last >= 2)
+                        if (rateNear >= 1.5m)
                             point += 25;
 
-                        if (rateVol <= 0.6m)
-                            point += 15;
-
-                        if (rateNear >= 1.5m)
-                            point += 10;
-
                         if (rateMaVol >= 1.5m)
-                            point += 10;
+                            point += 20;
 
-                        var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).Take(5);
+                        var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).TakeLast(2);
                         foreach (var itemCheck in lCheck)
                         {
                             var isPinbar = (Math.Min(itemCheck.Open, itemCheck.Close) - itemCheck.Low) >= 3 * (itemCheck.High - Math.Min(itemCheck.Open, itemCheck.Close));
                             if (isPinbar || itemCheck.Close >= itemCheck.Open)
                             {
-                                point += 15;
+                                point += 17;
 
                                 if (itemCheck.Low < entity_Sig.Low)
-                                    point += 10;
+                                    point += 20;
+
+                                if (itemCheck.Close <= 0.5m * (entity_Sig.Open + entity_Sig.Close))
+                                    point += 15;
 
                                 var rsiCheck = lrsi.First(x => x.Date == itemCheck.Date);
                                 if (rsiCheck.Rsi.Value <= 30)
@@ -1541,17 +1539,20 @@ namespace StockPr.Service
 
                                 var bbCheck = lbb.First(x => x.Date == itemCheck.Date);
                                 if (itemCheck.Low < (decimal)bbCheck.LowerBand.Value)
-                                    point += 5;
+                                    point += 15;
+
+
+                                lPoint.Add(new clsPoint
+                                {
+                                    s = item,
+                                    TotalPoint = point,
+                                });
 
                                 break;
                             }
                         }
 
-                        lPoint.Add(new clsPoint
-                        {
-                            s = item,
-                            TotalPoint = point,
-                        });
+                        
                     }
                     catch (Exception ex)
                     {
@@ -1560,7 +1561,7 @@ namespace StockPr.Service
                 }
 
 
-                foreach (var item in lPoint.OrderByDescending(x => x.TotalPoint))
+                foreach (var item in lPoint.Where(x => x.TotalPoint > 30).OrderByDescending(x => x.TotalPoint))
                 {
                     Console.WriteLine($"{item.s}: {item.TotalPoint}");
                 }
