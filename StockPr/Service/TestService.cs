@@ -1529,6 +1529,12 @@ namespace StockPr.Service
                             mes += $"|Vol Ma20 < 1.5";
                         }
 
+                        if(entity_Sig.Close < Math.Min(entity_NearSig.Open, entity_NearSig.Close))
+                        {
+                            point += 15;
+                            mes += $"|Sig below Near";
+                        }    
+
                         var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).TakeLast(2);
                         foreach (var itemCheck in lCheck)
                         {
