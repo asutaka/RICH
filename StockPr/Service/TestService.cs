@@ -1472,6 +1472,9 @@ namespace StockPr.Service
                             if (itemCheckSignal.Close >= (decimal)ma.Sma.Value)
                                 continue;
 
+                            if (itemCheckSignal.Close >= itemCheckSignal.Open)
+                                continue;
+
                             var maVol = lMaVol.First(x => x.Date == itemCheckSignal.Date);
                             if (itemCheckSignal.Volume <= (decimal)maVol.Sma.Value) //Chỉ cần > ma20 hay cần > 1.5 * ma20?
                                 continue;
@@ -1512,12 +1515,19 @@ namespace StockPr.Service
                         var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value, 2);
                         var rateNear = Math.Round(entity_Sig.Volume / entity_NearSig.Volume, 2);
 
+                        var mes = entity_Sig.Date.ToString("dd/MM/yyyy");
                         var point = 0;
                         if (rateNear >= 1.5m)
+                        {
                             point += 25;
+                            mes += $"|Vol Near < 1.5";
+                        }
 
                         if (rateMaVol >= 1.5m)
+                        {
                             point += 20;
+                            mes += $"|Vol Ma20 < 1.5";
+                        }
 
                         var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).TakeLast(2);
                         foreach (var itemCheck in lCheck)
@@ -1526,26 +1536,40 @@ namespace StockPr.Service
                             if (isPinbar || itemCheck.Close >= itemCheck.Open)
                             {
                                 point += 17;
+                                mes += "|Nến xanh hoặc Pinbar";
 
                                 if (itemCheck.Low < entity_Sig.Low)
+                                {
                                     point += 20;
+                                    mes += "|Entry LOW< Signal";
+                                }
 
                                 if (itemCheck.Close <= 0.5m * (entity_Sig.Open + entity_Sig.Close))
+                                {
                                     point += 15;
+                                    mes += "|Entry < trung bình nến Signal";
+                                }    
+                                    
 
                                 var rsiCheck = lrsi.First(x => x.Date == itemCheck.Date);
                                 if (rsiCheck.Rsi.Value <= 30)
+                                {
                                     point += 10;
+                                    mes += "|Entry RSI < 30";
+                                }    
 
                                 var bbCheck = lbb.First(x => x.Date == itemCheck.Date);
                                 if (itemCheck.Low < (decimal)bbCheck.LowerBand.Value)
+                                {
                                     point += 15;
-
+                                    mes += "|Entry < BB Lower";
+                                }    
 
                                 lPoint.Add(new clsPoint
                                 {
                                     s = item,
                                     TotalPoint = point,
+                                    mes = mes
                                 });
 
                                 break;
@@ -1563,7 +1587,7 @@ namespace StockPr.Service
 
                 foreach (var item in lPoint.Where(x => x.TotalPoint > 30).OrderByDescending(x => x.TotalPoint))
                 {
-                    Console.WriteLine($"{item.s}: {item.TotalPoint}");
+                    Console.WriteLine($"{item.s}: {item.TotalPoint} => {item.mes}");
                 }
             }
             catch (Exception ex)
@@ -2700,6 +2724,7 @@ namespace StockPr.Service
     public class clsPoint
     {
         public string s { get; set; }
+        public string mes { get; set; }
         public float TotalPoint { get; set; }
     }
 }
