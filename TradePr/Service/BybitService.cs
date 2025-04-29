@@ -435,7 +435,7 @@ namespace TradePr.Service
                     if (first.CashBalance > 0)
                     {
                         var rate = 1 - last.CashBalance.Value/first.CashBalance.Value;
-                        if (rate <= -0.2m)
+                        if (rate <= -0.1m)
                             return false;
                     }
                 }
