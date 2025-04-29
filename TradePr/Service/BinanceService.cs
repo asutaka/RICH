@@ -518,7 +518,7 @@ namespace TradePr.Service
                     var lIncomeCheck = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4));
                     var rate = lIncomeCheck.Sum(x => x.Income) / account.WalletBalance;
 
-                    if (rate <= -0.1m) 
+                    if (rate <= -0.15m) 
                         return false;
                 }
 
