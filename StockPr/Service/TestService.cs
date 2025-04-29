@@ -1571,6 +1571,12 @@ namespace StockPr.Service
                                     mes += "|Entry < BB Lower";
                                 }    
 
+                                if(itemCheck.Close < (decimal)bbCheck.Sma.Value)
+                                {
+                                    point += 15;
+                                    mes += "|Entry < BB MA20";
+                                }    
+
                                 lPoint.Add(new clsPoint
                                 {
                                     s = item,
@@ -1591,7 +1597,7 @@ namespace StockPr.Service
                 }
 
 
-                foreach (var item in lPoint.Where(x => x.TotalPoint > 30).OrderByDescending(x => x.TotalPoint))
+                foreach (var item in lPoint.Where(x => x.TotalPoint > 50).OrderByDescending(x => x.TotalPoint))
                 {
                     Console.WriteLine($"{item.s}: {item.TotalPoint} => {item.mes}");
                 }
