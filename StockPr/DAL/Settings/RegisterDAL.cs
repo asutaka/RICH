@@ -12,7 +12,6 @@
             services.AddSingleton<IConfigBaoCaoPhanTichRepo, ConfigBaoCaoPhanTichRepo>();
             services.AddSingleton<IConfigF319Repo, ConfigF319Repo>();
             services.AddSingleton<ICategoryRepo, CategoryRepo>();
-            services.AddSingleton<IOrderBlockRepo, OrderBlockRepo>();
             services.AddSingleton<IMacroMicroRepo, MacroMicroRepo>();
             services.AddSingleton<IConfigPortfolioRepo, ConfigPortfolioRepo>();
         }

@@ -147,7 +147,6 @@ namespace StockPr.Model
         public bool isIchi { get; set; }//giá vượt trên ichi
         public bool isPriceUp { get; set; }//cp tăng giá hay ko
         public bool isFocus { get; set; }//cp cần quan tâm(có vol giảm 1 nửa)
-        public OrderBlock ob { get; set; }
     }
 
     public class TopBotModel
