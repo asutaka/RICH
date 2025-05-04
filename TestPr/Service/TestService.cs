@@ -29,7 +29,7 @@ namespace TestPr.Service
             _symRepo = symRepo;
         }
 
-        //Tong: 183.8%|W/L: 137/25
+        //Tong: 185.9%|W/L: 138/24
         public async Task Binance_LONG()
         {
             try
@@ -161,6 +161,7 @@ namespace TestPr.Service
 
                                     if (isChotNon
                                        && itemClose.Close < (decimal)ma.Sma.Value
+                                       && itemClose.Close <= itemClose.Open
                                        && itemClose.Close >= eEntry.Close)
                                     {
                                         eClose = itemClose;
@@ -293,7 +294,7 @@ namespace TestPr.Service
             }
         }
 
-        //Tong: 199.0%|W/L: 167/80
+        //Tong: 199.8%|W/L: 167/80
         public async Task Binance_SHORT()
         {
             try
@@ -445,6 +446,7 @@ namespace TestPr.Service
 
                                     if (isChotNon
                                       && itemClose.Close > (decimal)ma.Sma.Value
+                                      && itemClose.Close >= itemClose.Open
                                       && itemClose.Close <= entity_Pivot.Close)
                                     {
                                         eClose = itemClose;
@@ -578,7 +580,7 @@ namespace TestPr.Service
             }
         }
 
-        //Tong: 193.4%|W/L: 137/27
+        //Tong: 184.2%|W/L: 135/26
         public async Task Bybit_LONG()
         {
             try
@@ -709,6 +711,7 @@ namespace TestPr.Service
 
                                     if (isChotNon
                                        && itemClose.Close < (decimal)ma.Sma.Value
+                                       && itemClose.Close <= itemClose.Open
                                        && itemClose.Close >= eEntry.Close)
                                     {
                                         eClose = itemClose;
@@ -841,7 +844,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.Bybit_LONG|EXCEPTION| {ex.Message}");
             }
         }
-        //Tong: 335.6%|W/L: 292/117
+        //Tong: 340.7%|W/L: 287/119
         public async Task Bybit_SHORT()
         {
             try
@@ -993,6 +996,7 @@ namespace TestPr.Service
 
                                     if (isChotNon
                                       && itemClose.Close > (decimal)ma.Sma.Value
+                                      && itemClose.Close >= itemClose.Open
                                       && itemClose.Close <= entity_Pivot.Close)
                                     {
                                         eClose = itemClose;

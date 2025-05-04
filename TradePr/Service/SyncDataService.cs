@@ -217,6 +217,7 @@ namespace TradePr.Service
 
                                     if (isChotNon
                                         && itemClose.Close < (decimal)ma.Sma.Value
+                                        && itemClose.Close <= itemClose.Open
                                         && itemClose.Close >= eEntry.Close)
                                     {
                                         eClose = itemClose;
@@ -515,6 +516,7 @@ namespace TradePr.Service
 
                                     if(isChotNon
                                         && itemClose.Close < (decimal)ma.Sma.Value
+                                        && itemClose.Close <= itemClose.Open
                                         && itemClose.Close >= eEntry.Close)
                                     {
                                         eClose = itemClose;
@@ -834,6 +836,7 @@ namespace TradePr.Service
 
                                     if (isChotNon
                                      && itemClose.Close > (decimal)ma.Sma.Value
+                                     && itemClose.Close >= itemClose.Open
                                      && itemClose.Close <= entity_Pivot.Close)
                                     {
                                         eClose = itemClose;
@@ -1154,6 +1157,7 @@ namespace TradePr.Service
 
                                     if (isChotNon
                                       && itemClose.Close > (decimal)ma.Sma.Value
+                                      && itemClose.Close >= itemClose.Open
                                       && itemClose.Close <= entity_Pivot.Close)
                                     {
                                         eClose = itemClose;
