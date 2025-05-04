@@ -20,7 +20,6 @@ namespace TradePr.Service
         private readonly ITeleService _teleService;
         private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly ISymbolRepo _symRepo;
-        private readonly ISymbolConfigRepo _symConfigRepo;
         private readonly IConfigDataRepo _configRepo;
         private const long _idUser = 1066022551;
         private const decimal _margin = 10;
@@ -31,13 +30,12 @@ namespace TradePr.Service
 
         private readonly int _exchange = (int)EExchange.Bybit;
         public BybitService(ILogger<BybitService> logger,
-                            IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
+                            IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
                             IConfigDataRepo configRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
-            _symConfigRepo = symConfigRepo;
             _placeRepo = placeRepo;
             _symRepo = symRepo;
             _configRepo = configRepo;
@@ -95,14 +93,14 @@ namespace TradePr.Service
                         if (l15m is null
                               || !l15m.Any())
                             continue;
-                        var pivot = l15m.Last();
-                        if (pivot.Volume <= 0)
+                        var last = l15m.Last();
+                        if (last.Volume <= 0)
                             continue;
 
-                        var curPrice = pivot.Close;
-                        l15m.Remove(pivot);
+                        var curPrice = last.Close;
+                        l15m.Remove(last);
 
-                        pivot = l15m.Last();
+                        var pivot = l15m.Last();
                         var near = l15m.SkipLast(1).Last();
                         var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
                         if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
@@ -167,8 +165,9 @@ namespace TradePr.Service
                                 s = sym,
                                 ex = _exchange,
                                 Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                            }, curPrice);
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                quote = last,
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -206,14 +205,14 @@ namespace TradePr.Service
                         if (l15m is null
                               || !l15m.Any())
                             continue;
-                        var pivot = l15m.Last();
-                        if (pivot.Volume <= 0)
+                        var last = l15m.Last();
+                        if (last.Volume <= 0)
                             continue;
 
-                        var curPrice = pivot.Close;
-                        l15m.Remove(pivot);
+                        var curPrice = last.Close;
+                        l15m.Remove(last);
 
-                        pivot = l15m.Last();
+                        var pivot = l15m.Last();
                         var near = l15m.SkipLast(1).Last();
                         var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
                         if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
@@ -293,8 +292,9 @@ namespace TradePr.Service
                                 s = sym,
                                 ex = _exchange,
                                 Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                            }, curPrice);
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                quote = last
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -442,7 +442,7 @@ namespace TradePr.Service
             }
         }
 
-        private async Task<bool> PlaceOrder(SignalBase entity, decimal lastPrice)
+        private async Task<bool> PlaceOrder(SignalBase entity)
         {
             try
             {
@@ -488,37 +488,43 @@ namespace TradePr.Service
                 if (pos.Data.List.Any(x => x.Symbol == entity.s))
                     return false;
 
+                var lInfo = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, entity.s);
+                var info = lInfo.Data.List.FirstOrDefault();
+                if (info == null) return false;
+                var tronGia = (int)info.PriceScale;
+                var tronSL = info.LotSizeFilter.QuantityStep;
+
                 var side = (OrderSide)entity.Side;
                 var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
                 var direction = side == OrderSide.Buy ? TriggerDirection.Fall : TriggerDirection.Rise;
-
-                var tronSL = 2;
-                var exists = _symConfigRepo.GetEntityByFilter(Builders<SymbolConfig>.Filter.Eq(x => x.s, entity.s));
-                if (exists != null)
-                {
-                    tronSL = exists.amount;
-                }
-                else if (lastPrice < 5)
-                {
-                    tronSL = 0;
-                }
               
-                decimal soluong = (decimal)config.value / lastPrice;
-                if(tronSL == -1)
+                decimal soluong = (decimal)config.value / entity.quote.Close;
+                if(tronSL == 1)
+                {
+                    soluong = Math.Round(soluong);
+                }
+                else if(tronSL == 10)
                 {
                     soluong = Math.Round(soluong);
                     var odd = soluong % 10;
                     soluong -= odd;
                 }
-                else if(tronSL == -2)
+                else if(tronSL == 100)
                 {
                     soluong = Math.Round(soluong);
                     var odd = soluong % 100;
                     soluong -= odd;
                 }
+                else if(tronSL == 1000)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 1000;
+                    soluong -= odd;
+                }
                 else
                 {
-                    soluong = Math.Round(soluong, tronSL);
+                    var lamtronSL = tronSL.ToString("#.##########").Split('.').Last().Length;
+                    soluong = Math.Round(soluong, lamtronSL);
                 }
 
                 var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
@@ -549,17 +555,6 @@ namespace TradePr.Service
                 if (resPosition.Data.List.Any())
                 {
                     var first = resPosition.Data.List.First();
-                    var tronGia = 0;
-                    if (exists != null)
-                    {
-                        tronGia = exists.price;
-                    }
-                    else if(lastPrice < 5)
-                    {
-                        var price = lastPrice.ToString().Split('.').Last();
-                        price = price.ReverseString();
-                        tronGia = long.Parse(price).ToString().Length;
-                    }
 
                     decimal sl = 0;
                     if (side == OrderSide.Buy)

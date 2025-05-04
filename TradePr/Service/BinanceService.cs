@@ -5,6 +5,7 @@ using TradePr.DAL.Entity;
 using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
+using Binance.Net.Objects.Models.Spot;
 
 namespace TradePr.Service
 {
@@ -12,14 +13,13 @@ namespace TradePr.Service
     {
         Task<BinanceUsdFuturesAccountBalance> Binance_GetAccountInfo();
         Task Binance_Trade();
-        Task<bool> PlaceOrder(SignalBase entity, decimal lastPrice);
+        Task<bool> PlaceOrder(SignalBase entity);
     }
     public class BinanceService : IBinanceService
     {
         private readonly ILogger<BinanceService> _logger;
         private readonly ITradingRepo _tradingRepo;
         private readonly ISymbolRepo _symRepo;
-        private readonly ISymbolConfigRepo _symConfigRepo;
         private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly IConfigDataRepo _configRepo;
         private readonly IAPIService _apiService;
@@ -31,13 +31,12 @@ namespace TradePr.Service
         private readonly decimal _TP_RATE_MIN = 0.025m;
         private readonly decimal _TP_RATE_MAX = 0.07m;
         private readonly int _exchange = (int)EExchange.Binance;
-        public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo, ISymbolConfigRepo symConfigRepo,
+        public BinanceService(ILogger<BinanceService> logger, ITradingRepo tradingRepo,
                             IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
                             IConfigDataRepo configRepo)
         {
             _logger = logger;
             _tradingRepo = tradingRepo;
-            _symConfigRepo = symConfigRepo;
             _apiService = apiService;
             _teleService = teleService;
             _placeRepo = placeRepo;
@@ -64,7 +63,8 @@ namespace TradePr.Service
             {
                 var dt = DateTime.Now;
                 await Binance_TakeProfit();
-                await Binance_TradeLiquid(dt);
+                await InitSymbolConfig();
+                //await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI_LONG(dt);
                 await Binance_TradeRSI_SHORT(dt);
             }
@@ -129,23 +129,14 @@ namespace TradePr.Service
 
                         if (sideDetect > -1)
                         {
-                            var res = await PlaceOrder(new SignalBase
+                            await PlaceOrder(new SignalBase
                             {
                                 s = item.s,
                                 ex = _exchange,
                                 Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                            }, curPrice);
-
-                            if (res)
-                            {
-                                var side = ((OrderSide)sideDetect).ToString().ToUpper();
-                                var mes = $"[ACTION - {side}|Liquid_Binance] {item.s}|ENTRY: {curPrice}";
-                                await _teleService.SendMessage(_idUser, mes);
-
-                                item.Status = 1;
-                                _tradingRepo.Update(item);
-                            }
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                quote = last
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -184,14 +175,14 @@ namespace TradePr.Service
                         if (l15m is null
                               || !l15m.Any())
                             continue;
-                        var pivot = l15m.Last();
-                        if (pivot.Volume <= 0)
+                        var last = l15m.Last();
+                        if (last.Volume <= 0)
                             continue;
 
-                        var curPrice = pivot.Close;
-                        l15m.Remove(pivot);
+                        var curPrice = last.Close;
+                        l15m.Remove(last);
 
-                        pivot = l15m.Last();
+                        var pivot = l15m.Last();
                         var near = l15m.SkipLast(1).Last();
                         var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
                         if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
@@ -258,8 +249,9 @@ namespace TradePr.Service
                                 s = sym,
                                 ex = _exchange,
                                 Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                            }, curPrice);
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                quote = last
+                            });
                         }
                     }
                     catch(Exception ex)
@@ -298,14 +290,14 @@ namespace TradePr.Service
                         if (l15m is null
                               || !l15m.Any())
                             continue;
-                        var pivot = l15m.Last();
-                        if (pivot.Volume <= 0)
+                        var last = l15m.Last();
+                        if (last.Volume <= 0)
                             continue;
 
-                        var curPrice = pivot.Close;
-                        l15m.Remove(pivot);
+                        var curPrice = last.Close;
+                        l15m.Remove(last);
 
-                        pivot = l15m.Last();
+                        var pivot = l15m.Last();
                         var near = l15m.SkipLast(1).Last();
                         var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
                         if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
@@ -385,8 +377,9 @@ namespace TradePr.Service
                                 s = sym,
                                 ex = _exchange,
                                 Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds()
-                            }, curPrice);
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                quote = last
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -528,7 +521,7 @@ namespace TradePr.Service
             }
         }
 
-        public async Task<bool> PlaceOrder(SignalBase entity, decimal lastPrice)
+        public async Task<bool> PlaceOrder(SignalBase entity)
         {
             try
             {
@@ -599,35 +592,11 @@ namespace TradePr.Service
 
                 var side = (OrderSide)entity.Side;
                 var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
+                var symConfig = _lSymConfig.FirstOrDefault(x => x.s == entity.s);
+                if (symConfig is null)
+                    return false;
 
-                var tronSL = 2;
-                var exists = _symConfigRepo.GetEntityByFilter(Builders<SymbolConfig>.Filter.Eq(x => x.s, entity.s));
-                if (exists != null)
-                {
-                    tronSL = exists.amount;
-                }
-                else if (lastPrice < 5)
-                {
-                    tronSL = 0;
-                }
-
-                decimal soluong = (decimal)config.value / lastPrice;
-                if (tronSL == -1)
-                {
-                    soluong = Math.Round(soluong);
-                    var odd = soluong % 10;
-                    soluong -= odd;
-                }
-                else if (tronSL == -2)
-                {
-                    soluong = Math.Round(soluong);
-                    var odd = soluong % 100;
-                    soluong -= odd;
-                }
-                else
-                {
-                    soluong = Math.Round(soluong, tronSL);
-                }
+                decimal soluong = Math.Round((decimal)config.value / entity.quote.Close, symConfig.quan);
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
                                                                                                     side: side,
                                                                                                     type: FuturesOrderType.Market,
@@ -657,26 +626,15 @@ namespace TradePr.Service
                 if (resPosition.Data.Any())
                 {
                     var first = resPosition.Data.First();
-                    var tronGia = 0;
-                    if (exists != null)
-                    {
-                        tronGia = exists.price;
-                    }
-                    else if (lastPrice < 5)
-                    {
-                        var price = lastPrice.ToString().Split('.').Last();
-                        price = price.ReverseString();
-                        tronGia = long.Parse(price).ToString().Length;
-                    }
 
                     decimal sl = 0;
                     if (side == OrderSide.Buy)
                     {
-                        sl = Math.Round(first.MarkPrice * (decimal)(1 - _SL_RATE), tronGia);
+                        sl = Math.Round(first.MarkPrice * (decimal)(1 - _SL_RATE), symConfig.price);
                     }
                     else
                     {
-                        sl = Math.Round(first.MarkPrice * (decimal)(1 + _SL_RATE), tronGia);
+                        sl = Math.Round(first.MarkPrice * (decimal)(1 + _SL_RATE), symConfig.price);
                     }
                     res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
                                                                                              side: SL_side,
@@ -694,7 +652,7 @@ namespace TradePr.Service
                         return false;
                     }
                     //Print
-                    var entry = Math.Round(first.EntryPrice, tronGia);
+                    var entry = Math.Round(first.EntryPrice, symConfig.price);
 
                     var mes = $"[ACTION - {side.ToString().ToUpper()}|Binance] {first.Symbol}|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
@@ -771,8 +729,52 @@ namespace TradePr.Service
             return false;
         }
 
+        private async Task InitSymbolConfig()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                if(!_lSymConfig.Any()
+                    || (dt.Hour == 0 && dt.Minute == 0))
+                {
+                    _lSymConfig.Clear();
+                    var info = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetExchangeInfoAsync();
+                    foreach (var item in info.Data.Symbols.Where(x => x.QuoteAsset == "USDT"))
+                    {
+                        try
+                        {
+                            var price = item.Filters.FirstOrDefault(x => x.FilterType == SymbolFilterType.Price) as BinanceSymbolPriceFilter;
+                            var priceCount = price.TickSize.ToString("#.##########").Split('.').Last().Length;
+                            _lSymConfig.Add(new clsSymbol
+                            {
+                                s = item.Name,
+                                quan = item.QuantityPrecision,
+                                price = priceCount
+                            });
+                        }
+                        catch(Exception ex)
+                        {
+                            _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.InitSymbol|EXCEPTION| {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BinanceService.InitSymbol|EXCEPTION| {ex.Message}");
+            }
+        }
+
         private List<long> _lIgnoreCode = new List<long>
         {
         };
+
+        private static List<clsSymbol> _lSymConfig = new List<clsSymbol>();
+    }
+    public class clsSymbol
+    {
+        public string s { get; set; }
+        public int price { get; set; }
+        public int quan { get; set; }
     }
 }

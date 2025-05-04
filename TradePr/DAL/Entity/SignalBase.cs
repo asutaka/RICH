@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using Skender.Stock.Indicators;
 
 namespace TradePr.DAL.Entity
 {
@@ -16,6 +17,7 @@ namespace TradePr.DAL.Entity
         public double priceStoploss { get; set; }
         public double priceClose { get; set; }
         public double rate { get; set; }
+        public Quote quote { get; set; }
         public int status { get; set; }
     }
 }
