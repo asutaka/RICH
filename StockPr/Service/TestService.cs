@@ -13,6 +13,7 @@ namespace StockPr.Service
         Task CheckCurrentDay();
         Task CheckAllDay();
         Task CheckAllDay_OnlyVolume();
+        Task BatDayCK();
     }
     public class TestService : ITestService
     {
@@ -1226,6 +1227,417 @@ namespace StockPr.Service
             }
         }
 
+        public async Task BatDayCK()
+        {
+            try
+            {
+                decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
+                int hour = 10;//1h,2h,3h,4h
+
+                var lMesAll = new List<string>();
+                var lModel = new List<LongMa20>();
+
+                var winTotal = 0;
+                var lossTotal = 0;
+                var lTake = new List<string>
+                {
+                    "VNINDEX",
+                    "DC4",
+                    "GIL",
+                    "GVR",
+                    "DPG",
+                    "CTG",
+                    "BFC",
+                    "VRE",
+                    "PVB",
+                    "GEX",
+                    "SZC",
+                    "HDG",
+                    "BMP",
+                    "TLG",
+                    "VPB",
+                    "DIG",
+                    "KBC",
+                    "HSG",
+                    "PET",
+                    "TNG",
+                    "SBT",
+                    "MSH",
+                    "NAB",
+                    "VGC",
+                    "CSV",
+                    "VCS",
+                    "CSM",
+                    "PHR",
+                    "PVT",
+                    "PC1",
+                    "ASM",
+                    "LAS",
+                    "DXG",
+                    "HCM",
+                    "CTI",
+                    "NHA",
+                    "DPR",
+                    "ANV",
+                    "OCB",
+                    "TVB",
+                    "STB",
+                    "HDC",
+                    "POW",
+                    "VSC",
+                    "L18",
+                    "DDV",
+                    "VCI",
+                    "GMD",
+                    "NTP",
+                    "KSV",
+                    "NT2",
+                    "TCM",
+                    "LSS",
+                    "GEG",
+                    "HHS",
+                    "MSB",
+                    "TCH",
+                    "VHC",
+                    "PVD",
+                    "FOX",
+                    "SSI",
+                    "NKG",
+                    "BSI",
+                    "ACB",
+                    "REE",
+                    "VHM",
+                    "PAN",
+                    "SIP",
+                    "PTB",
+                    "BSR",
+                    "BID",
+                    "PVS",
+                    "CTS",
+                    "FTS",
+                    "HPG",
+                    "DBC",
+                    "MSR",
+                    "THG",
+                    "CTD",
+                    "VOS",
+                    "FMC",
+                    "PHP",
+                    "GAS",
+                    "DCM",
+                    "KSB",
+                    "MSN",
+                    "BVB",
+                    "MBB",
+                    "TRC",
+                    "VPI",
+                    "EIB",
+                    "KDH",
+                    "VCB",
+                    "FPT",
+                    "DRC",
+                    "CMG",
+                    "HAG",
+                    "SHB",
+                    "CII",
+                    "CTR",
+                    "IDC",
+                    "GEE",
+                    "NVB",
+                    "BVS",
+                    "BWE",
+                    "HAX",
+                    "QNS",
+                    "VEA",
+                    "TVS",
+                    "DGC",
+                    "HAH",
+                    "NVL",
+                    "PAC",
+                    "AAA",
+                    "TNH",
+                    "ACV",
+                    "BCC",
+                    "FRT",
+                    "HT1",
+                    "SCS",
+                    "TLH",
+                    "MIG",
+                    "SKG",
+                    "DGC",
+                    "VAB",
+                    "NLG",
+                    "HVN",
+                    "HNG",
+                    "PDR",
+                    "VDS",
+                    "SJE",
+                    "PNJ",
+                    "CEO",
+                    "YEG",
+                    "KLB",
+                    "BCM",
+                    "BVH",
+                    "NTL",
+                    "TDH",
+                    "MBS",
+                    "HUT",
+                    "VIB",
+                    "BAF",
+                    "HHV",
+                    "NDN",
+                    "SGP",
+                    "MCH",
+                    "FCN",
+                    "SCR",
+                    "TCB",
+                    "LPB",
+                    "VTP",
+                    "AGR",
+                    "VCG",
+                    "DPM",
+                    "IDJ",
+                    "DXS",
+                    "OIL",
+                    "AGG",
+                    "VND",
+                    "PSI",
+                    "DHA",
+                    "VIC",
+                    "BCG",
+                    "TPB",
+                    "VIX",
+                    "IJC",
+                    "DGW",
+                    "SBS",
+                    "MFS",
+                    "PLX",
+                    "DRI",
+                    "EVF",
+                    "ORS",
+                    "SAB",
+                    "TDC",
+                    "VNM",
+                    "TV2",
+                    "C4G",
+                    "MWG",
+                    "JVC",
+                    "GDA",
+                    "VGI",
+                    "DSC",
+                    "SMC",
+                    "DTD",
+                    "QCG",
+                };
+                var lPoint = new List<clsPoint>();
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        //if (item != "CTS")
+                        //    continue;
+
+                        var lMes = new List<string>();
+
+                        var lData15m = await _apiService.SSI_GetDataStock(item);
+                        Thread.Sleep(200);
+                        if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 10000)
+                            continue;
+
+                        var lbb = lData15m.GetBollingerBands();
+                        var lrsi = lData15m.GetRsi();
+                        var lMaVol = lData15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).GetSma(20);
+
+
+                        var last = lData15m.Last();
+                        var cur = lData15m.SkipLast(1).Last();
+                        var bb_Last = lbb.First(x => x.Date == last.Date);
+                        var bb_Cur = lbb.First(x => x.Date == cur.Date);
+
+                        if (cur.Low <= last.Low && cur.High >= last.High)
+                            continue;
+
+                        var volCheck = last.Volume / cur.Volume;
+                        if (volCheck < 1.2m)
+                            continue;
+
+                        var isPinbar = ((Math.Min(last.Open, last.Close) - last.Low) >= 3 * (last.High - Math.Min(last.Open, last.Close)))
+                                        && (Math.Abs(last.Open - last.Close) >= 0.1m * (last.High - last.Low));
+                        if (!isPinbar
+                            && last.Open > last.Close)
+                            continue;
+
+                        var posCheck_Cur = Math.Abs((decimal)bb_Cur.Sma.Value - cur.Close) < 3 * Math.Abs(cur.Close - (decimal)bb_Cur.LowerBand.Value);
+                        if (posCheck_Cur)
+                            continue;
+
+                        var posCheck_Last = Math.Abs((decimal)bb_Last.Sma.Value - last.Close) < 2 * Math.Abs(last.Close - (decimal)bb_Last.LowerBand.Value);
+                        if (posCheck_Last)
+                            continue;
+
+                        Console.WriteLine(item);
+                        continue;
+
+                        //Quote entity_Sig = null;
+                        //SmaResult maVol_Sig = null;
+                        //BollingerBandsResult bb_Sig = null;
+
+                        //Quote entity_Pivot = null;
+                        //SmaResult maVol_Pivot = null;
+                        //BollingerBandsResult bb_Pivot = null;
+                        //RsiResult rsi_Pivot = null;
+
+                        //Quote entity_NearSig = null;
+                        //BollingerBandsResult bb_NearSig = null;
+
+                        //var passSignal = false;
+                        //var lCheckSignal = lData15m.TakeLast(6);
+                        //foreach (var itemCheckSignal in lCheckSignal)
+                        //{
+                        //    var ma = lbb.First(x => x.Date == itemCheckSignal.Date);
+                        //    if (itemCheckSignal.Close >= (decimal)ma.Sma.Value)
+                        //        continue;
+
+                        //    if (itemCheckSignal.Close >= itemCheckSignal.Open)
+                        //        continue;
+
+                        //    var maVol = lMaVol.First(x => x.Date == itemCheckSignal.Date);
+                        //    if (itemCheckSignal.Volume <= (decimal)maVol.Sma.Value) //Chỉ cần > ma20 hay cần > 1.5 * ma20?
+                        //        continue;
+
+                        //    var next = lData15m.FirstOrDefault(x => x.Date > itemCheckSignal.Date);
+                        //    if (next is null)
+                        //        break;
+
+                        //    if ((next.Volume / itemCheckSignal.Volume) > 0.6m)
+                        //        continue;
+                        //    //Sig
+                        //    entity_Sig = itemCheckSignal;
+                        //    maVol_Sig = lMaVol.First(x => x.Date == entity_Sig.Date);
+                        //    bb_Sig = lbb.First(x => x.Date == entity_Sig.Date);
+
+                        //    //Pivot
+                        //    entity_Pivot = next;
+                        //    maVol_Pivot = lMaVol.First(x => x.Date == entity_Pivot.Date);
+                        //    bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
+                        //    rsi_Pivot = lrsi.First(x => x.Date == entity_Pivot.Date);
+
+                        //    //Near Sig
+                        //    entity_NearSig = lData15m.Last(x => x.Date < entity_Sig.Date);
+                        //    bb_NearSig = lbb.First(x => x.Date == entity_NearSig.Date);
+
+                        //    passSignal = true;
+                        //    break;
+                        //}
+                        //if (!passSignal)
+                        //    continue;
+
+                        ////var entityLast = lData15m.Last();
+                        ////var bbLast = lbb.Last();
+                        ////var pos_Last = Math.Abs((entityLast.Close - (decimal)bbLast.Sma.Value) / (entityLast.Close - (decimal)bbLast.LowerBand.Value));
+                        ////if (pos_Last < 2)
+                        ////    continue;
+
+                        //var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value, 2);
+                        //var rateNear = Math.Round(entity_Sig.Volume / entity_NearSig.Volume, 2);
+
+                        //var mes = entity_Sig.Date.ToString("dd/MM/yyyy");
+                        //var point = 0;
+                        //if (rateNear >= 1.5m)
+                        //{
+                        //    point += 25;
+                        //    mes += $"|Vol Near < 1.5";
+                        //}
+
+                        //if (rateMaVol >= 1.5m)
+                        //{
+                        //    point += 20;
+                        //    mes += $"|Vol Ma20 < 1.5";
+                        //}
+
+                        //if (entity_Sig.Close < Math.Min(entity_NearSig.Open, entity_NearSig.Close))
+                        //{
+                        //    point += 15;
+                        //    mes += $"|Sig below Near";
+                        //}
+
+                        //var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).TakeLast(2);
+                        //foreach (var itemCheck in lCheck)
+                        //{
+                        //    var isPinbar = (Math.Min(itemCheck.Open, itemCheck.Close) - itemCheck.Low) >= 3 * (itemCheck.High - Math.Min(itemCheck.Open, itemCheck.Close));
+                        //    if (isPinbar || itemCheck.Close >= itemCheck.Open)
+                        //    {
+                        //        point += 17;
+                        //        mes += "|Nến xanh hoặc Pinbar";
+
+                        //        if (itemCheck.Low < entity_Sig.Low)
+                        //        {
+                        //            point += 20;
+                        //            mes += "|Entry LOW< Signal";
+                        //        }
+
+                        //        if (itemCheck.Close <= 0.5m * (entity_Sig.Open + entity_Sig.Close))
+                        //        {
+                        //            point += 15;
+                        //            mes += "|Entry < trung bình nến Signal";
+                        //        }
+
+
+                        //        var rsiCheck = lrsi.First(x => x.Date == itemCheck.Date);
+                        //        if (rsiCheck.Rsi.Value <= 30)
+                        //        {
+                        //            point += 10;
+                        //            mes += "|Entry RSI < 30";
+                        //        }
+
+                        //        var bbCheck = lbb.First(x => x.Date == itemCheck.Date);
+                        //        if (itemCheck.Low < (decimal)bbCheck.LowerBand.Value)
+                        //        {
+                        //            point += 15;
+                        //            mes += "|Entry < BB Lower";
+                        //        }
+
+                        //        if (itemCheck.Close < (decimal)bbCheck.Sma.Value)
+                        //        {
+                        //            point += 15;
+                        //            mes += "|Entry < BB MA20";
+                        //        }
+
+                        //        lPoint.Add(new clsPoint
+                        //        {
+                        //            s = item,
+                        //            TotalPoint = point,
+                        //            mes = mes
+                        //        });
+
+                        //        break;
+                        //    }
+                        //}
+
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+
+                foreach (var item in lPoint.Where(x => x.TotalPoint > 50).OrderByDescending(x => x.TotalPoint))
+                {
+                    Console.WriteLine($"{item.s}: {item.TotalPoint} => {item.mes}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
         public async Task CheckCurrentDay()
         {
             try
@@ -1442,7 +1854,7 @@ namespace StockPr.Service
                         Thread.Sleep(200);
                         if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 10000)
                             continue;
-                       
+
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
                         var lMaVol = lData15m.Select(x => new Quote
@@ -1503,7 +1915,7 @@ namespace StockPr.Service
                             passSignal = true;
                             break;
                         }
-                        if (!passSignal) 
+                        if (!passSignal)
                             continue;
 
                         //var entityLast = lData15m.Last();
@@ -1529,11 +1941,11 @@ namespace StockPr.Service
                             mes += $"|Vol Ma20 < 1.5";
                         }
 
-                        if(entity_Sig.Close < Math.Min(entity_NearSig.Open, entity_NearSig.Close))
+                        if (entity_Sig.Close < Math.Min(entity_NearSig.Open, entity_NearSig.Close))
                         {
                             point += 15;
                             mes += $"|Sig below Near";
-                        }    
+                        }
 
                         var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).TakeLast(2);
                         foreach (var itemCheck in lCheck)
@@ -1554,28 +1966,28 @@ namespace StockPr.Service
                                 {
                                     point += 15;
                                     mes += "|Entry < trung bình nến Signal";
-                                }    
-                                    
+                                }
+
 
                                 var rsiCheck = lrsi.First(x => x.Date == itemCheck.Date);
                                 if (rsiCheck.Rsi.Value <= 30)
                                 {
                                     point += 10;
                                     mes += "|Entry RSI < 30";
-                                }    
+                                }
 
                                 var bbCheck = lbb.First(x => x.Date == itemCheck.Date);
                                 if (itemCheck.Low < (decimal)bbCheck.LowerBand.Value)
                                 {
                                     point += 15;
                                     mes += "|Entry < BB Lower";
-                                }    
+                                }
 
-                                if(itemCheck.Close < (decimal)bbCheck.Sma.Value)
+                                if (itemCheck.Close < (decimal)bbCheck.Sma.Value)
                                 {
                                     point += 15;
                                     mes += "|Entry < BB MA20";
-                                }    
+                                }
 
                                 lPoint.Add(new clsPoint
                                 {
@@ -1588,7 +2000,7 @@ namespace StockPr.Service
                             }
                         }
 
-                        
+
                     }
                     catch (Exception ex)
                     {
