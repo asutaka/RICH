@@ -351,27 +351,53 @@ namespace TradePr.Service
                         if (l15m is null || !l15m.Any())
                             continue;
 
+                        var lbb = l15m.GetBollingerBands();
+
                         var last = l15m.Last();
+                        var bb_Last = lbb.First(x => x.Date == last.Date);
                         l15m.Remove(last);
 
                         var cur = l15m.Last();
-                        var lbb = l15m.GetBollingerBands();
-                        var bb = lbb.Last();
+                        var bb_Cur = lbb.First(x => x.Date == cur.Date);
+
+                        var prev = l15m.SkipLast(1).Last();
+                        var bb_Prev = lbb.First(x => x.Date == prev.Date);
+
                         var flag = false;
                         //var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
                         //if (rate < 1)
                         //    continue;
 
-                        if (side == OrderSide.Buy && Math.Max(last.High, cur.High) > (decimal)bb.UpperBand.Value)
+                        if (side == OrderSide.Buy)
                         {
-                            flag = true;
+                            if (last.High > (decimal)bb_Last.UpperBand.Value
+                                || cur.High > (decimal)bb_Cur.UpperBand.Value)
+                            {
+                                flag = true;
+                            }
+                            else if (prev.High >= (decimal)bb_Prev.Sma.Value
+                                    && cur.Close < (decimal)bb_Cur.Sma.Value
+                                    && last.Close >= item.AveragePrice.Value)
+                            {
+                                flag = true;
+                            }
                         }
-                        else if (side == OrderSide.Sell && Math.Min(last.Low, cur.Low) < (decimal)bb.LowerBand.Value)
+                        else if (side == OrderSide.Sell)
                         {
-                            flag = true;
+                            if(last.Low < (decimal)bb_Last.LowerBand.Value
+                                || cur.Low < (decimal)bb_Cur.LowerBand.Value)
+                            {  
+                                flag = true; 
+                            }
+                            else if(prev.Low <= (decimal)bb_Prev.Sma.Value
+                                && cur.Close > (decimal)bb_Cur.Sma.Value
+                                && last.Close <= item.AveragePrice.Value)
+                            {
+                                flag = true;
+                            }
                         }
 
-                        var rateBB = (decimal)(Math.Round((-1 + bb.UpperBand.Value / bb.LowerBand.Value)) - 1);
+                        var rateBB = (decimal)(Math.Round((-1 + bb_Cur.UpperBand.Value / bb_Cur.LowerBand.Value)) - 1);
                         if (rateBB < _TP_RATE_MIN - 0.01m)
                         {
                             rateBB = _TP_RATE_MIN;
