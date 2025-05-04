@@ -62,8 +62,8 @@ namespace TradePr.Service
             try
             {
                 var dt = DateTime.Now;
-                await Binance_TakeProfit();
                 await InitSymbolConfig();
+                await Binance_TakeProfit();
                 //await Binance_TradeLiquid(dt);
                 await Binance_TradeRSI_LONG(dt);
                 await Binance_TradeRSI_SHORT(dt);
