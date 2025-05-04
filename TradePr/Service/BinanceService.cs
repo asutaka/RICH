@@ -64,9 +64,30 @@ namespace TradePr.Service
                 var dt = DateTime.Now;
                 await InitSymbolConfig();
                 await Binance_TakeProfit();
-                //await Binance_TradeLiquid(dt);
-                await Binance_TradeRSI_LONG(dt);
-                await Binance_TradeRSI_SHORT(dt);
+
+                if (dt.Minute % 15 == 0)
+                {
+                    var builderLONG = Builders<Symbol>.Filter;
+                    var lLong = _symRepo.GetByFilter(builderLONG.And(
+                        builderLONG.Eq(x => x.ex, _exchange),
+                        builderLONG.Eq(x => x.ty, (int)OrderSide.Buy),
+                        builderLONG.Eq(x => x.status, 0)
+                    )).OrderBy(x => x.rank).Select(x => x.s); ;
+
+                    var builderSHORT = Builders<Symbol>.Filter;
+                    var lShort = _symRepo.GetByFilter(builderSHORT.And(
+                        builderSHORT.Eq(x => x.ex, _exchange),
+                        builderSHORT.Eq(x => x.ty, (int)OrderSide.Sell),
+                        builderSHORT.Eq(x => x.status, 0)
+                    )).OrderBy(x => x.rank).Select(x => x.s); ;
+
+                    //await Binance_TradeLiquid();
+                    await Binance_TradeRSI_LONG(lLong.Take(20));
+                    await Binance_TradeRSI_SHORT(lShort.Take(20));
+
+                    await Binance_TradeRSI_LONG(lLong.Skip(20));
+                    await Binance_TradeRSI_SHORT(lShort.Skip(20));
+                }
             }
             catch (Exception ex)
             {
@@ -74,13 +95,10 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Binance_TradeLiquid(DateTime dt)
+        private async Task Binance_TradeLiquid()
         {
             try
             {
-                if (dt.Minute % 15 != 0)
-                    return;
-
                 var builder = Builders<Trading>.Filter;
                 var lTrade = _tradingRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.Status, 0),
@@ -151,21 +169,11 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Binance_TradeRSI_LONG(DateTime dt)
+        private async Task Binance_TradeRSI_LONG(IEnumerable<string> lSym)
         {
             try
             {
-                if (dt.Minute % 15 != 0)
-                    return;
-
-                var builder = Builders<Symbol>.Filter;
-                var lSym = _symRepo.GetByFilter(builder.And(
-                    builder.Eq(x => x.ex, _exchange),
-                    builder.Eq(x => x.ty, (int)OrderSide.Buy),
-                    builder.Eq(x => x.status, 0)
-                ));
-
-                foreach (var sym in lSym.Select(x => x.s))
+                foreach (var sym in lSym)
                 {
                     try
                     {
@@ -266,21 +274,11 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Binance_TradeRSI_SHORT(DateTime dt)
+        private async Task Binance_TradeRSI_SHORT(IEnumerable<string> lSym)
         {
             try
             {
-                if (dt.Minute % 15 != 0)
-                    return;
-
-                var builder = Builders<Symbol>.Filter;
-                var lSym = _symRepo.GetByFilter(builder.And(
-                    builder.Eq(x => x.ex, _exchange),
-                    builder.Eq(x => x.ty, (int)OrderSide.Sell),
-                    builder.Eq(x => x.status, 0)
-                ));
-
-                foreach (var sym in lSym.Select(x => x.s))
+                foreach (var sym in lSym)
                 {
                     try
                     {
