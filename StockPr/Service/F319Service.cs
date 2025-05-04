@@ -94,6 +94,13 @@ namespace StockPr.Service
                 {
                     lOutput.AddRange(lKOL9Clean);
                 }
+
+                var lKOL10 = await _apiService.F319_Scout("daccuong_ht.500551");//PTKT
+                var lKOL10Clean = Handle(lKOL10, "daccuong_ht");
+                if (lKOL10Clean.Any())
+                {
+                    lOutput.AddRange(lKOL10Clean);
+                }
             }
             catch (Exception ex)
             {
