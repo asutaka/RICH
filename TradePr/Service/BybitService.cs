@@ -360,22 +360,26 @@ namespace TradePr.Service
                         var cur = l15m.Last();
                         var bb_Cur = lbb.First(x => x.Date == cur.Date);
 
-                        var prev = l15m.SkipLast(1).Last();
-                        var bb_Prev = lbb.First(x => x.Date == prev.Date);
-
                         var flag = false;
-                        //var rate = Math.Abs(Math.Round(100 * (-1 + cur.Close / item.AveragePrice.Value), 1));
-                        //if (rate < 1)
-                        //    continue;
-
+                        var lChotNon = l15m.Where(x => x.Date > item.UpdateTime.Value && x.Date < cur.Date);
+                        var isChotNon = false;
                         if (side == OrderSide.Buy)
                         {
+                            foreach (var chot in lChotNon)
+                            {
+                                var bbCheck = lbb.First(x => x.Date == chot.Date);
+                                if(chot.High >= (decimal)bbCheck.Sma.Value)
+                                {
+                                    isChotNon = true;
+                                }
+                            }
+
                             if (last.High > (decimal)bb_Last.UpperBand.Value
                                 || cur.High > (decimal)bb_Cur.UpperBand.Value)
                             {
                                 flag = true;
                             }
-                            else if (prev.High >= (decimal)bb_Prev.Sma.Value
+                            else if (isChotNon
                                     && cur.Close < (decimal)bb_Cur.Sma.Value
                                     && last.Close >= item.AveragePrice.Value)
                             {
@@ -384,12 +388,21 @@ namespace TradePr.Service
                         }
                         else if (side == OrderSide.Sell)
                         {
-                            if(last.Low < (decimal)bb_Last.LowerBand.Value
+                            foreach (var chot in lChotNon)
+                            {
+                                var bbCheck = lbb.First(x => x.Date == chot.Date);
+                                if (chot.Low <= (decimal)bbCheck.Sma.Value)
+                                {
+                                    isChotNon = true;
+                                }
+                            }
+
+                            if (last.Low < (decimal)bb_Last.LowerBand.Value
                                 || cur.Low < (decimal)bb_Cur.LowerBand.Value)
                             {  
                                 flag = true; 
                             }
-                            else if(prev.Low <= (decimal)bb_Prev.Sma.Value
+                            else if(isChotNon
                                 && cur.Close > (decimal)bb_Cur.Sma.Value
                                 && last.Close <= item.AveragePrice.Value)
                             {
