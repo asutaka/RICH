@@ -29,7 +29,7 @@ namespace TestPr.Service
             _symRepo = symRepo;
         }
 
-        //LONG RSI Tong(55): 883.0%|W/L: 468/225
+        //Tong: 183.8%|W/L: 137/25
         public async Task Binance_LONG()
         {
             try
@@ -149,6 +149,7 @@ namespace TestPr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -156,6 +157,19 @@ namespace TestPr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+                                    if (isChotNon
+                                       && itemClose.Close < (decimal)ma.Sma.Value
+                                       && itemClose.Close >= eEntry.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.High >= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
@@ -175,7 +189,7 @@ namespace TestPr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }
@@ -279,7 +293,7 @@ namespace TestPr.Service
             }
         }
 
-        //SHORT RSI Tong(52): 654.5%|W/L: 344/167
+        //Tong: 199.0%|W/L: 167/80
         public async Task Binance_SHORT()
         {
             try
@@ -419,6 +433,7 @@ namespace TestPr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -426,6 +441,19 @@ namespace TestPr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+                                    if (isChotNon
+                                      && itemClose.Close > (decimal)ma.Sma.Value
+                                      && itemClose.Close <= entity_Pivot.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.Low <= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.Low), 1);
@@ -445,7 +473,7 @@ namespace TestPr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }
@@ -550,7 +578,7 @@ namespace TestPr.Service
             }
         }
 
-        //LONG RSI Tong(55): 918.2%|W/L: 507/282
+        //Tong: 193.4%|W/L: 137/27
         public async Task Bybit_LONG()
         {
             try
@@ -669,6 +697,7 @@ namespace TestPr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -676,6 +705,19 @@ namespace TestPr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+                                    if (isChotNon
+                                       && itemClose.Close < (decimal)ma.Sma.Value
+                                       && itemClose.Close >= eEntry.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.High >= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
@@ -695,7 +737,7 @@ namespace TestPr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }
@@ -799,7 +841,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.Bybit_LONG|EXCEPTION| {ex.Message}");
             }
         }
-        //SHORT RSI Tong(50): 837.0%|W/L: 429/236
+        //Tong: 335.6%|W/L: 292/117
         public async Task Bybit_SHORT()
         {
             try
@@ -939,6 +981,7 @@ namespace TestPr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -946,6 +989,19 @@ namespace TestPr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+                                    if (isChotNon
+                                      && itemClose.Close > (decimal)ma.Sma.Value
+                                      && itemClose.Close <= entity_Pivot.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.Low <= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.Low), 1);
@@ -965,7 +1021,7 @@ namespace TestPr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }

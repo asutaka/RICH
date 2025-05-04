@@ -204,6 +204,7 @@ namespace TradePr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -211,6 +212,20 @@ namespace TradePr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+
+                                    if (isChotNon
+                                        && itemClose.Close < (decimal)ma.Sma.Value
+                                        && itemClose.Close >= eEntry.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.High >= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
@@ -230,7 +245,7 @@ namespace TradePr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }
@@ -488,6 +503,7 @@ namespace TradePr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -495,6 +511,19 @@ namespace TradePr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+                                    if(isChotNon
+                                        && itemClose.Close < (decimal)ma.Sma.Value
+                                        && itemClose.Close >= eEntry.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if(itemClose.High >= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true; 
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
@@ -514,7 +543,7 @@ namespace TradePr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }
@@ -793,6 +822,7 @@ namespace TradePr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -800,6 +830,19 @@ namespace TradePr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+                                    if (isChotNon
+                                     && itemClose.Close > (decimal)ma.Sma.Value
+                                     && itemClose.Close <= entity_Pivot.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.Low <= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.Low), 1);
@@ -819,7 +862,7 @@ namespace TradePr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }
@@ -1099,6 +1142,7 @@ namespace TradePr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+                                var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -1106,6 +1150,19 @@ namespace TradePr.Service
                                     {
                                         eClose = itemClose;
                                         break;
+                                    }
+
+                                    if (isChotNon
+                                      && itemClose.Close > (decimal)ma.Sma.Value
+                                      && itemClose.Close <= entity_Pivot.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.Low <= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
                                     }
 
                                     var rateCheck = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.Low), 1);
@@ -1125,7 +1182,7 @@ namespace TradePr.Service
                                 var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
-                                if (rate <= (decimal)0.5)
+                                if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
                                 }
