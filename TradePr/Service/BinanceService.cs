@@ -467,6 +467,7 @@ namespace TradePr.Service
                             }
                             else if (isChotNon
                                     && cur.Close < (decimal)bb_Cur.Sma.Value
+                                    && cur.Close <= cur.Open
                                     && last.Close >= item.EntryPrice)
                             {
                                 flag = true;
@@ -490,6 +491,7 @@ namespace TradePr.Service
                             }
                             else if (isChotNon
                                 && cur.Close > (decimal)bb_Cur.Sma.Value
+                                && cur.Close >= cur.Open
                                 && last.Close <= item.EntryPrice)
                             {
                                 flag = true;
