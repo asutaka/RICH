@@ -24,19 +24,17 @@ namespace TradePr.Service
         private readonly ITeleService _teleService;
         private readonly IConfigDataRepo _configRepo;
         private readonly ISymbolRepo _symRepo;
-        private readonly ISymbolConfigRepo _symConfigRepo;
         private readonly IBinanceService _binanceService;
         private readonly IBybitService _bybitService;
         private const long _idUser = 1066022551;
         private const int _TAKE = 50;//số bản ghi mỗi loại
         public SyncDataService(ILogger<SyncDataService> logger,
-                           IAPIService apiService, ITeleService teleService, ISymbolConfigRepo symConfigRepo, ISymbolRepo symRepo, IConfigDataRepo configRepo,
+                           IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, IConfigDataRepo configRepo,
                            IBinanceService binanceService, IBybitService bybitService)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
-            _symConfigRepo = symConfigRepo;
             _symRepo = symRepo;
             _configRepo = configRepo;
             _binanceService = binanceService;
@@ -343,23 +341,9 @@ namespace TradePr.Service
                     builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy)
                 ));
 
-                var lConfig = _symConfigRepo.GetAll();
-                var lAddNew = new List<string>();
                 var rank = 1;
                 foreach (var item in lRes)
                 {
-                    if(!lConfig.Any(x => x.s == item.s))
-                    {
-                        //Insert Default
-                        _symConfigRepo.InsertOne(new SymbolConfig
-                        {
-                            s = item.s,
-                            amount = -1,
-                            price = 4
-                        });
-
-                        lAddNew.Add(item.s);
-                    }    
                     Console.WriteLine(item.Mes);
                     _symRepo.InsertOne(new Symbol
                     {
@@ -371,13 +355,6 @@ namespace TradePr.Service
                 }
 
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
-                if (lAddNew.Any())
-                {
-                    var addNewStr = string.Join(",", lAddNew.ToArray());
-                    Console.WriteLine($"BINANCE| {addNewStr}");
-                    await _teleService.SendMessage(_idUser, $"BINANCE| {addNewStr}");
-                    Thread.Sleep(200);
-                }
 
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
@@ -642,23 +619,9 @@ namespace TradePr.Service
                     builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy)
                 ));
 
-                var lConfig = _symConfigRepo.GetAll();
-                var lAddNew = new List<string>();
                 var rank = 1;
                 foreach (var item in lRes)
                 {
-                    if (!lConfig.Any(x => x.s == item.s))
-                    {
-                        //Insert Default
-                        _symConfigRepo.InsertOne(new SymbolConfig
-                        {
-                            s = item.s,
-                            amount = -1,
-                            price = 4
-                        });
-
-                        lAddNew.Add(item.s);
-                    }
                     Console.WriteLine(item.Mes);
                     _symRepo.InsertOne(new Symbol
                     {
@@ -670,13 +633,6 @@ namespace TradePr.Service
                 }
 
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
-                if (lAddNew.Any())
-                {
-                    var addNewStr = string.Join(",", lAddNew.ToArray());
-                    Console.WriteLine($"BYBIT| {addNewStr}");
-                    await _teleService.SendMessage(_idUser, $"BYBIT| {addNewStr}");
-                    Thread.Sleep(200);
-                }
 
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
@@ -963,23 +919,9 @@ namespace TradePr.Service
                     builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell)
                 ));
 
-                var lConfig = _symConfigRepo.GetAll();
-                var lAddNew = new List<string>();
                 var rank = 1;
                 foreach (var item in lRes)
                 {
-                    if (!lConfig.Any(x => x.s == item.s))
-                    {
-                        //Insert Default
-                        _symConfigRepo.InsertOne(new SymbolConfig
-                        {
-                            s = item.s,
-                            amount = -1,
-                            price = 4
-                        });
-
-                        lAddNew.Add(item.s);
-                    }
                     Console.WriteLine(item.Mes);
                     _symRepo.InsertOne(new Symbol
                     {
@@ -991,13 +933,6 @@ namespace TradePr.Service
                 }
 
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
-                if (lAddNew.Any())
-                {
-                    var addNewStr = string.Join(",", lAddNew.ToArray());
-                    Console.WriteLine($"BINANCE| {addNewStr}");
-                    await _teleService.SendMessage(_idUser, $"BINANCE| {addNewStr}");
-                    Thread.Sleep(200);
-                }
 
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
@@ -1284,23 +1219,9 @@ namespace TradePr.Service
                     builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell)
                 ));
 
-                var lConfig = _symConfigRepo.GetAll();
-                var lAddNew = new List<string>();
                 var rank = 1;
                 foreach (var item in lRes)
                 {
-                    if (!lConfig.Any(x => x.s == item.s))
-                    {
-                        //Insert Default
-                        _symConfigRepo.InsertOne(new SymbolConfig
-                        {
-                            s = item.s,
-                            amount = -1,
-                            price = 4
-                        });
-
-                        lAddNew.Add(item.s);
-                    }
                     Console.WriteLine(item.Mes);
                     _symRepo.InsertOne(new Symbol
                     {
@@ -1312,14 +1233,6 @@ namespace TradePr.Service
                 }
 
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
-                if (lAddNew.Any())
-                {
-                    var addNewStr = string.Join(",", lAddNew.ToArray());
-                    Console.WriteLine($"BYBIT| {addNewStr}");
-                    await _teleService.SendMessage(_idUser, $"BYBIT| {addNewStr}");
-                    Thread.Sleep(200);
-                }
-
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
                 await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT SHORT");
