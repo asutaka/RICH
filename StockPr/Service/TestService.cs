@@ -1530,7 +1530,7 @@ namespace StockPr.Service
                         lRate = lRate.Except(lCheck).ToList();
                     }
                 }
-
+                ///////////////////////////////////////////
                 foreach (var item in lRate.OrderBy(x => x.s))
                 {
                     Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {item.entry_3}%|T+5: {item.entry_5}%");
