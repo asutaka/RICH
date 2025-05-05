@@ -1435,8 +1435,8 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        if (item != "DGC")
-                            continue;
+                        //if (item != "DGC")
+                        //    continue;
 
                         var lMes = new List<string>();
                         var lData = await _apiService.SSI_GetDataStock(item);
