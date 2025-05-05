@@ -1365,7 +1365,6 @@ namespace StockPr.Service
                     "TLH",
                     "MIG",
                     "SKG",
-                    "DGC",
                     "VAB",
                     "NLG",
                     "HVN",
@@ -1436,8 +1435,8 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        //if (item != "CTS")
-                        //    continue;
+                        if (item != "DGC")
+                            continue;
 
                         var lMes = new List<string>();
                         var lData = await _apiService.SSI_GetDataStock(item);
