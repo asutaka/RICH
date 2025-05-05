@@ -1667,7 +1667,10 @@ namespace StockPr.Service
 
                 var sumT3 = lRate.Sum(x => x.entry_3);
                 var sumT5 = lRate.Sum(x => x.entry_5);
-                Console.WriteLine($"Tong: T+3: {sumT3}%| T+5: {sumT5}%");
+                var TotalWinT3 = lRate.Count(x => x.entry_3 > 0);
+                var TotalWinT5 = lRate.Count(x => x.entry_5 > 0);
+                var Total = lRate.Count();
+                Console.WriteLine($"Tong: T+3({TotalWinT3}/{Total}): {sumT3}%| T+5({TotalWinT5}/{Total}): {sumT5}%");
 
 
                 //foreach (var item in lPoint.Where(x => x.TotalPoint > 50).OrderByDescending(x => x.TotalPoint))
