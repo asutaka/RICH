@@ -1490,6 +1490,20 @@ namespace StockPr.Service
                             if (posCheck_Last)
                                 continue;
 
+                            var isSignal = false;
+                            var lSignal = lData15m.SkipLast(1).TakeLast(6);
+                            var countSignal = lSignal.Count();
+                            for (int i = 0; i < countSignal - 2; i++)
+                            {
+                                var curSignal = lSignal.ElementAt(i);
+                                var curPivot = lSignal.ElementAt(i + 1);
+                                if(curPivot.Volume / curSignal.Volume <= 0.6m)
+                                {
+                                    isSignal = true;
+                                    break;
+                                }
+                            }
+
                             //Console.WriteLine($"{item}|{last.Date.ToString("dd/MM/yyyy")}");
                             lTrace.Add(new clsTrace
                             {
@@ -1498,8 +1512,8 @@ namespace StockPr.Service
                                 entry = last.Close,
                                 entry_3 = lData.Where(x => x.Date > last.Date).Skip(2).FirstOrDefault()?.Close ?? 0,
                                 entry_5 = lData.Where(x => x.Date > last.Date).Skip(4).FirstOrDefault()?.Close ?? 0,
+                                isSignal = isSignal
                             });
-                            continue;
                         }
                         while (take <= count);
                     }
@@ -1511,6 +1525,7 @@ namespace StockPr.Service
 
                 var lRate = lTrace.Select(x => new clsTrace {   s = x.s,
                                                                 date = x.date,  
+                                                                isSignal = x.isSignal,
                                                                 entry_3 = x.entry_3 == 0 ? 0 : Math.Round(100 * (-1 + x.entry_3 / x.entry), 1),
                                                                 entry_5 = x.entry_5 == 0 ? 0 : Math.Round(100 * (-1 + x.entry_5 / x.entry), 1) }).ToList();
                 //Remove
@@ -1535,9 +1550,9 @@ namespace StockPr.Service
                 //{
                 //    Console.WriteLine(item);
                 //}
-                foreach (var item in lRate.OrderBy(x => x.s))
+                foreach (var item in lRate.OrderBy(x => x.date).ThenByDescending(x => x.isSignal))
                 {
-                    Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {item.entry_3}%|T+5: {item.entry_5}%");
+                    Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {item.entry_3}%|T+5: {item.entry_5}%|Signal: {item.isSignal}");
                 }
 
                 var sumT3 = lRate.Sum(x => x.entry_3);
@@ -3080,5 +3095,6 @@ namespace StockPr.Service
         public decimal entry { get; set; }
         public decimal entry_3 { get; set; }
         public decimal entry_5 { get; set; }
+        public bool isSignal { get; set; }
     }
 }
