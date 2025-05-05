@@ -1531,6 +1531,10 @@ namespace StockPr.Service
                     }
                 }
                 ///////////////////////////////////////////
+                //foreach (var item in lRate.Select(x => x.s).Distinct())
+                //{
+                //    Console.WriteLine(item);
+                //}
                 foreach (var item in lRate.OrderBy(x => x.s))
                 {
                     Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {item.entry_3}%|T+5: {item.entry_5}%");
