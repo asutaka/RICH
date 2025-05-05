@@ -1481,6 +1481,15 @@ namespace StockPr.Service
                                 && last.Open > last.Close)
                                 continue;
 
+                            if (isPinbar 
+                                && Math.Min(last.Open, last.Close) >= Math.Min(cur.Open, cur.Close))
+                                continue;
+
+                            if (last.Close > last.Open
+                                && last.High <= cur.High
+                                && last.Low >= cur.Low)
+                                continue;
+
                             var posCheck_Cur = (cur.Close - (decimal)bb_Cur.LowerBand.Value) > 0 && Math.Abs((decimal)bb_Cur.Sma.Value - cur.Close) < 3 * Math.Abs(cur.Close - (decimal)bb_Cur.LowerBand.Value);
                             if (posCheck_Cur)
                                 continue;
@@ -1511,7 +1520,8 @@ namespace StockPr.Service
                                 entry = last.Close,
                                 entry_3 = lData.Where(x => x.Date > last.Date).Skip(2).FirstOrDefault()?.Close ?? 0,
                                 entry_5 = lData.Where(x => x.Date > last.Date).Skip(4).FirstOrDefault()?.Close ?? 0,
-                                isSignal = isSignal
+                                isSignal = isSignal,
+                                isCrossMa20Vol = (decimal)lMaVol.First(x => x.Date == cur.Date).Sma.Value <= cur.Volume
                             });
                         }
                         while (take <= count);
@@ -1525,6 +1535,7 @@ namespace StockPr.Service
                 var lRate = lTrace.Select(x => new clsTrace {   s = x.s,
                                                                 date = x.date,  
                                                                 isSignal = x.isSignal,
+                                                                isCrossMa20Vol = x.isCrossMa20Vol,
                                                                 entry_3 = x.entry_3 == 0 ? 0 : Math.Round(100 * (-1 + x.entry_3 / x.entry), 1),
                                                                 entry_5 = x.entry_5 == 0 ? 0 : Math.Round(100 * (-1 + x.entry_5 / x.entry), 1) }).ToList();
                 //Remove
@@ -1550,7 +1561,7 @@ namespace StockPr.Service
                 //    Console.WriteLine(item);
                 //}
                 var lReal = new List<clsTrace>();
-                foreach (var item in lRate.OrderBy(x => x.date).ThenByDescending(x => x.isSignal))
+                foreach (var item in lRate.OrderBy(x => x.date).ThenByDescending(x => x.isCrossMa20Vol).ThenByDescending(x => x.isSignal))
                 {
                     if(!lReal.Any(x => x.date == item.date))
                     {
@@ -3106,5 +3117,6 @@ namespace StockPr.Service
         public decimal entry_3 { get; set; }
         public decimal entry_5 { get; set; }
         public bool isSignal { get; set; }
+        public bool isCrossMa20Vol { get; set; }
     }
 }
