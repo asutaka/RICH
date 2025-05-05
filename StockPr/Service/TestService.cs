@@ -1494,7 +1494,10 @@ namespace StockPr.Service
                             lTrace.Add(new clsTrace
                             {
                                 s = item,
-                                date = last.Date
+                                date = last.Date,
+                                entry = last.Close,
+                                entry_3 = lData.Where(x => x.Date > last.Date).Skip(2).FirstOrDefault()?.Close ?? 0,
+                                entry_5 = lData.Where(x => x.Date > last.Date).Skip(4).FirstOrDefault()?.Close ?? 0,
                             });
                             continue;
                         }
@@ -1647,10 +1650,24 @@ namespace StockPr.Service
                     }
                 }
 
+                var lRate = new List<clsTrace>();
                 foreach (var item in lTrace.OrderBy(x => x.date))
                 {
-                    Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}");
+                    var rate_3 = item.entry_3 == 0 ? 0 : Math.Round(100 * (-1 + item.entry_3 / item.entry), 1);
+                    var rate_5 = item.entry_5 == 0 ? 0 : Math.Round(100 * (-1 + item.entry_5 / item.entry), 1);
+                    lRate.Add(new clsTrace
+                    {
+                        s = item.s,
+                        entry_3 = rate_3,
+                        entry_5 = rate_5,
+                    });
+
+                    Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {rate_3}%|T+5: {rate_5}%"); 
                 }
+
+                var sumT3 = lRate.Sum(x => x.entry_3);
+                var sumT5 = lRate.Sum(x => x.entry_5);
+                Console.WriteLine($"Tong: T+3: {sumT3}%| T+5: {sumT5}%");
 
 
                 //foreach (var item in lPoint.Where(x => x.TotalPoint > 50).OrderByDescending(x => x.TotalPoint))
@@ -3182,5 +3199,8 @@ namespace StockPr.Service
     {
         public string s { get; set; }
         public DateTime date { get; set; }
+        public decimal entry { get; set; }
+        public decimal entry_3 { get; set; }
+        public decimal entry_5 { get; set; }
     }
 }
