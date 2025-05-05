@@ -7,7 +7,6 @@
             services.AddSingleton<ITradingRepo, TradingRepo>();
             services.AddSingleton<IConfigDataRepo, ConfigDataRepo>();
             services.AddSingleton<ISymbolRepo, SymbolRepo>();
-            services.AddSingleton<ISymbolConfigRepo, SymbolConfigRepo>();
             services.AddSingleton<IPlaceOrderTradeRepo, PlaceOrderTradeRepo>();
         }
     }
