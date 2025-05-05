@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Razor.Infrastructure;
 using Skender.Stock.Indicators;
 using StockPr.DAL;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 
 namespace StockPr.Service
@@ -1430,6 +1431,7 @@ namespace StockPr.Service
                     "QCG",
                 };
                 var lPoint = new List<clsPoint>();
+                var lTrace = new List<clsTrace>();
                 foreach (var item in lTake)
                 {
                     try
@@ -1438,50 +1440,68 @@ namespace StockPr.Service
                         //    continue;
 
                         var lMes = new List<string>();
-
-                        var lData15m = await _apiService.SSI_GetDataStock(item);
+                        var lData = await _apiService.SSI_GetDataStock(item);
                         Thread.Sleep(200);
-                        if (lData15m == null || !lData15m.Any() || lData15m.Count() < 250 || lData15m.Last().Volume < 10000)
+                        if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 10000)
                             continue;
-
-                        var lbb = lData15m.GetBollingerBands();
-                        var lrsi = lData15m.GetRsi();
-                        var lMaVol = lData15m.Select(x => new Quote
+                        var count = lData.Count();
+                        var take = 250;
+                        do
                         {
-                            Date = x.Date,
-                            Close = x.Volume
-                        }).GetSma(20);
+                            var lData15m = lData.Take(take++);
+
+                            var lbb = lData15m.GetBollingerBands();
+                            var lrsi = lData15m.GetRsi();
+                            var lMaVol = lData15m.Select(x => new Quote
+                            {
+                                Date = x.Date,
+                                Close = x.Volume
+                            }).GetSma(20);
 
 
-                        var last = lData15m.Last();
-                        var cur = lData15m.SkipLast(1).Last();
-                        var bb_Last = lbb.First(x => x.Date == last.Date);
-                        var bb_Cur = lbb.First(x => x.Date == cur.Date);
+                            var last = lData15m.Last();
+                            var cur = lData15m.SkipLast(1).Last();
+                            var bb_Last = lbb.First(x => x.Date == last.Date);
+                            var bb_Cur = lbb.First(x => x.Date == cur.Date);
 
-                        if (cur.Low <= last.Low && cur.High >= last.High)
+                            //if(item == "BFC" && last.Date.Year == 2025 && last.Date.Month == 4 && last.Date.Day == 9)
+                            //{
+                            //    var zz = 1;
+                            //}    
+
+                            if (cur.Low <= last.Low && cur.High >= last.High)
+                                continue;
+
+                            var volCheck = last.Volume / cur.Volume;
+                            if (volCheck < 1.2m)
+                                continue;
+
+                            var isPinbar = ((Math.Min(last.Open, last.Close) - last.Low) >= 3 * (last.High - Math.Min(last.Open, last.Close)))
+                                            && (Math.Abs(last.Open - last.Close) >= 0.1m * (last.High - last.Low));
+                            if (!isPinbar
+                                && last.Open > last.Close)
+                                continue;
+
+                            var posCheck_Cur = (cur.Close - (decimal)bb_Cur.LowerBand.Value) > 0 && Math.Abs((decimal)bb_Cur.Sma.Value - cur.Close) < 3 * Math.Abs(cur.Close - (decimal)bb_Cur.LowerBand.Value);
+                            if (posCheck_Cur)
+                                continue;
+
+                            var posCheck_Last = (last.Close - (decimal)bb_Last.LowerBand.Value) > 0 && Math.Abs((decimal)bb_Last.Sma.Value - last.Close) < 2 * Math.Abs(last.Close - (decimal)bb_Last.LowerBand.Value);
+                            if (posCheck_Last)
+                                continue;
+
+                            //Console.WriteLine($"{item}|{last.Date.ToString("dd/MM/yyyy")}");
+                            lTrace.Add(new clsTrace
+                            {
+                                s = item,
+                                date = last.Date
+                            });
                             continue;
+                        }
+                        while (take <= count);
+                       
 
-                        var volCheck = last.Volume / cur.Volume;
-                        if (volCheck < 1.2m)
-                            continue;
-
-                        var isPinbar = ((Math.Min(last.Open, last.Close) - last.Low) >= 3 * (last.High - Math.Min(last.Open, last.Close)))
-                                        && (Math.Abs(last.Open - last.Close) >= 0.1m * (last.High - last.Low));
-                        if (!isPinbar
-                            && last.Open > last.Close)
-                            continue;
-
-                        var posCheck_Cur = Math.Abs((decimal)bb_Cur.Sma.Value - cur.Close) < 3 * Math.Abs(cur.Close - (decimal)bb_Cur.LowerBand.Value);
-                        if (posCheck_Cur)
-                            continue;
-
-                        var posCheck_Last = Math.Abs((decimal)bb_Last.Sma.Value - last.Close) < 2 * Math.Abs(last.Close - (decimal)bb_Last.LowerBand.Value);
-                        if (posCheck_Last)
-                            continue;
-
-                        Console.WriteLine(item);
-                        continue;
-
+                        #region tmp
                         //Quote entity_Sig = null;
                         //SmaResult maVol_Sig = null;
                         //BollingerBandsResult bb_Sig = null;
@@ -1616,7 +1636,8 @@ namespace StockPr.Service
 
                         //        break;
                         //    }
-                        //}
+                        //} 
+                        #endregion
 
 
                     }
@@ -1626,11 +1647,16 @@ namespace StockPr.Service
                     }
                 }
 
-
-                foreach (var item in lPoint.Where(x => x.TotalPoint > 50).OrderByDescending(x => x.TotalPoint))
+                foreach (var item in lTrace.OrderBy(x => x.date))
                 {
-                    Console.WriteLine($"{item.s}: {item.TotalPoint} => {item.mes}");
+                    Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}");
                 }
+
+
+                //foreach (var item in lPoint.Where(x => x.TotalPoint > 50).OrderByDescending(x => x.TotalPoint))
+                //{
+                //    Console.WriteLine($"{item.s}: {item.TotalPoint} => {item.mes}");
+                //}
             }
             catch (Exception ex)
             {
@@ -3150,5 +3176,11 @@ namespace StockPr.Service
         public string s { get; set; }
         public string mes { get; set; }
         public float TotalPoint { get; set; }
+    }
+
+    public class clsTrace
+    {
+        public string s { get; set; }
+        public DateTime date { get; set; }
     }
 }
