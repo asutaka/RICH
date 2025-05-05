@@ -3,6 +3,7 @@ using Skender.Stock.Indicators;
 using StockPr.DAL;
 using System.Collections.Generic;
 using System.Net.WebSockets;
+using static MongoDB.Driver.WriteConcern;
 
 namespace StockPr.Service
 {
@@ -1236,7 +1237,6 @@ namespace StockPr.Service
                 int hour = 10;//1h,2h,3h,4h
 
                 var lMesAll = new List<string>();
-                var lModel = new List<LongMa20>();
 
                 var winTotal = 0;
                 var lossTotal = 0;
@@ -1502,147 +1502,6 @@ namespace StockPr.Service
                             continue;
                         }
                         while (take <= count);
-                       
-
-                        #region tmp
-                        //Quote entity_Sig = null;
-                        //SmaResult maVol_Sig = null;
-                        //BollingerBandsResult bb_Sig = null;
-
-                        //Quote entity_Pivot = null;
-                        //SmaResult maVol_Pivot = null;
-                        //BollingerBandsResult bb_Pivot = null;
-                        //RsiResult rsi_Pivot = null;
-
-                        //Quote entity_NearSig = null;
-                        //BollingerBandsResult bb_NearSig = null;
-
-                        //var passSignal = false;
-                        //var lCheckSignal = lData15m.TakeLast(6);
-                        //foreach (var itemCheckSignal in lCheckSignal)
-                        //{
-                        //    var ma = lbb.First(x => x.Date == itemCheckSignal.Date);
-                        //    if (itemCheckSignal.Close >= (decimal)ma.Sma.Value)
-                        //        continue;
-
-                        //    if (itemCheckSignal.Close >= itemCheckSignal.Open)
-                        //        continue;
-
-                        //    var maVol = lMaVol.First(x => x.Date == itemCheckSignal.Date);
-                        //    if (itemCheckSignal.Volume <= (decimal)maVol.Sma.Value) //Chỉ cần > ma20 hay cần > 1.5 * ma20?
-                        //        continue;
-
-                        //    var next = lData15m.FirstOrDefault(x => x.Date > itemCheckSignal.Date);
-                        //    if (next is null)
-                        //        break;
-
-                        //    if ((next.Volume / itemCheckSignal.Volume) > 0.6m)
-                        //        continue;
-                        //    //Sig
-                        //    entity_Sig = itemCheckSignal;
-                        //    maVol_Sig = lMaVol.First(x => x.Date == entity_Sig.Date);
-                        //    bb_Sig = lbb.First(x => x.Date == entity_Sig.Date);
-
-                        //    //Pivot
-                        //    entity_Pivot = next;
-                        //    maVol_Pivot = lMaVol.First(x => x.Date == entity_Pivot.Date);
-                        //    bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
-                        //    rsi_Pivot = lrsi.First(x => x.Date == entity_Pivot.Date);
-
-                        //    //Near Sig
-                        //    entity_NearSig = lData15m.Last(x => x.Date < entity_Sig.Date);
-                        //    bb_NearSig = lbb.First(x => x.Date == entity_NearSig.Date);
-
-                        //    passSignal = true;
-                        //    break;
-                        //}
-                        //if (!passSignal)
-                        //    continue;
-
-                        ////var entityLast = lData15m.Last();
-                        ////var bbLast = lbb.Last();
-                        ////var pos_Last = Math.Abs((entityLast.Close - (decimal)bbLast.Sma.Value) / (entityLast.Close - (decimal)bbLast.LowerBand.Value));
-                        ////if (pos_Last < 2)
-                        ////    continue;
-
-                        //var rateMaVol = Math.Round(entity_Sig.Volume / (decimal)maVol_Sig.Sma.Value, 2);
-                        //var rateNear = Math.Round(entity_Sig.Volume / entity_NearSig.Volume, 2);
-
-                        //var mes = entity_Sig.Date.ToString("dd/MM/yyyy");
-                        //var point = 0;
-                        //if (rateNear >= 1.5m)
-                        //{
-                        //    point += 25;
-                        //    mes += $"|Vol Near < 1.5";
-                        //}
-
-                        //if (rateMaVol >= 1.5m)
-                        //{
-                        //    point += 20;
-                        //    mes += $"|Vol Ma20 < 1.5";
-                        //}
-
-                        //if (entity_Sig.Close < Math.Min(entity_NearSig.Open, entity_NearSig.Close))
-                        //{
-                        //    point += 15;
-                        //    mes += $"|Sig below Near";
-                        //}
-
-                        //var lCheck = lData15m.Where(x => x.Date > entity_Sig.Date).TakeLast(2);
-                        //foreach (var itemCheck in lCheck)
-                        //{
-                        //    var isPinbar = (Math.Min(itemCheck.Open, itemCheck.Close) - itemCheck.Low) >= 3 * (itemCheck.High - Math.Min(itemCheck.Open, itemCheck.Close));
-                        //    if (isPinbar || itemCheck.Close >= itemCheck.Open)
-                        //    {
-                        //        point += 17;
-                        //        mes += "|Nến xanh hoặc Pinbar";
-
-                        //        if (itemCheck.Low < entity_Sig.Low)
-                        //        {
-                        //            point += 20;
-                        //            mes += "|Entry LOW< Signal";
-                        //        }
-
-                        //        if (itemCheck.Close <= 0.5m * (entity_Sig.Open + entity_Sig.Close))
-                        //        {
-                        //            point += 15;
-                        //            mes += "|Entry < trung bình nến Signal";
-                        //        }
-
-
-                        //        var rsiCheck = lrsi.First(x => x.Date == itemCheck.Date);
-                        //        if (rsiCheck.Rsi.Value <= 30)
-                        //        {
-                        //            point += 10;
-                        //            mes += "|Entry RSI < 30";
-                        //        }
-
-                        //        var bbCheck = lbb.First(x => x.Date == itemCheck.Date);
-                        //        if (itemCheck.Low < (decimal)bbCheck.LowerBand.Value)
-                        //        {
-                        //            point += 15;
-                        //            mes += "|Entry < BB Lower";
-                        //        }
-
-                        //        if (itemCheck.Close < (decimal)bbCheck.Sma.Value)
-                        //        {
-                        //            point += 15;
-                        //            mes += "|Entry < BB MA20";
-                        //        }
-
-                        //        lPoint.Add(new clsPoint
-                        //        {
-                        //            s = item,
-                        //            TotalPoint = point,
-                        //            mes = mes
-                        //        });
-
-                        //        break;
-                        //    }
-                        //} 
-                        #endregion
-
-
                     }
                     catch (Exception ex)
                     {
@@ -1650,19 +1509,31 @@ namespace StockPr.Service
                     }
                 }
 
-                var lRate = new List<clsTrace>();
-                foreach (var item in lTrace.OrderBy(x => x.date))
+                var lRate = lTrace.Select(x => new clsTrace {   s = x.s,
+                                                                date = x.date,  
+                                                                entry_3 = x.entry_3 == 0 ? 0 : Math.Round(100 * (-1 + x.entry_3 / x.entry), 1),
+                                                                entry_5 = x.entry_5 == 0 ? 0 : Math.Round(100 * (-1 + x.entry_5 / x.entry), 1) }).ToList();
+                //Remove
+                foreach (var item in lTake)
                 {
-                    var rate_3 = item.entry_3 == 0 ? 0 : Math.Round(100 * (-1 + item.entry_3 / item.entry), 1);
-                    var rate_5 = item.entry_5 == 0 ? 0 : Math.Round(100 * (-1 + item.entry_5 / item.entry), 1);
-                    lRate.Add(new clsTrace
+                    var realWin = 0;
+                    var lCheck = lRate.Where(x => x.s == item);
+                    if (!lCheck.Any())
+                        continue;
+                    foreach (var model in lCheck)
                     {
-                        s = item.s,
-                        entry_3 = rate_3,
-                        entry_5 = rate_5,
-                    });
+                        if (model.entry_3 > (decimal)0)
+                            realWin++;
+                    }
+                    if ((decimal)realWin / lCheck.Count() < 0.5m)
+                    {
+                        lRate = lRate.Except(lCheck).ToList();
+                    }
+                }
 
-                    Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {rate_3}%|T+5: {rate_5}%"); 
+                foreach (var item in lRate.OrderBy(x => x.s))
+                {
+                    Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {item.entry_3}%|T+5: {item.entry_5}%");
                 }
 
                 var sumT3 = lRate.Sum(x => x.entry_3);
