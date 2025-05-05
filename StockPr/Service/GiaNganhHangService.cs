@@ -38,7 +38,8 @@ namespace StockPr.Service
                 var modelPig = new TraceGiaModel
                 {
                     content = "Giá thịt heo",
-                    description = "DBC,BAF,HAG"
+                    description = "DBC,BAF,HAG",
+                    link = "https://www.pig333.com/markets_and_prices/vietnam_166"
                 };
                 var isPrintPig = false;
                 if (pig != null && pig.Any())
@@ -110,11 +111,13 @@ namespace StockPr.Service
                 {
                     model.content = "Cước Container";
                     model.description = "HAH";
+                    model.link = "https://www.drewry.co.uk/supply-chain-advisors/supply-chain-expertise/world-container-index-assessed-by-drewry";
                 }
                 else
                 {
                     model.content = "Cước vận tải dầu thô";
                     model.description = "PVT,VTO";
+                    model.link = "https://en.macromicro.me/charts/946/world-baltic-dirty-clean-tanker-index";
                 }
 
                 var builder = Builders<MacroMicro>.Filter;
@@ -240,7 +243,8 @@ namespace StockPr.Service
                 var modelPhotpho = new TraceGiaModel
                 {
                     content = "Phốt pho vàng",
-                    description = "DGC,PAT"
+                    description = "DGC,PAT",
+                    link = "https://www.sunsirs.com/uk/prodetail-708.html"
                 };
                 var isPrintPhotpho = false;
                 if (lPhotpho?.Any() ?? false)
@@ -328,7 +332,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/crude-oil"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Natural_gas.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -341,7 +346,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/natural-gas"
                             });
                         }
                         else if (item.Code.Replace("-", "").Replace(" ", "").Equals(EPrice.kraftpulp.GetDisplayName().Replace("-","").Replace(" ", ""), StringComparison.CurrentCultureIgnoreCase))
@@ -354,7 +360,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/kraft-pulp"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Coal.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -367,7 +374,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/coal"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Gold.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -380,7 +388,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/gold"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Steel.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -393,7 +402,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/steel"
                             });
                         }
                         else if (item.Code.Equals(EPrice.HRC_Steel.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -406,7 +416,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/hrc-steel"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Rubber.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -419,7 +430,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/rubber"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Coffee.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -432,7 +444,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/coffee"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Rice.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -445,7 +458,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/rice"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Sugar.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -458,7 +472,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/sugar"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Urea.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -471,7 +486,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/urea"
                             });
                         }
                         else if (item.Code.Equals(EPrice.DAP.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -484,7 +500,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/di-ammonium"
                             });
                         }
                         else if (item.Code.Equals(EPrice.polyvinyl.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -497,7 +514,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/polyvinyl"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Nickel.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -510,7 +528,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/nickel"
                             });
                         }
                         else if (item.Code.Equals(EPrice.milk.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -523,7 +542,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/milk"
                             });
                         }
                         else if (item.Code.Equals(EPrice.Cotton.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
@@ -536,7 +556,8 @@ namespace StockPr.Service
                                 monthly = item.Monthly,
                                 yearly = item.YoY,
                                 YTD = item.YTD,
-                                price = item.Price
+                                price = item.Price,
+                                link = "https://tradingeconomics.com/commodity/cotton"
                             });
                         }
                     }
@@ -551,7 +572,7 @@ namespace StockPr.Service
         }
         private string PrintTraceGia(TraceGiaModel model)
         {
-            var res = $"   - {model.content}: W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
+            var res = $"   - [{model.content}]({model.link}): W({model.weekly}%)|M({model.monthly}%)|Y({model.yearly}%)|YTD({model.YTD}%)";
             if (!string.IsNullOrWhiteSpace(model.description))
             {
                 var strSplit = model.description.Split(',');

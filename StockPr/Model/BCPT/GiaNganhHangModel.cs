@@ -78,5 +78,6 @@ namespace StockPr.Model.BCPT
         public decimal YTD { get; set; }
         public decimal price { get; set; }
         public string description { get; set; }
+        public string link { get; set; }
     }
 }
