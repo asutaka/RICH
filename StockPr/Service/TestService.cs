@@ -1549,18 +1549,29 @@ namespace StockPr.Service
                 //{
                 //    Console.WriteLine(item);
                 //}
+                var lReal = new List<clsTrace>();
                 foreach (var item in lRate.OrderBy(x => x.date).ThenByDescending(x => x.isSignal))
                 {
+                    if(!lReal.Any(x => x.date == item.date))
+                    {
+                        lReal.Add(item);
+                    }
                     Console.WriteLine($"{item.s}|{item.date.ToString("dd/MM/yyyy")}|T+3: {item.entry_3}%|T+5: {item.entry_5}%|Signal: {item.isSignal}");
                 }
-
+                //Trên giấy
                 var sumT3 = lRate.Sum(x => x.entry_3);
                 var sumT5 = lRate.Sum(x => x.entry_5);
                 var TotalWinT3 = lRate.Count(x => x.entry_3 > 0);
                 var TotalWinT5 = lRate.Count(x => x.entry_5 > 0);
                 var Total = lRate.Count();
                 Console.WriteLine($"Tong: T+3({TotalWinT3}/{Total}): {sumT3}%| T+5({TotalWinT5}/{Total}): {sumT5}%");
-
+                //Real
+                var sumT3_Real = lReal.Sum(x => x.entry_3);
+                var sumT5_Real = lReal.Sum(x => x.entry_5);
+                var TotalWinT3_Real = lReal.Count(x => x.entry_3 > 0);
+                var TotalWinT5_Real = lReal.Count(x => x.entry_5 > 0);
+                var Total_Real = lReal.Count();
+                Console.WriteLine($"Tong_Real: T+3({TotalWinT3_Real}/{Total_Real}): {sumT3_Real}%| T+5({TotalWinT5_Real}/{Total_Real}): {sumT5_Real}%");
 
                 //foreach (var item in lPoint.Where(x => x.TotalPoint > 50).OrderByDescending(x => x.TotalPoint))
                 //{
