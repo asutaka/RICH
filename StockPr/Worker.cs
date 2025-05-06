@@ -50,8 +50,8 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            await _testService.BatDayCK();
-            return;
+            //await _testService.BatDayCK();
+            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
@@ -103,7 +103,7 @@ namespace StockPr
                     await _teleService.SendMessage(_idChannel, portfolio.Item1, portfolio.Item2);
                 }
                 //Tổng cục thống kê
-                if (dt.Day == 6 && dt.Hour >= 7)
+                if (dt.Day == 6 && dt.Hour >= 7 && dt.Hour < 9)
                 {
                     var res = await _tongcucService.TongCucThongKe(dt);
                     if (res.Item1 > 0)
