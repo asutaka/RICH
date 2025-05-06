@@ -1042,7 +1042,7 @@ namespace StockPr.Service
                 var lLink = new List<string>();
                 for (int i = 1; i <= 1; i++)
                 {
-                    var url = $"https://www.gso.gov.vn/bao-cao-tinh-hinh-kinh-te-xa-hoi-hang-thang/?paged={i}";
+                    var url = $"https://www.nso.gov.vn/bao-cao-tinh-hinh-kinh-te-xa-hoi-hang-thang/?paged={i}";
                     var client = _client.CreateClient();
                     client.BaseAddress = new Uri(url);
                     client.Timeout = TimeSpan.FromSeconds(15);
