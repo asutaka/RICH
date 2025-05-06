@@ -1,9 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Razor.Infrastructure;
-using Skender.Stock.Indicators;
+﻿using Skender.Stock.Indicators;
 using StockPr.DAL;
-using System.Collections.Generic;
-using System.Net.WebSockets;
-using static MongoDB.Driver.WriteConcern;
 
 namespace StockPr.Service
 {
