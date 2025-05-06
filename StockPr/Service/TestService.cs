@@ -146,7 +146,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        //if (item != "DGC")
+                        //if (item != "AAA")
                         //    continue;
 
                         var lMes = new List<string>();
@@ -254,6 +254,11 @@ namespace StockPr.Service
                     }
                 }
 
+                foreach (var item in lResult.OrderBy(x => x.s))
+                {
+                    Console.WriteLine($"{item.s}|BUY: {item.date.ToString("dd/MM/yyyy")}|SELL: {item.dateSell.ToString("dd/MM/yyyy")}|Rate: {item.Signal}%");
+                }
+
                 var sumT3 = lResult.Sum(x => x.T3);
                 var sumT5 = lResult.Sum(x => x.T5);
                 var sumT10 = lResult.Sum(x => x.T10);
@@ -303,6 +308,7 @@ namespace StockPr.Service
                 var SL = -7;//StopLoss
                 var IsSell = false;
                 var priceSell = lCheck.Last().Close;
+                var dateSell = lCheck.Last().Date;
                 var IsEnd = false;
                 for (int i = 1; i < 10; i++)
                 {
@@ -329,6 +335,7 @@ namespace StockPr.Service
                     {
                         //sell
                         priceSell = pivot.Open;
+                        dateSell = pivot.Date;
                         break;
                     }
 
@@ -337,6 +344,7 @@ namespace StockPr.Service
                         if (i > 2)
                         {
                             priceSell = pivot.Low;
+                            dateSell = pivot.Date;
                             break;
                         }
 
@@ -349,15 +357,14 @@ namespace StockPr.Service
                         if(i > 2)
                         {
                             priceSell = pivot.Close;
+                            dateSell = pivot.Date;
                             break;
                         }
 
                         IsSell = true;
                         continue;
                     }
-                    //
-                    if (pivot.Volume / sig.Volume > (1 - GiamToiThieu))
-                        continue;
+                    //              
 
                     if(!isAboveMA)
                     {
@@ -373,6 +380,7 @@ namespace StockPr.Service
                         if (i > 2)
                         {
                             priceSell = pivot.Close;
+                            dateSell = pivot.Date;
                             break;
                         }
 
@@ -386,6 +394,9 @@ namespace StockPr.Service
                             continue;
                         }
 
+                        if (pivot.Volume / sig.Volume > (1 - GiamToiThieu))
+                            continue;
+
                         if (sig.Volume < 1.2m * (decimal)maVolSignal.Sma.Value)//Vol Sig lớn hơn 1.2 lần MaVol
                             continue;
 
@@ -396,6 +407,7 @@ namespace StockPr.Service
                             if (i > 2)
                             {
                                 priceSell = pivot.Close;
+                                dateSell = pivot.Date;
                                 break;
                             }
 
@@ -410,6 +422,7 @@ namespace StockPr.Service
                 {
                     s = param.s,
                     date = param.date,
+                    dateSell = dateSell,
                     T3 = rateT3,
                     T5 = rateT5,
                     T10 = rateT10,
@@ -820,6 +833,7 @@ namespace StockPr.Service
     {
         public string s { get; set; }
         public DateTime date { get; set; }
+        public DateTime dateSell { get; set; }
         public decimal T3 { get; set; }
         public decimal T5 { get; set; }
         public decimal T10 { get; set; }
