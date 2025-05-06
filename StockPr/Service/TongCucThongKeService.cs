@@ -767,7 +767,7 @@ namespace StockPr.Service
                     item.va = Math.Round(item.va / 1000, 1);
                 }
 
-                strBuilder.AppendLine($"{iFDI++}. {item.content}({item.va} {unit})|M({rateM}%)|Y({rateY}%)");
+                strBuilder.AppendLine($"{iFDI++}. {item.content}({Math.Round(item.va, 1)} {unit})|M({rateM}%)|Y({rateY}%)");
             }
             return strBuilder.ToString();
         }
