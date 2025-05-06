@@ -36,116 +36,64 @@ namespace StockPr.Service
                     "VNINDEX",
                     "DC4",
                     "GIL",
-                    "GVR",
                     "DPG",
-                    "CTG",
                     "BFC",
                     "VRE",
-                    "PVB",
                     "GEX",
-                    "SZC",
                     "HDG",
-                    "BMP",
-                    "TLG",
                     "VPB",
-                    "DIG",
-                    "KBC",
-                    "HSG",
-                    "PET",
-                    "TNG",
-                    "SBT",
                     "MSH",
                     "NAB",
                     "VGC",
-                    "CSV",
-                    "VCS",
                     "CSM",
-                    "PHR",
                     "PVT",
-                    "PC1",
                     "ASM",
                     "LAS",
-                    "DXG",
                     "HCM",
                     "CTI",
-                    "NHA",
-                    "DPR",
-                    "ANV",
-                    "OCB",
-                    "TVB",
                     "STB",
-                    "HDC",
-                    "POW",
                     "VSC",
                     "L18",
                     "DDV",
                     "VCI",
                     "GMD",
                     "NTP",
-                    "KSV",
-                    "NT2",
-                    "TCM",
-                    "LSS",
                     "GEG",
                     "HHS",
                     "MSB",
                     "TCH",
-                    "VHC",
-                    "PVD",
                     "FOX",
-                    "SSI",
                     "NKG",
-                    "BSI",
                     "ACB",
                     "REE",
-                    "VHM",
                     "PAN",
-                    "SIP",
                     "PTB",
-                    "BSR",
                     "BID",
                     "PVS",
                     "CTS",
-                    "FTS",
                     "HPG",
                     "DBC",
-                    "MSR",
                     "THG",
                     "CTD",
                     "VOS",
                     "FMC",
-                    "PHP",
-                    "GAS",
                     "DCM",
-                    "KSB",
-                    "MSN",
                     "BVB",
                     "MBB",
                     "TRC",
-                    "VPI",
                     "EIB",
                     "KDH",
                     "VCB",
                     "FPT",
                     "DRC",
-                    "CMG",
                     "HAG",
-                    "SHB",
                     "CII",
                     "CTR",
-                    "IDC",
-                    "GEE",
                     "NVB",
-                    "BVS",
                     "BWE",
-                    "HAX",
-                    "QNS",
-                    "VEA",
                     "TVS",
                     "DGC",
-                    "HAH",
                     "NVL",
-                    "PAC",
                     "AAA",
                     "TNH",
                     "ACV",
@@ -153,72 +101,43 @@ namespace StockPr.Service
                     "FRT",
                     "HT1",
                     "SCS",
-                    "TLH",
-                    "MIG",
                     "SKG",
-                    "VAB",
                     "NLG",
                     "HVN",
-                    "HNG",
-                    "PDR",
                     "VDS",
-                    "SJE",
                     "PNJ",
                     "CEO",
                     "YEG",
                     "KLB",
-                    "BCM",
                     "BVH",
                     "NTL",
-                    "TDH",
-                    "MBS",
-                    "HUT",
-                    "VIB",
                     "BAF",
                     "HHV",
                     "NDN",
-                    "SGP",
                     "MCH",
                     "FCN",
                     "SCR",
                     "TCB",
                     "LPB",
-                    "VTP",
                     "AGR",
                     "VCG",
                     "DPM",
                     "IDJ",
-                    "DXS",
-                    "OIL",
                     "AGG",
                     "VND",
                     "PSI",
-                    "DHA",
-                    "VIC",
-                    "BCG",
-                    "TPB",
                     "VIX",
                     "IJC",
                     "DGW",
                     "SBS",
-                    "MFS",
                     "PLX",
                     "DRI",
                     "EVF",
                     "ORS",
                     "SAB",
-                    "TDC",
-                    "VNM",
-                    "TV2",
-                    "C4G",
                     "MWG",
-                    "JVC",
-                    "GDA",
-                    "VGI",
                     "DSC",
-                    "SMC",
                     "DTD",
-                    "QCG",
                 };
                 var lPoint = new List<clsPoint>();
                 var lTrace = new List<clsTrace>();
@@ -341,107 +260,6 @@ namespace StockPr.Service
                 var sumSignal = lResult.Sum(x => x.Signal);
                 Console.WriteLine($"Total({lResult.Count()})| T3({lResult.Count(x => x.T3 > 0)}): {sumT3}%| T5({lResult.Count(x => x.T5 > 0)}): {sumT5}%| T10({lResult.Count(x => x.T10 > 0)}): {sumT10}%| Signal({lResult.Count(x => x.Signal > 0)}): {sumSignal}%|End: {lResult.Count(x => x.IsEnd)}");
 
-                //Remove for T3
-                var lT3 = lResult.ToList();
-                foreach (var item in lTake)
-                {
-                    var realWin = 0;
-                    var lCheck = lT3.Where(x => x.s == item);
-                    if (!lCheck.Any())
-                        continue;
-                    foreach (var model in lCheck)
-                    {
-                        if (model.T3 > (decimal)0)
-                            realWin++;
-                    }
-                    if ((decimal)realWin / lCheck.Count() < 0.5m)
-                    {
-                        lT3 = lT3.Except(lCheck).ToList();
-                    }
-                }
-
-                var sumT3_T3 = lT3.Sum(x => x.T3);
-                var sumT5_T3 = lT3.Sum(x => x.T5);
-                var sumT10_T3 = lT3.Sum(x => x.T10);
-                var sumSignal_T3 = lT3.Sum(x => x.Signal);
-                Console.WriteLine($"Total_T3({lT3.Count()})| T3({lT3.Count(x => x.T3 > 0)}): {sumT3_T3}%| T5({lT3.Count(x => x.T5 > 0)}): {sumT5_T3}%| T10({lT3.Count(x => x.T10 > 0)}): {sumT10_T3}%| Signal({lT3.Count(x => x.Signal > 0)}): {sumSignal_T3}%|End: {lT3.Count(x => x.IsEnd)}");
-
-                //Remove for T5
-                var lT5 = lResult.ToList();
-                foreach (var item in lTake)
-                {
-                    var realWin = 0;
-                    var lCheck = lT5.Where(x => x.s == item);
-                    if (!lCheck.Any())
-                        continue;
-                    foreach (var model in lCheck)
-                    {
-                        if (model.T5 > (decimal)0)
-                            realWin++;
-                    }
-                    if ((decimal)realWin / lCheck.Count() < 0.5m)
-                    {
-                        lT5 = lT5.Except(lCheck).ToList();
-                    }
-                }
-
-                var sumT3_T5 = lT5.Sum(x => x.T3);
-                var sumT5_T5 = lT5.Sum(x => x.T5);
-                var sumT10_T5 = lT5.Sum(x => x.T10);
-                var sumSignal_T5 = lT5.Sum(x => x.Signal);
-                Console.WriteLine($"Total_T5({lT5.Count()})| T3({lT5.Count(x => x.T3 > 0)}): {sumT3_T5}%| T5({lT5.Count(x => x.T5 > 0)}): {sumT5_T5}%| T10({lT5.Count(x => x.T10 > 0)}): {sumT10_T5}%| Signal({lT5.Count(x => x.Signal > 0)}): {sumSignal_T5}%|End: {lT5.Count(x => x.IsEnd)}");
-
-                //Remove for T10
-                var lT10 = lResult.ToList();
-                foreach (var item in lTake)
-                {
-                    var realWin = 0;
-                    var lCheck = lT10.Where(x => x.s == item);
-                    if (!lCheck.Any())
-                        continue;
-                    foreach (var model in lCheck)
-                    {
-                        if (model.T10 > (decimal)0)
-                            realWin++;
-                    }
-                    if ((decimal)realWin / lCheck.Count() < 0.5m)
-                    {
-                        lT10 = lT10.Except(lCheck).ToList();
-                    }
-                }
-
-                var sumT3_T10 = lT10.Sum(x => x.T3);
-                var sumT5_T10 = lT10.Sum(x => x.T5);
-                var sumT10_T10 = lT10.Sum(x => x.T10);
-                var sumSignal_T10 = lT10.Sum(x => x.Signal);
-                Console.WriteLine($"Total_T10({lT10.Count()})| T3({lT10.Count(x => x.T3 > 0)}): {sumT3_T10}%| T5({lT10.Count(x => x.T5 > 0)}): {sumT5_T10}%| T10({lT10.Count(x => x.T10 > 0)}): {sumT10_T10}%| Signal({lT10.Count(x => x.Signal > 0)}): {sumSignal_T10}%|End: {lT10.Count(x => x.IsEnd)}");
-
-                //Remove for Signal
-                var lSig = lResult.ToList();
-                foreach (var item in lTake)
-                {
-                    var realWin = 0;
-                    var lCheck = lSig.Where(x => x.s == item);
-                    if (!lCheck.Any())
-                        continue;
-                    foreach (var model in lCheck)
-                    {
-                        if (model.Signal > (decimal)0)
-                            realWin++;
-                    }
-                    if ((decimal)realWin / lCheck.Count() < 0.5m)
-                    {
-                        lSig = lSig.Except(lCheck).ToList();
-                    }
-                }
-
-                var sumT3_Signal = lSig.Sum(x => x.T3);
-                var sumT5_Signal = lSig.Sum(x => x.T5);
-                var sumT10_Signal = lSig.Sum(x => x.T10);
-                var sumSignal_Signal = lSig.Sum(x => x.Signal);
-                Console.WriteLine($"Total_Signal({lSig.Count()})| T3({lSig.Count(x => x.T3 > 0)}): {sumT3_Signal}%| T5({lSig.Count(x => x.T5 > 0)}): {sumT5_Signal}%| T10({lSig.Count(x => x.T10 > 0)}): {sumT10_Signal}%| Signal({lSig.Count(x => x.Signal > 0)}): {sumSignal_Signal}%|End: {lSig.Count(x => x.IsEnd)}");
-
-
                 var tmp = 1;
             }
             catch (Exception ex)
@@ -469,13 +287,17 @@ namespace StockPr.Service
                 /*
                     Tín hiệu 1: 
                 - Nến close vượt ma rồi lại quay lại đỏ và nằm dưới MA(có cần xem nến nằm dưới là pivot hay ko)
-                -    Signal xanh + vol pivot giảm 40% tại(giảm 30%, 50%) + (vol sig > ma20): 
+                -    Signal xanh + vol pivot giảm 40% tại: 
                         - 
                             + pivot đỏ hoặc Doji 
                             + pivot thuộc 1/3 và dưới MA
                         -
-                            + pivot thuộc 1/3 Upper trở lên (có cần vol sig > ma20 ko?)
+                            + pivot thuộc 1/3 Upper trở lên 
+                            + vol sig > 1.2 ma20 vol
                  */
+                //                 Signal(Close) thuộc 1/3 dưới MA 
+                // (Signal(Close) thuộc 1/3 dưới MA hoặc signal xanh) 
+
 
                 var GiamToiThieu = 0.4m;//40% -> 30%, 50%
                 var SL = -7;//StopLoss
@@ -498,8 +320,10 @@ namespace StockPr.Service
                     var isAboveMA = pivot.Close > (decimal)bb_Pivot.Sma.Value;
                     var isAboveUpper = pivot.Close > (decimal)bb_Pivot.UpperBand.Value;
                     var ma1_3 = (pivot.Close - (decimal)bb_Pivot.LowerBand.Value) >= 2 * ((decimal)bb_Pivot.Sma.Value - pivot.Close);
+                    var ma1_3_Signal = (sig.Close - (decimal)bb_Sig.LowerBand.Value) >= 2 * ((decimal)bb_Sig.Sma.Value - sig.Close);
                     var upper1_3 = (pivot.Close - (decimal)bb_Pivot.Sma.Value) >= 2 * ((decimal)bb_Pivot.UpperBand.Value - pivot.Close);
                     var ratePivot = Math.Round(100 * (-1 + Math.Min(pivot.Open, pivot.Close) / param.entry), 1);
+                    var maVolSignal = lMaVol.First(x => x.Date == sig.Date);
 
                     if (IsSell && i > 2) 
                     {
@@ -537,7 +361,10 @@ namespace StockPr.Service
 
                     if(!isAboveMA)
                     {
-                        if (Len_Pivot > 0.15m && pivot.Close > pivot.Open) // pivot đỏ hoặc Doji 
+                        //if (Len_Pivot > 0.15m && pivot.Close > pivot.Open) // pivot đỏ hoặc Doji 
+                        //    continue;
+                        if (!ma1_3_Signal
+                            && pivot.Close > pivot.Open)
                             continue;
 
                         if (!ma1_3)
@@ -559,9 +386,13 @@ namespace StockPr.Service
                             continue;
                         }
 
-                        if(isAboveUpper 
+                        if (sig.Volume < 1.2m * (decimal)maVolSignal.Sma.Value)//Vol Sig lớn hơn 1.2 lần MaVol
+                            continue;
+
+                        if (isAboveUpper 
                             || upper1_3)
                         {
+                            //Console.WriteLine($"{tmp++}| {Math.Round(sig.Volume / (decimal)maVolSignal.Sma.Value, 1)}");
                             if (i > 2)
                             {
                                 priceSell = pivot.Close;
@@ -586,23 +417,6 @@ namespace StockPr.Service
                     IsEnd = IsEnd
                 };
                 return result;
-
-
-                /*
-                 Tín hiệu 2: 
-                 Signal(Close) thuộc 1/3 dưới MA + vol pivot giảm 40% tại: 
-                     - 
-                         + pivot đỏ hoặc Doji 
-                         + pivot thuộc 1/3 và dưới MA
-                */
-
-                /*
-                 Tín hiệu 3: 
-                 (Signal(Close) thuộc 1/3 dưới MA hoặc signal xanh) + vol pivot giảm 40% tại: 
-                     - 
-                         + pivot đỏ hoặc Doji 
-                         + pivot thuộc 1/3 và dưới MA
-                */
             }
             catch (Exception ex)
             {
@@ -610,7 +424,7 @@ namespace StockPr.Service
             }
             return null;
         }
-
+        int tmp = 0;
         public async Task CheckAllDay_OnlyVolume()
         {
             try
@@ -1012,4 +826,191 @@ namespace StockPr.Service
         public decimal Signal { get; set; }
         public bool IsEnd { get; set; }
     }
+
+    //"VNINDEX",
+    //                "DC4",
+    //                "GIL",
+    //                "GVR",
+    //                "DPG",
+    //                "CTG",
+    //                "BFC",
+    //                "VRE",
+    //                "PVB",
+    //                "GEX",
+    //                "SZC",
+    //                "HDG",
+    //                "BMP",
+    //                "TLG",
+    //                "VPB",
+    //                "DIG",
+    //                "KBC",
+    //                "HSG",
+    //                "PET",
+    //                "TNG",
+    //                "SBT",
+    //                "MSH",
+    //                "NAB",
+    //                "VGC",
+    //                "CSV",
+    //                "VCS",
+    //                "CSM",
+    //                "PHR",
+    //                "PVT",
+    //                "PC1",
+    //                "ASM",
+    //                "LAS",
+    //                "DXG",
+    //                "HCM",
+    //                "CTI",
+    //                "NHA",
+    //                "DPR",
+    //                "ANV",
+    //                "OCB",
+    //                "TVB",
+    //                "STB",
+    //                "HDC",
+    //                "POW",
+    //                "VSC",
+    //                "L18",
+    //                "DDV",
+    //                "VCI",
+    //                "GMD",
+    //                "NTP",
+    //                "KSV",
+    //                "NT2",
+    //                "TCM",
+    //                "LSS",
+    //                "GEG",
+    //                "HHS",
+    //                "MSB",
+    //                "TCH",
+    //                "VHC",
+    //                "PVD",
+    //                "FOX",
+    //                "SSI",
+    //                "NKG",
+    //                "BSI",
+    //                "ACB",
+    //                "REE",
+    //                "VHM",
+    //                "PAN",
+    //                "SIP",
+    //                "PTB",
+    //                "BSR",
+    //                "BID",
+    //                "PVS",
+    //                "CTS",
+    //                "FTS",
+    //                "HPG",
+    //                "DBC",
+    //                "MSR",
+    //                "THG",
+    //                "CTD",
+    //                "VOS",
+    //                "FMC",
+    //                "PHP",
+    //                "GAS",
+    //                "DCM",
+    //                "KSB",
+    //                "MSN",
+    //                "BVB",
+    //                "MBB",
+    //                "TRC",
+    //                "VPI",
+    //                "EIB",
+    //                "KDH",
+    //                "VCB",
+    //                "FPT",
+    //                "DRC",
+    //                "CMG",
+    //                "HAG",
+    //                "SHB",
+    //                "CII",
+    //                "CTR",
+    //                "IDC",
+    //                "GEE",
+    //                "NVB",
+    //                "BVS",
+    //                "BWE",
+    //                "HAX",
+    //                "QNS",
+    //                "VEA",
+    //                "TVS",
+    //                "DGC",
+    //                "HAH",
+    //                "NVL",
+    //                "PAC",
+    //                "AAA",
+    //                "TNH",
+    //                "ACV",
+    //                "BCC",
+    //                "FRT",
+    //                "HT1",
+    //                "SCS",
+    //                "TLH",
+    //                "MIG",
+    //                "SKG",
+    //                "VAB",
+    //                "NLG",
+    //                "HVN",
+    //                "HNG",
+    //                "PDR",
+    //                "VDS",
+    //                "SJE",
+    //                "PNJ",
+    //                "CEO",
+    //                "YEG",
+    //                "KLB",
+    //                "BCM",
+    //                "BVH",
+    //                "NTL",
+    //                "TDH",
+    //                "MBS",
+    //                "HUT",
+    //                "VIB",
+    //                "BAF",
+    //                "HHV",
+    //                "NDN",
+    //                "SGP",
+    //                "MCH",
+    //                "FCN",
+    //                "SCR",
+    //                "TCB",
+    //                "LPB",
+    //                "VTP",
+    //                "AGR",
+    //                "VCG",
+    //                "DPM",
+    //                "IDJ",
+    //                "DXS",
+    //                "OIL",
+    //                "AGG",
+    //                "VND",
+    //                "PSI",
+    //                "DHA",
+    //                "VIC",
+    //                "BCG",
+    //                "TPB",
+    //                "VIX",
+    //                "IJC",
+    //                "DGW",
+    //                "SBS",
+    //                "MFS",
+    //                "PLX",
+    //                "DRI",
+    //                "EVF",
+    //                "ORS",
+    //                "SAB",
+    //                "TDC",
+    //                "VNM",
+    //                "TV2",
+    //                "C4G",
+    //                "MWG",
+    //                "JVC",
+    //                "GDA",
+    //                "VGI",
+    //                "DSC",
+    //                "SMC",
+    //                "DTD",
+    //                "QCG",
 }
