@@ -200,7 +200,7 @@ namespace StockPr.Service
                     lDat.Add(lUp);
                     lDat.Add(lDown);
                 }
-                var lSeries = new List<HighChartSeries_BasicColumnCustomColor> { new HighChartSeries_BasicColumnCustomColor { data = lDat } };
+                var lSeries = new List<HighChartSeries_BasicColumnCustomColor> { new HighChartSeries_BasicColumnCustomColor { data = lDat, colors = new List<string> { "#2EBD85" } } };
 
                 var hc = new HighChartTemperature(mes, lCat, lSeries);
 

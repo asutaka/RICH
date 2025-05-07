@@ -78,29 +78,29 @@ namespace StockPr.Service
                 }
                 else if (input.Length == 3) //Mã chứng khoán
                 {
-                    var overview = await Overview(input.ToUpper(), false);
-                    if (overview != null)
-                    {
-                        lRes.Add(overview);
-                    }
-                    var lMa = await ChartChungKhoan(input);
-                    if (lMa?.Any() ?? false)
-                    {
-                        lRes.AddRange(lMa);
-                    }
-                    //var lCungCau = await ChartCungCau(input);
-                    //if (lCungCau?.Any() ?? false)
+                    //var overview = await Overview(input.ToUpper(), false);
+                    //if (overview != null)
                     //{
-                    //    lRes.AddRange(lCungCau);
+                    //    lRes.Add(overview);
                     //}
-                    var rank = await _rankService.FreeFloat(input.ToUpper());
-                    if(rank.Item1 > 0)
+                    //var lMa = await ChartChungKhoan(input);
+                    //if (lMa?.Any() ?? false)
+                    //{
+                    //    lRes.AddRange(lMa);
+                    //}
+                    var lCungCau = await ChartCungCau(input);
+                    if (lCungCau?.Any() ?? false)
                     {
-                        lRes.Add(new HandleMessageModel
-                        {
-                            Message = $"FreeFloat: { Math.Round(rank.Item1) }%\nEPS: { Math.Round(rank.Item2).ToString("#,##0.#") } đồng\nPE: {Math.Round(rank.Item3)}\nNợ/VCSH: {Math.Round(rank.Item4, 2)}"
-                        });
+                        lRes.AddRange(lCungCau);
                     }
+                    //var rank = await _rankService.FreeFloat(input.ToUpper());
+                    //if(rank.Item1 > 0)
+                    //{
+                    //    lRes.Add(new HandleMessageModel
+                    //    {
+                    //        Message = $"FreeFloat: { Math.Round(rank.Item1) }%\nEPS: { Math.Round(rank.Item2).ToString("#,##0.#") } đồng\nPE: {Math.Round(rank.Item3)}\nNợ/VCSH: {Math.Round(rank.Item4, 2)}"
+                    //    });
+                    //}
                 }
             }
             catch(Exception ex)
