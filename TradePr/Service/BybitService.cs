@@ -1,6 +1,7 @@
 ﻿using Bybit.Net.Enums;
 using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
@@ -449,7 +450,7 @@ namespace TradePr.Service
         {
             try
             {
-                //var SL_RATE = 0.017;
+                Console.WriteLine($"BYBIT PlaceOrder: {JsonConvert.SerializeObject(entity)}");
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                 var account = await Bybit_GetAccountInfo();
                 if (account == null)
@@ -480,13 +481,18 @@ namespace TradePr.Service
                     {
                         var rate = 1 - last.CashBalance.Value/first.CashBalance.Value;
                         var div = last.CashBalance.Value - first.CashBalance.Value;
+
+                        Console.WriteLine($"BYBIT PreCheck: {div}");
                         if ((double)div * 10 > 0.6 * config.value)
                             return false;
 
+                        Console.WriteLine($"BYBIT PreCheck 2: {rate}%");
                         if (rate <= -0.13m)
                             return false;
                     }
                 }
+
+                Console.WriteLine("BYBIT PASS");
 
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos.Data.List.Count() >= 4)

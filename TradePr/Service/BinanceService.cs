@@ -7,6 +7,7 @@ using TradePr.Utils;
 using Binance.Net.Enums;
 using Binance.Net.Objects.Models.Spot;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace TradePr.Service
 {
@@ -524,7 +525,7 @@ namespace TradePr.Service
         {
             try
             {
-                //Console.WriteLine($"PlaceOrder: {JsonConvert.SerializeObject(entity)}");
+                Console.WriteLine($"BINANCE PlaceOrder: {JsonConvert.SerializeObject(entity)}");
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                 var account = await Binance_GetAccountInfo();
                 if (account == null)
@@ -554,12 +555,17 @@ namespace TradePr.Service
                 {
                     var income = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4)).Sum(x => x.Income);
                     var rate = income / account.WalletBalance;
+
+                    Console.WriteLine($"BINANCE PreCheck: {income}");
                     if ((double)income * -10 > 0.6 * config.value)
                         return false;
 
+                    Console.WriteLine($"BINANCE PreCheck 2: {rate}%");
                     if (rate <= -0.13m) 
                         return false;
                 }
+
+                Console.WriteLine("BINANCE PASS");
 
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 if (pos.Data.Count() >= 4)
