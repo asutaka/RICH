@@ -90,7 +90,7 @@
             title = new HighChartTitle { text = titl };
             xAxis = new HighChartXAxis { categories = lCat };
             yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = "" }, labels = new HighChartLabel { } } };
-            plotOptions = new HighChartPlotOptions { columnrange = new HighChartPlotOptionColumnRange { negativeColor = "#F6465D" } };
+            plotOptions = new HighChartPlotOptions { columnrange = new HighChartPlotOptionColumnRange { negativeColor = "red" } };
             legend = new HighChartLegend { enabled = false };
             series = lSeries;
             credits = new HighChartCredits { enabled = false };

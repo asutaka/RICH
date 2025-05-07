@@ -179,10 +179,11 @@ namespace StockPr.Service
         {
             try
             {
+                lCungCau.Reverse();
                 var count = lCungCau.Count();
                 var lCat = lCungCau.Select(x => x.Date).ToList();
                 var lDat = new List<List<object>>();
-                for (int i = 0; i < count - 1; i++)
+                for (int i = 0; i < count; i++)
                 {
                     var item = lCungCau[i];
                     var lUp = new List<object>
@@ -194,13 +195,13 @@ namespace StockPr.Service
                     var lDown = new List<object>
                     {
                         i,
-                        -item.Down.Value,
+                        - Math.Abs(item.Down.Value),
                         0
                     };
                     lDat.Add(lUp);
                     lDat.Add(lDown);
                 }
-                var lSeries = new List<HighChartSeries_BasicColumnCustomColor> { new HighChartSeries_BasicColumnCustomColor { data = lDat, colors = new List<string> { "#2EBD85" } } };
+                var lSeries = new List<HighChartSeries_BasicColumnCustomColor> { new HighChartSeries_BasicColumnCustomColor { data = lDat, color = "#2EBD85", colors = new List<string> { "#2EBD85" } } };
 
                 var hc = new HighChartTemperature(mes, lCat, lSeries);
 
@@ -243,38 +244,39 @@ namespace StockPr.Service
                     try
                     {
                         first.netBuySellVol = info_VNDirect.netVol;
-                        double totalRoom = 0;
-                        if (info_VNDirect.totalRoom > 1000000)
-                        {
-                            totalRoom = Math.Round(info_VNDirect.totalRoom / 1000000, 1);
-                            room += $"\nRoom: {totalRoom} triệu cp|";
-                        }
-                        else if (info_VNDirect.totalRoom > 1000)
-                        {
-                            totalRoom = Math.Round(info_VNDirect.totalRoom / 1000, 1);
-                            room += $"\nRoom: {totalRoom} nghìn cp|";
-                        }
-                        else
-                        {
-                            totalRoom = info_VNDirect.totalRoom;
-                            room += $"\nRoom: {totalRoom} cp|";
-                        }
 
                         double currentRoom = 0;
                         if (info_VNDirect.currentRoom > 1000000)
                         {
                             currentRoom = Math.Round(info_VNDirect.currentRoom / 1000000, 1);
-                            room += $" Còn lại: {currentRoom} triệu cp";
+                            room += $"( {currentRoom} triệu cp /";
                         }
                         else if (info_VNDirect.currentRoom > 1000)
                         {
                             currentRoom = Math.Round(info_VNDirect.currentRoom / 1000, 1);
-                            room += $" Còn lại: {currentRoom} nghìn cp";
+                            room += $"( {currentRoom} nghìn cp /";
                         }
                         else
                         {
                             currentRoom = info_VNDirect.currentRoom;
-                            room += $" Còn lại: {currentRoom} cp";
+                            room += $"( {currentRoom} cp /";
+                        }
+
+                        double totalRoom = 0;
+                        if (info_VNDirect.totalRoom > 1000000)
+                        {
+                            totalRoom = Math.Round(info_VNDirect.totalRoom / 1000000, 1);
+                            room += $"{totalRoom} triệu cp )";
+                        }
+                        else if (info_VNDirect.totalRoom > 1000)
+                        {
+                            totalRoom = Math.Round(info_VNDirect.totalRoom / 1000, 1);
+                            room += $"{totalRoom} nghìn cp )";
+                        }
+                        else
+                        {
+                            totalRoom = info_VNDirect.totalRoom;
+                            room += $"{totalRoom} cp )";
                         }
                     }
                     catch { }
@@ -283,7 +285,7 @@ namespace StockPr.Service
                 //
                 var lStream = new List<Stream>();
                 //Nước ngoài
-                var mesNN = $"{input} - Nước ngoài mua bán";
+                var mesNN = $"{input} - GDNN";
                 if(!string.IsNullOrWhiteSpace(room))
                 {
                     mesNN += room;

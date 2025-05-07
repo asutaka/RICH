@@ -53,7 +53,7 @@ namespace StockPr
             StockInstance();
             //////for Test
             //await _testService.BatDayCK();
-            return;
+            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
