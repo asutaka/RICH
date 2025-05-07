@@ -35,10 +35,16 @@ namespace StockPr.Service
             {
                 var finance = await _apiService.SSI_GetFinanceStock(s);
                 if (finance is null)
-                    return (0, 0, 0, 0); 
+                    return (0, 0, 0, 0);
+                if (finance.eps is null)
+                    finance.eps = 0;
+                if(finance.pe is null)
+                    finance.pe = 0;
+                if(finance.debtEquity is null)
+                    finance.debtEquity = 0; 
 
                 var freefloat = await _apiService.SSI_GetFreefloatStock(s);
-                return (freefloat, finance.eps, finance.pe, finance.debtEquity);
+                return (freefloat, finance.eps.Value, finance.pe.Value, finance.debtEquity.Value);
             }
             catch (Exception ex)
             {
@@ -74,7 +80,7 @@ namespace StockPr.Service
 
                         if(finance.eps >= 5000)
                         {
-                            lEPS.Add((item.s, Math.Round(finance.eps)));
+                            lEPS.Add((item.s, Math.Round(finance.eps.Value)));
                         }
                     }
                     catch (Exception ex)

@@ -3,6 +3,7 @@ using StockPr.DAL.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -123,9 +124,39 @@ namespace StockPr.Model
 
     public class SSI_DataFinanceDetailResponse
     {
-        public decimal eps { get; set; }
-        public decimal pe { get; set; }
-        public decimal debtEquity { get; set; }//Nợ/ Vốn chủ
+        public decimal? eps { get; set; }
+        public decimal? pe { get; set; }
+        public decimal? pb { get; set; }
+        public decimal? debtEquity { get; set; }//Nợ/ Vốn chủ
+    }
+
+    public class SSI_DataStockInfoResponse
+    {
+        public List<SSI_DataStockInfoDetailResponse> data { get; set; }
+    }
+
+    public class SSI_DataStockInfoDetailResponse
+    {
+        public string tradingDate { get; set; }
+        //NN
+        public double? netBuySellVol { get; set; }//NN Mua bán ròng
+        //Cung cầu
+        public int totalBuyTrade { get; set; }//KL đặt mua
+        public int totalSellTrade { get; set; }//KL đặt bán
+        public int totalMatchVol { get; set; }//KL khớp
+    }
+
+    public class VNDirect_ForeignResponse
+    {
+        public IEnumerable<VNDirect_ForeignDetailResponse> data { get; set; }
+    }
+
+    public class VNDirect_ForeignDetailResponse
+    {
+        public string tradingDate { get; set; }
+        public double netVol { get; set; }
+        public double totalRoom { get; set; }
+        public double currentRoom { get; set; }
     }
 
     public class SSI_ShareholderResponse

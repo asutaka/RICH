@@ -79,8 +79,8 @@ namespace StockPr.Service
                 else if (input.Length == 3) //Mã chứng khoán
                 {
                     var overview = await Overview(input.ToUpper(), false);
-                    if (overview != null) 
-                    { 
+                    if (overview != null)
+                    {
                         lRes.Add(overview);
                     }
                     var lMa = await ChartChungKhoan(input);
@@ -88,6 +88,11 @@ namespace StockPr.Service
                     {
                         lRes.AddRange(lMa);
                     }
+                    //var lCungCau = await ChartCungCau(input);
+                    //if (lCungCau?.Any() ?? false)
+                    //{
+                    //    lRes.AddRange(lCungCau);
+                    //}
                     var rank = await _rankService.FreeFloat(input.ToUpper());
                     if(rank.Item1 > 0)
                     {
@@ -154,7 +159,32 @@ namespace StockPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError($"TeleService.MaChungKhoan|EXCEPTION|{ex.Message}");
+                _logger.LogError($"TeleService.ChartChungKhoan|EXCEPTION|{ex.Message}");
+            }
+            return lRes;
+        }
+
+        private async Task<List<HandleMessageModel>> ChartCungCau(string input)
+        {
+            var lRes = new List<HandleMessageModel>();
+            try
+            {
+                var lStream = await _chartService.Chart_CungCau(input);
+                if (lStream is null)
+                    return null;
+                foreach (var stream in lStream)
+                {
+                    if (stream is null)
+                        continue;
+                    lRes.Add(new HandleMessageModel
+                    {
+                        Stream = stream
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"TeleService.ChartCungCau|EXCEPTION|{ex.Message}");
             }
             return lRes;
         }

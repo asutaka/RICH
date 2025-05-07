@@ -41,6 +41,8 @@ namespace StockPr.Service
         Task<List<Quote>> SSI_GetDataStock(string code);
         Task<SSI_DataFinanceDetailResponse> SSI_GetFinanceStock(string code);
         Task<decimal> SSI_GetFreefloatStock(string code);
+        Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code);
+        Task<VNDirect_ForeignDetailResponse> VNDirect_GetForeign(string code);
 
 
         Task<List<Money24h_PTKTResponse>> Money24h_GetMaTheoChiBao(string chibao);
@@ -1327,6 +1329,58 @@ namespace StockPr.Service
                 _logger.LogError($"APIService.SSI_GetFreeloadStock|EXCEPTION| {ex.Message}");
             }
             return 0;
+        }
+
+        public async Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code)
+        {
+            var to = DateTime.Now;
+            var from = to.AddMonths(-1);
+            var lOutput = new List<Quote>();
+            var urlBase = $"https://iboard-api.ssi.com.vn/statistics/company/ssmi/stock-info?symbol={code}&page=1&pageSize=100&fromDate={from.Day.To2Digit()}%2F{from.Month.To2Digit()}%2F{from.Year}&toDate={to.Day.To2Digit()}%2F{to.Month.To2Digit()}%2F{to.Year}";
+            try
+            {
+                var url = urlBase;
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                Thread.Sleep(100);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<SSI_DataStockInfoResponse>(resultArray);
+                return responseModel;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.SSI_GetStockInfo|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<VNDirect_ForeignDetailResponse> VNDirect_GetForeign(string code)
+        {
+            var to = DateTime.Now;
+            var from = to.AddMonths(-1);
+            var lOutput = new List<Quote>();
+            var urlBase = $"https://api-finfo.vndirect.com.vn/v4/foreigns/latest?order=tradingDate&filter=code:{code}";
+            try
+            {
+                var url = urlBase;
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                requestMessage.Method = HttpMethod.Get;
+                var responseMessage = await client.SendAsync(requestMessage);
+                var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<VNDirect_ForeignResponse>(responseMessageStr);
+                return responseModel?.data?.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.VNDirect_GetForeign|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
 
         public async Task<List<F319Model>> F319_Scout(string acc)

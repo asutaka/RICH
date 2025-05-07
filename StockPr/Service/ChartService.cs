@@ -11,6 +11,7 @@ namespace StockPr.Service
     public interface IChartService
     {
         Task<List<InputFileStream>> Chart_MaCK(string input);
+        Task<List<InputFileStream>> Chart_CungCau(string input);
     }
     public class ChartService : IChartService
     {
@@ -172,6 +173,145 @@ namespace StockPr.Service
                 _logger.LogError($"ChartService.Chart_BDS_DoanhThu_LoiNhuan|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public async Task<Stream> Chart_CungCau(List<CungCauModel> lCungCau, string mes)
+        {
+            try
+            {
+                var count = lCungCau.Count();
+                var lCat = lCungCau.Select(x => x.Date).ToList();
+                var lDat = new List<List<object>>();
+                for (int i = 0; i < count - 1; i++)
+                {
+                    var item = lCungCau[i];
+                    var lUp = new List<object>
+                    {
+                        i,
+                        0,
+                        item.Up.Value
+                    };
+                    var lDown = new List<object>
+                    {
+                        i,
+                        -item.Down.Value,
+                        0
+                    };
+                    lDat.Add(lUp);
+                    lDat.Add(lDown);
+                }
+                var lSeries = new List<HighChartSeries_BasicColumnCustomColor> { new HighChartSeries_BasicColumnCustomColor { data = lDat } };
+
+                var hc = new HighChartTemperature(mes, lCat, lSeries);
+
+                var chart = new HighChartModel(JsonConvert.SerializeObject(hc));
+                var body = JsonConvert.SerializeObject(chart);
+                return await _apiService.GetChartImage(body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ChartService.Chart_CungCau|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<List<InputFileStream>> Chart_CungCau(string input)
+        {
+            var lRes = new List<InputFileStream>();
+            try
+            {
+                var stock = StaticVal._lStock.FirstOrDefault(x => x.s == input);
+                if (stock == null)
+                    return null;
+
+                var info = await _apiService.SSI_GetStockInfo(input);
+                if (!info.data.Any())
+                    return null;
+
+                foreach (var item in info.data)
+                {
+                    if (item.netBuySellVol is null)
+                        item.netBuySellVol = 0;
+                }
+
+                var room = string.Empty;
+                var info_VNDirect = await _apiService.VNDirect_GetForeign(input);
+                var first = info.data.FirstOrDefault(x => x.tradingDate.Replace("/", "").Replace("-", "") == info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("ddMMyyyy"));
+                if (info_VNDirect != null 
+                    && first != null)
+                {
+                    try
+                    {
+                        first.netBuySellVol = info_VNDirect.netVol;
+                        double totalRoom = 0;
+                        if (info_VNDirect.totalRoom > 1000000)
+                        {
+                            totalRoom = Math.Round(info_VNDirect.totalRoom / 1000000, 1);
+                            room += $"\nRoom: {totalRoom} triệu cp|";
+                        }
+                        else if (info_VNDirect.totalRoom > 1000)
+                        {
+                            totalRoom = Math.Round(info_VNDirect.totalRoom / 1000, 1);
+                            room += $"\nRoom: {totalRoom} nghìn cp|";
+                        }
+                        else
+                        {
+                            totalRoom = info_VNDirect.totalRoom;
+                            room += $"\nRoom: {totalRoom} cp|";
+                        }
+
+                        double currentRoom = 0;
+                        if (info_VNDirect.currentRoom > 1000000)
+                        {
+                            currentRoom = Math.Round(info_VNDirect.currentRoom / 1000000, 1);
+                            room += $" Còn lại: {currentRoom} triệu cp";
+                        }
+                        else if (info_VNDirect.currentRoom > 1000)
+                        {
+                            currentRoom = Math.Round(info_VNDirect.currentRoom / 1000, 1);
+                            room += $" Còn lại: {currentRoom} nghìn cp";
+                        }
+                        else
+                        {
+                            currentRoom = info_VNDirect.currentRoom;
+                            room += $" Còn lại: {currentRoom} cp";
+                        }
+                    }
+                    catch { }
+                }
+
+                //
+                var lStream = new List<Stream>();
+                //Nước ngoài
+                var mesNN = $"{input} - Nước ngoài mua bán";
+                if(!string.IsNullOrWhiteSpace(room))
+                {
+                    mesNN += room;
+                }
+                var streamNN = await Chart_CungCau(info.data.Select(x => new CungCauModel
+                {
+                    Date = x.tradingDate,
+                    Up = x.netBuySellVol.Value >= 0 ? x.netBuySellVol.Value : 0,
+                    Down = x.netBuySellVol.Value >= 0 ? 0 : x.netBuySellVol.Value,
+                }).ToList(), mesNN);
+                lStream.Add(streamNN);
+                //Cung cầu
+                var mesCungCau = $"{input} - Mua bán chủ động";
+                var streamCungCau = await Chart_CungCau(info.data.Select(x => new CungCauModel
+                {
+                    Date = x.tradingDate,
+                    Up = x.totalBuyTrade, 
+                    Down = x.totalSellTrade,
+                }).ToList(), mesCungCau);
+                lStream.Add(streamCungCau);
+
+                lRes = lStream.Select(x => InputFile.FromStream(x)).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"ChartService.Chart_CungCau|EXCEPTION| {ex.Message}");
+            }
+            return lRes;
         }
 
         private async Task<Stream> Chart_TonKho(List<Financial> lFinancial, string code)

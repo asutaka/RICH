@@ -79,6 +79,31 @@
         public HighChartCredits credits { get; set; }
         public HighChartPlotOptions plotOptions { get; set; }
     }
+    /// <summary>
+    /// Chart Thời Tiết
+    /// </summary>
+    public class HighChartTemperature
+    {
+        public HighChartTemperature(string titl, List<string> lCat, List<HighChartSeries_BasicColumnCustomColor> lSeries)
+        {
+            chart = new HighChartType { type = "columnrange" };
+            title = new HighChartTitle { text = titl };
+            xAxis = new HighChartXAxis { categories = lCat };
+            yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = "" } } };
+            plotOptions = new HighChartPlotOptions { columnrange = new HighChartPlotOptionColumnRange { negativeColor = "red" } };
+            legend = new HighChartLegend { enabled = false };
+            series = lSeries;
+            credits = new HighChartCredits { enabled = false };
+        }
+        public HighChartType chart { get; set; }
+        public HighChartTitle title { get; set; }
+        public HighChartXAxis xAxis { get; set; }
+        public List<HighChartYAxis> yAxis { get; set; }
+        public HighChartPlotOptions plotOptions { get; set; }
+        public HighChartLegend legend { get; set; }
+        public List<HighChartSeries_BasicColumnCustomColor> series { get; set; }
+        public HighChartCredits credits { get; set; }
+    }
 
 
     public class HighChartBasicColumnCustomColor
@@ -165,6 +190,11 @@
     }
     #endregion
 
+    public class HighChartType
+    {
+        public string type { get; set; }
+    }
+
     public class HighChartTitle
     {
         public string text { get; set; }
@@ -235,6 +265,7 @@
         public HighChartPlotOptionsSeries series { get; set; }
         public HighChartPlotOptionsColumn column { get; set; }
         public HighChartPlotOptionsLine line { get; set; }
+        public HighChartPlotOptionColumnRange columnrange { get; set; }
     }
 
     public class HighChartPlotOptionsSeries
@@ -253,6 +284,16 @@
     public class HighChartPlotOptionsLine
     {
         public HighChartDataLabel dataLabels { get; set; }
+    }
+
+    public class HighChartPlotOptionColumnRange
+    {
+        public string negativeColor { get; set; }
+    }
+
+    public class HighChartLegend
+    {
+        public bool enabled { get; set; }
     }
 
     public class HighChartDataLabel
