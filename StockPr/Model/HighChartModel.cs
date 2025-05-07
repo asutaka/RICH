@@ -89,7 +89,7 @@
             chart = new HighChartType { type = "columnrange" };
             title = new HighChartTitle { text = titl };
             xAxis = new HighChartXAxis { categories = lCat };
-            yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = "" } } };
+            yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = "" }, labels = new HighChartLabel { } } };
             plotOptions = new HighChartPlotOptions { columnrange = new HighChartPlotOptionColumnRange { negativeColor = "#F6465D" } };
             legend = new HighChartLegend { enabled = false };
             series = lSeries;
