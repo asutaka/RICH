@@ -6,6 +6,7 @@ using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
 using Binance.Net.Objects.Models.Spot;
+using System.Collections.Generic;
 
 namespace TradePr.Service
 {
@@ -551,8 +552,11 @@ namespace TradePr.Service
                 }
                 if (lIncome.Data.Any())
                 {
-                    var lIncomeCheck = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4));
-                    var rate = lIncomeCheck.Sum(x => x.Income) / account.WalletBalance;
+                    var income = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4)).Sum(x => x.Income);
+                    var rate = income / account.WalletBalance;
+                    var div = account.WalletBalance - income;
+                    if ((double)div * 10 > 0.6 * config.value)
+                        return false;
 
                     if (rate <= -0.13m) 
                         return false;

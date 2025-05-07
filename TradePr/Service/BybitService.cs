@@ -464,7 +464,7 @@ namespace TradePr.Service
                 if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= (decimal)config.value)
                     return false;
 
-                //Nếu trong 2 tiếng gần nhất giảm quá 10% thì không mua mới
+                //Nếu trong 4 tiếng gần nhất giảm quá 10% thì không mua mới
                 var lIncome = await StaticVal.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
                 if (lIncome == null || !lIncome.Success)
                 {
@@ -479,6 +479,10 @@ namespace TradePr.Service
                     if (first.CashBalance > 0)
                     {
                         var rate = 1 - last.CashBalance.Value/first.CashBalance.Value;
+                        var div = first.CashBalance.Value - last.CashBalance.Value;
+                        if ((double)div * 10 > 0.6 * config.value)
+                            return false;
+
                         if (rate <= -0.13m)
                             return false;
                     }
