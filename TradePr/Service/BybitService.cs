@@ -479,7 +479,7 @@ namespace TradePr.Service
                     if (first.CashBalance > 0)
                     {
                         var rate = 1 - last.CashBalance.Value/first.CashBalance.Value;
-                        var div = first.CashBalance.Value - last.CashBalance.Value;
+                        var div = last.CashBalance.Value - first.CashBalance.Value;
                         if ((double)div * 10 > 0.6 * config.value)
                             return false;
 

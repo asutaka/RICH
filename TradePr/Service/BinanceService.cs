@@ -554,8 +554,7 @@ namespace TradePr.Service
                 {
                     var income = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4)).Sum(x => x.Income);
                     var rate = income / account.WalletBalance;
-                    var div = account.WalletBalance - income;
-                    if ((double)div * 10 > 0.6 * config.value)
+                    if ((double)income * -10 > 0.6 * config.value)
                         return false;
 
                     if (rate <= -0.13m) 
