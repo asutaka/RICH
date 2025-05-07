@@ -64,15 +64,6 @@ namespace StockPr.Service
                     }
                 }
 
-                if (stock.IsFDI())
-                {
-                    var stream = await Chart_FDI();
-                    if (stream != null)
-                    {
-                        lStream.Add(stream);
-                    }
-                }
-
                 if (stock.IsXNK())
                 {
                     var stream = await Chart_XNK(stock);
@@ -416,36 +407,6 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"ChartService.Chart_BanLe|EXCEPTION| {ex.Message}");
-            }
-
-            return null;
-        }
-
-        private async Task<Stream> Chart_FDI()
-        {
-            try
-            {
-                var lFDI = _thongkeRepo.GetByFilter(Builders<ThongKe>.Filter.Eq(x => x.key, (int)EKeyTongCucThongKe.FDI));
-                var maxD = lFDI.MaxBy(x => x.d).d;
-                lFDI = lFDI.Where(x => x.d == maxD).OrderByDescending(x => x.va).Take(StaticVal._TAKE).ToList();
-
-                var lSeries = new List<HighChartSeries_BasicColumn>
-                {
-                    new HighChartSeries_BasicColumn
-                    {
-                        data = lFDI.Select(x => Math.Round(x.va/1000, 1)),
-                        name = "Vốn đăng ký",
-                        type = "column",
-                        dataLabels = new HighChartDataLabel { enabled = true, format = "{point.y:.1f}" },
-                        color = "#012060"
-                    }
-                };
-
-                return await Chart_BasicBase($"Vốn FDI đăng ký", lFDI.Select(x => x.content).ToList(), lSeries, "giá trị: tỷ USD", "giá trị: %");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"BllService.Chart_FDI|EXCEPTION| {ex.Message}");
             }
 
             return null;

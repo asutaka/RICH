@@ -1280,7 +1280,7 @@ namespace StockPr.Service
         public async Task<SSI_DataFinanceDetailResponse> SSI_GetFinanceStock(string code)
         {
             var lOutput = new List<Quote>();
-            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/financial-indicator?symbol={0}&page=1&pageSize=1";
+            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/ssmi/finance-indicator?symbol={0}&page=1&pageSize=10";
             try
             {
                 var url = string.Format(urlBase, code);
@@ -1306,7 +1306,7 @@ namespace StockPr.Service
         public async Task<decimal> SSI_GetFreefloatStock(string code)
         {
             var lOutput = new List<Quote>();
-            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/shareholders?symbol={0}&language=vn&page=1&pageSize=100";
+            var urlBase = "https://iboard-api.ssi.com.vn/statistics/company/ssmi/share-holder-detail?symbol={0}&language=vn&page=1&pageSize=100";
             try
             {
                 var url = string.Format(urlBase, code);

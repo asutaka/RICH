@@ -229,24 +229,6 @@ namespace StockPr.Utils
             return false;
         }
 
-        public static bool IsFDI(this Stock stock)
-        {
-            if (stock.cat is null)
-                return false;
-
-            var lCat = new List<int>
-            {
-                (int)EStockType.KCN
-            };
-            foreach (var item in lCat)
-            {
-                if (stock.cat.Any(x => x.ty == item))
-                    return true;
-            }
-
-            return false;
-        }
-
         public static bool IsNguoiMua(this Stock stock)
         {
             if (stock.cat is null)
