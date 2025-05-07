@@ -15,22 +15,11 @@ namespace StockPr.Service
 
                 foreach (var item in lStockFilter)
                 {
-                    FilterDefinition<Financial> filter = null;
                     var builder = Builders<Financial>.Filter;
-                    var lFilter = new List<FilterDefinition<Financial>>()
-                    {
-                        builder.Gte(x => x.d, StaticVal._curQuarter),
-                        builder.Eq(x => x.s, item),
-                    };
-                    foreach (var itemFilter in lFilter)
-                    {
-                        if (filter is null)
-                        {
-                            filter = itemFilter;
-                            continue;
-                        }
-                        filter &= itemFilter;
-                    }
+                    var filter = builder.And(
+                        builder.Eq(x => x.d, (int)StaticVal._currentTime.Item1),
+                        builder.Eq(x => x.s, item)
+                    );
                     var exists = _financialRepo.GetEntityByFilter(filter);
                     if (exists != null)
                     {
@@ -83,7 +72,7 @@ namespace StockPr.Service
 
                 //check day
                 var d = int.Parse($"{year}{quarter}");
-                if (d < StaticVal._curQuarter)
+                if (d < (int)StaticVal._currentTime.Item1)
                     return;
 
                 var strBuilder = new StringBuilder();

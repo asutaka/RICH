@@ -20,6 +20,7 @@ namespace StockPr
         private readonly IEPSRankService _epsService;
         private readonly IF319Service _f319Service;
         private readonly ITestService _testService;
+        private readonly ICommonService _commonService;
 
         private const long _idGroup = -4237476810;
         private const long _idGroupF319 = -4739186506;
@@ -28,7 +29,7 @@ namespace StockPr
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService, IF319Service f319Service)
+                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService, IF319Service f319Service, ICommonService commonService)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -44,6 +45,7 @@ namespace StockPr
             _epsService = epsService;
             _testService = testService;
             _f319Service = f319Service;
+            _commonService = commonService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -212,6 +214,7 @@ namespace StockPr
             if (StaticVal._lStock != null && StaticVal._lStock.Any())
                 return StaticVal._lStock;
             StaticVal._lStock = _stockRepo.GetAll();
+            _commonService.GetCurrentTime();
 
             return StaticVal._lStock;
         }

@@ -2,7 +2,6 @@
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
-using System;
 using System.Text;
 
 namespace StockPr.Service
@@ -19,24 +18,11 @@ namespace StockPr.Service
                                                                                     || x.ty == (int)EStockType.BDS)).Select(x => x.s);
                 foreach (var item in lStockFilter)
                 {
-
-                    var d = StaticVal._curQuarter;
-                    FilterDefinition<Financial> filter = null;
                     var builder = Builders<Financial>.Filter;
-                    var lFilter = new List<FilterDefinition<Financial>>()
-                    {
-                        builder.Gte(x => x.d, d),
-                        builder.Eq(x => x.s, item),
-                    };
-                    foreach (var itemFilter in lFilter)
-                    {
-                        if (filter is null)
-                        {
-                            filter = itemFilter;
-                            continue;
-                        }
-                        filter &= itemFilter;
-                    }
+                    var filter = builder.And(
+                        builder.Eq(x => x.d, (int)StaticVal._currentTime.Item1),
+                        builder.Eq(x => x.s, item)
+                    );
                     var exists = _financialRepo.GetEntityByFilter(filter);
                     if (exists != null)
                     {
@@ -66,23 +52,11 @@ namespace StockPr.Service
                 var lStockFilter = StaticVal._lStock.Where(x => x.status == 1 && x.cat.Any(x => x.ty == (int)EStockType.BDS)).Select(x => x.s);
                 foreach (var item in lStockFilter)
                 {
-                    var d = StaticVal._curQuarter;
-                    FilterDefinition<Financial> filter = null;
                     var builder = Builders<Financial>.Filter;
-                    var lFilter = new List<FilterDefinition<Financial>>()
-                    {
-                        builder.Gte(x => x.d, d),
-                        builder.Eq(x => x.s, item),
-                    };
-                    foreach (var itemFilter in lFilter)
-                    {
-                        if (filter is null)
-                        {
-                            filter = itemFilter;
-                            continue;
-                        }
-                        filter &= itemFilter;
-                    }
+                    var filter = builder.And(
+                        builder.Eq(x => x.d, (int)StaticVal._currentTime.Item1),
+                        builder.Eq(x => x.s, item)
+                    );
                     var exists = _financialRepo.GetEntityByFilter(filter);
                     if (exists != null)
                     {
@@ -140,7 +114,7 @@ namespace StockPr.Service
                     d = int.Parse($"{year}{last.ReportTermID - 1}").AddQuarter(-fix.Value);
                 }    
 
-                if (d < StaticVal._curQuarter)
+                if (d < (int)StaticVal._currentTime.Item1)
                     return;
 
                 //insert
@@ -206,23 +180,11 @@ namespace StockPr.Service
                 if (!(lData?.data?.Any() ?? false))
                     return;
 
-                FilterDefinition<Financial> filter = null;
                 var builder = Builders<Financial>.Filter;
-                var lFilter = new List<FilterDefinition<Financial>>
-                {
-                    builder.Eq(x => x.s, code),
-                    builder.Eq(x => x.d, StaticVal._curQuarter)
-                };
-
-                foreach (var itemFilter in lFilter)
-                {
-                    if (filter is null)
-                    {
-                        filter = itemFilter;
-                        continue;
-                    }
-                    filter &= itemFilter;
-                }
+                var filter = builder.And(
+                     builder.Eq(x => x.s, code),
+                    builder.Eq(x => x.d, (int)StaticVal._currentTime.Item1)
+                );
 
                 var entityUpdate = _financialRepo.GetEntityByFilter(filter);
                 if (entityUpdate is null)

@@ -135,24 +135,11 @@ namespace StockPr.Service
                             quarter = 2;
                         }
 
-                        FilterDefinition<Financial> filter = null;
                         var builder = Builders<Financial>.Filter;
-                        var lFilter = new List<FilterDefinition<Financial>>
-                        {
+                        var filter = builder.And(
                             builder.Eq(x => x.s, code),
                             builder.Eq(x => x.d, int.Parse($"{year}{quarter}"))
-                        };
-
-                        foreach (var itemFilter in lFilter)
-                        {
-                            if (filter is null)
-                            {
-                                filter = itemFilter;
-                                continue;
-                            }
-                            filter &= itemFilter;
-                        }
-
+                        );
                         var lUpdate = _financialRepo.GetByFilter(filter);
                         Financial entityUpdate = lUpdate.FirstOrDefault();
                         if (lUpdate is null || !lUpdate.Any())
