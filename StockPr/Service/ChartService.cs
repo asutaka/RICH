@@ -302,8 +302,8 @@ namespace StockPr.Service
                 var streamCungCau = await Chart_CungCau(info.data.Select(x => new CungCauModel
                 {
                     Date = x.tradingDate,
-                    Up = x.totalBuyTrade, 
-                    Down = x.totalSellTrade,
+                    Up = x.totalBuyTradeVol, 
+                    Down = x.totalSellTradeVol,
                 }).ToList(), mesCungCau);
                 lStream.Add(streamCungCau);
 

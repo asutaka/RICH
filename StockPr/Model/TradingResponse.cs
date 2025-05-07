@@ -141,8 +141,8 @@ namespace StockPr.Model
         //NN
         public double? netBuySellVol { get; set; }//NN Mua bán ròng
         //Cung cầu
-        public int totalBuyTrade { get; set; }//KL đặt mua
-        public int totalSellTrade { get; set; }//KL đặt bán
+        public int totalBuyTradeVol { get; set; }//KL đặt mua
+        public int totalSellTradeVol { get; set; }//KL đặt bán
         public int totalMatchVol { get; set; }//KL khớp
     }
 
