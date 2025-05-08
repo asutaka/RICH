@@ -496,11 +496,11 @@ namespace StockPr.Service
                     var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if (item.prop_net_deal > 0)
                     {
-                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }
                     else if (item.prop_net_deal < 0)
                     {
-                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }
                     strOutput.AppendLine(content);
                     index++;
@@ -514,11 +514,11 @@ namespace StockPr.Service
                     var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if (item.prop_net_deal > 0)
                     {
-                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }
                     else if (item.prop_net_deal < 0)
                     {
-                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }
                     strOutput.AppendLine(content);
                     index++;
@@ -577,11 +577,11 @@ namespace StockPr.Service
                     var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if(item.prop_net_deal > 0)
                     {
-                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }  
                     else if (item.prop_net_deal < 0)
                     {
-                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }
                     strOutput.AppendLine(content);
                     index++;
@@ -595,11 +595,11 @@ namespace StockPr.Service
                     var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if (item.prop_net_deal > 0)
                     {
-                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }
                     else if (item.prop_net_deal < 0)
                     {
-                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")} tỷ";
                     }
                     strOutput.AppendLine(content);
                     index++;
