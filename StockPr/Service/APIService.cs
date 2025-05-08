@@ -47,6 +47,7 @@ namespace StockPr.Service
 
         Task<List<Money24h_PTKTResponse>> Money24h_GetMaTheoChiBao(string chibao);
         Task<List<Money24h_ForeignResponse>> Money24h_GetForeign(EExchange mode, EMoney24hTimeType type);
+        Task<List<Money24h_TuDoanhResponse>> Money24h_GetTuDoanh(EExchange mode, EMoney24hTimeType type);
         Task<Money24h_NhomNganhResponse> Money24h_GetNhomNganh(EMoney24hTimeType type);
 
         Task<ReportDataIDResponse> VietStock_CDKT_GetListReportData(string code);
@@ -1213,6 +1214,45 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.Money24h_GetForeign|EXCEPTION| {ex.Message}");
+            }
+            return lOutput;
+        }
+
+        public async Task<List<Money24h_TuDoanhResponse>> Money24h_GetTuDoanh(EExchange mode, EMoney24hTimeType type)
+        {
+            var lOutput = new List<Money24h_TuDoanhResponse>();
+            try
+            {
+                var urlBase = "https://api-finance-t19.24hmoney.vn/v2/web/indices/proprietary-trading-all-stock-by-time?code={0}&type={1}";
+                var url = string.Format(urlBase, mode.GetDisplayName(), type.GetDisplayName());
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Money24h_TuDoanhAPIResponse>(resultArray);
+                if (responseModel.status == 200
+                    && responseModel.data.data.Any())
+                {
+                    var date = responseModel.data.from_date.ToDateTime("dd/MM/yyyy");
+                    //if (date.Day == DateTime.Now.Day)
+                    //{
+                    return responseModel.data.data.Where(x => x.symbol.Length == 3).OrderByDescending(x => x.prop_net).Select((x, index) => new Money24h_TuDoanhResponse
+                    {
+                        no = index + 1,
+                        d = new DateTimeOffset(date, TimeSpan.FromHours(0)).ToUnixTimeSeconds(),
+                        s = x.symbol,
+                        prop_net_deal = x.prop_net_deal,
+                        prop_net_pt = x.prop_net_pt,
+                        prop_net = x.prop_net,
+                        t = DateTimeOffset.Now.ToUnixTimeSeconds()
+                    }).ToList();
+                    //}
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Money24h_GetTuDoanh|EXCEPTION| {ex.Message}");
             }
             return lOutput;
         }

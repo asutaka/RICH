@@ -13,6 +13,7 @@ namespace StockPr.Service
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
         Task<string> ThongKeGDNN_Week();
+        Task<string> ThongKeTuDoanh();
         Task<(int, string, IEnumerable<string>)> ChiBaoKyThuat(DateTime dt);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
     }
@@ -260,6 +261,25 @@ namespace StockPr.Service
             return sBuilder.ToString();
         }
 
+        public async Task<string> ThongKeTuDoanh()
+        {
+            var dt = DateTime.Now;
+            var sBuilder = new StringBuilder();
+            var today = await ThongkeTuDoanh(dt);
+            if (today.Item1 > 0)
+            {
+                sBuilder.AppendLine(today.Item2);
+                sBuilder.AppendLine();
+            }
+
+            var week = await ThongkeTuDoanhWeek(dt);
+            if (week.Item1 > 0)
+            {
+                sBuilder.AppendLine(week.Item2);
+            }
+            return sBuilder.ToString();
+        }
+
         private async Task<(int, string)> ThongkeForeign(DateTime dt)
         {
             var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
@@ -287,7 +307,7 @@ namespace StockPr.Service
                 if (!lData.Any())
                     return (0, null);
 
-                var head = $"*GDNN ngày {dt.ToString("dd/MM/yyyy")}*"; ;
+                var head = $"*GDNN ngày {dt.ToString("dd/MM/yyyy")}*"; 
                 strOutput.AppendLine(head);
                 strOutput.AppendLine();
                 strOutput.AppendLine($">>Top mua ròng");
@@ -296,7 +316,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -306,7 +326,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -352,7 +372,7 @@ namespace StockPr.Service
                 if (!lData.Any())
                     return (0, null);
 
-                var head = $"*GDNN 7 ngày gần nhất*"; ;
+                var head = $"*GDNN 7 ngày gần nhất*"; 
                 strOutput.AppendLine(head);
                 strOutput.AppendLine();
                 strOutput.AppendLine($">>Top mua ròng");
@@ -361,7 +381,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -371,7 +391,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -434,6 +454,168 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"AnalyzeService.ThongkeForeign_PhienSang|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        private async Task<(int, string)> ThongkeTuDoanh(DateTime dt)
+        {
+            var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+            var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
+            try
+            {
+                var type = EMoney24hTimeType.today;
+                var mode = (int)EConfigDataType.TuDoanh_today;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return (0, null);
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var strOutput = new StringBuilder();
+                var lData = new List<Money24h_TuDoanhResponse>();
+                lData.AddRange(await _apiService.Money24h_GetTuDoanh(EExchange.HSX, type));
+                if (!lData.Any())
+                    return (0, null);
+
+                var head = $"*Tự doanh ngày {dt.ToString("dd/MM/yyyy")}*"; 
+                strOutput.AppendLine(head);
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top mua ròng");
+                var lTopBuy = lData.OrderByDescending(x => x.prop_net).Take(10);
+                var lTopSell = lData.OrderBy(x => x.prop_net).Take(10);
+                var index = 1;
+                foreach (var item in lTopBuy)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    if (item.prop_net_deal > 0)
+                    {
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }
+                    else if (item.prop_net_deal < 0)
+                    {
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top bán ròng");
+                index = 1;
+                foreach (var item in lTopSell)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    if (item.prop_net_deal > 0)
+                    {
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }
+                    else if (item.prop_net_deal < 0)
+                    {
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = mode,
+                    t = t
+                });
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.ThongkeForeignWeek|EXCEPTION| {ex.Message}");
+            }
+
+            return (0, null);
+        }
+
+        private async Task<(int, string)> ThongkeTuDoanhWeek(DateTime dt)
+        {
+            var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+            var dTime = new DateTimeOffset(new DateTime(dt.Year, dt.Month, dt.Day)).ToUnixTimeSeconds();
+            try
+            {
+                var type = EMoney24hTimeType.week;
+                var mode = (int)EConfigDataType.TuDoanh_week;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return (0, null);
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var strOutput = new StringBuilder();
+                var lData = new List<Money24h_TuDoanhResponse>();
+                lData.AddRange(await _apiService.Money24h_GetTuDoanh(EExchange.HSX, type));
+                if (!lData.Any())
+                    return (0, null);
+
+                var head = $"*Tự doanh 7 ngày gần nhất*"; 
+                strOutput.AppendLine(head);
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top mua ròng");
+                var lTopBuy = lData.OrderByDescending(x => x.prop_net).Take(10);
+                var lTopSell = lData.OrderBy(x => x.prop_net).Take(10);
+                var index = 1;
+                foreach (var item in lTopBuy)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    if(item.prop_net_deal > 0)
+                    {
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }  
+                    else if (item.prop_net_deal < 0)
+                    {
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                strOutput.AppendLine();
+                strOutput.AppendLine($">>Top bán ròng");
+                index = 1;
+                foreach (var item in lTopSell)
+                {
+                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    if (item.prop_net_deal > 0)
+                    {
+                        content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }
+                    else if (item.prop_net_deal < 0)
+                    {
+                        content += $" - Thỏa thuận bán: {Math.Abs(item.prop_net_deal).ToString("#,##0.#")}";
+                    }
+                    strOutput.AppendLine(content);
+                    index++;
+                }
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = mode,
+                    t = t
+                });
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.ThongkeForeignWeek|EXCEPTION| {ex.Message}");
             }
 
             return (0, null);

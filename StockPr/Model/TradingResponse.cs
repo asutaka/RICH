@@ -94,6 +94,38 @@ namespace StockPr.Model
         public decimal net_val { get; set; }
     }
 
+    public class Money24h_TuDoanhResponse
+    {
+        public int no { get; set; }
+        public long d { get; set; }
+        public string s { get; set; }
+        public decimal prop_net_deal { get; set; }
+        public decimal prop_net_pt { get; set; }
+        public decimal prop_net { get; set; }
+        public long t { get; set; }
+    }
+
+    public class Money24h_TuDoanhAPIResponse
+    {
+        public Money24h_TuDoanhAPI_DataResponse data { get; set; }
+        public int status { get; set; }
+    }
+
+    public class Money24h_TuDoanhAPI_DataResponse
+    {
+        public List<Money24h_TuDoanhAPI_DataDetailResponse> data { get; set; }
+        public string from_date { get; set; }
+        public string to_date { get; set; }
+    }
+
+    public class Money24h_TuDoanhAPI_DataDetailResponse
+    {
+        public string symbol { get; set; }
+        public decimal prop_net_deal { get; set; }
+        public decimal prop_net_pt { get; set; }
+        public decimal prop_net { get; set; }
+    }
+
     public class MaTheoPTKT24H_MA20
     {
         public string s { get; set; }

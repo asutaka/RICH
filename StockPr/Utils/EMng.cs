@@ -16,6 +16,8 @@ namespace StockPr.Utils
         GDNN_today = 10,
         GDNN_week = 11,
         GDNN_month = 12,
+        TuDoanh_today = 13,
+        TuDoanh_week = 14,
         ThongKeNhomNganh_today = 20,
         ThongKeNhomNganh_week = 21,
         ThongKeNhomNganh_month = 22,

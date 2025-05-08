@@ -173,12 +173,12 @@ namespace StockPr
                             }
                         }
 
-                        if(dt.Hour >= 15)
+                        if(dt.Hour == 19)
                         {
-                            var res = await _tudoanhService.TuDoanhHSX();
-                            if (res.Item1 > 0)
+                            var mes = await _analyzeService.ThongKeTuDoanh();
+                            if (!string.IsNullOrWhiteSpace(mes))
                             {
-                                await _teleService.SendMessage(_idChannel, res.Item2, true);
+                                await _teleService.SendMessage(_idChannel, mes, true);
                             }
                         }
                     }
