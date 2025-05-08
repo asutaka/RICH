@@ -237,13 +237,22 @@ namespace StockPr.Service
 
                 var room = string.Empty;
                 var info_VNDirect = await _apiService.VNDirect_GetForeign(input);
-                var first = info.data.FirstOrDefault(x => x.tradingDate.Replace("/", "").Replace("-", "") == info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("ddMMyyyy"));
-                if (info_VNDirect != null 
-                    && first != null)
+                if (info_VNDirect != null)
                 {
                     try
                     {
-                        first.netBuySellVol = info_VNDirect.netVol;
+                        var first = info.data.FirstOrDefault(x => x.tradingDate.Replace("/", "").Replace("-", "") == info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("ddMMyyyy"));
+                        if(first != null)
+                        {
+                            first.netBuySellVol = info_VNDirect.netVol;
+                        }
+                        else
+                        {
+                            var add = new SSI_DataStockInfoDetailResponse();
+                            add.tradingDate = info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("dd/MM/yyyy");
+                            add.netBuySellVol = info_VNDirect.netVol;
+                            info.data.Insert(0, add);
+                        }
 
                         double currentRoom = 0;
                         if (info_VNDirect.currentRoom > 1000000)
