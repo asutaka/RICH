@@ -47,7 +47,7 @@ namespace TradePr.Service
             {
                 var dt = DateTime.Now;
                 var lConfig = _configRepo.GetAll();
-                var lConfigUnit = lConfig.Where(x => x.op == (int)EOption.Unit);
+                var lConfigUnit = lConfig.Where(x => x.op == (int)EOption.Max);
                 //
                 //BINANCE
                 var configBinance = lConfigUnit.First(x => x.ex == (int)EExchange.Binance);

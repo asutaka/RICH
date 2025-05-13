@@ -62,22 +62,36 @@ namespace TradePr.Service
                 var dt = DateTime.Now;
 
                 await Bybit_TakeProfit();
+                var lConfig = _configRepo.GetAll();
+                var disableAll = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableAll && x.status == 1);
 
-                if (dt.Minute % 15 == 0)
+                if (dt.Minute % 15 == 0
+                    && (disableAll is null || disableAll.status == 0))
                 {
+                    var disableLong = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableLong && x.status == 1);
+                    var disableShort = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableShort && x.status == 1);
+
                     var builderLONG = Builders<Symbol>.Filter;
                     var lLong = _symRepo.GetByFilter(builderLONG.And(
                         builderLONG.Eq(x => x.ex, _exchange),
                         builderLONG.Eq(x => x.ty, (int)OrderSide.Buy),
                         builderLONG.Eq(x => x.status, 0)
                     )).OrderBy(x => x.rank).Select(x => x.s);
+                    if (disableLong != null && disableLong.status == 1)
+                    {
+                        lLong = new List<string>();
+                    }
 
                     var builderSHORT = Builders<Symbol>.Filter;
                     var lShort = _symRepo.GetByFilter(builderSHORT.And(
                         builderSHORT.Eq(x => x.ex, _exchange),
                         builderSHORT.Eq(x => x.ty, (int)OrderSide.Sell),
                         builderSHORT.Eq(x => x.status, 0)
-                    )).OrderBy(x => x.rank).Select(x => x.s); 
+                    )).OrderBy(x => x.rank).Select(x => x.s);
+                    if (disableShort != null && disableShort.status == 1)
+                    {
+                        lShort = new List<string>();
+                    }
 
                     await Bybit_TradeRSI_LONG(lLong.Take(20));
                     await Bybit_TradeRSI_SHORT(lShort.Take(20));
@@ -460,9 +474,10 @@ namespace TradePr.Service
                 }
                 //Lay Unit tu database
                 var lConfig = _configRepo.GetAll();
-                var config = lConfig.First(x => x.op == (int)EOption.Unit && x.ex == (int)EExchange.Bybit);
+                var max = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Max);
+                var thread = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Thread);
 
-                if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= (decimal)config.value)
+                if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= (decimal)max.value)
                     return false;
 
                 //Nếu trong 4 tiếng gần nhất giảm quá 10% thì không mua mới
@@ -482,20 +497,16 @@ namespace TradePr.Service
                         var rate = 1 - last.CashBalance.Value/first.CashBalance.Value;
                         var div = last.CashBalance.Value - first.CashBalance.Value;
 
-                        Console.WriteLine($"BYBIT PreCheck: {div}");
-                        if ((double)div * 10 > 0.6 * config.value)
+                        if ((double)div * 10 > 0.6 * max.value)
                             return false;
 
-                        Console.WriteLine($"BYBIT PreCheck 2: {rate}%");
                         if (rate <= -0.13m)
                             return false;
                     }
                 }
 
-                Console.WriteLine("BYBIT PASS");
-
                 var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                if (pos.Data.List.Count() >= 4)
+                if (pos.Data.List.Count() >= thread.value)
                     return false;
 
                 if (pos.Data.List.Any(x => x.Symbol == entity.s))
@@ -511,7 +522,7 @@ namespace TradePr.Service
                 var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
                 var direction = side == OrderSide.Buy ? TriggerDirection.Fall : TriggerDirection.Rise;
               
-                decimal soluong = (decimal)config.value / entity.quote.Close;
+                decimal soluong = (decimal)max.value / entity.quote.Close;
                 if(tronSL == 1)
                 {
                     soluong = Math.Round(soluong);

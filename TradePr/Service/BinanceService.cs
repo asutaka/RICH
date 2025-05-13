@@ -67,21 +67,36 @@ namespace TradePr.Service
                 await InitSymbolConfig();
                 await Binance_TakeProfit();
 
-                if (dt.Minute % 15 == 0)
+                var lConfig = _configRepo.GetAll();
+                var disableAll = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableAll && x.status == 1);
+
+                if (dt.Minute % 15 == 0
+                    && (disableAll is null || disableAll.status == 0))
                 {
+                    var disableLong = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableLong && x.status == 1);
+                    var disableShort = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableShort && x.status == 1);
+
                     var builderLONG = Builders<Symbol>.Filter;
                     var lLong = _symRepo.GetByFilter(builderLONG.And(
                         builderLONG.Eq(x => x.ex, _exchange),
                         builderLONG.Eq(x => x.ty, (int)OrderSide.Buy),
                         builderLONG.Eq(x => x.status, 0)
-                    )).OrderBy(x => x.rank).Select(x => x.s); ;
+                    )).OrderBy(x => x.rank).Select(x => x.s); 
+                    if(disableLong != null && disableLong.status == 1)
+                    {
+                        lLong = new List<string>();
+                    }
 
                     var builderSHORT = Builders<Symbol>.Filter;
                     var lShort = _symRepo.GetByFilter(builderSHORT.And(
                         builderSHORT.Eq(x => x.ex, _exchange),
                         builderSHORT.Eq(x => x.ty, (int)OrderSide.Sell),
                         builderSHORT.Eq(x => x.status, 0)
-                    )).OrderBy(x => x.rank).Select(x => x.s); ;
+                    )).OrderBy(x => x.rank).Select(x => x.s);
+                    if (disableShort != null && disableShort.status == 1)
+                    {
+                        lShort = new List<string>();
+                    }
 
                     //await Binance_TradeLiquid();
                     await Binance_TradeRSI_LONG(lLong.Take(20));
@@ -536,9 +551,10 @@ namespace TradePr.Service
 
                 //Lay Unit tu database
                 var lConfig = _configRepo.GetAll();
-                var config = lConfig.First(x => x.op == (int)EOption.Unit && x.ex == (int)EExchange.Binance);
+                var max = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Max);
+                var thread = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Thread);
 
-                if (account.AvailableBalance * _margin <= (decimal)config.value)
+                if (account.AvailableBalance * _margin <= (decimal)max.value)
                 {
                     //await _teleService.SendMessage(_idUser, $"[ERROR_binance] Tiền không đủ| Balance: {account.WalletBalance}");
                     return false;
@@ -556,19 +572,15 @@ namespace TradePr.Service
                     var income = lIncome.Data.Where(x => x.Timestamp >= DateTime.UtcNow.AddHours(-4)).Sum(x => x.Income);
                     var rate = income / account.WalletBalance;
 
-                    Console.WriteLine($"BINANCE PreCheck: {income}");
-                    if ((double)income * -10 > 0.6 * config.value)
+                    if ((double)income * -10 > 0.6 * max.value)
                         return false;
 
-                    Console.WriteLine($"BINANCE PreCheck 2: {rate}%");
                     if (rate <= -0.13m) 
                         return false;
                 }
 
-                Console.WriteLine("BINANCE PASS");
-
                 var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
-                if (pos.Data.Count() >= 4)
+                if (pos.Data.Count() >= thread.value)
                     return false;
 
                 if (pos.Data.Any(x => x.Symbol == entity.s))
@@ -603,7 +615,7 @@ namespace TradePr.Service
                 if (symConfig is null)
                     return false;
 
-                decimal soluong = Math.Round((decimal)config.value / entity.quote.Close, symConfig.quan);
+                decimal soluong = Math.Round((decimal)max.value / entity.quote.Close, symConfig.quan);
                 var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
                                                                                                     side: side,
                                                                                                     type: FuturesOrderType.Market,
