@@ -16,6 +16,7 @@ namespace TradePr.Service
     }
     public class TeleService : ITeleService
     {
+        private const long _idUser = 1066022551;
         private readonly ILogger<TeleService> _logger;
         private TelegramBotClient _bot = new TelegramBotClient("7783423206:AAGnpRM_8xnxr44sbgOX-ktIHXQEsyMxH6A");
         private readonly ISymbolRepo _symRepo;
@@ -164,17 +165,20 @@ namespace TradePr.Service
                         {
                             //Thêm bớt coin
                             ThemBotCoin(model);
+                            await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã {model.Action.ToString().ToUpper()} {model.Coin} đối với danh sách {model.Position.ToString().ToUpper()}");
                         }
                     }
                     else if(model.Max != null)
                     {
                         //Set lại giá trị lệnh
                         SetGiaTriLenh(model);
+                        await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã set giá trị Lệnh là {model.Max.ToString().ToUpper().Replace("MAX", "")}");
                     }
                     else if(model.Thread != null)
                     {
                         //Set số lệnh trong cùng một thời điểm
                         SetThread(model);
+                        await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã set số Thread tối đa là {model.Thread.ToString().ToUpper().Replace("THREAD", "")}");
                     }
                     else if(model.Terminal != null)
                     {
@@ -182,11 +186,13 @@ namespace TradePr.Service
                         {
                             //Bật tắt một vị thế
                             BatTatMotViThe(model);
+                            await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã {model.Terminal.ToString().ToUpper()} các vị thế {model.Position.ToString().ToUpper()}");
                         }
                         else
                         {
                             //Bật tắt toàn bộ 
                             BatTatToanBo(model);
+                            await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã {model.Terminal.ToString().ToUpper()} toàn bộ các vị thế");
                         }
                     }
                 }
