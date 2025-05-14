@@ -176,6 +176,11 @@ namespace StockPr.Model
         public int totalBuyTradeVol { get; set; }//KL đặt mua
         public int totalSellTradeVol { get; set; }//KL đặt bán
         public int totalMatchVol { get; set; }//KL khớp
+        //
+        //public int open { get; set; }
+        //public int high { get; set; }
+        //public int low { get; set; }
+        public decimal close { get; set; }
     }
 
     public class VNDirect_ForeignResponse

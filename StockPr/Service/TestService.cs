@@ -1,5 +1,7 @@
 ﻿using Skender.Stock.Indicators;
 using StockPr.DAL;
+using StockPr.Model;
+using StockPr.Utils;
 
 namespace StockPr.Service
 {
@@ -7,6 +9,7 @@ namespace StockPr.Service
     {
         Task CheckAllDay_OnlyVolume();
         Task BatDayCK();
+        Task CheckGDNN();
     }
     public class TestService : ITestService
     {
@@ -777,6 +780,270 @@ namespace StockPr.Service
                 _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
+
+        public async Task CheckGDNN()
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var dtPrev = dt.AddYears(-1);
+                var lTotal = new List<decimal>();
+                foreach (var sym in _lTake)
+                {
+                    var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
+                    Thread.Sleep(500);
+                    var count = dat.data.Count;
+                    var lDat = dat.data;
+                    lDat.Reverse();
+                    QuoteEx itemBuy = null, itemSell = null;
+
+                    for (int i = 5; i < count; i++)
+                    {
+                        //var prev_2 = dat.data[i - 3];
+                        var prev_1 = dat.data[i - 2];
+                        var prev_0 = dat.data[i - 1];
+
+                        var item = dat.data[i];
+                        var curDate = item.tradingDate.ToDateTime("dd/MM/yyyy");
+
+                        if (prev_1.netBuySellVol <= 0
+                            && prev_0.netBuySellVol <= 0
+                            && item.netBuySellVol > 0)
+                        {
+                            itemBuy = new QuoteEx
+                            {
+                                Close = item.close,
+                                //Open = item.open,
+                                //High = item.high,
+                                //Low = item.low,
+                                Date = curDate,
+                                Index = i
+                            };
+                            itemSell = null;
+                            continue;
+                        }
+                        if (itemBuy != null
+                            && prev_1.netBuySellVol >= 0
+                            && prev_0.netBuySellVol >= 0
+                            && item.netBuySellVol < 0
+                            && (i = itemBuy.Index) > 3)
+                        {
+                            itemSell = new QuoteEx
+                            {
+                                Close = item.close,
+                                //Open = item.open,
+                                //High = item.high,
+                                //Low = item.low,
+                                Date = curDate,
+                                Index = i
+                            };
+                            var rate = Math.Round(100 * (-1 + itemSell.Close / itemBuy.Close), 1);
+                            lTotal.Add(rate);
+                            var mes = $"{sym}|BUY({itemBuy.Date.ToString("dd/MM/yyyy")})|SELL({itemSell.Date.ToString("dd/MM/yyyy")})| Rate: {rate}%";
+                            Console.WriteLine(mes);
+                            itemBuy = null;
+                            itemSell = null;
+                        }
+                    }
+                }
+
+                Console.WriteLine($"Total: {lTotal.Sum()}%");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"{ex.Message}");
+            }
+        }
+
+        private static List<string> _lTake = new List<string>
+                {
+                    "DC4",
+                    "GIL",
+                    "GVR",
+                    "DPG",
+                    "CTG",
+                    "BFC",
+                    "VRE",
+                    "PVB",
+                    "GEX",
+                    "SZC",
+                    "HDG",
+                    "BMP",
+                    "TLG",
+                    "VPB",
+                    "DIG",
+                    "KBC",
+                    "HSG",
+                    "PET",
+                    "TNG",
+                    "SBT",
+                    "MSH",
+                    "NAB",
+                    "VGC",
+                    "CSV",
+                    "VCS",
+                    "CSM",
+                    "PHR",
+                    "PVT",
+                    "PC1",
+                    "ASM",
+                    "LAS",
+                    "DXG",
+                    "HCM",
+                    "CTI",
+                    "NHA",
+                    "DPR",
+                    "ANV",
+                    "OCB",
+                    "TVB",
+                    "STB",
+                    "HDC",
+                    "POW",
+                    "VSC",
+                    "L18",
+                    "DDV",
+                    "VCI",
+                    "GMD",
+                    "NTP",
+                    "KSV",
+                    "NT2",
+                    "TCM",
+                    "LSS",
+                    "GEG",
+                    "HHS",
+                    "MSB",
+                    "TCH",
+                    "VHC",
+                    "PVD",
+                    "FOX",
+                    "SSI",
+                    "NKG",
+                    "BSI",
+                    "ACB",
+                    "REE",
+                    "VHM",
+                    "PAN",
+                    "SIP",
+                    "PTB",
+                    "BSR",
+                    "BID",
+                    "PVS",
+                    "CTS",
+                    "FTS",
+                    "HPG",
+                    "DBC",
+                    "MSR",
+                    "THG",
+                    "CTD",
+                    "VOS",
+                    "FMC",
+                    "PHP",
+                    "GAS",
+                    "DCM",
+                    "KSB",
+                    "MSN",
+                    "BVB",
+                    "MBB",
+                    "TRC",
+                    "VPI",
+                    "EIB",
+                    "KDH",
+                    "VCB",
+                    "FPT",
+                    "DRC",
+                    "CMG",
+                    "HAG",
+                    "SHB",
+                    "CII",
+                    "CTR",
+                    "IDC",
+                    "GEE",
+                    "NVB",
+                    "BVS",
+                    "BWE",
+                    "HAX",
+                    "QNS",
+                    "VEA",
+                    "TVS",
+                    "DGC",
+                    "HAH",
+                    "NVL",
+                    "PAC",
+                    "AAA",
+                    "TNH",
+                    "ACV",
+                    "BCC",
+                    "FRT",
+                    "HT1",
+                    "SCS",
+                    "TLH",
+                    "MIG",
+                    "SKG",
+                    "DGC",
+                    "VAB",
+                    "NLG",
+                    "HVN",
+                    "HNG",
+                    "PDR",
+                    "VDS",
+                    "SJE",
+                    "PNJ",
+                    "CEO",
+                    "YEG",
+                    "KLB",
+                    "BCM",
+                    "BVH",
+                    "NTL",
+                    "TDH",
+                    "MBS",
+                    "HUT",
+                    "VIB",
+                    "BAF",
+                    "HHV",
+                    "NDN",
+                    "SGP",
+                    "MCH",
+                    "FCN",
+                    "SCR",
+                    "TCB",
+                    "LPB",
+                    "VTP",
+                    "AGR",
+                    "VCG",
+                    "DPM",
+                    "IDJ",
+                    "DXS",
+                    "OIL",
+                    "AGG",
+                    "VND",
+                    "PSI",
+                    "DHA",
+                    "VIC",
+                    "BCG",
+                    "TPB",
+                    "VIX",
+                    "IJC",
+                    "DGW",
+                    "SBS",
+                    "MFS",
+                    "PLX",
+                    "DRI",
+                    "EVF",
+                    "ORS",
+                    "SAB",
+                    "TDC",
+                    "VNM",
+                    "TV2",
+                    "C4G",
+                    "MWG",
+                    "JVC",
+                    "GDA",
+                    "VGI",
+                    "DSC",
+                    "SMC",
+                    "DTD",
+                    "QCG",
+                };
     }
 
     public class LongMa20

@@ -42,6 +42,7 @@ namespace StockPr.Service
         Task<SSI_DataFinanceDetailResponse> SSI_GetFinanceStock(string code);
         Task<decimal> SSI_GetFreefloatStock(string code);
         Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code);
+        Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code, DateTime from, DateTime to);
         Task<VNDirect_ForeignDetailResponse> VNDirect_GetForeign(string code);
 
 
@@ -1375,6 +1376,29 @@ namespace StockPr.Service
         {
             var to = DateTime.Now;
             var from = to.AddMonths(-1);
+            var lOutput = new List<Quote>();
+            var urlBase = $"https://iboard-api.ssi.com.vn/statistics/company/ssmi/stock-info?symbol={code}&page=1&pageSize=100&fromDate={from.Day.To2Digit()}%2F{from.Month.To2Digit()}%2F{from.Year}&toDate={to.Day.To2Digit()}%2F{to.Month.To2Digit()}%2F{to.Year}";
+            try
+            {
+                var url = urlBase;
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                Thread.Sleep(100);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<SSI_DataStockInfoResponse>(resultArray);
+                return responseModel;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.SSI_GetStockInfo|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code, DateTime from, DateTime to)
+        {
             var lOutput = new List<Quote>();
             var urlBase = $"https://iboard-api.ssi.com.vn/statistics/company/ssmi/stock-info?symbol={code}&page=1&pageSize=100&fromDate={from.Day.To2Digit()}%2F{from.Month.To2Digit()}%2F{from.Year}&toDate={to.Day.To2Digit()}%2F{to.Month.To2Digit()}%2F{to.Year}";
             try
