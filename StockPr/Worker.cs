@@ -52,7 +52,7 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            //await _testService.BatDayCK();
+            //await _testService.CheckGDNN();
             //return;
             while (!stoppingToken.IsCancellationRequested)
             {

@@ -172,6 +172,7 @@ namespace StockPr.Model
         public string tradingDate { get; set; }
         //NN
         public double? netBuySellVol { get; set; }//NN Mua bán ròng
+        public double? netBuySellVal { get; set; }//NN Mua bán ròng
         //Cung cầu
         public int totalBuyTradeVol { get; set; }//KL đặt mua
         public int totalSellTradeVol { get; set; }//KL đặt bán

@@ -788,10 +788,18 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var dtPrev = dt.AddYears(-1);
                 var lTotal = new List<decimal>();
+                var min = 200000000;
+                //_lTake.Clear();
+                //_lTake = new List<string>
+                //{
+                //    "BFC"
+                //};
                 foreach (var sym in _lTake)
                 {
                     var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
                     Thread.Sleep(500);
+                    var lData = await _apiService.SSI_GetDataStock(sym);
+                    var lbb = lData.GetBollingerBands();
                     var count = dat.data.Count;
                     var lDat = dat.data;
                     lDat.Reverse();
@@ -799,50 +807,63 @@ namespace StockPr.Service
 
                     for (int i = 5; i < count; i++)
                     {
-                        //var prev_2 = dat.data[i - 3];
-                        var prev_1 = dat.data[i - 2];
-                        var prev_0 = dat.data[i - 1];
-
-                        var item = dat.data[i];
-                        var curDate = item.tradingDate.ToDateTime("dd/MM/yyyy");
-
-                        if (prev_1.netBuySellVol <= 0
-                            && prev_0.netBuySellVol <= 0
-                            && item.netBuySellVol > 0)
+                        try
                         {
-                            itemBuy = new QuoteEx
+                            var prev_2 = dat.data[i - 3];
+                            var prev_1 = dat.data[i - 2];
+                            var prev_0 = dat.data[i - 1];
+
+                            var item = dat.data[i];
+                            var curDate = item.tradingDate.ToDateTime("dd/MM/yyyy");
+
+                            if (itemBuy is null//chi them dk nay kq khac han
+                                && prev_2.netBuySellVal <= min
+                                && prev_1.netBuySellVal <= min
+                                && prev_0.netBuySellVal <= min
+                                && item.netBuySellVal > min)
                             {
-                                Close = item.close,
-                                //Open = item.open,
-                                //High = item.high,
-                                //Low = item.low,
-                                Date = curDate,
-                                Index = i
-                            };
-                            itemSell = null;
-                            continue;
+                                var itemData = lData.First(x => x.Date.Year == curDate.Year && x.Date.Month == curDate.Month && x.Date.Day == curDate.Day);
+                                var bb = lbb.First(x => x.Date == itemData.Date);
+                                if (Math.Max(itemData.Open, itemData.Close) >= (decimal)bb.UpperBand.Value)
+                                    continue;
+                                if (itemData.High > (decimal)bb.Sma.Value
+                                    && itemData.Close < itemData.Open
+                                    && itemData.Close < (decimal)bb.Sma.Value)
+                                    continue;
+
+                                itemBuy = new QuoteEx
+                                {
+                                    Close = item.close,
+                                    Date = curDate,
+                                    Index = i
+                                };
+                                itemSell = null;
+                                continue;
+                            }
+                            if (itemBuy != null
+                                && prev_2.netBuySellVal >= -min
+                                && prev_1.netBuySellVal >= -min
+                                && prev_0.netBuySellVal >= -min
+                                && item.netBuySellVal < -min
+                                && (i - itemBuy.Index) > 3)
+                            {
+                                itemSell = new QuoteEx
+                                {
+                                    Close = item.close,
+                                    Date = curDate,
+                                    Index = i
+                                };
+                                var rate = Math.Round(100 * (-1 + itemSell.Close / itemBuy.Close), 1);
+                                lTotal.Add(rate);
+                                var mes = $"{sym}|BUY({itemBuy.Date.ToString("dd/MM/yyyy")})|SELL({itemSell.Date.ToString("dd/MM/yyyy")})| Rate: {rate}%";
+                                Console.WriteLine(mes);
+                                itemBuy = null;
+                                itemSell = null;
+                            }
                         }
-                        if (itemBuy != null
-                            && prev_1.netBuySellVol >= 0
-                            && prev_0.netBuySellVol >= 0
-                            && item.netBuySellVol < 0
-                            && (i = itemBuy.Index) > 3)
+                        catch(Exception ex)
                         {
-                            itemSell = new QuoteEx
-                            {
-                                Close = item.close,
-                                //Open = item.open,
-                                //High = item.high,
-                                //Low = item.low,
-                                Date = curDate,
-                                Index = i
-                            };
-                            var rate = Math.Round(100 * (-1 + itemSell.Close / itemBuy.Close), 1);
-                            lTotal.Add(rate);
-                            var mes = $"{sym}|BUY({itemBuy.Date.ToString("dd/MM/yyyy")})|SELL({itemSell.Date.ToString("dd/MM/yyyy")})| Rate: {rate}%";
-                            Console.WriteLine(mes);
-                            itemBuy = null;
-                            itemSell = null;
+                            Console.WriteLine($"{ex.Message}");
                         }
                     }
                 }
