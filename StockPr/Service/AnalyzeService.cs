@@ -824,8 +824,8 @@ namespace StockPr.Service
             {
                 if (lData.Count() < 250)
                     return null;
-                var entity = lData.Last();
-                var val = entity.Close * entity.Volume;
+                var entity_Pivot = lData.Last();
+                var val = entity_Pivot.Close * entity_Pivot.Volume;
                 if (val < 100000)//Giá trị giao dịch < 100tr
                     return null;
 
@@ -833,27 +833,57 @@ namespace StockPr.Service
                     return null;
 
                 var model = new ReportPTKT();
+                var lVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Close = x.Volume
+                }).ToList();
 
                 var lIchi = lData.GetIchimoku();
                 var lBb = lData.GetBollingerBands();
                 var lRsi = lData.GetRsi();
+                var lMa20Vol = lVol.GetSma(20);
 
                 //MA20
-                var bb = lBb.Last();
-                var entityNear = lData.SkipLast(1).Last();
-                var bbNear = lBb.SkipLast(1).Last();
-                var rateVol = Math.Round(entity.Volume / entityNear.Volume, 1);
+                var bb_Pivot = lBb.Last();
+                var entity_Sig = lData.SkipLast(1).Last();
+                var bb_Sig = lBb.SkipLast(1).Last();
+                var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 1);
+                var bandRate = Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value), 1);
+                var ma20Vol = lMa20Vol.First(x => x.Date == entity_Sig.Date);
 
-                model.isFocus = rateVol <= (decimal)0.6;
-                model.isGEMA20 = entity.Close >= (decimal)bb.Sma;
-                model.isCrossMa20Up = entityNear.Close < (decimal)bbNear.Sma && entity.Close >= (decimal)bb.Sma && entity.Open <= (decimal)bb.Sma;
-                model.isPriceUp = entity.Close > entity.Open;
+
+                //model.isFocus = rateVol <= (decimal)0.6;
+                model.isGEMA20 = entity_Pivot.Close >= (decimal)bb_Pivot.Sma;
+                model.isCrossMa20Up = entity_Sig.Close < (decimal)bb_Sig.Sma && entity_Pivot.Close >= (decimal)bb_Pivot.Sma && entity_Pivot.Open <= (decimal)bb_Pivot.Sma;
+                model.isPriceUp = entity_Pivot.Close > entity_Pivot.Open;
 
                 //Ichi
                 var ichiCheck = lIchi.Last();
-                if (entity.Close > ichiCheck.SenkouSpanA && entity.Close > ichiCheck.SenkouSpanB)
+                if (entity_Pivot.Close > ichiCheck.SenkouSpanA && entity_Pivot.Close > ichiCheck.SenkouSpanB)
                 {
                     model.isIchi = true;
+                }
+
+                //Focus: 
+                /*
+                    + Vol giảm một nửa
+                    + BB band > 7%
+                    + Vol Sig > Ma20 Vol 
+                    + Pivot > Ma20
+                    + Thuộc 1/3 so với Upper 
+                 */
+                if(bandRate > 7
+                    && rateVol <= (decimal)0.6
+                    && entity_Sig.Volume > (decimal)ma20Vol.Sma.Value
+                    && entity_Pivot.Close > (decimal)bb_Pivot.Sma.Value)
+                {
+                    var max = Math.Max(entity_Pivot.Open, entity_Pivot.Close);
+                    var check1_3 = (max - (decimal)bb_Pivot.Sma.Value) >= 2 * ((decimal)bb_Pivot.UpperBand.Value - max); 
+                    if(check1_3)
+                    {
+                        model.isFocus = true;
+                    }
                 }
                 return model;
             }
