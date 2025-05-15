@@ -156,12 +156,6 @@ namespace StockPr
                                 await _teleService.SendMessage(_idChannel, mes, true);
                             }
 
-                            var mesWeek = await _analyzeService.ThongKeGDNN_Week();
-                            if (!string.IsNullOrWhiteSpace(mesWeek))
-                            {
-                                await _teleService.SendMessage(_idChannel, mesWeek, true);
-                            }
-
                             var res = await _analyzeService.ChiBaoKyThuat(dt);
                             if (res.Item1 > 0)
                             {

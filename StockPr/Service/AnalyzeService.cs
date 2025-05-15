@@ -12,7 +12,6 @@ namespace StockPr.Service
     {
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
-        Task<string> ThongKeGDNN_Week();
         Task<string> ThongKeTuDoanh();
         Task<(int, string, IEnumerable<string>)> ChiBaoKyThuat(DateTime dt);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
@@ -232,6 +231,12 @@ namespace StockPr.Service
         {
             var dt = DateTime.Now;
             var sBuilder = new StringBuilder();
+            var nhomnganh = await ThongkeNhomNganh(dt);
+            if (nhomnganh.Item1 > 0)
+            {
+                sBuilder.AppendLine(nhomnganh.Item2);
+            }
+
             var foreign = await ThongkeForeign(dt);
             if(foreign.Item1 > 0)
             {
@@ -239,22 +244,10 @@ namespace StockPr.Service
                 sBuilder.AppendLine();
             }
 
-            var nhomnganh = await ThongkeNhomNganh(dt);
-            if(nhomnganh.Item1 > 0)
+            var foreignWeek = await ThongkeForeignWeek(dt);
+            if (foreignWeek.Item1 > 0)
             {
-                sBuilder.AppendLine(nhomnganh.Item2);
-            }
-            return sBuilder.ToString();
-        }
-
-        public async Task<string> ThongKeGDNN_Week()
-        {
-            var dt = DateTime.Now;
-            var sBuilder = new StringBuilder();
-            var foreign = await ThongkeForeignWeek(dt);
-            if (foreign.Item1 > 0)
-            {
-                sBuilder.AppendLine(foreign.Item2);
+                sBuilder.AppendLine(foreignWeek.Item2);
                 sBuilder.AppendLine();
             }
 
