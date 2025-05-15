@@ -11,7 +11,7 @@ namespace StockPr.Service
     public interface IChartService
     {
         Task<List<InputFileStream>> Chart_MaCK(string input);
-        Task<List<InputFileStream>> Chart_CungCau(string input);
+        Task<List<InputFileStream>> Chart_CungCau(string input, DateTime from, DateTime to);
     }
     public class ChartService : IChartService
     {
@@ -216,7 +216,7 @@ namespace StockPr.Service
             return null;
         }
 
-        public async Task<List<InputFileStream>> Chart_CungCau(string input)
+        public async Task<List<InputFileStream>> Chart_CungCau(string input, DateTime from, DateTime to)
         {
             var lRes = new List<InputFileStream>();
             try
@@ -225,7 +225,7 @@ namespace StockPr.Service
                 if (stock == null)
                     return null;
 
-                var info = await _apiService.SSI_GetStockInfo(input);
+                var info = await _apiService.SSI_GetStockInfo(input, from, to);
                 if (!info.data.Any())
                     return null;
 

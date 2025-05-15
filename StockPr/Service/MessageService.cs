@@ -67,6 +67,7 @@ namespace StockPr.Service
         private async Task<List<HandleMessageModel>> HandleMessage(Message msg)
         {
             var lRes = new List<HandleMessageModel>();
+            var now = DateTime.Now;
             try
             {
                 var input = msg.Text.RemoveSpace().ToUpper();
@@ -88,7 +89,7 @@ namespace StockPr.Service
                     {
                         lRes.AddRange(lMa);
                     }
-                    var lCungCau = await ChartCungCau(input);
+                    var lCungCau = await ChartCungCau(input, now.AddMonths(-1), now);
                     if (lCungCau?.Any() ?? false)
                     {
                         lRes.AddRange(lCungCau);
@@ -100,6 +101,56 @@ namespace StockPr.Service
                         {
                             Message = $"FreeFloat: {Math.Round(rank.Item1)}%\nEPS: {Math.Round(rank.Item2).ToString("#,##0.#")} đồng\nPE: {Math.Round(rank.Item3)}\nNợ/VCSH: {Math.Round(rank.Item4, 2)}"
                         });
+                    }
+                }
+                else
+                {
+                    var mes = msg.Text.Trim();
+                    var lmes = mes.Split(" ");
+                    if(lmes.Length > 1
+                        && lmes[0].Equals("NN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var maStr = lmes[1].ToUpper();
+                        if(maStr.Length == 3)//MaCK
+                        {
+                            var count = lmes.Length;
+                            if (count == 3) //Kèm ngày
+                            {
+                                var dateStr = lmes[2].Replace("-","/");
+                                var lDate = dateStr.Split("/");
+                                if(lDate.Length == 2)//Date chỉ cần truyền ngày và tháng
+                                {
+                                    var isInt = int.TryParse(lDate[0], out var day);
+                                    if (isInt)
+                                    {
+                                        isInt = int.TryParse(lDate[1], out var month);
+                                        if (isInt)
+                                        {
+                                            //Chart + Ngày
+                                            var year = now.Year;
+                                            if (month > now.Month)
+                                                year--;
+
+                                            var from = new DateTime(year, month, day);
+                                            var to = from.AddDays(20);
+                                            var lCungCauDate = await ChartCungCau(maStr, from, to);
+                                            if (lCungCauDate?.Any() ?? false)
+                                            {
+                                                lRes.AddRange(lCungCauDate);
+                                            }
+                                            return lRes;
+                                        }
+                                    }
+                                }
+                            }
+                            //Chart
+                            var lCungCau = await ChartCungCau(maStr, now.AddDays(-20), now);
+                            if (lCungCau?.Any() ?? false)
+                            {
+                                lRes.AddRange(lCungCau);
+                            }
+                            return lRes;
+                        }
                     }
                 }
             }
@@ -164,12 +215,12 @@ namespace StockPr.Service
             return lRes;
         }
 
-        private async Task<List<HandleMessageModel>> ChartCungCau(string input)
+        private async Task<List<HandleMessageModel>> ChartCungCau(string input, DateTime from, DateTime to)
         {
             var lRes = new List<HandleMessageModel>();
             try
             {
-                var lStream = await _chartService.Chart_CungCau(input);
+                var lStream = await _chartService.Chart_CungCau(input, from, to);
                 if (lStream is null)
                     return null;
                 foreach (var stream in lStream)
