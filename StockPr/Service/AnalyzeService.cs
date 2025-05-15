@@ -735,16 +735,15 @@ namespace StockPr.Service
 
                 var strOutput = new StringBuilder();
                 var lReport = new List<ReportPTKT>();
-                var filter = Builders<Stock>.Filter.Gte(x => x.status, 0);
-                var lStock = _stockRepo.GetByFilter(filter).OrderBy(x => x.rank);
-                foreach (var item in lStock)
+                //var filter = Builders<Stock>.Filter.Gte(x => x.status, 0);
+                //var lStock = _stockRepo.GetByFilter(filter).OrderBy(x => x.rank);
+                foreach (var item in StaticVal._lFocus)
                 {
                     try
                     {
-                        var model = await ChiBaoKyThuatOnlyStock(item.s, 500);
+                        var model = await ChiBaoKyThuatOnlyStock(item, 500);
                         if (model is null)
                             continue;
-                        model.rank = item.rank;
 
                         lReport.Add(model);
                     }
@@ -763,7 +762,6 @@ namespace StockPr.Service
 
                 var lFocus = lReport.Where(x => StaticVal._lFocus.Contains(x.s));
                 var lTrenMa20 = lFocus.Where(x => x.isPriceUp && x.isCrossMa20Up)
-                                    .OrderBy(x => x.rank)
                                     .Take(20);
                 var lAcceptFocus = lFocus.Where(x => x.isFocus).Select(x => x.s);
                 if (lTrenMa20.Any())
