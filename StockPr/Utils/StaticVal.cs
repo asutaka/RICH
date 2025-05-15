@@ -81,7 +81,6 @@ namespace StockPr.Utils
             "DPG",
             "DPM",
             "DPR",
-            "DGC",
             "DRC",
             "DSC",
             "DXG",
