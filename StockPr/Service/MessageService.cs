@@ -132,7 +132,7 @@ namespace StockPr.Service
                                                 year--;
 
                                             var from = new DateTime(year, month, day);
-                                            var to = from.AddDays(20);
+                                            var to = from.AddMonths(1);
                                             var lCungCauDate = await ChartCungCau(maStr, from, to);
                                             if (lCungCauDate?.Any() ?? false)
                                             {
@@ -144,7 +144,7 @@ namespace StockPr.Service
                                 }
                             }
                             //Chart
-                            var lCungCau = await ChartCungCau(maStr, now.AddDays(-20), now);
+                            var lCungCau = await ChartCungCau(maStr, now.AddMonths(-1), now);
                             if (lCungCau?.Any() ?? false)
                             {
                                 lRes.AddRange(lCungCau);
