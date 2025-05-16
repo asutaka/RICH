@@ -116,7 +116,7 @@ namespace StockPr.Service
                             var count = lmes.Length;
                             if (count == 3) //Kèm ngày
                             {
-                                var dateStr = lmes[2].Replace("-","/");
+                                var dateStr = lmes[2].Replace("-", "/").Replace(".", "/").Replace(",", "/");
                                 var lDate = dateStr.Split("/");
                                 if(lDate.Length == 2)//Date chỉ cần truyền ngày và tháng
                                 {
