@@ -241,18 +241,23 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var first = info.data.FirstOrDefault(x => x.tradingDate.Replace("/", "").Replace("-", "") == info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("ddMMyyyy"));
-                        if(first != null)
+                        var firstDate = info.data.First().tradingDate.ToDateTime("dd/MM/yyyy");
+                        var vnDirectDate = info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd");
+                        var div = (vnDirectDate - firstDate).TotalDays;
+                        if(div == 0)
                         {
-                            first.netBuySellVol = info_VNDirect.netVol;
+                            info.data.First().netBuySellVol = info_VNDirect.netVol;
                         }
-                        else
+                        else if(div < 10)
                         {
                             var add = new SSI_DataStockInfoDetailResponse();
                             add.tradingDate = info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("dd/MM/yyyy");
                             add.netBuySellVol = info_VNDirect.netVol;
                             info.data.Insert(0, add);
                         }
+
+                        //
+                        info.data = info.data.Take(19).ToList();
 
                         double currentRoom = 0;
                         if (info_VNDirect.currentRoom > 1000000)
