@@ -171,11 +171,12 @@ namespace StockPr.Model
     {
         public string tradingDate { get; set; }
         //NN
-        public double? netBuySellVol { get; set; }//NN Mua bán ròng
-        public double? netBuySellVal { get; set; }//NN Mua bán ròng
+        public double? netBuySellVol { get; set; }//NN Mua bán ròng khối lượng
+        public double? netBuySellVal { get; set; }//NN Mua bán ròng giá trị
         //Cung cầu
         public int totalBuyTradeVol { get; set; }//KL đặt mua
         public int totalSellTradeVol { get; set; }//KL đặt bán
+        public int netTotalTradeVol { get; set; }//Hiệu KL đặt mua - KL đặt bán
         public int totalMatchVol { get; set; }//KL khớp
         //
         //public int open { get; set; }

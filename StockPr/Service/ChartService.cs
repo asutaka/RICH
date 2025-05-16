@@ -258,6 +258,10 @@ namespace StockPr.Service
 
                         //
                         info.data = info.data.Take(19).ToList();
+                        foreach (var item in info.data)
+                        {
+                            item.netTotalTradeVol = item.totalBuyTradeVol - item.totalSellTradeVol;
+                        }
 
                         double currentRoom = 0;
                         if (info_VNDirect.currentRoom > 1000000)
@@ -316,8 +320,8 @@ namespace StockPr.Service
                 var streamCungCau = await Chart_CungCau(info.data.Select(x => new CungCauModel
                 {
                     Date = x.tradingDate,
-                    Up = x.totalBuyTradeVol, 
-                    Down = x.totalSellTradeVol,
+                    Up = x.netTotalTradeVol >= 0 ? x.netTotalTradeVol : 0,
+                    Down = x.netTotalTradeVol >= 0 ? 0 : x.netTotalTradeVol,
                 }).ToList(), mesCungCau);
                 lStream.Add(streamCungCau);
 
