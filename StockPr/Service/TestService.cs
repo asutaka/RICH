@@ -889,11 +889,6 @@ namespace StockPr.Service
                 var from = dt.AddYears(-1);
                 var lTotal = new List<decimal>();
                 var min = 200000000;
-                //_lTake.Clear();
-                //_lTake = new List<string>
-                //{
-                //    "BFC"
-                //};
                 foreach (var sym in StaticVal._lFocus)
                 {
                     try
