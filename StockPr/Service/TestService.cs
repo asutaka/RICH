@@ -1,4 +1,5 @@
-﻿using Skender.Stock.Indicators;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Skender.Stock.Indicators;
 using StockPr.DAL;
 using StockPr.Model;
 using StockPr.Utils;
@@ -898,76 +899,119 @@ namespace StockPr.Service
                     if (sym == "VNINDEX")
                         continue;
 
+                    if (sym != "FPT")
+                        continue;
+
                     var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
-                    Thread.Sleep(500);
-                    var lData = await _apiService.SSI_GetDataStock(sym);
-                    var lbb = lData.GetBollingerBands();
+                    dat.data.Reverse();
                     var count = dat.data.Count;
-                    var lDat = dat.data;
-                    lDat.Reverse();
-                    QuoteEx itemBuy = null, itemSell = null;
-
-                    for (int i = 5; i < count; i++)
+                    //var lData = await _apiService.SSI_GetDataStock(sym);
+                    for (int i = 1; i < count - 1; i++)
                     {
-                        try
+                        var prev = dat.data[i - 1];
+                        var sig = dat.data[i];
+                        var pivot_1 = dat.data[i + 1];
+
+                        var ratePrev = Math.Round(-1 + (sig.netBuySellVal ?? 0) / (prev.netBuySellVal ?? 1), 1);
+                        var ratePivot = Math.Round(-1 + (sig.netBuySellVal ?? 0) / (pivot_1.netBuySellVal ?? 1), 1);
+                        if(ratePrev > 1.5 && ratePivot > 1.5)
                         {
-                            var prev_2 = dat.data[i - 3];
-                            var prev_1 = dat.data[i - 2];
-                            var prev_0 = dat.data[i - 1];
-
-                            var item = dat.data[i];
-                            var curDate = item.tradingDate.ToDateTime("dd/MM/yyyy");
-
-                            if (itemBuy is null//chi them dk nay kq khac han
-                                && prev_2.netBuySellVal <= min
-                                && prev_1.netBuySellVal <= min
-                                && prev_0.netBuySellVal <= min
-                                && item.netBuySellVal > min)
+                            Console.WriteLine($"{sym}|{prev.tradingDate}|Trade: {Math.Round((decimal)prev.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000000, 1)}");
+                            Console.WriteLine($"{sym}|{sig.tradingDate}|Trade: {Math.Round((decimal)sig.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(sig.netBuySellVal ?? 0) / 1000000000, 1)}");
+                            Console.WriteLine($"{sym}|{pivot_1.tradingDate}|Trade: {Math.Round((decimal)pivot_1.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                            
+                            if((i + 2) < count - 1)
                             {
-                                var itemData = lData.First(x => x.Date.Year == curDate.Year && x.Date.Month == curDate.Month && x.Date.Day == curDate.Day);
-                                var bb = lbb.First(x => x.Date == itemData.Date);
-                                if (Math.Max(itemData.Open, itemData.Close) >= (decimal)bb.UpperBand.Value)
-                                    continue;
-                                if (itemData.High > (decimal)bb.Sma.Value
-                                    && itemData.Close < itemData.Open
-                                    && itemData.Close < (decimal)bb.Sma.Value)
-                                    continue;
+                                var pivot_2 = dat.data[i + 2];
+                                Console.WriteLine($"{sym}|{pivot_2.tradingDate}|Trade: {Math.Round((decimal)pivot_2.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
+                            }
 
-                                itemBuy = new QuoteEx
-                                {
-                                    Close = item.close,
-                                    Date = curDate,
-                                    Index = i
-                                };
-                                itemSell = null;
-                                continue;
-                            }
-                            if (itemBuy != null
-                                && prev_2.netBuySellVal >= -min
-                                && prev_1.netBuySellVal >= -min
-                                && prev_0.netBuySellVal >= -min
-                                && item.netBuySellVal < -min
-                                && (i - itemBuy.Index) > 3)
-                            {
-                                itemSell = new QuoteEx
-                                {
-                                    Close = item.close,
-                                    Date = curDate,
-                                    Index = i
-                                };
-                                var rate = Math.Round(100 * (-1 + itemSell.Close / itemBuy.Close), 1);
-                                lTotal.Add(rate);
-                                var mes = $"{sym}|BUY({itemBuy.Date.ToString("dd/MM/yyyy")})|SELL({itemSell.Date.ToString("dd/MM/yyyy")})| Rate: {rate}%";
-                                Console.WriteLine(mes);
-                                itemBuy = null;
-                                itemSell = null;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"{ex.Message}");
+                            Console.WriteLine();
                         }
                     }
+
+                    //foreach (var item in dat.data)
+                    //{
+                    //    try
+                    //    {
+                    //        Console.WriteLine($"{sym}|{item.tradingDate}|Trade: {Math.Round((decimal)item.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(item.netBuySellVal ?? 0) / 1000000000, 1)}");
+                    //    }
+                    //    catch(Exception ex)
+                    //    {
+                    //        Console.WriteLine(ex.Message);
+                    //    }
+                        
+                    //}
+                    break;
+                    //Thread.Sleep(500);
+                    //var lData = await _apiService.SSI_GetDataStock(sym);
+                    //var lbb = lData.GetBollingerBands();
+                    //var count = dat.data.Count;
+                    //var lDat = dat.data;
+                    //lDat.Reverse();
+                    //QuoteEx itemBuy = null, itemSell = null;
+
+                    //for (int i = 5; i < count; i++)
+                    //{
+                    //    try
+                    //    {
+                    //        var prev_2 = dat.data[i - 3];
+                    //        var prev_1 = dat.data[i - 2];
+                    //        var prev_0 = dat.data[i - 1];
+
+                    //        var item = dat.data[i];
+                    //        var curDate = item.tradingDate.ToDateTime("dd/MM/yyyy");
+
+                    //        if (itemBuy is null//chi them dk nay kq khac han
+                    //            && prev_2.netBuySellVal <= min
+                    //            && prev_1.netBuySellVal <= min
+                    //            && prev_0.netBuySellVal <= min
+                    //            && item.netBuySellVal > min)
+                    //        {
+                    //            var itemData = lData.First(x => x.Date.Year == curDate.Year && x.Date.Month == curDate.Month && x.Date.Day == curDate.Day);
+                    //            var bb = lbb.First(x => x.Date == itemData.Date);
+                    //            if (Math.Max(itemData.Open, itemData.Close) >= (decimal)bb.UpperBand.Value)
+                    //                continue;
+                    //            if (itemData.High > (decimal)bb.Sma.Value
+                    //                && itemData.Close < itemData.Open
+                    //                && itemData.Close < (decimal)bb.Sma.Value)
+                    //                continue;
+
+                    //            itemBuy = new QuoteEx
+                    //            {
+                    //                Close = item.close,
+                    //                Date = curDate,
+                    //                Index = i
+                    //            };
+                    //            itemSell = null;
+                    //            continue;
+                    //        }
+                    //        if (itemBuy != null
+                    //            && prev_2.netBuySellVal >= -min
+                    //            && prev_1.netBuySellVal >= -min
+                    //            && prev_0.netBuySellVal >= -min
+                    //            && item.netBuySellVal < -min
+                    //            && (i - itemBuy.Index) > 3)
+                    //        {
+                    //            itemSell = new QuoteEx
+                    //            {
+                    //                Close = item.close,
+                    //                Date = curDate,
+                    //                Index = i
+                    //            };
+                    //            var rate = Math.Round(100 * (-1 + itemSell.Close / itemBuy.Close), 1);
+                    //            lTotal.Add(rate);
+                    //            var mes = $"{sym}|BUY({itemBuy.Date.ToString("dd/MM/yyyy")})|SELL({itemSell.Date.ToString("dd/MM/yyyy")})| Rate: {rate}%";
+                    //            Console.WriteLine(mes);
+                    //            itemBuy = null;
+                    //            itemSell = null;
+                    //        }
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        Console.WriteLine($"{ex.Message}");
+                    //    }
+                    //}
                 }
 
                 Console.WriteLine($"Total: {lTotal.Sum()}%");
