@@ -973,24 +973,26 @@ namespace StockPr.Service
                                         if (entitySignal.High > (decimal)bb_Signal.UpperBand.Value)
                                         {
                                             //SELL
-                                            Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                            //Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
                                         }
                                         else if (sig.netBuySellVal < 0)
                                         {
                                             //BUY
                                             if (pivot_2 != null)
                                             {
-                                                Console.WriteLine($"{sym}|BUY| {pivot_2.tradingDate}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                                var entityShow = lData.Skip(1).First(x => x.Date > entityPivot.Date);
+                                                Console.WriteLine($"{sym}|BUY| {entityShow.Date.ToString("dd/MM/yyyy")}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
                                             }
                                             else
                                             {
-                                                Console.WriteLine($"{sym}|BUY| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                                var entityShow = lData.First(x => x.Date > entityPivot.Date);
+                                                Console.WriteLine($"{sym}|BUY| {entityShow.Date.ToString("dd/MM/yyyy")}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
                                             }
                                         }
                                         else
                                         {
                                             //SELL
-                                            Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                            //Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
                                         }
                                     }
                                 }
