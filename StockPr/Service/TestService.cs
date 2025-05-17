@@ -905,22 +905,37 @@ namespace StockPr.Service
                     var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
                     dat.data.Reverse();
                     var count = dat.data.Count;
+                    var avgNet = dat.data.Sum(x => Math.Abs(x.netBuySellVal ?? 0));
+                    var countNet = dat.data.Count(x => x.netBuySellVal != null && x.netBuySellVal != 0);
+                    var avg = avgNet / countNet;
+                    Console.WriteLine($"AVG: {avg}");
                     //var lData = await _apiService.SSI_GetDataStock(sym);
                     for (int i = 1; i < count - 1; i++)
                     {
                         var prev = dat.data[i - 1];
                         var sig = dat.data[i];
                         var pivot_1 = dat.data[i + 1];
-
-                        var ratePrev = Math.Round(-1 + (sig.netBuySellVal ?? 0) / (prev.netBuySellVal ?? 1), 1);
-                        var ratePivot = Math.Round(-1 + (sig.netBuySellVal ?? 0) / (pivot_1.netBuySellVal ?? 1), 1);
-                        if(ratePrev > 1.5 && ratePivot > 1.5)
+                        if (sig.tradingDate.Contains("07/05"))
                         {
+                            var mp = 1;
+                        }
+
+                        if (Math.Abs(sig.netBuySellVal ?? 0) < avg)
+                            continue;
+
+                        var ratePrev = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (prev.netBuySellVal ?? 1)), 1);
+                        var ratePivot = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (pivot_1.netBuySellVal ?? 1)), 1);
+                        if (Math.Abs(ratePrev) > 1.5 && Math.Abs(ratePivot) > 1.5)
+                        {
+                            if (Math.Round((decimal)prev.netBuySellVal / 1000000, 1) == 0
+                                || Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1) == 0)
+                                continue;
+
                             Console.WriteLine($"{sym}|{prev.tradingDate}|Trade: {Math.Round((decimal)prev.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000000, 1)}");
                             Console.WriteLine($"{sym}|{sig.tradingDate}|Trade: {Math.Round((decimal)sig.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(sig.netBuySellVal ?? 0) / 1000000000, 1)}");
                             Console.WriteLine($"{sym}|{pivot_1.tradingDate}|Trade: {Math.Round((decimal)pivot_1.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
-                            
-                            if((i + 2) < count - 1)
+
+                            if ((i + 2) < count - 1)
                             {
                                 var pivot_2 = dat.data[i + 2];
                                 Console.WriteLine($"{sym}|{pivot_2.tradingDate}|Trade: {Math.Round((decimal)pivot_2.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
@@ -936,11 +951,11 @@ namespace StockPr.Service
                     //    {
                     //        Console.WriteLine($"{sym}|{item.tradingDate}|Trade: {Math.Round((decimal)item.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(item.netBuySellVal ?? 0) / 1000000000, 1)}");
                     //    }
-                    //    catch(Exception ex)
+                    //    catch (Exception ex)
                     //    {
                     //        Console.WriteLine(ex.Message);
                     //    }
-                        
+
                     //}
                     break;
                     //Thread.Sleep(500);
