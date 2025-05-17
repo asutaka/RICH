@@ -52,8 +52,8 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            await _testService.CheckCungCau();
-            return;
+            //await _testService.CheckCungCau();
+            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
@@ -161,9 +161,9 @@ namespace StockPr
                             {
                                 await _teleService.SendMessage(_idChannel, res.Item2, true);
                             }
-                            if (res.Item3?.Any() ?? false)
+                            if (string.IsNullOrWhiteSpace(res.Item3))
                             {
-                                await _teleService.SendMessage(_idUser, string.Join("\n", res.Item3.Select((x, index) => $"{index + 1}. {x}")));
+                                await _teleService.SendMessage(_idUser, res.Item3);
                             }
                         }
 

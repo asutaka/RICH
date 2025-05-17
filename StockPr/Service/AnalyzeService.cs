@@ -13,7 +13,7 @@ namespace StockPr.Service
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
         Task<string> ThongKeTuDoanh();
-        Task<(int, string, IEnumerable<string>)> ChiBaoKyThuat(DateTime dt);
+        Task<(int, string, string)> ChiBaoKyThuat(DateTime dt);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
     }
     public class AnalyzeService : IAnalyzeService
@@ -718,7 +718,7 @@ namespace StockPr.Service
             return (0, null);
         }
 
-        public async Task<(int, string, IEnumerable<string>)> ChiBaoKyThuat(DateTime dt)
+        public async Task<(int, string, string)> ChiBaoKyThuat(DateTime dt)
         {
             try
             {
@@ -760,10 +760,9 @@ namespace StockPr.Service
                 strOutput.AppendLine($" - Số cp tăng giá: {Math.Round((float)lReport.Count(x => x.isPriceUp) * 100 / count, 1)}%");
                 strOutput.AppendLine($" - Số cp trên MA20: {Math.Round((float)lReport.Count(x => x.isGEMA20) * 100 / count, 1)}%");
 
-                var lFocus = lReport.Where(x => StaticVal._lFocus.Contains(x.s));
-                var lTrenMa20 = lFocus.Where(x => x.isPriceUp && x.isCrossMa20Up)
+                var lTrenMa20 = lReport.Where(x => x.isPriceUp && x.isCrossMa20Up)
                                     .Take(20);
-                var lAcceptFocus = lFocus.Where(x => x.isSignalSell).Select(x => x.s);
+                var lAcceptFocus = lReport.Where(x => x.isSignalSell).Select(x => x.s);
                 if (lTrenMa20.Any())
                 {
                     strOutput.AppendLine();
@@ -786,7 +785,7 @@ namespace StockPr.Service
                     t = t
                 });
 
-                return (1, strOutput.ToString(), lAcceptFocus);
+                return (1, strOutput.ToString(), PrintSignal(lReport));
             }
             catch (Exception ex)
             {
@@ -868,6 +867,18 @@ namespace StockPr.Service
                         model.isSignalSell = true;
                     }
                 }
+                //Foreign BUY/SELL
+                var now = DateTime.Now;
+                var info = await _apiService.SSI_GetStockInfo(code, now.AddYears(-1), now);
+                var res = model.IsForeign(lData, info.data);
+                if(res == EOrderType.BUY)
+                {
+                    model.isForeignBuy = true;
+                }
+                else if(res == EOrderType.SELL)
+                {
+                    model.isForeignSell = true;
+                }
 
                 return model;
             }
@@ -876,6 +887,170 @@ namespace StockPr.Service
                 _logger.LogError($"AnalyzeService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        private string PrintSignal(List<ReportPTKT> lInput)
+        {
+            var lFilter = lInput.Where(x => x.isSignalSell || x.isForeignBuy || x.isForeignSell)
+                                .OrderByDescending(x => x.isForeignBuy)
+                                .ThenByDescending(x => x.isForeignSell)
+                                .ThenByDescending(x => x.isSignalSell);
+            if(!lFilter.Any())
+                return string.Empty;
+
+            var sBuilder = new StringBuilder();
+            sBuilder.AppendLine($"*Tín hiệu mua bán ngày: {DateTime.Now}*");
+            foreach (var item in lFilter)
+            {
+                var mes = $"{item.s} => ";
+                var lSig = new List<string>();
+                if (item.isForeignBuy)
+                {
+                    lSig.Add("foreign MUA");
+                }
+                if(item.isForeignSell)
+                {
+                    lSig.Add("foreign BÁN");
+                }
+                if(item.isSignalSell)
+                {
+                    lSig.Add("signal BÁN");
+                }
+                mes += string.Join("+", lSig.ToArray());
+                sBuilder.AppendLine(mes);
+            }
+            return sBuilder.ToString();
+        }
+    }
+
+    public static class clsExtend
+    {
+        public static EOrderType IsForeign(this ReportPTKT model, List<Quote> lData, List<SSI_DataStockInfoDetailResponse> lInfo)
+        {
+            try
+            {
+                lInfo.Reverse();
+                var count = lInfo.Count;
+                var avgNet = lInfo.Sum(x => Math.Abs(x.netBuySellVal ?? 0));
+                var countNet = lInfo.Count(x => x.netBuySellVal != null && x.netBuySellVal != 0);
+                var avg = avgNet / countNet;
+
+                var lbb = lData.GetBollingerBands();
+
+                var cur = lInfo.Last();
+                var prev_1 = lInfo.SkipLast(1).Last();
+                var prev_2 = lInfo.SkipLast(2).Last();
+                var prev_3 = lInfo.SkipLast(3).Last();
+
+                //CASE 1
+                if (Math.Abs(prev_1.netBuySellVal ?? 0) > avg) 
+                {
+                    var prev = prev_2;
+                    var sig = prev_1;
+                    var pivot_1 = cur;
+
+                    var check = isCheck(prev, sig, pivot_1, null);
+                    if(check)
+                    {
+                        //
+                        return Detect(prev, sig, pivot_1);
+                    }
+                }
+
+                if (Math.Abs(prev_2.netBuySellVal ?? 0) > avg)
+                {
+                    var prev = prev_3;
+                    var sig = prev_2;
+                    var pivot_1 = prev_1;
+                    var pivot_2 = cur;
+
+                    var check = isCheck(prev, sig, pivot_1, pivot_2);
+                    if (check)
+                    {
+                        //
+                        return Detect(prev, sig, pivot_1);
+                    }
+                }
+
+                bool isCheck(SSI_DataStockInfoDetailResponse prev, SSI_DataStockInfoDetailResponse sig, SSI_DataStockInfoDetailResponse pivot_1, SSI_DataStockInfoDetailResponse pivot_2)
+                {
+                    var ratePrev = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (prev.netBuySellVal ?? 1)), 1);
+                    var ratePivot = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (pivot_1.netBuySellVal ?? 1)), 1);
+
+                    if (Math.Abs(ratePrev) < 1.5 
+                        || Math.Abs(ratePivot) < 1.5
+                        || Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000, 1) == 0
+                        || Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1) == 0)
+                    {
+                        return false;
+                    }
+
+                    var checkMinVal = ((sig.netBuySellVal > 0) || (pivot_1.netBuySellVal > 0) || ((pivot_2?.netBuySellVal ?? 0) > 0));
+                    if (!checkMinVal)
+                        return false;
+
+                    var dtPrev = prev.tradingDate.ToDateTime("dd/MM/yyyy");
+                    var dtSig = sig.tradingDate.ToDateTime("dd/MM/yyyy");
+                    var dtPivot = pivot_1.tradingDate.ToDateTime("dd/MM/yyyy");
+                    var entityPrev = lData.First(x => x.Date.Day == dtPrev.Day && x.Date.Month == dtPrev.Month && x.Date.Year == dtPrev.Year);
+                    var entitySignal = lData.First(x => x.Date.Day == dtSig.Day && x.Date.Month == dtSig.Month && x.Date.Year == dtSig.Year);
+                    var entityPivot = lData.First(x => x.Date.Day == dtPivot.Day && x.Date.Month == dtPivot.Month && x.Date.Year == dtPivot.Year);
+                    var bb_Signal = lbb.First(x => x.Date == entitySignal.Date);
+                    var bb_Pivot = lbb.First(x => x.Date == entityPivot.Date);
+                    if (entitySignal.Low < (decimal)bb_Signal.LowerBand.Value)
+                    {
+                        if (entitySignal.Low < entityPivot.Low)
+                            return false;
+                    }
+                    else if (sig.netBuySellVal < 0
+                        && entityPivot.Close > (decimal)bb_Pivot.Sma.Value)
+                    {
+                        var divUp = (decimal)bb_Pivot.UpperBand.Value - entityPivot.Close;
+                        var divMA = entityPivot.Close - (decimal)bb_Pivot.Sma.Value;
+                        if (divUp < 2 * divMA)
+                            return false;
+                    }
+
+                    return true;
+                }
+                EOrderType Detect(SSI_DataStockInfoDetailResponse prev, SSI_DataStockInfoDetailResponse sig, SSI_DataStockInfoDetailResponse pivot_1)
+                {
+                    var dtPrev = prev.tradingDate.ToDateTime("dd/MM/yyyy");
+                    var dtSig = sig.tradingDate.ToDateTime("dd/MM/yyyy");
+                    var dtPivot = pivot_1.tradingDate.ToDateTime("dd/MM/yyyy");
+                    var entityPrev = lData.First(x => x.Date.Day == dtPrev.Day && x.Date.Month == dtPrev.Month && x.Date.Year == dtPrev.Year);
+                    var entitySignal = lData.First(x => x.Date.Day == dtSig.Day && x.Date.Month == dtSig.Month && x.Date.Year == dtSig.Year);
+                    var entityPivot = lData.First(x => x.Date.Day == dtPivot.Day && x.Date.Month == dtPivot.Month && x.Date.Year == dtPivot.Year);
+
+                    var bb_Signal = lbb.First(x => x.Date == entitySignal.Date);
+                    var bb_Pivot = lbb.First(x => x.Date == entityPivot.Date);
+                    if (entitySignal.High > (decimal)bb_Signal.UpperBand.Value)
+                    {
+                        //SELL
+                        return EOrderType.SELL;
+                    }
+                    else if (sig.netBuySellVal < 0)
+                    {
+                        if (Math.Max(entitySignal.Open, entitySignal.Close) > (decimal)bb_Signal.Sma.Value
+                            && entityPivot.Close < (decimal)bb_Pivot.Sma.Value)
+                            return EOrderType.NONE;
+
+                        //BUY
+                        return EOrderType.BUY;
+                    }
+                    else
+                    {
+                        //SELL
+                        return EOrderType.SELL;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"clsExtend.IsForeign|EXCEPTION| {ex.Message}");
+            }
+
+            return EOrderType.NONE;
         }
     }
 }

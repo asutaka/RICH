@@ -406,6 +406,13 @@ namespace StockPr.Utils
         BDS = 2,
         ChungKhoan = 3
     }
+
+    public enum EOrderType
+    {
+        NONE = -1,
+        BUY = 0,
+        SELL = 1
+    }
     #endregion
     #region Response
     #endregion
