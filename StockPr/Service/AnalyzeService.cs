@@ -902,7 +902,7 @@ namespace StockPr.Service
                 return string.Empty;
 
             var sBuilder = new StringBuilder();
-            sBuilder.AppendLine($"*Tín hiệu mua bán ngày: {DateTime.Now}*");
+            sBuilder.AppendLine($"*Tín hiệu mua bán ngày: {DateTime.Now.ToString("dd/MM/YYYY")}*");
             foreach (var item in lFilter)
             {
                 var mes = $"{item.s} => ";
