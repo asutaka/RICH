@@ -896,193 +896,108 @@ namespace StockPr.Service
                 //};
                 foreach (var sym in StaticVal._lFocus)
                 {
-                    if (sym == "VNINDEX")
-                        continue;
-
-                    //if (sym != "FPT")
-                    //    continue;
-
-                    var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
-                    dat.data.Reverse();
-                    var count = dat.data.Count;
-                    var avgNet = dat.data.Sum(x => Math.Abs(x.netBuySellVal ?? 0));
-                    var countNet = dat.data.Count(x => x.netBuySellVal != null && x.netBuySellVal != 0);
-                    var avg = avgNet / countNet;
-                    //Console.WriteLine($"AVG: {avg}");
-                    var lData = await _apiService.SSI_GetDataStock(sym);
-                    var lbb = lData.GetBollingerBands();
-                    for (int i = 1; i < count - 1; i++)
+                    try
                     {
-                        var prev = dat.data[i - 1];
-                        var sig = dat.data[i];
-                        var pivot_1 = dat.data[i + 1];
-                        //if (sig.tradingDate.Contains("07/05"))
-                        //{
-                        //    var mp = 1;
-                        //}
-
-                        if (Math.Abs(sig.netBuySellVal ?? 0) < avg)
+                        if (sym == "VNINDEX")
                             continue;
 
-                        var ratePrev = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (prev.netBuySellVal ?? 1)), 1);
-                        var ratePivot = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (pivot_1.netBuySellVal ?? 1)), 1);
-                        if (Math.Abs(ratePrev) > 1.5 && Math.Abs(ratePivot) > 1.5)
+                        //if (sym != "VAB")
+                        //    continue;
+
+                        var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
+                        dat.data.Reverse();
+                        var count = dat.data.Count;
+                        var avgNet = dat.data.Sum(x => Math.Abs(x.netBuySellVal ?? 0));
+                        var countNet = dat.data.Count(x => x.netBuySellVal != null && x.netBuySellVal != 0);
+                        var avg = avgNet / countNet;
+                        //Console.WriteLine($"AVG: {avg}");
+                        var lData = await _apiService.SSI_GetDataStock(sym);
+                        var lbb = lData.GetBollingerBands();
+                        for (int i = 1; i < count - 1; i++)
                         {
-                            if (Math.Round((decimal)prev.netBuySellVal / 1000000, 1) == 0
-                                || Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1) == 0)
-                                continue;
-
-                            var valid = false;
-                            if (sig.netBuySellVal > 0 || pivot_1.netBuySellVal > 0)
+                            try
                             {
-                                valid = true;
-                            }
+                                var prev = dat.data[i - 1];
+                                var sig = dat.data[i];
+                                var pivot_1 = dat.data[i + 1];
+                                if (Math.Abs(sig.netBuySellVal ?? 0) < avg)
+                                    continue;
 
-                            SSI_DataStockInfoDetailResponse pivot_2 = null;
-                            if (!valid)
-                            {
-                                if ((i + 2) < count - 1)
+                                var ratePrev = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (prev.netBuySellVal ?? 1)), 1);
+                                var ratePivot = Math.Round(-1 + Math.Abs((sig.netBuySellVal ?? 0) / (pivot_1.netBuySellVal ?? 1)), 1);
+                                if (Math.Abs(ratePrev) > 1.5 && Math.Abs(ratePivot) > 1.5)
                                 {
-                                    pivot_2 = dat.data[i + 2];
-                                    if (pivot_2.netBuySellVal > 0)
-                                        valid = true;
-                                }
-                            }
-
-                            if (valid)
-                            {
-                                var dtSig = sig.tradingDate.ToDateTime("dd/MM/yyyy");
-                                var dtPivot = pivot_1.tradingDate.ToDateTime("dd/MM/yyyy");
-                                var entitySignal = lData.First(x => x.Date.Day == dtSig.Day && x.Date.Month == dtSig.Month && x.Date.Year == dtSig.Year);
-                                var entityPivot = lData.First(x => x.Date.Day == dtPivot.Day && x.Date.Month == dtPivot.Month && x.Date.Year == dtPivot.Year);
-                                var bb_Signal = lbb.First(x => x.Date == entitySignal.Date);
-                                var bb_Pivot = lbb.First(x => x.Date == entityPivot.Date);
-                                if (entitySignal.Low < (decimal)bb_Signal.LowerBand.Value)
-                                {
-                                    if (entitySignal.Low < entityPivot.Low)
+                                    if (Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000, 1) == 0
+                                        || Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1) == 0)
                                         continue;
-                                }
-                                
-                                if (entitySignal.High > (decimal)bb_Signal.UpperBand.Value)
-                                {
-                                    //SELL
-                                    Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
-                                    continue;
-                                }
-                                else if (sig.netBuySellVal < 0)
-                                {
-                                    //BUY
-                                    if (pivot_2 != null)
-                                    {
-                                        Console.WriteLine($"{sym}|BUY| {pivot_2.tradingDate}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine($"{sym}|BUY| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
-                                    }
-                                    continue;
-                                }
-                                else
-                                {
-                                    //SELL
-                                    Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
-                                    continue;
-                                }
 
-                                Console.WriteLine($"{sym}|{prev.tradingDate}|Trade: {Math.Round((decimal)prev.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000000, 1)}");
-                                Console.WriteLine($"{sym}|{sig.tradingDate}|Trade: {Math.Round((decimal)sig.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(sig.netBuySellVal ?? 0) / 1000000000, 1)}");
-                                Console.WriteLine($"{sym}|{pivot_1.tradingDate}|Trade: {Math.Round((decimal)pivot_1.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
-                                if (pivot_2 != null)
-                                {
-                                    Console.WriteLine($"{sym}|{pivot_2.tradingDate}|Trade: {Math.Round((decimal)pivot_2.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                    var valid = false;
+                                    if (sig.netBuySellVal > 0 || pivot_1.netBuySellVal > 0)
+                                    {
+                                        valid = true;
+                                    }
+
+                                    SSI_DataStockInfoDetailResponse pivot_2 = null;
+                                    if (!valid)
+                                    {
+                                        if ((i + 2) < count - 1)
+                                        {
+                                            pivot_2 = dat.data[i + 2];
+                                            if (pivot_2.netBuySellVal > 0)
+                                                valid = true;
+                                        }
+                                    }
+
+                                    if (valid)
+                                    {
+                                        var dtSig = sig.tradingDate.ToDateTime("dd/MM/yyyy");
+                                        var dtPivot = pivot_1.tradingDate.ToDateTime("dd/MM/yyyy");
+                                        var entitySignal = lData.First(x => x.Date.Day == dtSig.Day && x.Date.Month == dtSig.Month && x.Date.Year == dtSig.Year);
+                                        var entityPivot = lData.First(x => x.Date.Day == dtPivot.Day && x.Date.Month == dtPivot.Month && x.Date.Year == dtPivot.Year);
+                                        var bb_Signal = lbb.First(x => x.Date == entitySignal.Date);
+                                        var bb_Pivot = lbb.First(x => x.Date == entityPivot.Date);
+                                        if (entitySignal.Low < (decimal)bb_Signal.LowerBand.Value)
+                                        {
+                                            if (entitySignal.Low < entityPivot.Low)
+                                                continue;
+                                        }
+
+                                        if (entitySignal.High > (decimal)bb_Signal.UpperBand.Value)
+                                        {
+                                            //SELL
+                                            Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                        }
+                                        else if (sig.netBuySellVal < 0)
+                                        {
+                                            //BUY
+                                            if (pivot_2 != null)
+                                            {
+                                                Console.WriteLine($"{sym}|BUY| {pivot_2.tradingDate}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine($"{sym}|BUY| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            //SELL
+                                            Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                        }
+                                    }
                                 }
-                                Console.WriteLine();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
                             }
                         }
                     }
-
-                    //foreach (var item in dat.data)
-                    //{
-                    //    try
-                    //    {
-                    //        Console.WriteLine($"{sym}|{item.tradingDate}|Trade: {Math.Round((decimal)item.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(item.netBuySellVal ?? 0) / 1000000000, 1)}");
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-                    //        Console.WriteLine(ex.Message);
-                    //    }
-
-                    //}
-                    //break;
-                    //Thread.Sleep(500);
-                    //var lData = await _apiService.SSI_GetDataStock(sym);
-                    //var lbb = lData.GetBollingerBands();
-                    //var count = dat.data.Count;
-                    //var lDat = dat.data;
-                    //lDat.Reverse();
-                    //QuoteEx itemBuy = null, itemSell = null;
-
-                    //for (int i = 5; i < count; i++)
-                    //{
-                    //    try
-                    //    {
-                    //        var prev_2 = dat.data[i - 3];
-                    //        var prev_1 = dat.data[i - 2];
-                    //        var prev_0 = dat.data[i - 1];
-
-                    //        var item = dat.data[i];
-                    //        var curDate = item.tradingDate.ToDateTime("dd/MM/yyyy");
-
-                    //        if (itemBuy is null//chi them dk nay kq khac han
-                    //            && prev_2.netBuySellVal <= min
-                    //            && prev_1.netBuySellVal <= min
-                    //            && prev_0.netBuySellVal <= min
-                    //            && item.netBuySellVal > min)
-                    //        {
-                    //            var itemData = lData.First(x => x.Date.Year == curDate.Year && x.Date.Month == curDate.Month && x.Date.Day == curDate.Day);
-                    //            var bb = lbb.First(x => x.Date == itemData.Date);
-                    //            if (Math.Max(itemData.Open, itemData.Close) >= (decimal)bb.UpperBand.Value)
-                    //                continue;
-                    //            if (itemData.High > (decimal)bb.Sma.Value
-                    //                && itemData.Close < itemData.Open
-                    //                && itemData.Close < (decimal)bb.Sma.Value)
-                    //                continue;
-
-                    //            itemBuy = new QuoteEx
-                    //            {
-                    //                Close = item.close,
-                    //                Date = curDate,
-                    //                Index = i
-                    //            };
-                    //            itemSell = null;
-                    //            continue;
-                    //        }
-                    //        if (itemBuy != null
-                    //            && prev_2.netBuySellVal >= -min
-                    //            && prev_1.netBuySellVal >= -min
-                    //            && prev_0.netBuySellVal >= -min
-                    //            && item.netBuySellVal < -min
-                    //            && (i - itemBuy.Index) > 3)
-                    //        {
-                    //            itemSell = new QuoteEx
-                    //            {
-                    //                Close = item.close,
-                    //                Date = curDate,
-                    //                Index = i
-                    //            };
-                    //            var rate = Math.Round(100 * (-1 + itemSell.Close / itemBuy.Close), 1);
-                    //            lTotal.Add(rate);
-                    //            var mes = $"{sym}|BUY({itemBuy.Date.ToString("dd/MM/yyyy")})|SELL({itemSell.Date.ToString("dd/MM/yyyy")})| Rate: {rate}%";
-                    //            Console.WriteLine(mes);
-                    //            itemBuy = null;
-                    //            itemSell = null;
-                    //        }
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-                    //        Console.WriteLine($"{ex.Message}");
-                    //    }
-                    //}
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine($"{ex.Message}");
+                    }
+                    
                 }
 
                 Console.WriteLine($"Total: {lTotal.Sum()}%");
