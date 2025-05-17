@@ -901,7 +901,7 @@ namespace StockPr.Service
                         if (sym == "VNINDEX")
                             continue;
 
-                        //if (sym != "VAB")
+                        //if (sym != "VCB")
                         //    continue;
 
                         var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
@@ -959,6 +959,14 @@ namespace StockPr.Service
                                         if (entitySignal.Low < (decimal)bb_Signal.LowerBand.Value)
                                         {
                                             if (entitySignal.Low < entityPivot.Low)
+                                                continue;
+                                        }
+                                        else if(sig.netBuySellVal < 0 
+                                            && entityPivot.Close > (decimal)bb_Pivot.Sma.Value)
+                                        {
+                                            var divUp = (decimal)bb_Pivot.UpperBand.Value - entityPivot.Close;
+                                            var divMA = entityPivot.Close - (decimal)bb_Pivot.Sma.Value;
+                                            if (divUp < 2 * divMA)
                                                 continue;
                                         }
 
