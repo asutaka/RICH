@@ -886,7 +886,7 @@ namespace StockPr.Service
             try
             {
                 var dt = DateTime.Now;
-                var dtPrev = dt.AddYears(-1);
+                var from = dt.AddYears(-1);
                 var lTotal = new List<decimal>();
                 var min = 200000000;
                 //_lTake.Clear();
@@ -901,10 +901,10 @@ namespace StockPr.Service
                         if (sym == "VNINDEX")
                             continue;
 
-                        //if (sym != "VCB")
+                        //if (sym != "PVT")
                         //    continue;
 
-                        var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
+                        var dat = await _apiService.SSI_GetStockInfo(sym, from, dt);
                         dat.data.Reverse();
                         var count = dat.data.Count;
                         var avgNet = dat.data.Sum(x => Math.Abs(x.netBuySellVal ?? 0));
@@ -950,10 +950,18 @@ namespace StockPr.Service
 
                                     if (valid)
                                     {
+                                        var dtPrev = prev.tradingDate.ToDateTime("dd/MM/yyyy");
                                         var dtSig = sig.tradingDate.ToDateTime("dd/MM/yyyy");
                                         var dtPivot = pivot_1.tradingDate.ToDateTime("dd/MM/yyyy");
+                                        //if(dtPivot.Month == 4 && dtPivot.Day == 14)
+                                        //{
+                                        //    var tmp = 1;
+                                        //}
+
+                                        var entityPrev = lData.First(x => x.Date.Day == dtPrev.Day && x.Date.Month == dtPrev.Month && x.Date.Year == dtPrev.Year);
                                         var entitySignal = lData.First(x => x.Date.Day == dtSig.Day && x.Date.Month == dtSig.Month && x.Date.Year == dtSig.Year);
                                         var entityPivot = lData.First(x => x.Date.Day == dtPivot.Day && x.Date.Month == dtPivot.Month && x.Date.Year == dtPivot.Year);
+                                        var bb_Prev = lbb.First(x => x.Date == entityPrev.Date);
                                         var bb_Signal = lbb.First(x => x.Date == entitySignal.Date);
                                         var bb_Pivot = lbb.First(x => x.Date == entityPivot.Date);
                                         if (entitySignal.Low < (decimal)bb_Signal.LowerBand.Value)
@@ -977,6 +985,10 @@ namespace StockPr.Service
                                         }
                                         else if (sig.netBuySellVal < 0)
                                         {
+                                            if (Math.Max(entitySignal.Open, entitySignal.Close) > (decimal)bb_Signal.Sma.Value
+                                                && entityPivot.Close < (decimal)bb_Pivot.Sma.Value)
+                                                continue;
+
                                             //BUY
                                             if (pivot_2 != null)
                                             {
