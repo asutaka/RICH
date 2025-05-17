@@ -869,17 +869,20 @@ namespace StockPr.Service
                 }
                 //Foreign BUY/SELL
                 var now = DateTime.Now;
-                var info = await _apiService.SSI_GetStockInfo(code, now.AddYears(-1), now);
-                var res = model.IsForeign(lData, info.data);
-                if(res == EOrderType.BUY)
+                if(code != "VNINDEX")
                 {
-                    model.isForeignBuy = true;
+                    var info = await _apiService.SSI_GetStockInfo(code, now.AddYears(-1), now);
+                    var res = model.IsForeign(lData, info.data);
+                    if (res == EOrderType.BUY)
+                    {
+                        model.isForeignBuy = true;
+                    }
+                    else if (res == EOrderType.SELL)
+                    {
+                        model.isForeignSell = true;
+                    }
                 }
-                else if(res == EOrderType.SELL)
-                {
-                    model.isForeignSell = true;
-                }
-
+               
                 return model;
             }
             catch (Exception ex)
