@@ -161,7 +161,7 @@ namespace StockPr
                             {
                                 await _teleService.SendMessage(_idChannel, res.Item2, true);
                             }
-                            if (string.IsNullOrWhiteSpace(res.Item3))
+                            if (!string.IsNullOrWhiteSpace(res.Item3))
                             {
                                 await _teleService.SendMessage(_idUser, res.Item3);
                             }
