@@ -763,7 +763,7 @@ namespace StockPr.Service
                 var lFocus = lReport.Where(x => StaticVal._lFocus.Contains(x.s));
                 var lTrenMa20 = lFocus.Where(x => x.isPriceUp && x.isCrossMa20Up)
                                     .Take(20);
-                var lAcceptFocus = lFocus.Where(x => x.isFocus).Select(x => x.s);
+                var lAcceptFocus = lFocus.Where(x => x.isSignalSell).Select(x => x.s);
                 if (lTrenMa20.Any())
                 {
                     strOutput.AppendLine();
@@ -801,27 +801,9 @@ namespace StockPr.Service
             try
             {
                 var lData = await _apiService.SSI_GetDataStock(code);
-
-                var res = ChiBaoKyThuatOnlyStock(lData, limitvol);
-                if (res != null)
-                {
-                    res.s = code;
-                    return res;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"AnalyzeService.ChiBaoKyThuatOnlyStock|EXCEPTION| {ex.Message}");
-            }
-            return null;
-        }
-
-        private ReportPTKT ChiBaoKyThuatOnlyStock(List<Quote> lData, int limitvol)
-        {
-            try
-            {
                 if (lData.Count() < 250)
                     return null;
+
                 var entity_Pivot = lData.Last();
                 var val = entity_Pivot.Close * entity_Pivot.Volume;
                 if (val < 100000)//Giá trị giao dịch < 100tr
@@ -830,7 +812,10 @@ namespace StockPr.Service
                 if (limitvol > 0 && lData.Last().Volume < limitvol)
                     return null;
 
-                var model = new ReportPTKT();
+                var model = new ReportPTKT
+                {
+                    s = code,
+                };
                 var lVol = lData.Select(x => new Quote
                 {
                     Date = x.Date,
@@ -880,9 +865,10 @@ namespace StockPr.Service
                     var check1_3 = (max - (decimal)bb_Pivot.Sma.Value) >= 2 * ((decimal)bb_Pivot.UpperBand.Value - max); 
                     if(check1_3)
                     {
-                        model.isFocus = true;
+                        model.isSignalSell = true;
                     }
                 }
+
                 return model;
             }
             catch (Exception ex)

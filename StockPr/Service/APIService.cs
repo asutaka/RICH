@@ -43,6 +43,7 @@ namespace StockPr.Service
         Task<decimal> SSI_GetFreefloatStock(string code);
         Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code);
         Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code, DateTime from, DateTime to);
+        Task<SSI_DataStockInfoResponse> SSI_GetStockInfo_Extend(string code, DateTime from, DateTime to);
         Task<VNDirect_ForeignDetailResponse> VNDirect_GetForeign(string code);
 
 
@@ -1397,9 +1398,42 @@ namespace StockPr.Service
             return null;
         }
 
+        public async Task<SSI_DataStockInfoResponse> SSI_GetStockInfo_Extend(string code, DateTime from, DateTime to)
+        {
+            try
+            {
+                var info = await SSI_GetStockInfo(code, from, to);
+                if (info is null)
+                    return info;
+
+                var info_VNDirect = await VNDirect_GetForeign(code);
+                if(info_VNDirect is null)
+                    return info;
+
+                var firstDate = info.data.First().tradingDate.ToDateTime("dd/MM/yyyy");
+                var vnDirectDate = info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd");
+                var div = (vnDirectDate - firstDate).TotalDays;
+                if (div == 0)
+                {
+                    info.data.First().netBuySellVol = info_VNDirect.netVol;
+                }
+                else if (div < 10)
+                {
+                    var add = new SSI_DataStockInfoDetailResponse();
+                    add.tradingDate = info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("dd/MM/yyyy");
+                    add.netBuySellVol = info_VNDirect.netVol;
+                    info.data.Insert(0, add);
+                }
+                return info;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.SSI_GetStockInfo_Extend|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
         public async Task<SSI_DataStockInfoResponse> SSI_GetStockInfo(string code, DateTime from, DateTime to)
         {
-            var lOutput = new List<Quote>();
             var urlBase = $"https://iboard-api.ssi.com.vn/statistics/company/ssmi/stock-info?symbol={code}&page=1&pageSize=100&fromDate={from.Day.To2Digit()}%2F{from.Month.To2Digit()}%2F{from.Year}&toDate={to.Day.To2Digit()}%2F{to.Month.To2Digit()}%2F{to.Year}";
             try
             {
