@@ -899,8 +899,8 @@ namespace StockPr.Service
                     if (sym == "VNINDEX")
                         continue;
 
-                    if (sym != "FPT")
-                        continue;
+                    //if (sym != "FPT")
+                    //    continue;
 
                     var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
                     dat.data.Reverse();
@@ -908,17 +908,18 @@ namespace StockPr.Service
                     var avgNet = dat.data.Sum(x => Math.Abs(x.netBuySellVal ?? 0));
                     var countNet = dat.data.Count(x => x.netBuySellVal != null && x.netBuySellVal != 0);
                     var avg = avgNet / countNet;
-                    Console.WriteLine($"AVG: {avg}");
-                    //var lData = await _apiService.SSI_GetDataStock(sym);
+                    //Console.WriteLine($"AVG: {avg}");
+                    var lData = await _apiService.SSI_GetDataStock(sym);
+                    var lbb = lData.GetBollingerBands();
                     for (int i = 1; i < count - 1; i++)
                     {
                         var prev = dat.data[i - 1];
                         var sig = dat.data[i];
                         var pivot_1 = dat.data[i + 1];
-                        if (sig.tradingDate.Contains("07/05"))
-                        {
-                            var mp = 1;
-                        }
+                        //if (sig.tradingDate.Contains("07/05"))
+                        //{
+                        //    var mp = 1;
+                        //}
 
                         if (Math.Abs(sig.netBuySellVal ?? 0) < avg)
                             continue;
@@ -931,17 +932,72 @@ namespace StockPr.Service
                                 || Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1) == 0)
                                 continue;
 
-                            Console.WriteLine($"{sym}|{prev.tradingDate}|Trade: {Math.Round((decimal)prev.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000000, 1)}");
-                            Console.WriteLine($"{sym}|{sig.tradingDate}|Trade: {Math.Round((decimal)sig.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(sig.netBuySellVal ?? 0) / 1000000000, 1)}");
-                            Console.WriteLine($"{sym}|{pivot_1.tradingDate}|Trade: {Math.Round((decimal)pivot_1.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
-
-                            if ((i + 2) < count - 1)
+                            var valid = false;
+                            if (sig.netBuySellVal > 0 || pivot_1.netBuySellVal > 0)
                             {
-                                var pivot_2 = dat.data[i + 2];
-                                Console.WriteLine($"{sym}|{pivot_2.tradingDate}|Trade: {Math.Round((decimal)pivot_2.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                valid = true;
                             }
 
-                            Console.WriteLine();
+                            SSI_DataStockInfoDetailResponse pivot_2 = null;
+                            if (!valid)
+                            {
+                                if ((i + 2) < count - 1)
+                                {
+                                    pivot_2 = dat.data[i + 2];
+                                    if (pivot_2.netBuySellVal > 0)
+                                        valid = true;
+                                }
+                            }
+
+                            if (valid)
+                            {
+                                var dtSig = sig.tradingDate.ToDateTime("dd/MM/yyyy");
+                                var dtPivot = pivot_1.tradingDate.ToDateTime("dd/MM/yyyy");
+                                var entitySignal = lData.First(x => x.Date.Day == dtSig.Day && x.Date.Month == dtSig.Month && x.Date.Year == dtSig.Year);
+                                var entityPivot = lData.First(x => x.Date.Day == dtPivot.Day && x.Date.Month == dtPivot.Month && x.Date.Year == dtPivot.Year);
+                                var bb_Signal = lbb.First(x => x.Date == entitySignal.Date);
+                                var bb_Pivot = lbb.First(x => x.Date == entityPivot.Date);
+                                if (entitySignal.Low < (decimal)bb_Signal.LowerBand.Value)
+                                {
+                                    if (entitySignal.Low < entityPivot.Low)
+                                        continue;
+                                }
+                                
+                                if (entitySignal.High > (decimal)bb_Signal.UpperBand.Value)
+                                {
+                                    //SELL
+                                    Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                    continue;
+                                }
+                                else if (sig.netBuySellVal < 0)
+                                {
+                                    //BUY
+                                    if (pivot_2 != null)
+                                    {
+                                        Console.WriteLine($"{sym}|BUY| {pivot_2.tradingDate}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"{sym}|BUY| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                    }
+                                    continue;
+                                }
+                                else
+                                {
+                                    //SELL
+                                    Console.WriteLine($"{sym}|SELL| {pivot_1.tradingDate}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                    continue;
+                                }
+
+                                Console.WriteLine($"{sym}|{prev.tradingDate}|Trade: {Math.Round((decimal)prev.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                Console.WriteLine($"{sym}|{sig.tradingDate}|Trade: {Math.Round((decimal)sig.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(sig.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                Console.WriteLine($"{sym}|{pivot_1.tradingDate}|Trade: {Math.Round((decimal)pivot_1.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_1.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                if (pivot_2 != null)
+                                {
+                                    Console.WriteLine($"{sym}|{pivot_2.tradingDate}|Trade: {Math.Round((decimal)pivot_2.netTotalTradeVol / 1000000, 1)}|NN: {Math.Round((decimal)(pivot_2.netBuySellVal ?? 0) / 1000000000, 1)}");
+                                }
+                                Console.WriteLine();
+                            }
                         }
                     }
 
@@ -957,7 +1013,7 @@ namespace StockPr.Service
                     //    }
 
                     //}
-                    break;
+                    //break;
                     //Thread.Sleep(500);
                     //var lData = await _apiService.SSI_GetDataStock(sym);
                     //var lbb = lData.GetBollingerBands();
