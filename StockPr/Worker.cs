@@ -52,8 +52,8 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            //await _testService.CheckGDNN();
-            //return;
+            await _testService.CheckCungCau();
+            return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;

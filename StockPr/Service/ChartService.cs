@@ -258,10 +258,6 @@ namespace StockPr.Service
 
                         //
                         info.data = info.data.Take(19).ToList();
-                        foreach (var item in info.data)
-                        {
-                            item.netTotalTradeVol = item.totalBuyTradeVol - item.totalSellTradeVol;
-                        }
 
                         double currentRoom = 0;
                         if (info_VNDirect.currentRoom > 1000000)

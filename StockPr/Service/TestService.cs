@@ -10,6 +10,7 @@ namespace StockPr.Service
         Task CheckAllDay_OnlyVolume();
         Task BatDayCK();
         Task CheckGDNN();
+        Task CheckCungCau();
     }
     public class TestService : ITestService
     {
@@ -794,8 +795,11 @@ namespace StockPr.Service
                 //{
                 //    "BFC"
                 //};
-                foreach (var sym in _lTake)
+                foreach (var sym in StaticVal._lFocus)
                 {
+                    if (sym == "VNINDEX")
+                        continue;
+
                     var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
                     Thread.Sleep(500);
                     var lData = await _apiService.SSI_GetDataStock(sym);
@@ -876,195 +880,103 @@ namespace StockPr.Service
             }
         }
 
-        private static List<string> _lTake = new List<string>
+        public async Task CheckCungCau()
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var dtPrev = dt.AddYears(-1);
+                var lTotal = new List<decimal>();
+                var min = 200000000;
+                //_lTake.Clear();
+                //_lTake = new List<string>
+                //{
+                //    "BFC"
+                //};
+                foreach (var sym in StaticVal._lFocus)
                 {
-                    "DC4",
-                    "GIL",
-                    "GVR",
-                    "DPG",
-                    "CTG",
-                    "BFC",
-                    "VRE",
-                    "PVB",
-                    "GEX",
-                    "SZC",
-                    "HDG",
-                    "BMP",
-                    "TLG",
-                    "VPB",
-                    "DIG",
-                    "KBC",
-                    "HSG",
-                    "PET",
-                    "TNG",
-                    "SBT",
-                    "MSH",
-                    "NAB",
-                    "VGC",
-                    "CSV",
-                    "VCS",
-                    "CSM",
-                    "PHR",
-                    "PVT",
-                    "PC1",
-                    "ASM",
-                    "LAS",
-                    "DXG",
-                    "HCM",
-                    "CTI",
-                    "NHA",
-                    "DPR",
-                    "ANV",
-                    "OCB",
-                    "TVB",
-                    "STB",
-                    "HDC",
-                    "POW",
-                    "VSC",
-                    "L18",
-                    "DDV",
-                    "VCI",
-                    "GMD",
-                    "NTP",
-                    "KSV",
-                    "NT2",
-                    "TCM",
-                    "LSS",
-                    "GEG",
-                    "HHS",
-                    "MSB",
-                    "TCH",
-                    "VHC",
-                    "PVD",
-                    "FOX",
-                    "SSI",
-                    "NKG",
-                    "BSI",
-                    "ACB",
-                    "REE",
-                    "VHM",
-                    "PAN",
-                    "SIP",
-                    "PTB",
-                    "BSR",
-                    "BID",
-                    "PVS",
-                    "CTS",
-                    "FTS",
-                    "HPG",
-                    "DBC",
-                    "MSR",
-                    "THG",
-                    "CTD",
-                    "VOS",
-                    "FMC",
-                    "PHP",
-                    "GAS",
-                    "DCM",
-                    "KSB",
-                    "MSN",
-                    "BVB",
-                    "MBB",
-                    "TRC",
-                    "VPI",
-                    "EIB",
-                    "KDH",
-                    "VCB",
-                    "FPT",
-                    "DRC",
-                    "CMG",
-                    "HAG",
-                    "SHB",
-                    "CII",
-                    "CTR",
-                    "IDC",
-                    "GEE",
-                    "NVB",
-                    "BVS",
-                    "BWE",
-                    "HAX",
-                    "QNS",
-                    "VEA",
-                    "TVS",
-                    "DGC",
-                    "HAH",
-                    "NVL",
-                    "PAC",
-                    "AAA",
-                    "TNH",
-                    "ACV",
-                    "BCC",
-                    "FRT",
-                    "HT1",
-                    "SCS",
-                    "TLH",
-                    "MIG",
-                    "SKG",
-                    "DGC",
-                    "VAB",
-                    "NLG",
-                    "HVN",
-                    "HNG",
-                    "PDR",
-                    "VDS",
-                    "SJE",
-                    "PNJ",
-                    "CEO",
-                    "YEG",
-                    "KLB",
-                    "BCM",
-                    "BVH",
-                    "NTL",
-                    "TDH",
-                    "MBS",
-                    "HUT",
-                    "VIB",
-                    "BAF",
-                    "HHV",
-                    "NDN",
-                    "SGP",
-                    "MCH",
-                    "FCN",
-                    "SCR",
-                    "TCB",
-                    "LPB",
-                    "VTP",
-                    "AGR",
-                    "VCG",
-                    "DPM",
-                    "IDJ",
-                    "DXS",
-                    "OIL",
-                    "AGG",
-                    "VND",
-                    "PSI",
-                    "DHA",
-                    "VIC",
-                    "BCG",
-                    "TPB",
-                    "VIX",
-                    "IJC",
-                    "DGW",
-                    "SBS",
-                    "MFS",
-                    "PLX",
-                    "DRI",
-                    "EVF",
-                    "ORS",
-                    "SAB",
-                    "TDC",
-                    "VNM",
-                    "TV2",
-                    "C4G",
-                    "MWG",
-                    "JVC",
-                    "GDA",
-                    "VGI",
-                    "DSC",
-                    "SMC",
-                    "DTD",
-                    "QCG",
-                };
+                    if (sym == "VNINDEX")
+                        continue;
+
+                    var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
+                    Thread.Sleep(500);
+                    var lData = await _apiService.SSI_GetDataStock(sym);
+                    var lbb = lData.GetBollingerBands();
+                    var count = dat.data.Count;
+                    var lDat = dat.data;
+                    lDat.Reverse();
+                    QuoteEx itemBuy = null, itemSell = null;
+
+                    for (int i = 5; i < count; i++)
+                    {
+                        try
+                        {
+                            var prev_2 = dat.data[i - 3];
+                            var prev_1 = dat.data[i - 2];
+                            var prev_0 = dat.data[i - 1];
+
+                            var item = dat.data[i];
+                            var curDate = item.tradingDate.ToDateTime("dd/MM/yyyy");
+
+                            if (itemBuy is null//chi them dk nay kq khac han
+                                && prev_2.netBuySellVal <= min
+                                && prev_1.netBuySellVal <= min
+                                && prev_0.netBuySellVal <= min
+                                && item.netBuySellVal > min)
+                            {
+                                var itemData = lData.First(x => x.Date.Year == curDate.Year && x.Date.Month == curDate.Month && x.Date.Day == curDate.Day);
+                                var bb = lbb.First(x => x.Date == itemData.Date);
+                                if (Math.Max(itemData.Open, itemData.Close) >= (decimal)bb.UpperBand.Value)
+                                    continue;
+                                if (itemData.High > (decimal)bb.Sma.Value
+                                    && itemData.Close < itemData.Open
+                                    && itemData.Close < (decimal)bb.Sma.Value)
+                                    continue;
+
+                                itemBuy = new QuoteEx
+                                {
+                                    Close = item.close,
+                                    Date = curDate,
+                                    Index = i
+                                };
+                                itemSell = null;
+                                continue;
+                            }
+                            if (itemBuy != null
+                                && prev_2.netBuySellVal >= -min
+                                && prev_1.netBuySellVal >= -min
+                                && prev_0.netBuySellVal >= -min
+                                && item.netBuySellVal < -min
+                                && (i - itemBuy.Index) > 3)
+                            {
+                                itemSell = new QuoteEx
+                                {
+                                    Close = item.close,
+                                    Date = curDate,
+                                    Index = i
+                                };
+                                var rate = Math.Round(100 * (-1 + itemSell.Close / itemBuy.Close), 1);
+                                lTotal.Add(rate);
+                                var mes = $"{sym}|BUY({itemBuy.Date.ToString("dd/MM/yyyy")})|SELL({itemSell.Date.ToString("dd/MM/yyyy")})| Rate: {rate}%";
+                                Console.WriteLine(mes);
+                                itemBuy = null;
+                                itemSell = null;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"{ex.Message}");
+                        }
+                    }
+                }
+
+                Console.WriteLine($"Total: {lTotal.Sum()}%");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex.Message}");
+            }
+        }
     }
 
     public class LongMa20

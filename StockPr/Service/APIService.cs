@@ -1411,6 +1411,10 @@ namespace StockPr.Service
                 Thread.Sleep(100);
                 var resultArray = await responseMessage.Content.ReadAsStringAsync();
                 var responseModel = JsonConvert.DeserializeObject<SSI_DataStockInfoResponse>(resultArray);
+                foreach (var item in responseModel.data)
+                {
+                    item.netTotalTradeVol = item.totalBuyTradeVol - item.totalSellTradeVol;
+                }
                 return responseModel;
             }
             catch (Exception ex)

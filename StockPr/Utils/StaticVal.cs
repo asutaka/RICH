@@ -270,6 +270,7 @@ namespace StockPr.Utils
             "JVC",
             "DVN",
             "DHG",
+            "IMP",
             //Khoáng sản
             "DGC",
             "CSV",
