@@ -98,7 +98,7 @@ namespace TradePr.Utils
                     var next_6 = lCheck.ElementAt(i + 2);
                     var next_7 = lCheck.ElementAt(i + 3);
 
-                    if (cur.Open < cur.Close //Nến đỏ
+                    if (cur.Open < cur.Close //Nến xanh
                         || cur.Close >= prev_1.Close
                         || cur.Close >= prev_2.Close
                         || cur.Close >= prev_3.Close
