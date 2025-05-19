@@ -969,9 +969,9 @@ namespace TestPr.Service
                                         continue;
                                 }
 
-                                var checkBot = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistBotB();
-                                if (!checkBot.Item1)
-                                    continue;
+                                //var checkBot = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistBotB();
+                                //if (!checkBot.Item1)
+                                //    continue;
 
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)
