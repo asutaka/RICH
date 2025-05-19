@@ -193,6 +193,10 @@ namespace TradePr.Service
                             if (countRisk >= 18)
                                 continue;
 
+                            var checkTop = l15m.IsExistTopB();
+                            if (!checkTop.Item1)
+                                continue;
+
                             sideDetect = (int)OrderSide.Buy;
                         }
 

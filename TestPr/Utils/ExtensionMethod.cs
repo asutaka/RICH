@@ -67,7 +67,7 @@ namespace TestPr.Utils
 
                     //check BB
                     var bb = lbb.First(x => x.Date == cur.Date);
-                    if (cur.High > (decimal)bb.UpperBand.Value)
+                    if (cur.High > (decimal)(bb.UpperBand ?? 0)) 
                         continue;
 
                     return (true, cur.Date);
@@ -111,7 +111,7 @@ namespace TestPr.Utils
 
                     //check BB
                     var bb = lbb.First(x => x.Date == cur.Date);
-                    if (cur.Low < (decimal)bb.LowerBand.Value)
+                    if (cur.Low < (decimal)(bb.LowerBand ?? 0))
                         continue;
 
                     return (true, cur.Date);
