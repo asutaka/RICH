@@ -188,6 +188,7 @@ namespace StockPr.Utils
             "LAI",
             "IDJ",
             "VC7",
+            "TA9",
             "KSB",
             "DHA",
             "VLB",
