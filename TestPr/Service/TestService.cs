@@ -1018,7 +1018,7 @@ namespace TestPr.Service
                                     }
                                 }
 
-                                dtFlag = eClose.Date;
+                                //dtFlag = eClose.Date;
                                 var rate = Math.Round(100 * (-1 + entity_Pivot.Close / eClose.Close), 1);
                                 var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
                                 var maxH = lRange.Max(x => x.High);
@@ -1047,6 +1047,8 @@ namespace TestPr.Service
                                     rate = -Math.Abs(rate);
                                     lossCount++;
                                 }
+                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
+                                Console.WriteLine(mesItem);
 
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
