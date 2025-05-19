@@ -969,6 +969,10 @@ namespace TestPr.Service
                                         continue;
                                 }
 
+                                var checkBot = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistBotB();
+                                if (!checkBot.Item1)
+                                    continue;
+
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)
                                     continue;
@@ -1047,7 +1051,7 @@ namespace TestPr.Service
                                     rate = -Math.Abs(rate);
                                     lossCount++;
                                 }
-                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
+                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|BOT: {checkBot.Item2.ToString("dd/MM/yyyy HH:mm")}";
                                 Console.WriteLine(mesItem);
 
                                 //lRate.Add(rate);

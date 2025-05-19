@@ -36,7 +36,7 @@ namespace TradePr.Utils
             }
         }
 
-        public static bool IsExistTopB(this List<Quote> lData)
+        public static (bool, DateTime) IsExistTopB(this List<Quote> lData)
         {
             try
             {
@@ -69,7 +69,7 @@ namespace TradePr.Utils
                     if (cur.High > (decimal)bb.UpperBand.Value)
                         continue;
 
-                    return true;
+                    return (true, cur.Date);
                 }
             }
             catch(Exception ex)
@@ -77,10 +77,10 @@ namespace TradePr.Utils
                 Console.WriteLine(ex.Message);
             }
 
-            return false;
+            return (false, DateTime.MinValue);
         }
 
-        public static bool IsExistBotB(this List<Quote> lData)
+        public static (bool, DateTime) IsExistBotB(this List<Quote> lData)
         {
             try
             {
@@ -113,7 +113,7 @@ namespace TradePr.Utils
                     if (cur.Low < (decimal)bb.LowerBand.Value)
                         continue;
 
-                    return true;
+                    return (true, cur.Date);
                 }
             }
             catch (Exception ex)
@@ -121,7 +121,7 @@ namespace TradePr.Utils
                 Console.WriteLine(ex.Message);
             }
 
-            return false;
+            return (false, DateTime.MinValue);
         }
     }
 }
