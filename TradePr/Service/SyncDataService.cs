@@ -465,9 +465,9 @@ namespace TradePr.Service
                                 if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                                     continue;
 
-                                //var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
-                                //if (!checkTop.Item1)
-                                //    continue;
+                                var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
+                                if (!checkTop.Item1)
+                                    continue;
 
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)
@@ -548,8 +548,8 @@ namespace TradePr.Service
                                     lossCount++;
                                 }
 
-                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
-                                Console.WriteLine(mesItem);
+                                //var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
+                                //Console.WriteLine(mesItem);
 
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
