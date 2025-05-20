@@ -264,6 +264,22 @@ namespace TradePr.Service
                                     continue;
                             }
 
+                            //Nếu 20 nến gần nhất đề nằm dưới ma20(18/20) thì ko vào lệnh
+                            var lRisk = l15m.TakeLast(20);
+                            var countRisk = 0;
+                            foreach (var risk in lRisk)
+                            {
+                                var bb = lbb.First(x => x.Date == risk.Date);
+                                if (risk.High < (decimal)bb.Sma.Value)
+                                    countRisk++;
+                            }
+                            if (countRisk >= 18)
+                                continue;
+
+                            var checkTop = l15m.IsExistTopB();
+                            if (!checkTop.Item1)
+                                continue;
+
                             sideDetect = (int)OrderSide.Buy;
                         }
 
@@ -381,6 +397,18 @@ namespace TradePr.Service
                                 if (isValid)
                                     continue;
                             }
+
+                            //Nếu 20 nến gần nhất đề nằm trên ma20(18/20) thì ko vào lệnh
+                            var lRisk = l15m.TakeLast(20);
+                            var countRisk = 0;
+                            foreach (var risk in lRisk)
+                            {
+                                var bb = lbb.First(x => x.Date == risk.Date);
+                                if (risk.Low > (decimal)bb.Sma.Value)
+                                    countRisk++;
+                            }
+                            if (countRisk >= 18)
+                                continue;
 
                             sideDetect = (int)OrderSide.Sell;
                        }
