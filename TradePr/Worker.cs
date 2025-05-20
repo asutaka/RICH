@@ -23,6 +23,7 @@ namespace TradePr
             //await _binnanceService.Binance_GetAccountInfo();
 
             //await _bybitService.Bybit_Trade();
+            //await _syncService.Bybit_LONG();
             //return;
 
             while (!stoppingToken.IsCancellationRequested)

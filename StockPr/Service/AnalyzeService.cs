@@ -871,7 +871,7 @@ namespace StockPr.Service
                 var now = DateTime.Now;
                 if(code != "VNINDEX")
                 {
-                    var info = await _apiService.SSI_GetStockInfo(code, now.AddYears(-1), now);
+                    var info = await _apiService.SSI_GetStockInfo_Extend(code, now.AddYears(-1), now);
                     var res = model.IsForeign(lData, info.data);
                     if (res == EOrderType.BUY)
                     {
