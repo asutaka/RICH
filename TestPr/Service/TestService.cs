@@ -767,7 +767,6 @@ namespace TestPr.Service
                                 }
 
                                 var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
-                                //var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|BOT: {checkBot.Item2.ToString("dd/MM/yyyy HH:mm")}";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
