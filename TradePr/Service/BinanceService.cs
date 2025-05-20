@@ -264,6 +264,10 @@ namespace TradePr.Service
                                     continue;
                             }
 
+                            var checkTop = l15m.IsExistTopB();
+                            if (!checkTop.Item1)
+                                continue;
+
                             sideDetect = (int)OrderSide.Buy;
                         }
 

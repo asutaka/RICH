@@ -186,8 +186,11 @@ namespace TradePr.Service
                                 if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                                     continue;
 
-                                var eEntry = entity_Pivot;
-                                var eClose = lData15m.FirstOrDefault(x => x.Date >= eEntry.Date.AddHours(hour));
+                                var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
+                                if (!checkTop.Item1)
+                                    continue;
+
+                                var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)
                                     continue;
 
@@ -201,7 +204,7 @@ namespace TradePr.Service
                                     rateBB = rateProfit_Max;
                                 }
 
-                                var lClose = lData15m.Where(x => x.Date > eEntry.Date && x.Date <= eEntry.Date.AddHours(hour));
+                                var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
                                 var isChotNon = false;
                                 foreach (var itemClose in lClose)
                                 {
@@ -216,7 +219,7 @@ namespace TradePr.Service
                                     if (isChotNon
                                         && itemClose.Close < (decimal)ma.Sma.Value
                                         && itemClose.Close <= itemClose.Open
-                                        && itemClose.Close >= eEntry.Close)
+                                        && itemClose.Close >= entity_Pivot.Close)
                                     {
                                         eClose = itemClose;
                                         break;
@@ -227,10 +230,10 @@ namespace TradePr.Service
                                         isChotNon = true;
                                     }
 
-                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / eEntry.Close), 1); //chốt khi lãi > 10%
+                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); //chốt khi lãi > 10%
                                     if (rateCheck > rateBB)
                                     {
-                                        var close = eEntry.Close * (decimal)(1 + rateBB / 100);
+                                        var close = entity_Pivot.Close * (decimal)(1 + rateBB / 100);
                                         itemClose.Close = close;
                                         eClose = itemClose;
                                         break;
@@ -238,8 +241,8 @@ namespace TradePr.Service
                                 }
 
                                 dtFlag = eClose.Date;
-                                var rate = Math.Round(100 * (-1 + eClose.Close / eEntry.Close), 1);
-                                var lRange = lData15m.Where(x => x.Date >= eEntry.Date.AddMinutes(15) && x.Date <= eClose.Date);
+                                var rate = Math.Round(100 * (-1 + eClose.Close / entity_Pivot.Close), 1);
+                                var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
                                 var maxH = lRange.Max(x => x.High);
                                 var minL = lRange.Min(x => x.Low);
 
@@ -249,7 +252,7 @@ namespace TradePr.Service
                                     winloss = "L";
                                 }
 
-                                var maxSL = Math.Round(100 * (-1 + minL / eEntry.Close), 1);
+                                var maxSL = Math.Round(100 * (-1 + minL / entity_Pivot.Close), 1);
                                 if (maxSL <= -SL_RATE)
                                 {
                                     rate = -SL_RATE;
