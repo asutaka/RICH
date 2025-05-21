@@ -338,7 +338,7 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy)
+                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy)
                 ));
 
                 var rank = 1;
@@ -619,7 +619,7 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy)
+                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy)
                 ));
 
                 var rank = 1;
@@ -916,7 +916,7 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell)
+                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell)
                 ));
 
                 var rank = 1;
@@ -1236,7 +1236,7 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Gte(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell)
+                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell)
                 ));
 
                 var rank = 1;
