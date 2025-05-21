@@ -1062,6 +1062,23 @@ namespace TradePr.Service
                                         continue;
                                 }
 
+                                #region Thêm xử lý
+                                var isPass = false;
+                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                foreach (var check in lCheck)
+                                {
+                                    var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
+                                    if (rateCheck >= 0.7m)
+                                    {
+                                        entity_Pivot = check;
+                                        entity_Pivot.Close = entity_Pivot.Close * 1.007m;
+                                        isPass = true; break;
+                                    }
+                                }
+                                if (!isPass)
+                                    continue;
+                                #endregion
+
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)
                                     continue;

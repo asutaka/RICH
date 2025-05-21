@@ -289,7 +289,7 @@ namespace TradePr.Service
                                 ex = _exchange,
                                 Side = sideDetect,
                                 timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-                                quote = last
+                                quote = last,
                             });
                         }
                     }
@@ -698,7 +698,7 @@ namespace TradePr.Service
                     //Print
                     var entry = Math.Round(first.EntryPrice, symConfig.price);
 
-                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Binance] {first.Symbol}|ENTRY: {entry}";
+                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Binance] {first.Symbol}({entity.rank})|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
                     _placeRepo.InsertOne(new PlaceOrderTrade
                     {

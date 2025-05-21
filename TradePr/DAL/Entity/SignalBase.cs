@@ -18,6 +18,7 @@ namespace TradePr.DAL.Entity
         public double priceClose { get; set; }
         public double rate { get; set; }
         public Quote quote { get; set; }
+        public int rank { get; set; }
         public int status { get; set; }
     }
 }

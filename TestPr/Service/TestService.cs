@@ -1,5 +1,4 @@
 ﻿using Bybit.Net.Enums;
-using CryptoExchange.Net.Objects;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
@@ -866,6 +865,7 @@ namespace TestPr.Service
 
                 var winTotal = 0;
                 var lossTotal = 0;
+                //
 
                 foreach (var item in lSym.Select(x => x.s))
                 {
@@ -968,6 +968,23 @@ namespace TestPr.Service
                                 //var checkBot = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistBotB();
                                 //if (!checkBot.Item1)
                                 //    continue;
+
+                                #region Thêm xử lý
+                                var isPass = false;
+                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                foreach (var check in lCheck)
+                                {
+                                    var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
+                                    if (rateCheck >= 0.7m)
+                                    {
+                                        entity_Pivot = check;
+                                        entity_Pivot.Close = entity_Pivot.Close * 1.007m;
+                                        isPass = true; break;
+                                    }
+                                }
+                                if (!isPass)
+                                    continue;
+                                #endregion
 
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)

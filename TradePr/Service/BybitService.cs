@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
+using TradePr.Model;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -30,6 +31,8 @@ namespace TradePr.Service
         private readonly decimal _TP_RATE_MAX = 0.07m;
 
         private readonly int _exchange = (int)EExchange.Bybit;
+        private static List<QuoteEx> _lShort = new List<QuoteEx>();
+
         public BybitService(ILogger<BybitService> logger,
                             IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
                             IConfigDataRepo configRepo)
@@ -76,10 +79,10 @@ namespace TradePr.Service
                         builderLONG.Eq(x => x.ex, _exchange),
                         builderLONG.Eq(x => x.ty, (int)OrderSide.Buy),
                         builderLONG.Eq(x => x.status, 0)
-                    )).OrderBy(x => x.rank).Select(x => x.s);
+                    )).OrderBy(x => x.rank).ToList();
                     if (disableLong != null && disableLong.status == 1)
                     {
-                        lLong = new List<string>();
+                        lLong = new List<Symbol>();
                     }
 
                     var builderSHORT = Builders<Symbol>.Filter;
@@ -87,11 +90,14 @@ namespace TradePr.Service
                         builderSHORT.Eq(x => x.ex, _exchange),
                         builderSHORT.Eq(x => x.ty, (int)OrderSide.Sell),
                         builderSHORT.Eq(x => x.status, 0)
-                    )).OrderBy(x => x.rank).Select(x => x.s);
+                    )).OrderBy(x => x.rank).ToList();
                     if (disableShort != null && disableShort.status == 1)
                     {
-                        lShort = new List<string>();
+                        lShort = new List<Symbol>();
+                        _lShort.Clear();
                     }
+
+                    await ShortEntry();
 
                     await Bybit_TradeRSI_LONG(lLong.Take(20));
                     await Bybit_TradeRSI_SHORT(lShort.Take(20));
@@ -106,7 +112,56 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Bybit_TradeRSI_LONG(IEnumerable<string> lSym)
+        private async Task ShortEntry()
+        {
+            var now = DateTime.Now;
+            var lShort = _lShort.ToList();
+            Console.WriteLine(JsonConvert.SerializeObject(lShort));
+
+            foreach (var item in lShort)
+            {
+                try
+                {
+                    var l15m = await _apiService.GetData_Bybit(item.s, EInterval.M15);
+                    Thread.Sleep(100);
+
+                    var last = l15m.Last();
+                    if (last.Close <= item.Close)
+                        continue;
+
+                    var rate = Math.Round(100 * (-1 + last.Close / item.Close), 1);
+                    if(rate >= 0.7m)
+                    {
+                        await PlaceOrder(new SignalBase
+                        {
+                            s = item.s,
+                            ex = _exchange,
+                            Side = item.side,
+                            timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                            quote = last,
+                            rank = item.Index
+                        });
+
+                        var eRemove = _lShort.First(x => x.s == item.s);
+                        _lShort.Remove(eRemove);
+                        continue;
+                    }
+
+                    var time = (now - item.Date).TotalHours;
+                    if(time >= 2)
+                    {
+                        var eRemove = _lShort.First(x => x.s == item.s);
+                        _lShort.Remove(eRemove);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.ShortEntry|INPUT: {JsonConvert.SerializeObject(item)}|EXCEPTION| {ex.Message}");
+                }
+            }
+        }
+
+        private async Task Bybit_TradeRSI_LONG(IEnumerable<Symbol> lSym)
         {
             try
             {
@@ -115,7 +170,7 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var l15m = await _apiService.GetData_Bybit(sym, EInterval.M15);
+                        var l15m = await _apiService.GetData_Bybit(sym.s, EInterval.M15);
                         Thread.Sleep(100);
                         if (l15m is null
                               || !l15m.Any())
@@ -203,17 +258,18 @@ namespace TradePr.Service
                         {
                             await PlaceOrder(new SignalBase
                             {
-                                s = sym,
+                                s = sym.s,
                                 ex = _exchange,
                                 Side = sideDetect,
                                 timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
                                 quote = last,
+                                rank = sym.rank
                             });
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_LONG|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_LONG|INPUT: {sym.s}|EXCEPTION| {ex.Message}");
                     }
                 }
             }
@@ -223,7 +279,7 @@ namespace TradePr.Service
             }
         }
         
-        private async Task Bybit_TradeRSI_SHORT(IEnumerable<string> lSym)
+        private async Task Bybit_TradeRSI_SHORT(IEnumerable<Symbol> lSym)
         {
             try
             {
@@ -232,7 +288,7 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var l15m = await _apiService.GetData_Bybit(sym, EInterval.M15);
+                        var l15m = await _apiService.GetData_Bybit(sym.s, EInterval.M15);
                         Thread.Sleep(100);
                         if (l15m is null
                               || !l15m.Any())
@@ -330,19 +386,37 @@ namespace TradePr.Service
 
                         if (sideDetect > -1)
                         {
-                            await PlaceOrder(new SignalBase
+                            var exists = _lShort.FirstOrDefault(x => x.s == sym.s);
+                            if (exists != null)
                             {
-                                s = sym,
-                                ex = _exchange,
-                                Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-                                quote = last
+                                _lShort.Remove(exists);
+                            }
+
+                            _lShort.Add(new QuoteEx
+                            {
+                                Open = pivot.Open,
+                                Close = pivot.Close,
+                                High = pivot.High,
+                                Low = pivot.Low,
+                                Volume = pivot.Volume,
+                                Date = pivot.Date,
+                                s = sym.s,
+                                Index = sym.rank,
+                                side = sideDetect
                             });
+                            //await PlaceOrder(new SignalBase
+                            //{
+                            //    s = sym,
+                            //    ex = _exchange,
+                            //    Side = sideDetect,
+                            //    timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                            //    quote = last
+                            //});
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|INPUT: {sym.s}|EXCEPTION| {ex.Message}");
                     }
                 }
             }
@@ -637,7 +711,7 @@ namespace TradePr.Service
                     //Print
                     var entry = Math.Round(first.AveragePrice.Value, tronGia);
 
-                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}";
+                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}({entity.rank})|ENTRY: {entry}";
                     await _teleService.SendMessage(_idUser, mes);
 
                     _placeRepo.InsertOne(new PlaceOrderTrade
