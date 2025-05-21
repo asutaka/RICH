@@ -52,12 +52,6 @@ namespace TradePr.Utils
             return _bybit;
         }
 
-        public static List<string> _lCoinSpecial = new List<string>
-        {
-            "MUBARAKUSDT"
-        };
-
-
         public static Dictionary<string, int> _dicBinanceMargin = new Dictionary<string, int>
         {
             { "1INCHUSDT", 75 },

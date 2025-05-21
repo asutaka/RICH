@@ -105,11 +105,8 @@ namespace TestPr.Service
                                     )
                                     continue;
 
-                                if (!StaticVal._lCoinSpecial.Contains(item))
-                                {
-                                    if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
-                                        continue;
-                                }
+                                if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
+                                    continue;
 
                                 if (entity_Pivot is null
                                    || rsi_Pivot.Rsi > 35 || rsi_Pivot.Rsi < 25
@@ -375,11 +372,8 @@ namespace TestPr.Service
                                    )
                                     continue;
 
-                                if (!StaticVal._lCoinSpecial.Contains(item))
-                                {
-                                    if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
-                                        continue;
-                                }
+                                if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
+                                    continue;
 
                                 if (entity_Pivot is null
                                   || rsi_Pivot.Rsi > 80 || rsi_Pivot.Rsi < 65
@@ -658,11 +652,8 @@ namespace TestPr.Service
                                     )
                                     continue;
 
-                                if (!StaticVal._lCoinSpecial.Contains(item))
-                                {
-                                    if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
-                                        continue;
-                                }
+                                if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
+                                    continue;
 
                                 if (entity_Pivot is null
                                    || rsi_Pivot.Rsi > 35 || rsi_Pivot.Rsi < 25
@@ -930,11 +921,8 @@ namespace TestPr.Service
                                    )
                                     continue;
 
-                                if (!StaticVal._lCoinSpecial.Contains(item))
-                                {
-                                    if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
-                                        continue;
-                                }
+                                if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
+                                    continue;
 
                                 if (entity_Pivot is null
                                   || rsi_Pivot.Rsi > 80 || rsi_Pivot.Rsi < 65

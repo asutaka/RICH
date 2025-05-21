@@ -239,11 +239,9 @@ namespace TradePr.Service
                             {
                                 continue;
                             }
-                            if (!StaticVal._lCoinSpecial.Contains(sym))
-                            {
-                                if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
-                                    continue;
-                            }
+
+                            if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
+                                continue;
 
                             var minOpenClose = Math.Min(near.Open, near.Close);
                             if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
@@ -360,11 +358,10 @@ namespace TradePr.Service
                             {
                                 continue;
                             }
-                            if (!StaticVal._lCoinSpecial.Contains(sym))
-                            {
-                                if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
-                                    continue;
-                            }
+
+                            if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
+                                continue;
+
                             var maxOpenClose = Math.Max(near.Open, near.Close);
                             if (Math.Abs(maxOpenClose - (decimal)bb_near.UpperBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - maxOpenClose))
                                 continue;

@@ -29,10 +29,5 @@ namespace TestPr.Utils
         {
             "ZBCNUSDT"
         };
-
-        public static List<string> _lCoinSpecial = new List<string>
-        {
-            "MUBARAKUSDT"
-        };
     }
 }
