@@ -1222,7 +1222,13 @@ namespace TradePr.Service
                     }
                 }
 
-                var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).Take(_TAKE).ToList();
+                var lResultOrder = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
+                var lRes = lResultOrder.Where(x => x.Winrate >= 0.9).ToList();
+                if(lRes.Count() < _TAKE)
+                {
+                    lRes = lResultOrder.Take(_TAKE).ToList();
+                }
+
                 if (lRes.Count() < _TAKE - 15)
                     return;
 
