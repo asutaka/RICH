@@ -972,6 +972,7 @@ namespace TestPr.Service
                                 #region Thêm xử lý
                                 var isPass = false;
                                 var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
                                     var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
@@ -1064,7 +1065,7 @@ namespace TestPr.Service
                                     rate = -Math.Abs(rate);
                                     lossCount++;
                                 }
-                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
+                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|SIG: {dtPrint.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
                                 //var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|BOT: {checkBot.Item2.ToString("dd/MM/yyyy HH:mm")}";
                                 Console.WriteLine(mesItem);
 
