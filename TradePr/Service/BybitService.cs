@@ -69,7 +69,7 @@ namespace TradePr.Service
                 var disableAll = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableAll && x.status == 1);
 
                 if (dt.Minute % 15 == 0
-                    && (disableAll is null || disableAll.status == 0))
+                    && disableAll is null)
                 {
                     var disableLong = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableLong && x.status == 1);
                     var disableShort = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableShort && x.status == 1);
