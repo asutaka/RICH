@@ -40,7 +40,7 @@ namespace TradePr.DAL
         //var builder = Builders<SignalTrade>.Filter;
         //var lSignal = _signalTradeRepo.GetByFilter(builder.And(
         //    builder.Eq(x => x.ex, _exchange),
-        //    builder.Gte(x => x.timeFlag, time)
+        //    builder.Eq(x => x.timeFlag, time)
         //));
 
 

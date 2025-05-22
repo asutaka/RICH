@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
-using TradePr.Model;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -23,6 +22,7 @@ namespace TradePr.Service
         private readonly IPlaceOrderTradeRepo _placeRepo;
         private readonly ISymbolRepo _symRepo;
         private readonly IConfigDataRepo _configRepo;
+        private readonly IPrepareRepo _prepareRepo;
         private const long _idUser = 1066022551;
         private const decimal _margin = 10;
         private readonly int _HOUR = 4;//MA20 là 2h
@@ -31,11 +31,10 @@ namespace TradePr.Service
         private readonly decimal _TP_RATE_MAX = 0.07m;
 
         private readonly int _exchange = (int)EExchange.Bybit;
-        private static List<QuoteEx> _lShort = new List<QuoteEx>();
 
         public BybitService(ILogger<BybitService> logger,
                             IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
-                            IConfigDataRepo configRepo)
+                            IConfigDataRepo configRepo, IPrepareRepo prepareRepo)
         {
             _logger = logger;
             _apiService = apiService;
@@ -43,6 +42,7 @@ namespace TradePr.Service
             _placeRepo = placeRepo;
             _symRepo = symRepo;
             _configRepo = configRepo;
+            _prepareRepo = prepareRepo;
         }
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
         {
@@ -83,6 +83,12 @@ namespace TradePr.Service
                     if (disableLong != null && disableLong.status == 1)
                     {
                         lLong = new List<Symbol>();
+
+                        var builder = Builders<Prepare>.Filter;
+                        _prepareRepo.DeleteMany(builder.And(
+                            builder.Eq(x => x.ex, _exchange),
+                            builder.Eq(x => x.side, (int)OrderSide.Buy)
+                        ));
                     }
 
                     var builderSHORT = Builders<Symbol>.Filter;
@@ -94,7 +100,12 @@ namespace TradePr.Service
                     if (disableShort != null && disableShort.status == 1)
                     {
                         lShort = new List<Symbol>();
-                        _lShort.Clear();
+
+                        var builder = Builders<Prepare>.Filter;
+                        _prepareRepo.DeleteMany(builder.And(
+                            builder.Eq(x => x.ex, _exchange),
+                            builder.Eq(x => x.side, (int)OrderSide.Sell)
+                        ));
                     }
 
                     await ShortEntry();
@@ -115,8 +126,12 @@ namespace TradePr.Service
         private async Task ShortEntry()
         {
             var now = DateTime.Now;
-            var lShort = _lShort.ToList();
-            Console.WriteLine(JsonConvert.SerializeObject(lShort));
+            var builderFilter = Builders<Prepare>.Filter;
+            var lShort = _prepareRepo.GetByFilter(builderFilter.And(
+                builderFilter.Eq(x => x.ex, _exchange),
+                builderFilter.Eq(x => x.side, (int)OrderSide.Sell)
+            ));
+
 
             foreach (var item in lShort)
             {
@@ -125,6 +140,7 @@ namespace TradePr.Service
                     var l15m = await _apiService.GetData_Bybit(item.s, EInterval.M15);
                     Thread.Sleep(100);
 
+                    var builder = Builders<Prepare>.Filter;
                     var last = l15m.Last();
                     if (last.Close <= item.Close)
                         continue;
@@ -142,16 +158,20 @@ namespace TradePr.Service
                             rank = item.Index
                         });
 
-                        var eRemove = _lShort.First(x => x.s == item.s);
-                        _lShort.Remove(eRemove);
+                        _prepareRepo.DeleteMany(builder.And(
+                               builder.Eq(x => x.ex, _exchange),
+                               builder.Eq(x => x.s, item.s)
+                           ));
                         continue;
                     }
 
                     var time = (now - item.Date).TotalHours;
                     if(time >= 2)
                     {
-                        var eRemove = _lShort.First(x => x.s == item.s);
-                        _lShort.Remove(eRemove);
+                        _prepareRepo.DeleteMany(builder.And(
+                               builder.Eq(x => x.ex, _exchange),
+                               builder.Eq(x => x.s, item.s)
+                           ));
                     }
                 }
                 catch(Exception ex)
@@ -386,13 +406,19 @@ namespace TradePr.Service
 
                         if (sideDetect > -1)
                         {
-                            var exists = _lShort.FirstOrDefault(x => x.s == sym.s);
-                            if (exists != null)
+                            var builder = Builders<Prepare>.Filter;
+                            var filter = builder.And(
+                                builder.Eq(x => x.ex, _exchange),
+                                builder.Eq(x => x.s, sym.s)
+                            );
+                            var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
+
+                            if(entityPrepare != null)
                             {
-                                _lShort.Remove(exists);
+                                _prepareRepo.DeleteMany(filter);
                             }
 
-                            _lShort.Add(new QuoteEx
+                            _prepareRepo.InsertOne(new Prepare
                             {
                                 Open = pivot.Open,
                                 Close = pivot.Close,
@@ -401,17 +427,10 @@ namespace TradePr.Service
                                 Volume = pivot.Volume,
                                 Date = pivot.Date,
                                 s = sym.s,
+                                ex = _exchange,
                                 Index = sym.rank,
                                 side = sideDetect
                             });
-                            //await PlaceOrder(new SignalBase
-                            //{
-                            //    s = sym,
-                            //    ex = _exchange,
-                            //    Side = sideDetect,
-                            //    timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-                            //    quote = last
-                            //});
                         }
                     }
                     catch (Exception ex)
