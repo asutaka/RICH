@@ -139,9 +139,23 @@ namespace TradePr.Service
                 {
                     var l15m = await _apiService.GetData_Bybit(item.s, EInterval.M15);
                     Thread.Sleep(100);
+                    var bb = l15m.GetBollingerBands();
 
                     var builder = Builders<Prepare>.Filter;
                     var last = l15m.Last();
+                    var near = l15m.SkipLast(1).Last();
+                    var bb_last = bb.First(x => x.Date == last.Date);
+                    var bb_near = bb.First(x => x.Date == near.Date);
+                    if(last.Low <= (decimal)bb_last.LowerBand.Value
+                        || near.Low <= (decimal)bb_near.LowerBand.Value)
+                    {
+                        _prepareRepo.DeleteMany(builder.And(
+                              builder.Eq(x => x.ex, _exchange),
+                              builder.Eq(x => x.s, item.s)
+                          ));
+                        continue;
+                    }
+
                     if (last.Close <= item.Close)
                         continue;
 
