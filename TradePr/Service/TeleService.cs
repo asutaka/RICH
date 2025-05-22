@@ -154,6 +154,11 @@ namespace TradePr.Service
                     {
                         model.Coin = mes.ToUpper();
                     }
+                    if(mes.Equals("bl", StringComparison.OrdinalIgnoreCase)
+                        || mes.Equals("balance", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.Balance = true;
+                    }
                 }
 
                 if(model.Exchange != null)
@@ -193,6 +198,18 @@ namespace TradePr.Service
                             //Bật tắt toàn bộ 
                             BatTatToanBo(model);
                             await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã {model.Terminal.ToString().ToUpper()} toàn bộ các vị thế");
+                        }
+                    }
+                    else if(model.Balance)
+                    {
+                        if(model.Exchange == EKey.Bybit)
+                        {
+                            var lIncome = await StaticVal.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
+                            if (lIncome.Success && lIncome.Data.List.Any())
+                            {
+                                var balance = lIncome.Data.List.First();
+                                await SendMessage(_idUser, $"Balance: {Math.Round(balance.CashBalance.Value, 1)}$");
+                            }
                         }
                     }
                 }

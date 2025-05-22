@@ -50,6 +50,7 @@ namespace TradePr.Utils
         Stop = 12,
         Add = 13,
         Delete = 14,
+        Balance = 15,
         Max10 = 10,
         Max20 = 20,
         Max30 = 30,

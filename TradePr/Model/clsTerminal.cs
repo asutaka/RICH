@@ -10,6 +10,7 @@ namespace TradePr.Model
         public EKey? Thread { get; set; }//Số lệnh tối đa trong một thời điểm
         public EKey? Max { get; set; }//Giá trị lệnh 
         public EKey? Action { get; set; }//Add/Remove
+        public bool Balance { get; set; }//Balance
         public string Coin { get; set; }
     }
 }
