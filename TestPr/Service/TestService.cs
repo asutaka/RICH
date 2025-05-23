@@ -676,9 +676,9 @@ namespace TestPr.Service
                                 if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                                     continue;
 
-                                //var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
-                                //if (!checkTop.Item1)
-                                //    continue;
+                                var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
+                                if (!checkTop.Item1)
+                                    continue;
 
                                 #region Thêm xử lý
                                 var isPass = false;
