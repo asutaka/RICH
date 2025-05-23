@@ -108,13 +108,17 @@ namespace TradePr.Service
                         ));
                     }
 
-                    await ShortEntry();
+                    await Entry_LONG();
+                    await Entry_SHORT();
 
-                    await Bybit_TradeRSI_LONG(lLong.Take(20));
-                    await Bybit_TradeRSI_SHORT(lShort.Take(20));
+                    await Bybit_TradeRSI_LONG(lLong);
+                    await Bybit_TradeRSI_SHORT(lShort);
 
-                    await Bybit_TradeRSI_LONG(lLong.Skip(20));
-                    await Bybit_TradeRSI_SHORT(lShort.Skip(20));
+                    //await Bybit_TradeRSI_LONG(lLong.Take(20));
+                    //await Bybit_TradeRSI_SHORT(lShort.Take(20));
+
+                    //await Bybit_TradeRSI_LONG(lLong.Skip(20));
+                    //await Bybit_TradeRSI_SHORT(lShort.Skip(20));
                 }
             }
             catch(Exception ex)
@@ -123,7 +127,75 @@ namespace TradePr.Service
             }
         }
 
-        private async Task ShortEntry()
+        private async Task Entry_LONG()
+        {
+            var now = DateTime.Now;
+            var builderFilter = Builders<Prepare>.Filter;
+            var lLong = _prepareRepo.GetByFilter(builderFilter.And(
+                builderFilter.Eq(x => x.ex, _exchange),
+                builderFilter.Eq(x => x.side, (int)OrderSide.Buy)
+            ));
+
+
+            foreach (var item in lLong)
+            {
+                try
+                {
+                    var l15m = await _apiService.GetData_Bybit(item.s, EInterval.M15);
+                    Thread.Sleep(100);
+                    var bb = l15m.GetBollingerBands();
+
+                    var builder = Builders<Prepare>.Filter;
+                    var last = l15m.Last();
+                    var near = l15m.SkipLast(1).Last();
+                    var bb_last = bb.First(x => x.Date == last.Date);
+                    var bb_near = bb.First(x => x.Date == near.Date);
+                    if (last.High >= (decimal)bb_last.UpperBand.Value
+                        || near.High >= (decimal)bb_near.UpperBand.Value)
+                    {
+                        _prepareRepo.DeleteMany(builder.And(
+                              builder.Eq(x => x.ex, _exchange),
+                              builder.Eq(x => x.s, item.s)
+                          ));
+                        continue;
+                    }
+
+                    var rate = Math.Round(100 * (-1 + last.Close / item.Close), 1);
+                    if (rate <= -1.5m)
+                    {
+                        await PlaceOrder(new SignalBase
+                        {
+                            s = item.s,
+                            ex = _exchange,
+                            Side = item.side,
+                            timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                            quote = last,
+                            rank = item.Index
+                        });
+
+                        _prepareRepo.DeleteMany(builder.And(
+                               builder.Eq(x => x.ex, _exchange),
+                               builder.Eq(x => x.s, item.s)
+                           ));
+                        continue;
+                    }
+
+                    var time = (now - item.Date).TotalHours;
+                    if (time >= 2)
+                    {
+                        _prepareRepo.DeleteMany(builder.And(
+                               builder.Eq(x => x.ex, _exchange),
+                               builder.Eq(x => x.s, item.s)
+                           ));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Entry_LONG|INPUT: {JsonConvert.SerializeObject(item)}|EXCEPTION| {ex.Message}");
+                }
+            }
+        }
+        private async Task Entry_SHORT()
         {
             var now = DateTime.Now;
             var builderFilter = Builders<Prepare>.Filter;
@@ -156,8 +228,8 @@ namespace TradePr.Service
                         continue;
                     }
 
-                    if (last.Close <= item.Close)
-                        continue;
+                    //if (last.Close <= item.Close)
+                    //    continue;
 
                     var rate = Math.Round(100 * (-1 + last.Close / item.Close), 1);
                     if(rate >= 1m)
@@ -190,7 +262,7 @@ namespace TradePr.Service
                 }
                 catch(Exception ex)
                 {
-                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.ShortEntry|INPUT: {JsonConvert.SerializeObject(item)}|EXCEPTION| {ex.Message}");
+                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Entry_SHORT|INPUT: {JsonConvert.SerializeObject(item)}|EXCEPTION| {ex.Message}");
                 }
             }
         }
@@ -217,8 +289,8 @@ namespace TradePr.Service
                         l15m.Remove(last);
 
                         var pivot = l15m.Last();
-                        var near = l15m.SkipLast(1).Last();
-                        var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
+                        var sig = l15m.SkipLast(1).Last();
+                        var rateVol = Math.Round(pivot.Volume / sig.Volume, 1);
                         if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                             continue;
 
@@ -241,23 +313,24 @@ namespace TradePr.Service
                         if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
                         {
                             //check nến liền trước
-                            if (near.Close >= near.Open
+                            if (sig.Close >= sig.Open
                                 || rsi_near.Rsi > 35
-                                || near.Low >= (decimal)bb_near.LowerBand.Value)
+                                || sig.Low >= (decimal)bb_near.LowerBand.Value)
                             {
                                 continue;
                             }
 
-                            if (near.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
+                            if (sig.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
                                 continue;
 
-                            var minOpenClose = Math.Min(near.Open, near.Close);
+                            var minOpenClose = Math.Min(sig.Open, sig.Close);
                             if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
                                 continue;
                             //check tiếp nến pivot
                             if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
                                 || pivot.High >= (decimal)bbPivot.Sma.Value
-                                || (pivot.Low >= near.Low && pivot.High <= near.High))
+                                //|| (pivot.Low >= sig.Low && pivot.High <= sig.High)
+                                )
                                 continue;
                             var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));
                             if (ratePivot > (decimal)0.8)
@@ -265,7 +338,7 @@ namespace TradePr.Service
                                 /*
                                     Nếu độ dài nến pivot >= độ dài nến tín hiệu thì bỏ qua
                                  */
-                                var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(near.Open - near.Close);
+                                var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(sig.Open - sig.Close);
                                 if (isValid)
                                     continue;
                             }
@@ -290,14 +363,30 @@ namespace TradePr.Service
 
                         if (sideDetect > -1)
                         {
-                            await PlaceOrder(new SignalBase
+                            var builder = Builders<Prepare>.Filter;
+                            var filter = builder.And(
+                                builder.Eq(x => x.ex, _exchange),
+                                builder.Eq(x => x.s, sym.s)
+                            );
+                            var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
+
+                            if (entityPrepare != null)
                             {
+                                _prepareRepo.DeleteMany(filter);
+                            }
+
+                            _prepareRepo.InsertOne(new Prepare
+                            {
+                                Open = pivot.Open,
+                                Close = pivot.Close,
+                                High = pivot.High,
+                                Low = pivot.Low,
+                                Volume = pivot.Volume,
+                                Date = pivot.Date,
                                 s = sym.s,
                                 ex = _exchange,
-                                Side = sideDetect,
-                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-                                quote = last,
-                                rank = sym.rank
+                                Index = sym.rank,
+                                side = sideDetect
                             });
                         }
                     }
