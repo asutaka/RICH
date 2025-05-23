@@ -13,7 +13,7 @@ namespace StockPr.Service
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
         Task<string> ThongKeTuDoanh();
-        Task<(int, string, string)> ChiBaoKyThuat(DateTime dt);
+        Task<(int, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
     }
     public class AnalyzeService : IAnalyzeService
@@ -718,19 +718,22 @@ namespace StockPr.Service
             return (0, null);
         }
 
-        public async Task<(int, string, string)> ChiBaoKyThuat(DateTime dt)
+        public async Task<(int, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave)
         {
             try
             {
                 var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
-                FilterDefinition<ConfigData> filterConfig = Builders<ConfigData>.Filter.Eq(x => x.ty, (int)EConfigDataType.ChiBaoKyThuat);
-                var lConfig = _configRepo.GetByFilter(filterConfig);
-                if (lConfig.Any())
+                if(isSave)
                 {
-                    if (lConfig.Any(x => x.t == t))
-                        return (0, null, null);
+                    FilterDefinition<ConfigData> filterConfig = Builders<ConfigData>.Filter.Eq(x => x.ty, (int)EConfigDataType.ChiBaoKyThuat);
+                    var lConfig = _configRepo.GetByFilter(filterConfig);
+                    if (lConfig.Any())
+                    {
+                        if (lConfig.Any(x => x.t == t))
+                            return (0, null, null);
 
-                    _configRepo.DeleteMany(filterConfig);
+                        _configRepo.DeleteMany(filterConfig);
+                    }
                 }
 
                 var strOutput = new StringBuilder();
@@ -779,11 +782,14 @@ namespace StockPr.Service
                     }
                 }
 
-                _configRepo.InsertOne(new ConfigData
+                if(isSave)
                 {
-                    ty = (int)EConfigDataType.ChiBaoKyThuat,
-                    t = t
-                });
+                    _configRepo.InsertOne(new ConfigData
+                    {
+                        ty = (int)EConfigDataType.ChiBaoKyThuat,
+                        t = t
+                    });
+                }
 
                 return (1, strOutput.ToString(), PrintSignal(lReport));
             }

@@ -156,7 +156,7 @@ namespace StockPr
                                 await _teleService.SendMessage(_idChannel, mes, true);
                             }
 
-                            var res = await _analyzeService.ChiBaoKyThuat(dt);
+                            var res = await _analyzeService.ChiBaoKyThuat(dt, true);
                             if (res.Item1 > 0)
                             {
                                 await _teleService.SendMessage(_idChannel, res.Item2, true);
@@ -183,7 +183,15 @@ namespace StockPr
                         {
                             await _teleService.SendMessage(_idChannel, gdnn.Item2, true);
                         }
-                    }    
+                    }  
+                    if(dt.Hour == 14 && dt.Minute >= 15 && dt.Minute < 30)
+                    {
+                        var res = await _analyzeService.ChiBaoKyThuat(dt, false);
+                        if (!string.IsNullOrWhiteSpace(res.Item3))
+                        {
+                            await _teleService.SendMessage(_idUser, res.Item3.Replace("ngày", "phiên SÁNG ngày"));
+                        }
+                    }
                 }
 
                 //if (dt.Hour == 23
