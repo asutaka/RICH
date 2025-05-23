@@ -160,7 +160,7 @@ namespace TradePr.Service
                         continue;
 
                     var rate = Math.Round(100 * (-1 + last.Close / item.Close), 1);
-                    if(rate >= 0.7m)
+                    if(rate >= 1m)
                     {
                         await PlaceOrder(new SignalBase
                         {
