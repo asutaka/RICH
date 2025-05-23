@@ -67,57 +67,56 @@ namespace TradePr.Service
                 await Bybit_TakeProfit();
                 var lConfig = _configRepo.GetAll();
                 var disableAll = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableAll && x.status == 1);
+                var disableLong = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableLong && x.status == 1);
+                var disableShort = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableShort && x.status == 1);
+
+                var flagLong = disableAll != null || disableLong != null;
+                var flagShort = disableAll != null || disableShort != null;
+
+                if(flagLong)
+                {
+                    var builder = Builders<Prepare>.Filter;
+                    _prepareRepo.DeleteMany(builder.And(
+                        builder.Eq(x => x.ex, _exchange),
+                        builder.Eq(x => x.side, (int)OrderSide.Buy)
+                    ));
+                }
+
+                if (flagShort)
+                {
+                    var builder = Builders<Prepare>.Filter;
+                    _prepareRepo.DeleteMany(builder.And(
+                        builder.Eq(x => x.ex, _exchange),
+                        builder.Eq(x => x.side, (int)OrderSide.Sell)
+                    ));
+                }
+
                 await Entry_LONG();
                 await Entry_SHORT();
 
-                if (dt.Minute % 15 == 0
-                    && disableAll is null)
+                if (dt.Minute % 15 == 0)
                 {
-                    var disableLong = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableLong && x.status == 1);
-                    var disableShort = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableShort && x.status == 1);
-
-                    var builderLONG = Builders<Symbol>.Filter;
-                    var lLong = _symRepo.GetByFilter(builderLONG.And(
-                        builderLONG.Eq(x => x.ex, _exchange),
-                        builderLONG.Eq(x => x.ty, (int)OrderSide.Buy),
-                        builderLONG.Eq(x => x.status, 0)
-                    )).OrderBy(x => x.rank).ToList();
-                    if (disableLong != null && disableLong.status == 1)
+                    if (!flagLong)
                     {
-                        lLong = new List<Symbol>();
-
-                        var builder = Builders<Prepare>.Filter;
-                        _prepareRepo.DeleteMany(builder.And(
-                            builder.Eq(x => x.ex, _exchange),
-                            builder.Eq(x => x.side, (int)OrderSide.Buy)
-                        ));
+                        var builderLONG = Builders<Symbol>.Filter;
+                        var lLong = _symRepo.GetByFilter(builderLONG.And(
+                            builderLONG.Eq(x => x.ex, _exchange),
+                            builderLONG.Eq(x => x.ty, (int)OrderSide.Buy),
+                            builderLONG.Eq(x => x.status, 0)
+                        )).OrderBy(x => x.rank).ToList();
+                        await Bybit_TradeRSI_LONG(lLong);
                     }
 
-                    var builderSHORT = Builders<Symbol>.Filter;
-                    var lShort = _symRepo.GetByFilter(builderSHORT.And(
-                        builderSHORT.Eq(x => x.ex, _exchange),
-                        builderSHORT.Eq(x => x.ty, (int)OrderSide.Sell),
-                        builderSHORT.Eq(x => x.status, 0)
-                    )).OrderBy(x => x.rank).ToList();
-                    if (disableShort != null && disableShort.status == 1)
+                    if(!flagShort)
                     {
-                        lShort = new List<Symbol>();
-
-                        var builder = Builders<Prepare>.Filter;
-                        _prepareRepo.DeleteMany(builder.And(
-                            builder.Eq(x => x.ex, _exchange),
-                            builder.Eq(x => x.side, (int)OrderSide.Sell)
-                        ));
+                        var builderSHORT = Builders<Symbol>.Filter;
+                        var lShort = _symRepo.GetByFilter(builderSHORT.And(
+                            builderSHORT.Eq(x => x.ex, _exchange),
+                            builderSHORT.Eq(x => x.ty, (int)OrderSide.Sell),
+                            builderSHORT.Eq(x => x.status, 0)
+                        )).OrderBy(x => x.rank).ToList();
+                        await Bybit_TradeRSI_SHORT(lShort);
                     }
-
-                    await Bybit_TradeRSI_LONG(lLong);
-                    await Bybit_TradeRSI_SHORT(lShort);
-
-                    //await Bybit_TradeRSI_LONG(lLong.Take(20));
-                    //await Bybit_TradeRSI_SHORT(lShort.Take(20));
-
-                    //await Bybit_TradeRSI_LONG(lLong.Skip(20));
-                    //await Bybit_TradeRSI_SHORT(lShort.Skip(20));
                 }
             }
             catch(Exception ex)
