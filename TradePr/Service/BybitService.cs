@@ -67,6 +67,8 @@ namespace TradePr.Service
                 await Bybit_TakeProfit();
                 var lConfig = _configRepo.GetAll();
                 var disableAll = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableAll && x.status == 1);
+                await Entry_LONG();
+                await Entry_SHORT();
 
                 if (dt.Minute % 15 == 0
                     && disableAll is null)
@@ -107,9 +109,6 @@ namespace TradePr.Service
                             builder.Eq(x => x.side, (int)OrderSide.Sell)
                         ));
                     }
-
-                    await Entry_LONG();
-                    await Entry_SHORT();
 
                     await Bybit_TradeRSI_LONG(lLong);
                     await Bybit_TradeRSI_SHORT(lShort);
