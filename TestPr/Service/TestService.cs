@@ -658,7 +658,7 @@ namespace TestPr.Service
                                    || rsi_Pivot.Rsi > 35 || rsi_Pivot.Rsi < 25
                                    || entity_Pivot.Low >= (decimal)bb_Pivot.LowerBand.Value
                                    || entity_Pivot.High >= (decimal)bb_Pivot.Sma.Value
-                                   || (entity_Pivot.Low >= entity_Sig.Low && entity_Pivot.High <= entity_Sig.High)
+                                   //|| (entity_Pivot.Low >= entity_Sig.Low && entity_Pivot.High <= entity_Sig.High)
                                    )
                                     continue;
 
@@ -676,9 +676,27 @@ namespace TestPr.Service
                                 if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
                                     continue;
 
-                                var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
-                                if (!checkTop.Item1)
+                                //var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
+                                //if (!checkTop.Item1)
+                                //    continue;
+
+                                #region Thêm xử lý
+                                var isPass = false;
+                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                var dtPrint = entity_Pivot.Date;
+                                foreach (var check in lCheck)
+                                {
+                                    var rateCheck = Math.Round(100 * (-1 + check.Low / entity_Pivot.Close), 1);
+                                    if (rateCheck <= -1.5m)
+                                    {
+                                        entity_Pivot = check;
+                                        entity_Pivot.Close = entity_Pivot.Close * 0.985m;
+                                        isPass = true; break;
+                                    }
+                                }
+                                if (!isPass)
                                     continue;
+                                #endregion
 
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)
@@ -842,6 +860,7 @@ namespace TestPr.Service
                 _logger.LogError(ex, $"TestService.Bybit_LONG|EXCEPTION| {ex.Message}");
             }
         }
+
         //Tong: 340.7%|W/L: 287/119
         public async Task Bybit_SHORT()
         {
@@ -976,10 +995,10 @@ namespace TestPr.Service
                                 foreach (var check in lCheck)
                                 {
                                     var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
-                                    if (rateCheck >= 0.7m)
+                                    if (rateCheck >= 1m)
                                     {
                                         entity_Pivot = check;
-                                        entity_Pivot.Close = entity_Pivot.Close * 1.007m;
+                                        entity_Pivot.Close = entity_Pivot.Close * 1.01m;
                                         isPass = true; break;
                                     }
                                 }

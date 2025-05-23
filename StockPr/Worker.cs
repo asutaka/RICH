@@ -189,7 +189,7 @@ namespace StockPr
                         var res = await _analyzeService.ChiBaoKyThuat(dt, false);
                         if (!string.IsNullOrWhiteSpace(res.Item3))
                         {
-                            await _teleService.SendMessage(_idUser, res.Item3.Replace("ngày", "phiên SÁNG ngày"));
+                            await _teleService.SendMessage(_idUser, res.Item3.Replace("ngày", "cuối phiên ngày"));
                         }
                     }
                 }
