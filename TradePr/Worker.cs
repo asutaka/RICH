@@ -30,9 +30,9 @@ namespace TradePr
             {
                 var dt = DateTime.Now;
                 //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                var binance = _binnanceService.Binance_Trade();
-                var bybit = _bybitService.Bybit_Trade();
-                Task.WaitAll(binance, bybit);
+                //var binance = _binnanceService.Binance_Trade();
+                await _bybitService.Bybit_Trade();
+                //Task.WaitAll(binance, bybit);
 
                 if(dt.DayOfWeek == DayOfWeek.Monday)
                 {
