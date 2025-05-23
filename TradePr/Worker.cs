@@ -38,18 +38,22 @@ namespace TradePr
                 {
                     if(dt.Hour == 9)
                     {
-                        if(dt.Minute == 0)
+                        if(false)
                         {
-                            _syncService.Binance_LONG();
+
                         }
+                        //else if(dt.Minute == 0)
+                        //{
+                        //    _syncService.Binance_LONG();
+                        //}
                         else if(dt.Minute == 15)
                         {
                             _syncService.Bybit_LONG();
                         }    
-                        else if(dt.Minute == 30)
-                        {
-                            _syncService.Binance_SHORT();
-                        }    
+                        //else if(dt.Minute == 30)
+                        //{
+                        //    _syncService.Binance_SHORT();
+                        //}    
                         else if(dt.Minute == 45)
                         {
                             _syncService.Bybit_SHORT();
@@ -57,10 +61,10 @@ namespace TradePr
                     }   
                 }
 
-                if(dt.Hour == 7 && dt.Minute == 0)
-                {
-                    await _syncService.UnitSetting();
-                }
+                //if(dt.Hour == 7 && dt.Minute == 0)
+                //{
+                //    await _syncService.UnitSetting();
+                //}
 
                 await Task.Delay(1000 * 60, stoppingToken);
             }
