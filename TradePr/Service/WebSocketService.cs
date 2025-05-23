@@ -1,4 +1,7 @@
-﻿using MongoDB.Driver;
+﻿using Bybit.Net.Enums;
+using Bybit.Net.Objects.Models.V5;
+using MongoDB.Driver;
+using Newtonsoft.Json;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -17,17 +20,22 @@ namespace TradePr.Service
         private readonly ITeleService _teleService;
         private readonly IBinanceService _binanceService;
         private readonly IPrepareRepo _prepareRepo;
-        private const decimal STOP_LOSS = (decimal)0.016;
+        private readonly IConfigDataRepo _configRepo;
+        private readonly IPlaceOrderTradeRepo _placeRepo;
         private static Dictionary<string, DateTime> _dicRes = new Dictionary<string, DateTime>();
         private object _locker = new object();
+        private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
+        private const decimal _margin = 10;
+       
 
-        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, IPrepareRepo prepareRepo, IBinanceService binanceService)
+        public WebSocketService(ILogger<WebSocketService> logger, IAPIService apiService, ITeleService teleService, IPrepareRepo prepareRepo, IBinanceService binanceService, IConfigDataRepo configRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _prepareRepo = prepareRepo;
             _binanceService = binanceService;
+            _configRepo = configRepo;
         }
 
         private void RemoveValue(Prepare val)

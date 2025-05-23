@@ -10,6 +10,7 @@ namespace TradePr.Utils
         private static BinanceSocketClient _binanceSocket;
 
         private static BybitRestClient _bybit;
+        private static BybitSocketClient _bybitSocket;
 
         public static string _binance_key;
         public static string _binance_secret;
@@ -50,6 +51,15 @@ namespace TradePr.Utils
                 _bybit = new BybitRestClient();
             }
             return _bybit;
+        }
+
+        public static BybitSocketClient BybitSocketInstance()
+        {
+            if (_bybitSocket == null)
+            {
+                _bybitSocket = new BybitSocketClient();
+            }
+            return _bybitSocket;
         }
 
         public static Dictionary<string, int> _dicBinanceMargin = new Dictionary<string, int>

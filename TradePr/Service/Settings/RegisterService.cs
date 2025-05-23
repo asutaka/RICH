@@ -10,6 +10,7 @@
             services.AddSingleton<ITeleService, TeleService>();
             services.AddSingleton<ISyncDataService, SyncDataService>();
             services.AddSingleton<IWebSocketService, WebSocketService>();
+            services.AddSingleton<IBybitSocketService, BybitSocketService>();
         }
     }
 }
