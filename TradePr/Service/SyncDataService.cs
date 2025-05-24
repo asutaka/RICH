@@ -668,7 +668,7 @@ namespace TradePr.Service
                 }
 
                 var lResultOrder = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
-                var lRes = lResultOrder.Where(x => x.Winrate >= 0.9).ToList();
+                var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
                 if (lRes.Count() < _TAKE)
                 {
                     lRes = lResultOrder.Take(_TAKE).ToList();
@@ -1276,7 +1276,7 @@ namespace TradePr.Service
                 }
 
                 var lResultOrder = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
-                var lRes = lResultOrder.Where(x => x.Winrate >= 0.9).ToList();
+                var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
                 if(lRes.Count() < _TAKE)
                 {
                     lRes = lResultOrder.Take(_TAKE).ToList();
