@@ -11,6 +11,7 @@ namespace TradePr.Model
         public EKey? Max { get; set; }//Giá trị lệnh 
         public EKey? Action { get; set; }//Add/Remove
         public bool Balance { get; set; }//Balance
+        public bool List { get; set; }
         public string Coin { get; set; }
     }
 }

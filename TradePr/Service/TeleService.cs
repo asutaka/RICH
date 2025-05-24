@@ -6,6 +6,7 @@ using TradePr.Model;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using MongoDB.Driver;
+using Bybit.Net.Enums;
 
 namespace TradePr.Service
 {
@@ -21,12 +22,14 @@ namespace TradePr.Service
         private TelegramBotClient _bot = new TelegramBotClient("7783423206:AAGnpRM_8xnxr44sbgOX-ktIHXQEsyMxH6A");
         private readonly ISymbolRepo _symRepo;
         private readonly IConfigDataRepo _configRepo;
-        public TeleService(ILogger<TeleService> logger, ISymbolRepo symRepo, IConfigDataRepo configRepo)
+        private readonly IPrepareRepo _prepareRepo;
+        public TeleService(ILogger<TeleService> logger, ISymbolRepo symRepo, IConfigDataRepo configRepo, IPrepareRepo prepareRepo)
         {
             _logger = logger;
             _symRepo = symRepo;
             _bot.OnMessage += OnMessage;
             _configRepo = configRepo;
+            _prepareRepo = prepareRepo;
         }
         async Task OnMessage(Message msg, UpdateType type)
         {
@@ -159,6 +162,10 @@ namespace TradePr.Service
                     {
                         model.Balance = true;
                     }
+                    if (mes.Equals("list", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.List = true;
+                    }
                 }
 
                 if(model.Exchange != null)
@@ -210,6 +217,29 @@ namespace TradePr.Service
                                 var balance = lIncome.Data.List.First();
                                 await SendMessage(_idUser, $"Balance: {Math.Round(balance.CashBalance.Value, 1)}$");
                             }
+                        }
+                    }
+                    else if(model.List)
+                    {
+                        if (model.Exchange == EKey.Bybit)
+                        {
+                            var lPrepare = _prepareRepo.GetAll().Where(x => x.ex == (int)EExchange.Bybit);
+                            var lLong = lPrepare.Where(x => x.side == (int)OrderSide.Buy).Select(x => x.s);
+                            var lShort = lPrepare.Where(x => x.side == (int)OrderSide.Sell).Select(x => x.s);
+                            var mes = string.Empty;
+                            if(lLong.Any())
+                            {
+                                mes += $"LONG: {string.Join(",", lLong)}";
+                            }
+                            if (lShort.Any())
+                            {
+                                mes += $"SHORT: {string.Join(",", lShort)}";
+                            }
+                            if(mes.Length <= 0)
+                            {
+                                mes = "Không có dữ liệu";
+                            }
+                            await SendMessage(_idUser, mes);
                         }
                     }
                 }
