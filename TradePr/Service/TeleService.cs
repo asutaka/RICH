@@ -229,11 +229,11 @@ namespace TradePr.Service
                             var mes = string.Empty;
                             if(lLong.Any())
                             {
-                                mes += $"LONG: {string.Join(",", lLong)}";
+                                mes += $"LONG: {string.Join(",", lLong)}\n";
                             }
                             if (lShort.Any())
                             {
-                                mes += $"SHORT: {string.Join(",", lShort)}";
+                                mes += $"SHORT: {string.Join(",", lShort)}\n";
                             }
                             if(mes.Length <= 0)
                             {
