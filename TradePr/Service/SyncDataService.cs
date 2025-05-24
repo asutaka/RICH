@@ -1,6 +1,7 @@
 ﻿using Bybit.Net.Enums;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
+using System.Xml.Linq;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -28,6 +29,7 @@ namespace TradePr.Service
         private readonly IBybitService _bybitService;
         private const long _idUser = 1066022551;
         private const int _TAKE = 50;//số bản ghi mỗi loại
+        private Dictionary<string, List<Quote>> _dData_Bybit = new Dictionary<string, List<Quote>>();
         public SyncDataService(ILogger<SyncDataService> logger,
                            IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo, IConfigDataRepo configRepo,
                            IBinanceService binanceService, IBybitService bybitService)
@@ -39,6 +41,45 @@ namespace TradePr.Service
             _configRepo = configRepo;
             _binanceService = binanceService;
             _bybitService = bybitService;
+        }
+
+        private async Task<List<Quote>> GetData_Bybit(string symbol)
+        {
+            try
+            {
+                if (_dData_Bybit.ContainsKey(symbol))
+                    return _dData_Bybit[symbol].ToList();
+
+                var l15m = new List<Quote>();
+                var last = new Quote();
+
+                var lData20 = await _apiService.GetData_Bybit(symbol, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
+                Thread.Sleep(100);
+                l15m.AddRange(lData20.Where(x => x.Date > last.Date));
+                last = l15m.Last();
+
+                var lData10 = await _apiService.GetData_Bybit(symbol, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
+                Thread.Sleep(100);
+                l15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                if (l15m is null || !l15m.Any())
+                    return null;
+
+                if (_dData_Bybit.ContainsKey(symbol))
+                {
+                    _dData_Bybit[symbol] = l15m;
+                }
+                else
+                {
+                    _dData_Bybit.Add(symbol, l15m);
+                }
+
+                return l15m.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|SyncDataService.GetData_Bybit|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
 
         public async Task UnitSetting()
@@ -394,16 +435,7 @@ namespace TradePr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = new List<Quote>();
-                        var last = new Quote();
-                        var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
-
-                        var lData10 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                        var lData15m = await GetData_Bybit(item);
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
                         var lVol = lData15m.Select(x => new Quote
@@ -996,16 +1028,7 @@ namespace TradePr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = new List<Quote>();
-                        var last = new Quote();
-                        var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
-
-                        var lData10 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                        var lData15m = await GetData_Bybit(item);
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
                         var lVol = lData15m.Select(x => new Quote

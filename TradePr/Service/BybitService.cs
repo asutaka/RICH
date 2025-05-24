@@ -29,8 +29,8 @@ namespace TradePr.Service
         private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
         private readonly decimal _TP_RATE_MIN = 0.025m;
         private readonly decimal _TP_RATE_MAX = 0.07m;
-
         private readonly int _exchange = (int)EExchange.Bybit;
+        private Dictionary<string, List<Quote>> _dData = new Dictionary<string, List<Quote>>();
 
         public BybitService(ILogger<BybitService> logger,
                             IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
@@ -117,6 +117,8 @@ namespace TradePr.Service
                         )).OrderBy(x => x.rank).ToList();
                         await Bybit_TradeRSI_SHORT(lShort);
                     }
+
+                    _dData.Clear();
                 }
             }
             catch(Exception ex)
@@ -140,8 +142,10 @@ namespace TradePr.Service
             {
                 try
                 {
-                    var l15m = await _apiService.GetData_Bybit(item.s, EInterval.M15);
-                    Thread.Sleep(100);
+                    var l15m = await GetData(item.s, true);
+                    if (l15m is null || !l15m.Any())
+                        continue;
+
                     var bb = l15m.GetBollingerBands();
 
                     var builder = Builders<Prepare>.Filter;
@@ -209,8 +213,9 @@ namespace TradePr.Service
             {
                 try
                 {
-                    var l15m = await _apiService.GetData_Bybit(item.s, EInterval.M15);
-                    Thread.Sleep(100);
+                    var l15m = await GetData(item.s, true);
+                    if (l15m is null || !l15m.Any())
+                        continue;
                     var bb = l15m.GetBollingerBands();
 
                     var builder = Builders<Prepare>.Filter;
@@ -276,11 +281,10 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var l15m = await _apiService.GetData_Bybit(sym.s, EInterval.M15);
-                        Thread.Sleep(100);
-                        if (l15m is null
-                              || !l15m.Any())
+                        var l15m = await GetData(sym.s, false);
+                        if (l15m is null || !l15m.Any())
                             continue;
+
                         var last = l15m.Last();
                         if (last.Volume <= 0)
                             continue;
@@ -411,11 +415,10 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var l15m = await _apiService.GetData_Bybit(sym.s, EInterval.M15);
-                        Thread.Sleep(100);
-                        if (l15m is null
-                              || !l15m.Any())
+                        var l15m = await GetData(sym.s, false);
+                        if (l15m is null || !l15m.Any())
                             continue;
+
                         var last = l15m.Last();
                         if (last.Volume <= 0)
                             continue;
@@ -548,6 +551,39 @@ namespace TradePr.Service
             }
         }
 
+        private async Task<List<Quote>> GetData(string symbol, bool isOverride)
+        {
+            try
+            {
+                if(!isOverride)
+                {
+                    if (_dData.ContainsKey(symbol))
+                        return _dData[symbol].ToList();
+                }
+               
+                var l15m = await _apiService.GetData_Bybit(symbol, EInterval.M15);
+                Thread.Sleep(100);
+                if (l15m is null || !l15m.Any())
+                    return null;
+
+                if (_dData.ContainsKey(symbol))
+                {
+                    _dData[symbol] = l15m;
+                }
+                else
+                {
+                    _dData.Add(symbol, l15m);
+                }
+
+                return l15m.ToList();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.GetData|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
         private async Task Bybit_TakeProfit()
         {
             try
@@ -558,7 +594,7 @@ namespace TradePr.Service
 
                 var dt = DateTime.UtcNow;
 
-                #region Sell
+                #region TP
                 foreach (var item in pos.Data.List)
                 {
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
@@ -585,8 +621,7 @@ namespace TradePr.Service
                     }
                     else
                     {
-                        var l15m = await _apiService.GetData_Bybit(item.Symbol, EInterval.M15);
-                        Thread.Sleep(100);
+                        var l15m = await GetData(item.Symbol, true);
                         if (l15m is null || !l15m.Any())
                             continue;
 
