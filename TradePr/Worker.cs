@@ -38,7 +38,8 @@ namespace TradePr
                 {
                     if(dt.Hour == 9)
                     {
-                        if(false)
+                        _syncService.ClearData();
+                        if (false)
                         {
 
                         }

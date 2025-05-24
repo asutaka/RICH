@@ -12,6 +12,8 @@ namespace TradePr.Service
     {
         Task UnitSetting();
 
+        void ClearData();
+
         Task Binance_LONG();
         Task Bybit_LONG();
 
@@ -80,6 +82,11 @@ namespace TradePr.Service
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|SyncDataService.GetData_Bybit|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public void ClearData()
+        {
+            _dData_Bybit.Clear();
         }
 
         public async Task UnitSetting()
