@@ -94,7 +94,8 @@ namespace TradePr.Service
                 await Entry_LONG();
                 await Entry_SHORT();
 
-                if (dt.Minute % 15 == 0)
+                if (true)
+                //if (dt.Minute % 15 == 0)
                 {
                     if (!flagLong)
                     {
@@ -129,7 +130,7 @@ namespace TradePr.Service
 
         private async Task Entry_LONG()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var builderFilter = Builders<Prepare>.Filter;
             var lLong = _prepareRepo.GetByFilter(builderFilter.And(
                 builderFilter.Eq(x => x.ex, _exchange),
@@ -200,7 +201,7 @@ namespace TradePr.Service
         }
         private async Task Entry_SHORT()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var builderFilter = Builders<Prepare>.Filter;
             var lShort = _prepareRepo.GetByFilter(builderFilter.And(
                 builderFilter.Eq(x => x.ex, _exchange),
