@@ -58,7 +58,6 @@ namespace StockPr.Service
 
         public async Task SendMessage(long id, string mes, bool isMark = false)
         {
-            return;
             try
             {
                 if (isMark)
@@ -81,7 +80,6 @@ namespace StockPr.Service
 
         public async Task SendMessage(long id, string mes, string link)
         {
-            return;
             try
             {
                 var message = $"[{mes}]({link})";
@@ -98,7 +96,6 @@ namespace StockPr.Service
 
         public async Task SendMessage(long id, string mes, Dictionary<string, string> dLink)
         {
-            return;
             try
             {
                 InlineKeyboardMarkup inline = null;
@@ -125,7 +122,6 @@ namespace StockPr.Service
 
         public async Task SendPhoto(long id, InputFileStream stream)
         {
-            return;
             try
             {
                 await _bot.SendPhoto(id, stream);
