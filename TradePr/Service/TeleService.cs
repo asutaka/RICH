@@ -406,6 +406,8 @@ namespace TradePr.Service
         {
             try
             {
+                Console.WriteLine(mes);
+                return;
                 await _bot.SendMessage(id, mes);
             }
             catch (Exception ex)
