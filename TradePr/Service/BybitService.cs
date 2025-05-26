@@ -136,7 +136,7 @@ namespace TradePr.Service
                 builderFilter.Eq(x => x.ex, _exchange),
                 builderFilter.Eq(x => x.side, (int)OrderSide.Buy)
             ));
-            Console.WriteLine($"LONG: {lLong.Count()}");
+            //Console.WriteLine($"LONG: {lLong.Count()}");
 
 
             foreach (var item in lLong)
@@ -208,7 +208,7 @@ namespace TradePr.Service
                 builderFilter.Eq(x => x.side, (int)OrderSide.Sell)
             ));
 
-            Console.WriteLine($"SHORT: {lShort.Count()}");
+            //Console.WriteLine($"SHORT: {lShort.Count()}");
 
             foreach (var item in lShort)
             {
