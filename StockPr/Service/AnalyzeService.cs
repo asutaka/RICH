@@ -988,7 +988,7 @@ namespace StockPr.Service
 
                     if (Math.Abs(ratePrev) < 1.5 
                         || Math.Abs(ratePivot) < 1.5
-                        || Math.Round((decimal)(prev.netBuySellVal ?? 0) / 50000000) == 0
+                        || Math.Round((decimal)(prev.netBuySellVal ?? 0) / 1000000) == 0
                         || Math.Round((decimal)(sig.netBuySellVal ?? 0) / 1000000000, 1) == 0)
                     {
                         return false;
