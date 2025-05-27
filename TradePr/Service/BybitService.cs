@@ -596,6 +596,7 @@ namespace TradePr.Service
                 var dt = DateTime.UtcNow;
 
                 #region TP
+                var dic = new Dictionary<BybitPosition, decimal>();
                 foreach (var item in pos.Data.List)
                 {
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
@@ -706,6 +707,29 @@ namespace TradePr.Service
                         if (flag)
                         {
                             await PlaceOrderClose(item);
+                        }
+                        else
+                        {
+                            if((cur.Close >= item.AveragePrice.Value && side == OrderSide.Buy)
+                                || (cur.Close <= item.AveragePrice.Value && side == OrderSide.Sell)) 
+                            {
+                                dic.Add(item, rate);
+                            }
+                            else
+                            {
+                                dic.Add(item, -rate);
+                            }
+                        }
+                    }
+                }
+                //Nếu có ít nhất 3 lệnh xanh thì sẽ bán bất kỳ lệnh nào lãi hơn _TP_RATE_MIN
+                if (dic.Count(x => x.Value > 0) >= 3)
+                {
+                    foreach (var item in dic)
+                    {
+                        if(item.Value >= _TP_RATE_MIN) 
+                        {
+                            await PlaceOrderClose(item.Key);
                         }
                     }
                 }
