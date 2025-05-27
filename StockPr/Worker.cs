@@ -68,7 +68,6 @@ namespace StockPr
                 {
                     foreach (var item in lBCPT.Item1)
                     {
-                        Console.WriteLine($"GROUP: {item.content}({item.link})");
                         await _teleService.SendMessage(_idGroup, item.content, item.link);
                         Thread.Sleep(200);
                     }
@@ -76,7 +75,6 @@ namespace StockPr
                 if (lBCPT.Item2?.Any() ?? false)
                 {
                     var mes = string.Join("\n", lBCPT.Item2);
-                    Console.WriteLine($"USER: {mes}");
                     await _teleService.SendMessage(_idUser, mes);
                     Thread.Sleep(200);
                 }
@@ -86,7 +84,6 @@ namespace StockPr
                 {
                     foreach (var item in f319)
                     {
-                        Console.WriteLine($"F319: {item.Message}");
                         await _teleService.SendMessage(_idGroupF319, item.Message, true);
                         Thread.Sleep(200);
                     }
@@ -97,7 +94,6 @@ namespace StockPr
                     var eps = await _epsService.RankEPS(DateTime.Now);
                     if (eps.Item1 > 0)
                     {
-                        Console.WriteLine($"GROUP: {eps.Item2}");
                         await _teleService.SendMessage(_idGroup, eps.Item2, true);
                     }
                 }
@@ -114,7 +110,6 @@ namespace StockPr
                     var res = await _tongcucService.TongCucThongKe(dt);
                     if (res.Item1 > 0)
                     {
-                        Console.WriteLine($"CHANNEL: {res.Item2}");
                         await _teleService.SendMessage(_idChannel, res.Item2);
                     }
                 }
@@ -126,7 +121,6 @@ namespace StockPr
                         var res = await _giaService.TraceGia(false);
                         if(res.Item1 > 0)
                         {
-                            Console.WriteLine($"GROUP: {res.Item2}");
                             await _teleService.SendMessage(_idGroup, res.Item2, true);
                         }
                     }
@@ -135,7 +129,6 @@ namespace StockPr
                         var res = await _giaService.TraceGia(true);
                         if (res.Item1 > 0)
                         {
-                            Console.WriteLine($"GROUP: {res.Item2}");
                             await _teleService.SendMessage(_idGroup, res.Item2, true);
                         }
                     }
@@ -151,7 +144,6 @@ namespace StockPr
                             var mes = await _analyzeService.Realtime();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
-                                Console.WriteLine($"CHANNEL: {mes}");
                                 await _teleService.SendMessage(_idChannel, mes, true);
                             }
                         }
@@ -161,19 +153,16 @@ namespace StockPr
                             var mes = await _analyzeService.ThongKeGDNN_NhomNganh();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
-                                Console.WriteLine($"CHANNEL: {mes}");
                                 await _teleService.SendMessage(_idChannel, mes, true);
                             }
 
                             var res = await _analyzeService.ChiBaoKyThuat(dt, true);
                             if (res.Item1 > 0)
                             {
-                                Console.WriteLine($"CHANNEL: {res.Item2}");
                                 await _teleService.SendMessage(_idChannel, res.Item2, true);
                             }
                             if (!string.IsNullOrWhiteSpace(res.Item3))
                             {
-                                Console.WriteLine($"CHANNEL: {res.Item3}");
                                 await _teleService.SendMessage(_idUser, res.Item3);
                             }
                         }
@@ -183,7 +172,6 @@ namespace StockPr
                             var mes = await _analyzeService.ThongKeTuDoanh();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
-                                Console.WriteLine($"CHANNEL: {mes}");
                                 await _teleService.SendMessage(_idChannel, mes, true);
                             }
                         }
@@ -193,7 +181,6 @@ namespace StockPr
                         var gdnn = await _analyzeService.ThongkeForeign_PhienSang(dt);
                         if (gdnn.Item1 > 0)
                         {
-                            Console.WriteLine($"CHANNEL: {gdnn.Item2}");
                             await _teleService.SendMessage(_idChannel, gdnn.Item2, true);
                         }
                     }  
@@ -202,7 +189,6 @@ namespace StockPr
                         var res = await _analyzeService.ChiBaoKyThuat(dt, false);
                         if (!string.IsNullOrWhiteSpace(res.Item3))
                         {
-                            Console.WriteLine($"USER: {res.Item3.Replace("ngày", "cuối phiên ngày")}");
                             await _teleService.SendMessage(_idUser, res.Item3.Replace("ngày", "cuối phiên ngày"));
                         }
                     }
