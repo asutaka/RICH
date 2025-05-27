@@ -246,13 +246,13 @@ namespace StockPr.Service
                         var div = (vnDirectDate - firstDate).TotalDays;
                         if(div == 0)
                         {
-                            info.data.First().netBuySellVol = info_VNDirect.netVol;
+                            info.data.First().netBuySellVol = info_VNDirect.netVal;
                         }
                         else if(div < 10)
                         {
                             var add = new SSI_DataStockInfoDetailResponse();
                             add.tradingDate = info_VNDirect.tradingDate.ToDateTime("yyyy-MM-dd").ToString("dd/MM/yyyy");
-                            add.netBuySellVol = info_VNDirect.netVol;
+                            add.netBuySellVol = info_VNDirect.netVal;
                             info.data.Insert(0, add);
                         }
 

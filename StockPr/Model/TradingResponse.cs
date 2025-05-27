@@ -193,7 +193,7 @@ namespace StockPr.Model
     public class VNDirect_ForeignDetailResponse
     {
         public string tradingDate { get; set; }
-        public double netVol { get; set; }
+        public double netVal { get; set; }
         public double totalRoom { get; set; }
         public double currentRoom { get; set; }
     }
