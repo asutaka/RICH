@@ -994,7 +994,7 @@ namespace StockPr.Service
                         return false;
                     }
 
-                    var checkMinVal = ((sig.netBuySellVal > 0) || (pivot_1.netBuySellVal > 0) || ((pivot_2?.netBuySellVal ?? 0) > 0));
+                    var checkMinVal = ((sig.netBuySellVal > 100000000) || (pivot_1.netBuySellVal > 100000000) || ((pivot_2?.netBuySellVal ?? 100000000) > 0));
                     if (!checkMinVal)
                         return false;
 
