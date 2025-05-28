@@ -165,7 +165,7 @@ namespace TradePr.Service
                     }
 
                     var rate = Math.Round(100 * (-1 + last.Close / item.Close), 1);
-                    if (rate <= -1.5m)
+                    if (rate <= -1.6m)
                     {
                         await PlaceOrder(new SignalBase
                         {
@@ -238,7 +238,7 @@ namespace TradePr.Service
                     //    continue;
 
                     var rate = Math.Round(100 * (-1 + last.Close / item.Close), 1);
-                    if(rate >= 1m)
+                    if(rate >= 1.1m)
                     {
                         await PlaceOrder(new SignalBase
                         {
