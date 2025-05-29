@@ -1,6 +1,7 @@
 ﻿using Skender.Stock.Indicators;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using TestPr.Model;
 
 namespace TestPr.Utils
 {
@@ -37,7 +38,7 @@ namespace TestPr.Utils
             }
         }
 
-        public static (bool, DateTime) IsExistTopB(this List<Quote> lData)
+        public static (bool, DateTime) IsExistTopB(this List<QuoteEx> lData)
         {
             try
             {
