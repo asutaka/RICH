@@ -15,7 +15,7 @@ namespace TestPr
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _testService.Bybit_SHORT();
+            await _testService.SHORT_Deep();
             //while (!stoppingToken.IsCancellationRequested)
             //{
             //    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
