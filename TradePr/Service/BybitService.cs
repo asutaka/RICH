@@ -3,6 +3,8 @@ using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
+using System.Xml.Linq;
+using Telegram.Bot.Types;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
@@ -411,6 +413,8 @@ namespace TradePr.Service
         {
             try
             {
+                var count1_3 = 0;
+                var lPrepare = new List<Prepare>();
                 foreach (var sym in lSym)
                 {
                     try
@@ -426,17 +430,24 @@ namespace TradePr.Service
 
                         var curPrice = last.Close;
                         l15m.Remove(last);
-
-                        var pivot = l15m.Last();
-                        var near = l15m.SkipLast(1).Last();
-                        var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
-                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
-                            continue;
+                        
 
                         var lRsi = l15m.GetRsi();
                         var lbb = l15m.GetBollingerBands();
                         var rsiPivot = lRsi.Last();
                         var bbPivot = lbb.Last();
+
+                        var pivot = l15m.Last();
+                        var near = l15m.SkipLast(1).Last();
+                        var is1_3 = Math.Abs(pivot.Close - (decimal)bbPivot.Sma.Value) >= 2 * Math.Abs((decimal)bbPivot.LowerBand.Value - pivot.Close);
+                        if(is1_3)
+                        {
+                            count1_3++;
+                        }
+
+                        var rateVol = Math.Round(pivot.Volume / near.Volume, 1);
+                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                            continue;
 
                         var lVol = l15m.Select(x => new Quote
                         {
@@ -513,19 +524,7 @@ namespace TradePr.Service
 
                         if (sideDetect > -1)
                         {
-                            var builder = Builders<Prepare>.Filter;
-                            var filter = builder.And(
-                                builder.Eq(x => x.ex, _exchange),
-                                builder.Eq(x => x.s, sym.s)
-                            );
-                            var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
-
-                            if(entityPrepare != null)
-                            {
-                                _prepareRepo.DeleteMany(filter);
-                            }
-
-                            _prepareRepo.InsertOne(new Prepare
+                            lPrepare.Add(new Prepare
                             {
                                 Open = pivot.Open,
                                 Close = pivot.Close,
@@ -544,6 +543,27 @@ namespace TradePr.Service
                     {
                         _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|INPUT: {sym.s}|EXCEPTION| {ex.Message}");
                     }
+                }
+
+                var rate1_3_UP = Math.Round(100 * (decimal)lPrepare.Count() / lSym.Count());
+                if (rate1_3_UP >= 90)
+                    return;
+
+                foreach (var item in lPrepare)
+                {
+                    var builder = Builders<Prepare>.Filter;
+                    var filter = builder.And(
+                        builder.Eq(x => x.ex, _exchange),
+                        builder.Eq(x => x.s, item.s)
+                    );
+                    var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
+
+                    if (entityPrepare != null)
+                    {
+                        _prepareRepo.DeleteMany(filter);
+                    }
+
+                    _prepareRepo.InsertOne(item);
                 }
             }
             catch (Exception ex)
