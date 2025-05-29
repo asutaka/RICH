@@ -223,6 +223,9 @@ namespace TradePr.Service
 
                     var builder = Builders<Prepare>.Filter;
                     var last = l15m.Last();
+                    if ((last.Date - item.Date).TotalMinutes < 15)
+                        continue;
+
                     var near = l15m.SkipLast(1).Last();
                     var bb_last = bb.First(x => x.Date == last.Date);
                     var bb_near = bb.First(x => x.Date == near.Date);
