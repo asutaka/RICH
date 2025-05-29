@@ -1107,7 +1107,7 @@ namespace TestPr.Service
 
                                 #region Thêm xử lý
                                 var isPass = false;
-                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8).Skip(1);
                                 var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
