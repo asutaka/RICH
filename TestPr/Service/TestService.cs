@@ -1170,16 +1170,6 @@ namespace TestPr.Service
             }
         }
 
-        public class LongMa20
-        {
-            public string s { get; set; }
-            public DateTime Date { get; set; }
-            public decimal Rate { get; set; }
-            public decimal MaxTP { get; set; }
-            public decimal MaxSL { get; set; }
-            public decimal RateEntry { get; set; }
-        }
-
         public class clsData
         {
             public string s { get; set; }
