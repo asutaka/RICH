@@ -184,7 +184,7 @@ namespace StockPr
                             await _teleService.SendMessage(_idChannel, gdnn.Item2, true);
                         }
                     }  
-                    if(dt.Hour == 14 && dt.Minute >= 15 && dt.Minute < 30)
+                    if(dt.Hour == 14 && dt.Minute >= 0 && dt.Minute < 15)
                     {
                         var res = await _analyzeService.ChiBaoKyThuat(dt, false);
                         if (!string.IsNullOrWhiteSpace(res.Item3))
