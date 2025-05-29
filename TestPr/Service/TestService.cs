@@ -1443,20 +1443,20 @@ namespace TestPr.Service
                                 var maxH = lRange.Max(x => x.High);
                                 var minL = lRange.Min(x => x.Low);
 
-                                var winloss = "zzW";
+                                var winloss = "W";
                                 if (rate <= (decimal)0)
                                 {
-                                    winloss = "zzL";
+                                    winloss = "L";
                                 }
 
                                 var maxSL = Math.Round(100 * (-1 + entity_Pivot.Close / maxH), 1);
                                 if (maxSL <= -SL_RATE)
                                 {
                                     rate = -SL_RATE;
-                                    winloss = "zzL";
+                                    winloss = "L";
                                 }
 
-                                if (winloss == "zzW")
+                                if (winloss == "W")
                                 {
                                     rate = Math.Abs(rate);
                                     winCount++;
