@@ -14,6 +14,7 @@
             services.AddSingleton<ICategoryRepo, CategoryRepo>();
             services.AddSingleton<IMacroMicroRepo, MacroMicroRepo>();
             services.AddSingleton<IConfigPortfolioRepo, ConfigPortfolioRepo>();
+            services.AddSingleton<ISymbolRepo, SymbolRepo>();
         }
     }
 }
