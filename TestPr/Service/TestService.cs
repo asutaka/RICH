@@ -742,6 +742,10 @@ namespace TestPr.Service
                                     var rateCheck = Math.Round(100 * (-1 + check.Low / entity_Pivot.Close), 1);
                                     if (rateCheck <= -1.5m)
                                     {
+                                        var dodainen = Math.Abs(Math.Round(100 * (-1 + entity_Pivot.Close * 0.985m / check.Open), 1));
+                                        if (dodainen >= SL_RATE)
+                                            continue;
+
                                         entity_Pivot = check;
                                         entity_Pivot.Close = entity_Pivot.Close * 0.985m;
                                         isPass = true; break;
