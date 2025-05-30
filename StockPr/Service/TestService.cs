@@ -821,7 +821,7 @@ namespace StockPr.Service
                                     continue;
 
                                 var goc = ma50_Pivot.Sma.Value.GetAngle(ma50_Check.Sma.Value, 10);
-                                if(goc >= 30)
+                                if(goc >= 25)
                                 {
                                     Console.WriteLine($"{item}: {entity_Pivot.Date.ToString("dd/MM/yyyy")}|Goc: {goc}");
                                 }
