@@ -815,7 +815,12 @@ namespace StockPr.Service
 
                             if (ma50_Sig.Sma.Value >= bb_Sig.LowerBand.Value
                                 && ma50_Pivot.Sma.Value < bb_Pivot.LowerBand.Value)
-                                Console.WriteLine($"{item}: {entity_Pivot.Date.ToString("dd/MM/yyyy")}");
+                            {
+                                var entityCheck = lData15m.First(x => x.Date == entity_Pivot.Date.AddDays(-20));
+                                var goc = entity_Pivot.GetAngle(entityCheck, 20);
+                                Console.WriteLine($"{item}: {entity_Pivot.Date.ToString("dd/MM/yyyy")}|Goc: {goc}");
+                            }
+                               
 
 
                             ////if(item == "BFC" && last.Date.Year == 2025 && last.Date.Month == 4 && last.Date.Day == 9)

@@ -132,11 +132,11 @@ namespace TestPr.Utils
             return (false, DateTime.MinValue);
         }
 
-        public static double GetAngle(this Quote val, Quote prev, int distance)
+        public static double GetAngle(this Quote? val, Quote prev, int distance)
         {
             try
             {
-                if (distance < 5)
+                if (val is null || distance < 5)
                     return 0;
 
                 var div = Math.Abs(val.Close - prev.Close);

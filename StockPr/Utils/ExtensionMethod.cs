@@ -1,4 +1,5 @@
-﻿using StockPr.DAL.Entity;
+﻿using Skender.Stock.Indicators;
+using StockPr.DAL.Entity;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Reflection;
@@ -10,6 +11,24 @@ namespace StockPr.Utils
         public static string RemoveSpace(this string val)
         {
             return val.Replace(" ", "").Replace(",", "").Replace(".", "").Replace("-", "").Replace("_", "").Replace("(", "").Replace(")","").Trim();
+        }
+
+        public static double GetAngle(this Quote val, Quote prev, int distance)
+        {
+            try
+            {
+                if (val is null || distance < 5)
+                    return 0;
+
+                var div = Math.Abs(val.Close - prev.Close);
+
+                return Math.Round(Math.Acos(distance / Math.Sqrt((double)(div * div + distance * distance))) * 180 / Math.PI);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return 0;
         }
 
         public static string RemoveNumber(this string val)

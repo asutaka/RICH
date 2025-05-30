@@ -52,8 +52,8 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            //await _testService.CheckCrossMa50_BB();
-            //return;
+            await _testService.CheckCrossMa50_BB();
+            return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
