@@ -22,17 +22,20 @@ namespace StockPr.Service
         private readonly IAPIService _apiService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IStockRepo _stockRepo;
+        private readonly ISymbolRepo _symbolRepo;
         private readonly ICategoryRepo _categoryRepo;
         public AnalyzeService(ILogger<AnalyzeService> logger,
                                     IAPIService apiService,
                                     IConfigDataRepo configRepo,
                                     IStockRepo stockRepo,
+                                    ISymbolRepo symbolRepo,
                                     ICategoryRepo categoryRepo) 
         {
             _logger = logger;
             _apiService = apiService;
             _configRepo = configRepo;
             _stockRepo = stockRepo;
+            _symbolRepo = symbolRepo;
             _categoryRepo = categoryRepo;
         }
 
@@ -736,11 +739,12 @@ namespace StockPr.Service
                     }
                 }
 
+                var lSym = _symbolRepo.GetAll();
                 var strOutput = new StringBuilder();
                 var lReport = new List<ReportPTKT>();
                 //var filter = Builders<Stock>.Filter.Gte(x => x.status, 0);
                 //var lStock = _stockRepo.GetByFilter(filter).OrderBy(x => x.rank);
-                foreach (var item in StaticVal._lFocus)
+                foreach (var item in lSym.Select(x => x.s))
                 {
                     try
                     {
