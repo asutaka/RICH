@@ -17,10 +17,14 @@ namespace StockPr.Utils
         {
             try
             {
+                var UNIT = 64;
                 if (distance < 5)
                     return 0;
 
-                var div = val - prev;
+                var alpha = val / distance;
+                var beta = UNIT / alpha;
+
+                var div = beta * (val - prev);
                 var angle = Math.Round(Math.Acos(distance / Math.Sqrt(div * div + distance * distance)) * 180 / Math.PI);
                 if(div < 0)
                     angle = -angle;
