@@ -6,5 +6,6 @@ namespace StockPr.DAL.Entity
     public class Symbol : BaseDTO
     {
         public string s { get; set; }
+        public int rank { get; set; }
     }
 }
