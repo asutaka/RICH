@@ -131,5 +131,23 @@ namespace TestPr.Utils
 
             return (false, DateTime.MinValue);
         }
+
+        public static double GetAngle(this Quote val, Quote prev, int distance)
+        {
+            try
+            {
+                if (distance < 5)
+                    return 0;
+
+                var div = Math.Abs(val.Close - prev.Close);
+
+                return Math.Acos(distance / Math.Sqrt((double)(div * div + distance * distance)));
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return 0;
+        }
     }
 }
