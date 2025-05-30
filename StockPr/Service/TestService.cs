@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Skender.Stock.Indicators;
+﻿using Skender.Stock.Indicators;
 using StockPr.DAL;
 using StockPr.Model;
 using StockPr.Utils;
@@ -17,12 +16,12 @@ namespace StockPr.Service
     {
         private readonly ILogger<TestService> _logger;
         private readonly IAPIService _apiService;
-        private readonly IStockRepo _stockRepo;
-        public TestService(ILogger<TestService> logger, IAPIService apiService, IStockRepo stockRepo)
+        private readonly ISymbolRepo _symbolRepo;
+        public TestService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symbolRepo)
         {
             _logger = logger;
             _apiService = apiService;
-            _stockRepo = stockRepo;
+            _symbolRepo = symbolRepo;
         }
 
         public async Task BatDayCK()
@@ -36,88 +35,11 @@ namespace StockPr.Service
 
                 var winTotal = 0;
                 var lossTotal = 0;
-                var lTake = new List<string>
-                {
-                    "VNINDEX",
-                    "VRE",
-                    "GEX",
-                    "SZC",
-                    "BMP",
-                    "VPB",
-                    "DIG",
-                    "PET",
-                    "NAB",
-                    "PHR",
-                    "ASM",
-                    "L18",
-                    "DDV",
-                    "GMD",
-                    "NTP",
-                    "TCM",
-                    "HHS",
-                    "MSB",
-                    "TCH",
-                    "PVD",
-                    "FOX",
-                    "SSI",
-                    "NKG",
-                    "BSI",
-                    "PAN",
-                    "BSR",
-                    "BID",
-                    "PVS",
-                    "CTS",
-                    "HPG",
-                    "THG",
-                    "CTD",
-                    "VOS",
-                    "FMC",
-                    "GAS",
-                    "MBB",
-                    "KDH",
-                    "FPT",
-                    "DRC",
-                    "CII",
-                    "TVS",
-                    "HAH",
-                    "NVL",
-                    "BCC",
-                    "FRT",
-                    "HT1",
-                    "TLH",
-                    "NLG",
-                    "HVN",
-                    "VDS",
-                    "PNJ",
-                    "KLB",
-                    "BAF",
-                    "HHV",
-                    "NDN",
-                    "FCN",
-                    "SCR",
-                    "LPB",
-                    "AGR",
-                    "IDJ",
-                    "OIL",
-                    "VND",
-                    "PSI",
-                    "BCG",
-                    "TPB",
-                    "VIX",
-                    "DGW",
-                    "SBS",
-                    "PLX",
-                    "EVF",
-                    "ORS",
-                    "C4G",
-                    "MWG",
-                    "JVC",
-                    "DSC",
-                };
                 var lPoint = new List<clsPoint>();
                 var lTrace = new List<clsTrace>();
                 var lResult = new List<clsResult>();
-                foreach (var item in lTake)
+                var lsym = _symbolRepo.GetAll();
+                foreach (var item in lsym.Select(x => x.s))
                 {
                     try
                     {
@@ -432,197 +354,9 @@ namespace StockPr.Service
 
                 var winTotal = 0;
                 var lossTotal = 0;
-                var lTake = new List<string>
-                {
-                    "VNINDEX",
-                    "DC4",
-                    "GIL",
-                    "GVR",
-                    "DPG",
-                    "CTG",
-                    "BFC",
-                    "VRE",
-                    "PVB",
-                    "GEX",
-                    "SZC",
-                    "HDG",
-                    "BMP",
-                    "TLG",
-                    "VPB",
-                    "DIG",
-                    "KBC",
-                    "HSG",
-                    "PET",
-                    "TNG",
-                    "SBT",
-                    "MSH",
-                    "NAB",
-                    "VGC",
-                    "CSV",
-                    "VCS",
-                    "CSM",
-                    "PHR",
-                    "PVT",
-                    "PC1",
-                    "ASM",
-                    "LAS",
-                    "DXG",
-                    "HCM",
-                    "CTI",
-                    "NHA",
-                    "DPR",
-                    "ANV",
-                    "OCB",
-                    "TVB",
-                    "STB",
-                    "HDC",
-                    "POW",
-                    "VSC",
-                    "L18",
-                    "DDV",
-                    "VCI",
-                    "GMD",
-                    "NTP",
-                    "KSV",
-                    "NT2",
-                    "TCM",
-                    "LSS",
-                    "GEG",
-                    "HHS",
-                    "MSB",
-                    "TCH",
-                    "VHC",
-                    "PVD",
-                    "FOX",
-                    "SSI",
-                    "NKG",
-                    "BSI",
-                    "ACB",
-                    "REE",
-                    "VHM",
-                    "PAN",
-                    "SIP",
-                    "PTB",
-                    "BSR",
-                    "BID",
-                    "PVS",
-                    "CTS",
-                    "FTS",
-                    "HPG",
-                    "DBC",
-                    "MSR",
-                    "THG",
-                    "CTD",
-                    "VOS",
-                    "FMC",
-                    "PHP",
-                    "GAS",
-                    "DCM",
-                    "KSB",
-                    "MSN",
-                    "BVB",
-                    "MBB",
-                    "TRC",
-                    "VPI",
-                    "EIB",
-                    "KDH",
-                    "VCB",
-                    "FPT",
-                    "DRC",
-                    "CMG",
-                    "HAG",
-                    "SHB",
-                    "CII",
-                    "CTR",
-                    "IDC",
-                    "GEE",
-                    "NVB",
-                    "BVS",
-                    "BWE",
-                    "HAX",
-                    "QNS",
-                    "VEA",
-                    "TVS",
-                    "DGC",
-                    "HAH",
-                    "NVL",
-                    "PAC",
-                    "AAA",
-                    "TNH",
-                    "ACV",
-                    "BCC",
-                    "FRT",
-                    "HT1",
-                    "SCS",
-                    "TLH",
-                    "MIG",
-                    "SKG",
-                    "DGC",
-                    "VAB",
-                    "NLG",
-                    "HVN",
-                    "HNG",
-                    "PDR",
-                    "VDS",
-                    "SJE",
-                    "PNJ",
-                    "CEO",
-                    "YEG",
-                    "KLB",
-                    "BCM",
-                    "BVH",
-                    "NTL",
-                    "TDH",
-                    "MBS",
-                    "HUT",
-                    "VIB",
-                    "BAF",
-                    "HHV",
-                    "NDN",
-                    "SGP",
-                    "MCH",
-                    "FCN",
-                    "SCR",
-                    "TCB",
-                    "LPB",
-                    "VTP",
-                    "AGR",
-                    "VCG",
-                    "DPM",
-                    "IDJ",
-                    "DXS",
-                    "OIL",
-                    "AGG",
-                    "VND",
-                    "PSI",
-                    "DHA",
-                    "VIC",
-                    "BCG",
-                    "TPB",
-                    "VIX",
-                    "IJC",
-                    "DGW",
-                    "SBS",
-                    "MFS",
-                    "PLX",
-                    "DRI",
-                    "EVF",
-                    "ORS",
-                    "SAB",
-                    "TDC",
-                    "VNM",
-                    "TV2",
-                    "C4G",
-                    "MWG",
-                    "JVC",
-                    "GDA",
-                    "VGI",
-                    "DSC",
-                    "SMC",
-                    "DTD",
-                    "QCG",
-                };
-                foreach (var item in lTake.Skip(0))
+
+                var lsym = _symbolRepo.GetAll();
+                foreach (var item in lsym.Select(x => x.s))
                 {
                     var winCount = 0;
                     var lossCount = 0;
@@ -791,12 +525,8 @@ namespace StockPr.Service
                 var dtPrev = dt.AddYears(-1);
                 var lTotal = new List<decimal>();
                 var min = 200000000;
-                //_lTake.Clear();
-                //_lTake = new List<string>
-                //{
-                //    "BFC"
-                //};
-                foreach (var sym in StaticVal._lFocus)
+                var lsym = _symbolRepo.GetAll();
+                foreach (var sym in lsym.Select(x => x.s))
                 {
                     if (sym == "VNINDEX")
                         continue;
@@ -889,7 +619,8 @@ namespace StockPr.Service
                 var from = dt.AddYears(-1);
                 var lTotal = new List<decimal>();
                 var min = 200000000;
-                foreach (var sym in StaticVal._lFocus)
+                var lsym = _symbolRepo.GetAll();
+                foreach (var sym in lsym.Select(x => x.s))
                 {
                     try
                     {
