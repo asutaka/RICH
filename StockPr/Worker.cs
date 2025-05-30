@@ -52,7 +52,7 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            //await _testService.CheckCungCau();
+            //await _testService.CheckCrossMa50_BB();
             //return;
             while (!stoppingToken.IsCancellationRequested)
             {

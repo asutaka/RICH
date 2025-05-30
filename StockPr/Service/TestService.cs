@@ -11,6 +11,7 @@ namespace StockPr.Service
         Task BatDayCK();
         Task CheckGDNN();
         Task CheckCungCau();
+        Task CheckCrossMa50_BB();
     }
     public class TestService : ITestService
     {
@@ -753,6 +754,167 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 Console.WriteLine($"{ex.Message}");
+            }
+        }
+
+        public async Task CheckCrossMa50_BB()
+        {
+            try
+            {
+                decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
+                int hour = 10;//1h,2h,3h,4h
+
+                var lMesAll = new List<string>();
+
+                var winTotal = 0;
+                var lossTotal = 0;
+                var lPoint = new List<clsPoint>();
+                var lTrace = new List<clsTrace>();
+                var lResult = new List<clsResult>();
+                var lsym = _symbolRepo.GetAll();
+                foreach (var item in lsym.Select(x => x.s))
+                {
+                    try
+                    {
+                        //if (item != "AAA")
+                        //    continue;
+
+                        var lMes = new List<string>();
+                        var lData = await _apiService.SSI_GetDataStock(item);
+                        var lbb_Total = lData.GetBollingerBands();
+                        var lMaVol_Total = lData.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).GetSma(20);
+                        Thread.Sleep(200);
+                        if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 10000)
+                            continue;
+                        var count = lData.Count();
+                        var take = 250;
+                        do
+                        {
+                            var lData15m = lData.Take(take++);
+
+                            var lbb = lData15m.GetBollingerBands();
+                            var lrsi = lData15m.GetRsi();
+                            var lMaVol = lData15m.Select(x => new Quote
+                            {
+                                Date = x.Date,
+                                Close = x.Volume
+                            }).GetSma(20);
+                            var lMa50 = lData15m.GetSma(50);
+
+                            var entity_Pivot = lData15m.Last();
+                            var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
+                            var ma50_Pivot = lMa50.First(x => x.Date == entity_Pivot.Date);
+
+                            var entity_Sig = lData15m.SkipLast(1).Last();
+                            var bb_Sig = lbb.First(x => x.Date == entity_Sig.Date);
+                            var ma50_Sig = lMa50.First(x => x.Date == entity_Sig.Date);
+
+                            if (ma50_Sig.Sma.Value >= bb_Sig.LowerBand.Value
+                                && ma50_Pivot.Sma.Value < bb_Pivot.LowerBand.Value)
+                                Console.WriteLine($"{item}: {entity_Pivot.Date.ToString("dd/MM/yyyy")}");
+
+
+                            ////if(item == "BFC" && last.Date.Year == 2025 && last.Date.Month == 4 && last.Date.Day == 9)
+                            ////{
+                            ////    var zz = 1;
+                            ////}    
+
+                            //if (cur.Low <= last.Low && cur.High >= last.High)
+                            //    continue;
+
+                            //var volCheck = last.Volume / cur.Volume;
+                            //if (volCheck < 1.2m)
+                            //    continue;
+
+                            //var isPinbar = ((Math.Min(last.Open, last.Close) - last.Low) >= 3 * (last.High - Math.Min(last.Open, last.Close)))
+                            //                && (Math.Abs(last.Open - last.Close) >= 0.1m * (last.High - last.Low));
+                            //if (!isPinbar
+                            //    && last.Open > last.Close)
+                            //    continue;
+
+                            //if (isPinbar
+                            //    && Math.Min(last.Open, last.Close) >= Math.Min(cur.Open, cur.Close))
+                            //    continue;
+
+                            //if (last.Close > last.Open
+                            //    && last.High <= cur.High
+                            //    && last.Low >= cur.Low)
+                            //    continue;
+
+                            //var posCheck_Cur = (cur.Close - (decimal)bb_Cur.LowerBand.Value) > 0 && Math.Abs((decimal)bb_Cur.Sma.Value - cur.Close) < 3 * Math.Abs(cur.Close - (decimal)bb_Cur.LowerBand.Value);
+                            //if (posCheck_Cur)
+                            //    continue;
+
+                            //var posCheck_Last = (last.Close - (decimal)bb_Last.LowerBand.Value) > 0 && Math.Abs((decimal)bb_Last.Sma.Value - last.Close) < 2 * Math.Abs(last.Close - (decimal)bb_Last.LowerBand.Value);
+                            //if (posCheck_Last)
+                            //    continue;
+
+                            //var isSignal = false;
+                            //var lSignal = lData15m.SkipLast(1).TakeLast(6);
+                            //var countSignal = lSignal.Count();
+                            //for (int i = 0; i < countSignal - 2; i++)
+                            //{
+                            //    var curSignal = lSignal.ElementAt(i);
+                            //    var curPivot = lSignal.ElementAt(i + 1);
+                            //    if (curPivot.Volume / curSignal.Volume <= 0.6m)
+                            //    {
+                            //        isSignal = true;
+                            //        break;
+                            //    }
+                            //}
+
+                            ////Console.WriteLine($"{item}|{last.Date.ToString("dd/MM/yyyy")}");
+                            //if (last.Date.Year == 2025 && last.Date.Month == 4)
+                            //    continue;
+                            //var model = new clsTrace
+                            //{
+                            //    s = item,
+                            //    date = last.Date,
+                            //    entry = last.Close,
+                            //    isSignal = isSignal,
+                            //    isCrossMa20Vol = (decimal)lMaVol.First(x => x.Date == last.Date).Sma.Value * 0.9m <= last.Volume
+                            //};
+
+                            //if (!model.isCrossMa20Vol)
+                            //    continue;
+
+
+                            //lTrace.Add(model);
+
+                            //var tp = TakeProfit(model, lData, lbb_Total, lMaVol_Total);
+                            //if (tp != null)
+                            //{
+                            //    lResult.Add(tp);
+                            //}
+                        }
+                        while (take <= count);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                foreach (var item in lResult.OrderBy(x => x.s))
+                {
+                    Console.WriteLine($"{item.s}|BUY: {item.date.ToString("dd/MM/yyyy")}|SELL: {item.dateSell.ToString("dd/MM/yyyy")}|Rate: {item.Signal}%");
+                }
+
+                var sumT3 = lResult.Sum(x => x.T3);
+                var sumT5 = lResult.Sum(x => x.T5);
+                var sumT10 = lResult.Sum(x => x.T10);
+                var sumSignal = lResult.Sum(x => x.Signal);
+                Console.WriteLine($"Total({lResult.Count()})| T3({lResult.Count(x => x.T3 > 0)}): {sumT3}%| T5({lResult.Count(x => x.T5 > 0)}): {sumT5}%| T10({lResult.Count(x => x.T10 > 0)}): {sumT10}%| Signal({lResult.Count(x => x.Signal > 0)}): {sumSignal}%|End: {lResult.Count(x => x.IsEnd)}");
+
+                var tmp = 1;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
             }
         }
     }
