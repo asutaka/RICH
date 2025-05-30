@@ -816,12 +816,12 @@ namespace StockPr.Service
                             if (ma50_Sig.Sma.Value >= bb_Sig.LowerBand.Value
                                 && ma50_Pivot.Sma.Value < bb_Pivot.LowerBand.Value)
                             {
-                                var ma50_Check = lMa50.FirstOrDefault(x => x.Date == entity_Pivot.Date.AddDays(-20));
+                                var ma50_Check = lMa50.Where(x => x.Date < entity_Pivot.Date).SkipLast(9).Last();
                                 if (ma50_Check is null)
                                     continue;
 
-                                var goc = ma50_Pivot.Sma.Value.GetAngle(ma50_Check.Sma.Value, 20);
-                                if(goc > 0)
+                                var goc = ma50_Pivot.Sma.Value.GetAngle(ma50_Check.Sma.Value, 10);
+                                if(goc > 25)
                                 {
                                     Console.WriteLine($"{item}: {entity_Pivot.Date.ToString("dd/MM/yyyy")}|Goc: {goc}");
                                 }

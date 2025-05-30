@@ -17,7 +17,7 @@ namespace StockPr.Utils
         {
             try
             {
-                var UNIT = 64;
+                var UNIT = 120;
                 if (distance < 5)
                     return 0;
 
