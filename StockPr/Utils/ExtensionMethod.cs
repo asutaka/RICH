@@ -13,16 +13,19 @@ namespace StockPr.Utils
             return val.Replace(" ", "").Replace(",", "").Replace(".", "").Replace("-", "").Replace("_", "").Replace("(", "").Replace(")","").Trim();
         }
 
-        public static double GetAngle(this Quote val, Quote prev, int distance)
+        public static double GetAngle(this double val, double prev, int distance)
         {
             try
             {
-                if (val is null || distance < 5)
+                if (distance < 5)
                     return 0;
 
-                var div = Math.Abs(val.Close - prev.Close);
+                var div = val - prev;
+                var angle = Math.Round(Math.Acos(distance / Math.Sqrt(div * div + distance * distance)) * 180 / Math.PI);
+                if(div < 0)
+                    angle = -angle;
 
-                return Math.Round(Math.Acos(distance / Math.Sqrt((double)(div * div + distance * distance))) * 180 / Math.PI);
+                return angle;
             }
             catch (Exception ex)
             {
