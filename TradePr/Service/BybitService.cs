@@ -3,8 +3,6 @@ using Bybit.Net.Objects.Models.V5;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
-using System.Xml.Linq;
-using Telegram.Bot.Types;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;

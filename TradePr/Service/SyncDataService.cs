@@ -1,7 +1,6 @@
 ﻿using Bybit.Net.Enums;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
-using System.Xml.Linq;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using TradePr.Utils;
