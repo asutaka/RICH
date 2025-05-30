@@ -816,7 +816,10 @@ namespace StockPr.Service
                             if (ma50_Sig.Sma.Value >= bb_Sig.LowerBand.Value
                                 && ma50_Pivot.Sma.Value < bb_Pivot.LowerBand.Value)
                             {
-                                var ma50_Check = lMa50.First(x => x.Date == entity_Pivot.Date.AddDays(-20));
+                                var ma50_Check = lMa50.FirstOrDefault(x => x.Date == entity_Pivot.Date.AddDays(-20));
+                                if (ma50_Check is null)
+                                    continue;
+
                                 var goc = ma50_Pivot.Sma.Value.GetAngle(ma50_Check.Sma.Value, 20);
                                 if(goc > 0)
                                 {
