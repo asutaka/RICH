@@ -1117,7 +1117,7 @@ namespace TradePr.Service
 
                                 #region Thêm xử lý
                                 var isPass = false;
-                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8).Skip(1);
                                 foreach (var check in lCheck)
                                 {
                                     var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
