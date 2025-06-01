@@ -813,6 +813,10 @@ namespace StockPr.Service
                             var bb_Sig = lbb.First(x => x.Date == entity_Sig.Date);
                             var ma50_Sig = lMa50.First(x => x.Date == entity_Sig.Date);
 
+                            //if (entity_Pivot.Date.Year < 2025
+                            //    || entity_Pivot.Date.Month < 4)
+                            //    continue;
+
                             if (ma50_Sig.Sma.Value >= bb_Sig.LowerBand.Value
                                 && ma50_Pivot.Sma.Value < bb_Pivot.LowerBand.Value)
                             {
