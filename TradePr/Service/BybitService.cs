@@ -668,7 +668,7 @@ namespace TradePr.Service
                                 var bbCheck = lbb.First(x => x.Date == chot.Date);
                                 if(chot.High >= (decimal)bbCheck.Sma.Value)
                                 {
-                                    isChotNon = true;
+                                    //isChotNon = true;
                                 }
                             }
 
@@ -692,7 +692,7 @@ namespace TradePr.Service
                                 var bbCheck = lbb.First(x => x.Date == chot.Date);
                                 if (chot.Low <= (decimal)bbCheck.Sma.Value)
                                 {
-                                    isChotNon = true;
+                                    //isChotNon = true;
                                 }
                             }
 
