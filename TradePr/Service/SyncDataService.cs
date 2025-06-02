@@ -14,7 +14,7 @@ namespace TradePr.Service
         void ClearData();
 
         Task Binance_LONG();
-        Task Bybit_LONG();
+        Task Bybit_LONG(EOrderSideOption op = EOrderSideOption.OP_0);
 
         Task Binance_SHORT();
         Task Bybit_SHORT();
@@ -413,7 +413,7 @@ namespace TradePr.Service
             }
         }
 
-        public async Task Bybit_LONG()
+        public async Task Bybit_LONG(EOrderSideOption op = EOrderSideOption.OP_0)
         {
             try
             {
@@ -468,7 +468,7 @@ namespace TradePr.Service
                                 //var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
-                                    var action = check.IsBuy(flag.Item2.Close);
+                                    var action = check.IsBuy(flag.Item2.Close, op);
                                     if (!action.Item1)
                                         continue;
 
@@ -638,7 +638,8 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy)
+                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy),
+                    builder.Eq(x => x.op, (int)op)
                 ));
 
                 var rank = 1;
@@ -650,6 +651,7 @@ namespace TradePr.Service
                         s = item.s,
                         ex = exchange,
                         ty = (int)Binance.Net.Enums.OrderSide.Buy,
+                        op = (int)op,
                         rank = rank++
                     });
                 }

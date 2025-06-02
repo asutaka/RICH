@@ -309,11 +309,11 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-        public static (bool, Quote) IsBuy(this Quote val, decimal close)
+        public static (bool, Quote) IsBuy(this Quote val, decimal close, EOrderSideOption op = EOrderSideOption.OP_0)
         {
             try
             {
-                decimal SL_RATE = 2.5m;
+                decimal SL_RATE = DetectOption();
                 decimal LEN = 2.5m;
                 decimal SL_PRICE = close * (1 - SL_RATE / 100);
                 var rateCheck = Math.Round(100 * (-1 + val.Low / close), 1);
@@ -334,6 +334,19 @@ namespace CoinUtilsPr
             }
 
             return (false, null);
+
+            decimal DetectOption()
+            {
+                if(op == EOrderSideOption.OP_0)
+                {
+                    return 2.5m;
+                }
+                else if(op == EOrderSideOption.OP_1)
+                {
+                    return 1.5m;
+                }
+                return 0;
+            }
         }
     }
 }

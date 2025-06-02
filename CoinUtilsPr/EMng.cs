@@ -35,6 +35,13 @@ namespace CoinUtilsPr
         DisableShort = 5,//Tắt Short
     }
 
+    public enum EOrderSideOption
+    {
+        OP_0 = 0,
+        OP_1 = 1,
+        OP_2 = 2,
+    }
+
     public enum EKey
     {
         Thread1 = 1,

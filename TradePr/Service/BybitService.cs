@@ -164,7 +164,7 @@ namespace TradePr.Service
                         continue;
                     }
 
-                    var action = last.IsBuy(item.Close);
+                    var action = last.IsBuy(item.Close, (EOrderSideOption)item.op);
 
                     if (action.Item1)
                     {
@@ -322,7 +322,8 @@ namespace TradePr.Service
                             s = sym.s,
                             ex = _exchange,
                             Index = sym.rank,
-                            side = (int)OrderSide.Buy
+                            side = (int)OrderSide.Buy,
+                            op = sym.op
                         });
                     }
                     catch (Exception ex)

@@ -9,6 +9,7 @@ namespace TradePr.DAL.Entity
         public string s { get; set; }
         public int ex { get; set; }
         public int side { get; set; }
+        public int op { get; set; }
 
         public DateTime Date { get; set; }
         public decimal Open { get; set; }
