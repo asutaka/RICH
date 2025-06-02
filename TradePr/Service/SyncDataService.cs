@@ -665,7 +665,7 @@ namespace TradePr.Service
 
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
-                await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT LONG");
+                await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT LONG: {op}");
             }
             catch (Exception ex)
             {
