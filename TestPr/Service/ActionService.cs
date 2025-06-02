@@ -15,7 +15,7 @@ namespace TestPr.Service
         {
             try
             {
-                if ((lData?.Count() ?? 0) < 21)  
+                if ((lData?.Count() ?? 0) < 50)  
                     return (false, null);
 
                 var lbb = lData.GetBollingerBands();
