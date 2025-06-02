@@ -314,12 +314,13 @@ namespace CoinUtilsPr
             try
             {
                 decimal SL_RATE = 2.5m;
+                decimal LEN = 2.5m;
                 decimal SL_PRICE = close * (1 - SL_RATE / 100);
                 var rateCheck = Math.Round(100 * (-1 + val.Low / close), 1);
                 if (rateCheck <= -SL_RATE)
                 {
                     //var dodainen = Math.Abs(Math.Round(100 * (-1 + SL_PRICE / val.Open), 1));
-                    //if (dodainen >= SL_RATE)
+                    //if (dodainen >= LEN)
                     //    return (false, null);
 
                     val.Close = SL_PRICE;
