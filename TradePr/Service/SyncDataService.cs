@@ -457,70 +457,24 @@ namespace TradePr.Service
                         {
                             try
                             {
-                                if (ma20.Sma is null
-                                    || dtFlag >= ma20.Date)
+                                var flag = lData15m.Where(x => x.Date <= ma20.Date).ToList().IsFlagBuy();
+                                if (!flag.Item1)
                                     continue;
-
-                                var entity_Sig = lData15m.First(x => x.Date == ma20.Date);
-                                var rsi_Sig = lrsi.First(x => x.Date == ma20.Date);
-                                var maVol_Sig = lMaVol.First(x => x.Date == ma20.Date);
-
-                                var entity_Pivot = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-                                var rsi_Pivot = lrsi.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-                                var bb_Pivot = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-
-                                if (entity_Sig.Close >= entity_Sig.Open
-                                    || rsi_Sig.Rsi > 35
-                                    || entity_Sig.Low >= (decimal)ma20.LowerBand.Value
-                                    || entity_Sig.Close - (decimal)ma20.LowerBand.Value >= (decimal)ma20.Sma.Value - entity_Sig.Close
-                                    )
-                                    continue;
-
-                                if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
-                                    continue;
-
-                                if (entity_Pivot is null
-                                   || rsi_Pivot.Rsi > 35 || rsi_Pivot.Rsi < 25
-                                   || entity_Pivot.Low >= (decimal)bb_Pivot.LowerBand.Value
-                                   || entity_Pivot.High >= (decimal)bb_Pivot.Sma.Value
-                                   //|| (entity_Pivot.Low >= entity_Sig.Low && entity_Pivot.High <= entity_Sig.High)
-                                   )
-                                    continue;
-
-                                //độ dài nến hiện tại
-                                var rateCur = Math.Abs((entity_Sig.Open - entity_Sig.Close) / (entity_Sig.High - entity_Sig.Low));
-                                if (rateCur > (decimal)0.8)
-                                {
-                                    //check độ dài nến pivot
-                                    var isValid = Math.Abs(entity_Pivot.Open - entity_Pivot.Close) >= Math.Abs(entity_Sig.Open - entity_Sig.Close);
-                                    if (isValid)
-                                        continue;
-                                }
-
-                                var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 1);
-                                if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
-                                    continue;
-
-                                var checkTop = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistTopB();
-                                if (!checkTop.Item1)
-                                    continue;
+                                var entity_Pivot = flag.Item2;
+                                var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
 
                                 #region Thêm xử lý
                                 var isPass = false;
                                 var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                //var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
-                                    var rateCheck = Math.Round(100 * (-1 + check.Low / entity_Pivot.Close), 1);
-                                    if (rateCheck <= -1.5m)
-                                    {
-                                        var dodainen = Math.Abs(Math.Round(100 * (-1 + entity_Pivot.Close * 0.985m / check.Open), 1));
-                                        if (dodainen >= SL_RATE)
-                                            continue;
+                                    var action = check.IsBuy(flag.Item2);
+                                    if (!action.Item1)
+                                        continue;
 
-                                        entity_Pivot = check;
-                                        entity_Pivot.Close = entity_Pivot.Close * 0.985m;
-                                        isPass = true; break;
-                                    }
+                                    entity_Pivot = action.Item2;
+                                    isPass = true; break;
                                 }
                                 if (!isPass)
                                     continue;
@@ -612,7 +566,7 @@ namespace TradePr.Service
                                 lModel.Add(new clsData
                                 {
                                     s = item,
-                                    Date = entity_Sig.Date,
+                                    Date = entity_Pivot.Date,
                                     Rate = rate,
                                 });
                             }
