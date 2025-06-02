@@ -1,4 +1,6 @@
-﻿namespace TestPr.Service.Settings
+﻿using CoinUtilsPr;
+
+namespace TestPr.Service.Settings
 {
     public static class RegisterService
     {

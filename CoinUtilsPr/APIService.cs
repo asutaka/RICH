@@ -1,13 +1,12 @@
 ﻿using Bybit.Net.Enums;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using System.Net.Http.Headers;
 using System.Text;
-using TestPr.Utils;
-using static MongoDB.Driver.WriteConcern;
 
-namespace TestPr.Service
+namespace CoinUtilsPr
 {
     public interface IAPIService
     {
@@ -69,7 +68,7 @@ namespace TestPr.Service
                 var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
                 if (!lres.Success)
                     return null;
-                if(lres.Data.List.Any())
+                if (lres.Data.List.Any())
                 {
                     return lres.Data.List.Reverse().Select(x => new Quote
                     {
@@ -245,5 +244,4 @@ namespace TestPr.Service
     {
         public List<List<string>> list { get; set; }
     }
-
 }

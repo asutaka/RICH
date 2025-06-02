@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Binance.Net" Version="10.16.1" />
+    <PackageReference Include="Bybit.Net" Version="4.4.1" />
+    <PackageReference Include="Skender.Stock.Indicators" Version="2.6.1" />
+  </ItemGroup>
+
+</Project>

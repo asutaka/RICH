@@ -1,11 +1,11 @@
 ﻿using Bybit.Net.Enums;
+using CoinUtilsPr;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 using TestPr.Model;
-using TestPr.Utils;
 
 namespace TestPr.Service
 {
@@ -140,20 +140,15 @@ namespace TestPr.Service
                                 #region Thêm xử lý
                                 var isPass = false;
                                 var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
-                                var dtPrint = entity_Pivot.Date;
+                                //var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
-                                    var rateCheck = Math.Round(100 * (-1 + check.Low / entity_Pivot.Close), 1);
-                                    if (rateCheck <= -1.5m)
-                                    {
-                                        var dodainen = Math.Abs(Math.Round(100 * (-1 + entity_Pivot.Close * 0.985m / check.Open), 1));
-                                        if (dodainen >= SL_RATE)
-                                            continue;
+                                    var action = check.IsBuy(flag.Item2);
+                                    if (!action.Item1)
+                                        continue;
 
-                                        entity_Pivot = check;
-                                        entity_Pivot.Close = entity_Pivot.Close * 0.985m;
-                                        isPass = true; break;
-                                    }
+                                    entity_Pivot = action.Item2;
+                                    isPass = true; break;
                                 }
                                 if (!isPass)
                                     continue;
@@ -238,7 +233,7 @@ namespace TestPr.Service
                                     lossCount++;
                                 }
 
-                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
+                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}({entity_Pivot.Close})|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}({eClose.Close})";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
