@@ -43,13 +43,14 @@ namespace TradePr
                         {
 
                         }
-                        //else if(dt.Minute == 0)
-                        //{
-                        //    _syncService.Binance_LONG();
-                        //}
+                        else if (dt.Minute == 0)
+                        {
+                            _syncService.Bybit_LONG(CoinUtilsPr.EOrderSideOption.OP_0);
+                            //_syncService.Binance_LONG();
+                        }
                         else if(dt.Minute == 15)
                         {
-                            _syncService.Bybit_LONG();
+                            _syncService.Bybit_LONG(CoinUtilsPr.EOrderSideOption.OP_1);
                         }    
                         //else if(dt.Minute == 30)
                         //{
