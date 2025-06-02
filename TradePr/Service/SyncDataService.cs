@@ -4,7 +4,6 @@ using MongoDB.Driver;
 using Skender.Stock.Indicators;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
-using TradePr.Utils;
 
 namespace TradePr.Service
 {
