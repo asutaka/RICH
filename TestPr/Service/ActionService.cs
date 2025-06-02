@@ -69,6 +69,10 @@ namespace TestPr.Service
                 if (rateVol > (decimal)0.6) 
                     return (false, null);
 
+                var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistTopB();
+                if (!checkTop.Item1)
+                    return (false, null);
+
                 return (true, e_Pivot);
             }
             catch(Exception ex)
