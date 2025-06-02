@@ -1,5 +1,6 @@
 ﻿using Bybit.Net.Enums;
 using Bybit.Net.Objects.Models.V5;
+using CoinUtilsPr;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using TradePr.DAL;

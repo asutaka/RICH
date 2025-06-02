@@ -1,5 +1,6 @@
 ﻿using Bybit.Net.Enums;
 using Bybit.Net.Objects.Models.V5;
+using CoinUtilsPr;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using TradePr.DAL;
@@ -41,7 +42,7 @@ namespace TradePr.Service
         private void RemoveValue(Prepare val)
         {
             //Monitor.Enter(_locker);
-            //StaticVal._lPrepare.Remove(val);
+            //StaticTrade._lPrepare.Remove(val);
             //Monitor.Exit(_locker);
         }
         private async Task PositionMarket(Prepare val, decimal lastPrice)
@@ -85,16 +86,16 @@ namespace TradePr.Service
                     builderFilter.Eq(x => x.side, (int)OrderSide.Sell)
                 ));
 
-                //var liquid = StaticVal.BybitSocketInstance().V5LinearApi.un   .SubscribeToTickerUpdatesAsync(async (data) =>
+                //var liquid = StaticTrade.BybitSocketInstance().V5LinearApi.un   .SubscribeToTickerUpdatesAsync(async (data) =>
                 //{
                 //    try
                 //    {
                 //        Monitor.Enter(_locker);
-                //        var dat = data.Data.Where(x => StaticVal._lPrepare.Any(y => y.s == x.Symbol));
+                //        var dat = data.Data.Where(x => StaticTrade._lPrepare.Any(y => y.s == x.Symbol));
                 //        Monitor.Exit(_locker);
                 //        foreach (var item in dat)
                 //        {
-                //            var val = StaticVal._lPrepare.FirstOrDefault(x => x.s == item.Symbol);
+                //            var val = StaticTrade._lPrepare.FirstOrDefault(x => x.s == item.Symbol);
                 //            if (val is null)
                 //                continue;
 
@@ -138,7 +139,7 @@ namespace TradePr.Service
         {
             try
             {
-                var resAPI = await StaticVal.ByBitInstance().V5Api.Account.GetBalancesAsync(AccountType.Unified);
+                var resAPI = await StaticTrade.ByBitInstance().V5Api.Account.GetBalancesAsync(AccountType.Unified);
                 return resAPI?.Data?.List?.FirstOrDefault().Assets.FirstOrDefault(x => x.Asset == "USDT");
             }
             catch (Exception ex)
@@ -169,7 +170,7 @@ namespace TradePr.Service
                     return false;
 
                 //Nếu trong 4 tiếng gần nhất giảm quá 10% thì không mua mới
-                var lIncome = await StaticVal.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
+                var lIncome = await StaticTrade.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
                 if (lIncome == null || !lIncome.Success)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được lịch sử thay đổi số dư");
@@ -193,14 +194,14 @@ namespace TradePr.Service
                     }
                 }
 
-                var pos = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos.Data.List.Count() >= thread.value)
                     return false;
 
                 if (pos.Data.List.Any(x => x.Symbol == entity.s))
                     return false;
 
-                var lInfo = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, entity.s);
+                var lInfo = await StaticTrade.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, entity.s);
                 var info = lInfo.Data.List.FirstOrDefault();
                 if (info == null) return false;
                 var tronGia = (int)info.PriceScale;
@@ -239,7 +240,7 @@ namespace TradePr.Service
                     soluong = Math.Round(soluong, lamtronSL);
                 }
 
-                var res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
+                var res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                         entity.s,
                                                                                         side: side,
                                                                                         type: NewOrderType.Market,
@@ -256,7 +257,7 @@ namespace TradePr.Service
                     return false;
                 }
 
-                var resPosition = await StaticVal.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, entity.s);
+                var resPosition = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, entity.s);
                 Thread.Sleep(500);
                 if (!resPosition.Success)
                 {
@@ -277,7 +278,7 @@ namespace TradePr.Service
                     {
                         sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE), tronGia);
                     }
-                    res = await StaticVal.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
+                    res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                             first.Symbol,
                                                                                             side: SL_side,
                                                                                             type: NewOrderType.Market,

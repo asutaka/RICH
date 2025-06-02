@@ -23,4 +23,8 @@
     <PackageReference Include="Skender.Stock.Indicators" Version="2.6.1" />
     <PackageReference Include="Telegram.Bot" Version="22.3.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoinUtilsPr\CoinUtilsPr.csproj" />
+  </ItemGroup>
 </Project>

@@ -6,8 +6,8 @@ using TradePr.DAL;
 using TradePr.Utils;
 using Binance.Net.Enums;
 using Binance.Net.Objects.Models.Spot;
-using System.Collections.Generic;
 using Newtonsoft.Json;
+using CoinUtilsPr;
 
 namespace TradePr.Service
 {
@@ -49,7 +49,7 @@ namespace TradePr.Service
         {
             try
             {
-                var resAPI = await StaticVal.BinanceInstance().UsdFuturesApi.Account.GetBalancesAsync();
+                var resAPI = await StaticTrade.BinanceInstance().UsdFuturesApi.Account.GetBalancesAsync();
                 return resAPI?.Data?.FirstOrDefault(x => x.Asset == "USDT");
             }
             catch (Exception ex)
@@ -124,7 +124,7 @@ namespace TradePr.Service
                 if (!(lTrade?.Any() ?? false))
                     return;
 
-                var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+                var pos = await StaticTrade.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 foreach ( var item in lTrade)
                 {
                     try
@@ -438,7 +438,7 @@ namespace TradePr.Service
         {
             try
             {
-                var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+                var pos = await StaticTrade.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
 
                 #region Sell
                 foreach (var item in pos.Data)
@@ -586,7 +586,7 @@ namespace TradePr.Service
                 }
 
                 //Nếu trong 2 tiếng gần nhất có 4 lệnh thua và tổng âm thì ko mua mới
-                var lIncome = await StaticVal.BinanceInstance().UsdFuturesApi.Account.GetIncomeHistoryAsync(incomeType: "REALIZED_PNL");
+                var lIncome = await StaticTrade.BinanceInstance().UsdFuturesApi.Account.GetIncomeHistoryAsync(incomeType: "REALIZED_PNL");
                 if (lIncome == null || !lIncome.Success)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR_binance] Không lấy được lịch sử thay đổi số dư");
@@ -604,14 +604,14 @@ namespace TradePr.Service
                         return false;
                 }
 
-                var pos = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
+                var pos = await StaticTrade.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync();
                 if (pos.Data.Count() >= thread.value)
                     return false;
 
                 if (pos.Data.Any(x => x.Symbol == entity.s))
                     return false;
 
-                var marginType = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeMarginTypeAsync(entity.s, FuturesMarginType.Isolated);
+                var marginType = await StaticTrade.BinanceInstance().UsdFuturesApi.Account.ChangeMarginTypeAsync(entity.s, FuturesMarginType.Isolated);
                 //if (!marginType.Success)
                 //{
                 //    await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được sang Isolated| {entity.s}");
@@ -619,14 +619,8 @@ namespace TradePr.Service
                 //}
                    
 
-                var eMargin = StaticVal._dicBinanceMargin.FirstOrDefault(x => x.Key == entity.s);
                 int margin = (int)_margin;
-                if(eMargin.Key != null && eMargin.Value < (int)_margin)
-                {
-                    margin = eMargin.Value;
-                }
-
-                var initLevel = await StaticVal.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, margin);
+                var initLevel = await StaticTrade.BinanceInstance().UsdFuturesApi.Account.ChangeInitialLeverageAsync(entity.s, margin);
                 if (!initLevel.Success)
                 {
                     await _teleService.SendMessage(_idUser, $"[ERROR_binance] Không chuyển được đòn bẩy| {entity.s}(x{margin})");
@@ -641,7 +635,7 @@ namespace TradePr.Service
                     return false;
 
                 decimal soluong = Math.Round((decimal)max.value / entity.quote.Close, symConfig.quan);
-                var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
+                var res = await StaticTrade.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(entity.s,
                                                                                                     side: side,
                                                                                                     type: FuturesOrderType.Market,
                                                                                                     positionSide: PositionSide.Both,
@@ -659,7 +653,7 @@ namespace TradePr.Service
                     return false;
                 }
 
-                var resPosition = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(entity.s);
+                var resPosition = await StaticTrade.BinanceInstance().UsdFuturesApi.Trading.GetPositionsAsync(entity.s);
                 Thread.Sleep(500);
                 if (!resPosition.Success)
                 {
@@ -680,7 +674,7 @@ namespace TradePr.Service
                     {
                         sl = Math.Round(first.MarkPrice * (decimal)(1 + _SL_RATE), symConfig.price);
                     }
-                    res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
+                    res = await StaticTrade.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(first.Symbol,
                                                                                              side: SL_side,
                                                                                              type: FuturesOrderType.StopMarket,
                                                                                              positionSide: PositionSide.Both,
@@ -723,7 +717,7 @@ namespace TradePr.Service
             var CLOSE_side = pos.PositionAmt < 0 ? OrderSide.Buy : OrderSide.Sell;
             try
             {
-                var res = await StaticVal.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(pos.Symbol,
+                var res = await StaticTrade.BinanceInstance().UsdFuturesApi.Trading.PlaceOrderAsync(pos.Symbol,
                                                                                                     side: CLOSE_side,
                                                                                                     type: FuturesOrderType.Market,
                                                                                                     positionSide: PositionSide.Both,
@@ -782,7 +776,7 @@ namespace TradePr.Service
                     || (dt.Hour == 0 && dt.Minute == 0))
                 {
                     _lSymConfig.Clear();
-                    var info = await StaticVal.BinanceInstance().UsdFuturesApi.ExchangeData.GetExchangeInfoAsync();
+                    var info = await StaticTrade.BinanceInstance().UsdFuturesApi.ExchangeData.GetExchangeInfoAsync();
                     foreach (var item in info.Data.Symbols.Where(x => x.QuoteAsset == "USDT"))
                     {
                         try

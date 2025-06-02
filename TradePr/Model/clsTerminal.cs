@@ -1,4 +1,4 @@
-﻿using TradePr.Utils;
+﻿using CoinUtilsPr;
 
 namespace TradePr.Model
 {

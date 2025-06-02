@@ -1,12 +1,12 @@
 ﻿using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using TradePr.Utils;
 using TradePr.Model;
 using TradePr.DAL;
 using TradePr.DAL.Entity;
 using MongoDB.Driver;
 using Bybit.Net.Enums;
+using CoinUtilsPr;
 
 namespace TradePr.Service
 {

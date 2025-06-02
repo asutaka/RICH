@@ -1,4 +1,6 @@
-﻿namespace TradePr.Service.Settings
+﻿using CoinUtilsPr;
+
+namespace TradePr.Service.Settings
 {
     public static class RegisterService
     {
