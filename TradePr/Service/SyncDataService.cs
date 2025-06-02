@@ -642,9 +642,14 @@ namespace TradePr.Service
                     builder.Eq(x => x.op, (int)op)
                 ));
 
+                var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Buy);
                 var rank = 1;
                 foreach (var item in lRes)
                 {
+                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s && x.op == ((int)op - 1));
+                    if (exists != null)
+                        continue;
+
                     Console.WriteLine(item.Mes);
                     _symRepo.InsertOne(new Symbol
                     {
