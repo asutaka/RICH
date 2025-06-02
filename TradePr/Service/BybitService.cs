@@ -295,110 +295,36 @@ namespace TradePr.Service
                         if (last.Volume <= 0)
                             continue;
 
-                        var curPrice = last.Close;
-                        l15m.Remove(last);
-
-                        var pivot = l15m.Last();
-                        var sig = l15m.SkipLast(1).Last();
-                        var rateVol = Math.Round(pivot.Volume / sig.Volume, 1);
-                        if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
+                        var flag = l15m.IsFlagBuy();
+                        if (!flag.Item1)
                             continue;
 
-                        var lRsi = l15m.GetRsi();
-                        var lbb = l15m.GetBollingerBands();
-                        var rsiPivot = lRsi.Last();
-                        var bbPivot = lbb.Last();
+                        var builder = Builders<Prepare>.Filter;
+                        var filter = builder.And(
+                            builder.Eq(x => x.ex, _exchange),
+                            builder.Eq(x => x.s, sym.s)
+                        );
+                        var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
 
-                        var lVol = l15m.Select(x => new Quote
+                        if (entityPrepare != null)
                         {
-                            Date = x.Date,
-                            Close = x.Volume
-                        }).ToList();
-                        var lMaVol = lVol.GetSma(20);
-
-                        var rsi_near = lRsi.SkipLast(1).Last();
-                        var bb_near = lbb.SkipLast(1).Last();
-                        var maVol_near = lMaVol.SkipLast(1).Last();
-                        var sideDetect = -1;
-                        if (rsiPivot.Rsi >= 25 && rsiPivot.Rsi <= 35 && curPrice < (decimal)bbPivot.Sma.Value) //LONG
-                        {
-                            //check nến liền trước
-                            if (sig.Close >= sig.Open
-                                || rsi_near.Rsi > 35
-                                || sig.Low >= (decimal)bb_near.LowerBand.Value)
-                            {
-                                continue;
-                            }
-
-                            if (sig.Volume < (decimal)(maVol_near.Sma.Value * 1.5))
-                                continue;
-
-                            var minOpenClose = Math.Min(sig.Open, sig.Close);
-                            if (Math.Abs(minOpenClose - (decimal)bb_near.LowerBand.Value) > Math.Abs((decimal)bb_near.Sma.Value - minOpenClose))
-                                continue;
-                            //check tiếp nến pivot
-                            if (pivot.Low >= (decimal)bbPivot.LowerBand.Value
-                                || pivot.High >= (decimal)bbPivot.Sma.Value
-                                //|| (pivot.Low >= sig.Low && pivot.High <= sig.High)
-                                )
-                                continue;
-                            var ratePivot = Math.Abs((pivot.Open - pivot.Close) / (pivot.High - pivot.Low));
-                            if (ratePivot > (decimal)0.8)
-                            {
-                                /*
-                                    Nếu độ dài nến pivot >= độ dài nến tín hiệu thì bỏ qua
-                                 */
-                                var isValid = Math.Abs(pivot.Open - pivot.Close) >= Math.Abs(sig.Open - sig.Close);
-                                if (isValid)
-                                    continue;
-                            }
-                            //Nếu 20 nến gần nhất đề nằm dưới ma20(18/20) thì ko vào lệnh
-                            var lRisk = l15m.TakeLast(20);
-                            var countRisk = 0;
-                            foreach ( var risk in lRisk )
-                            {
-                                var bb = lbb.First(x => x.Date == risk.Date);
-                                if (risk.High < (decimal)bb.Sma.Value)
-                                    countRisk++;
-                            }
-                            if (countRisk >= 18)
-                                continue;
-
-                            var checkTop = l15m.IsExistTopB();
-                            if (!checkTop.Item1)
-                                continue;
-
-                            sideDetect = (int)OrderSide.Buy;
+                            _prepareRepo.DeleteMany(filter);
                         }
 
-                        if (sideDetect > -1)
+                        var pivot = flag.Item2;
+                        _prepareRepo.InsertOne(new Prepare
                         {
-                            var builder = Builders<Prepare>.Filter;
-                            var filter = builder.And(
-                                builder.Eq(x => x.ex, _exchange),
-                                builder.Eq(x => x.s, sym.s)
-                            );
-                            var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
-
-                            if (entityPrepare != null)
-                            {
-                                _prepareRepo.DeleteMany(filter);
-                            }
-
-                            _prepareRepo.InsertOne(new Prepare
-                            {
-                                Open = pivot.Open,
-                                Close = pivot.Close,
-                                High = pivot.High,
-                                Low = pivot.Low,
-                                Volume = pivot.Volume,
-                                Date = pivot.Date,
-                                s = sym.s,
-                                ex = _exchange,
-                                Index = sym.rank,
-                                side = sideDetect
-                            });
-                        }
+                            Open = pivot.Open,
+                            Close = pivot.Close,
+                            High = pivot.High,
+                            Low = pivot.Low,
+                            Volume = pivot.Volume,
+                            Date = pivot.Date,
+                            s = sym.s,
+                            ex = _exchange,
+                            Index = sym.rank,
+                            side = (int)OrderSide.Buy
+                        });
                     }
                     catch (Exception ex)
                     {
