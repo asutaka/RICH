@@ -143,7 +143,7 @@ namespace TestPr.Service
                                 //var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
-                                    var action = check.IsBuy(flag.Item2);
+                                    var action = check.IsBuy(flag.Item2.Close);
                                     if (!action.Item1)
                                         continue;
 

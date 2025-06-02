@@ -309,13 +309,13 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-        public static (bool, Quote) IsBuy(this Quote val, Quote pivot)
+        public static (bool, Quote) IsBuy(this Quote val, decimal close)
         {
             try
             {
                 decimal SL_RATE = 2.5m;
-                decimal SL_PRICE = pivot.Close * (1 - SL_RATE / 100);
-                var rateCheck = Math.Round(100 * (-1 + val.Low / pivot.Close), 1);
+                decimal SL_PRICE = close * (1 - SL_RATE / 100);
+                var rateCheck = Math.Round(100 * (-1 + val.Low / close), 1);
                 if (rateCheck <= -SL_RATE)
                 {
                     //var dodainen = Math.Abs(Math.Round(100 * (-1 + SL_PRICE / val.Open), 1));

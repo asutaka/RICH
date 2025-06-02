@@ -164,15 +164,7 @@ namespace TradePr.Service
                         continue;
                     }
 
-                    var action = last.IsBuy(new Quote
-                    {
-                        Date = item.Date,
-                        Open = item.Open,
-                        Close = item.Close,
-                        High = item.High,
-                        Low = item.Low,
-                        Volume = item.Volume,
-                    });
+                    var action = last.IsBuy(item.Close);
 
                     if (action.Item1)
                     {
