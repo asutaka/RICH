@@ -139,7 +139,6 @@ namespace TradePr.Service
             ));
             //Console.WriteLine($"LONG: {lLong.Count()}");
 
-
             foreach (var item in lLong)
             {
                 try
@@ -165,9 +164,17 @@ namespace TradePr.Service
                         continue;
                     }
 
-                    var rate = Math.Round(100 * (-1 + last.Close / item.Close), 1);
-                    var rateLast = Math.Round(100 * (-1 + last.Close / last.Open), 1);
-                    if (rate <= -1.6m && rateLast >= -2.5m) 
+                    var action = last.IsBuy(new Quote
+                    {
+                        Date = item.Date,
+                        Open = item.Open,
+                        Close = item.Close,
+                        High = item.High,
+                        Low = item.Low,
+                        Volume = item.Volume,
+                    });
+
+                    if (action.Item1)
                     {
                         await PlaceOrder(new SignalBase
                         {
@@ -184,7 +191,7 @@ namespace TradePr.Service
                                builder.Eq(x => x.s, item.s)
                            ));
                         continue;
-                    }
+                    }    
 
                     var time = (now - item.Date).TotalHours;
                     if (time >= 2)
