@@ -3,6 +3,7 @@ using CoinUtilsPr;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
+using System.Xml.Linq;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 using TestPr.Model;
@@ -412,6 +413,7 @@ namespace TestPr.Service
                     if (item.Contains('-'))
                         continue;
 
+                    var element = lSym.First(x => x.s == item);
                     var winCount = 0;
                     var lossCount = 0;
                     try
@@ -454,13 +456,20 @@ namespace TestPr.Service
                                 var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
-                                    var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
-                                    if (rateCheck >= 1m)
-                                    {
-                                        entity_Pivot = check;
-                                        entity_Pivot.Close = entity_Pivot.Close * 1.01m;
-                                        isPass = true; break;
-                                    }
+                                    var action = check.IsSell(flag.Item2.Close, (EOrderSideOption)element.op);
+                                    if (!action.Item1)
+                                        continue;
+
+                                    entity_Pivot = action.Item2;
+                                    isPass = true; break;
+
+                                    //var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
+                                    //if (rateCheck >= 1m)
+                                    //{
+                                    //    entity_Pivot = check;
+                                    //    entity_Pivot.Close = entity_Pivot.Close * 1.01m;
+                                    //    isPass = true; break;
+                                    //}
                                 }
                                 if (!isPass)
                                     continue;

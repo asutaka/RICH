@@ -428,9 +428,9 @@ namespace CoinUtilsPr
                 if (rateVol > (decimal)0.6)
                     return (false, null);
 
-                var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistBotB();
-                if (!checkTop.Item1)
-                    return (false, null);
+                //var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistBotB();
+                //if (!checkTop.Item1)
+                //    return (false, null);
 
                 return (true, e_Pivot);
             }
@@ -440,6 +440,47 @@ namespace CoinUtilsPr
             }
 
             return (false, null);
+        }
+
+        public static (bool, Quote) IsSell(this Quote val, decimal close, EOrderSideOption op = EOrderSideOption.OP_0)
+        {
+            try
+            {
+                decimal SL_RATE = DetectOption();
+                decimal LEN = 2.5m;
+                decimal SL_PRICE = close * (1 + SL_RATE / 100);
+                var rateCheck = Math.Round(100 * (-1 + val.High / close), 1);
+                if (rateCheck >= SL_RATE)
+                {
+                    //var dodainen = Math.Abs(Math.Round(100 * (-1 + SL_PRICE / val.Open), 1));
+                    //if (dodainen >= LEN)
+                    //    return (false, null);
+
+                    val.Close = SL_PRICE;
+
+                    return (true, val);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return (false, null);
+
+            decimal DetectOption()
+            {
+                //1m
+                if (op == EOrderSideOption.OP_0)
+                {
+                    return 1m;
+                }
+                else if (op == EOrderSideOption.OP_1)
+                {
+                    return 1.5m;
+                }
+                return 0;
+            }
         }
     }
 }
