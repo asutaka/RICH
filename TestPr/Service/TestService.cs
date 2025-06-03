@@ -114,6 +114,9 @@ namespace TestPr.Service
                         continue;
 
                     var element = lSym.First(x => x.s == item);
+                    //if (element.op == (int)EOrderSideOption.OP_1)
+                    //    continue;
+
                     var winCount = 0;
                     var lossCount = 0;
                     try
