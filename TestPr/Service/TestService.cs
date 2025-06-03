@@ -347,7 +347,7 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
                 //
-                var dic = new Dictionary<string, List<QuoteEx>>();
+                var dic = new Dictionary<string, List<Quote>>();
                 foreach (var item in lSym.Select(x => x.s))
                 {
                     if (item.Contains('-'))
@@ -367,7 +367,7 @@ namespace TestPr.Service
                         lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
                         var lbb = lData15m.GetBollingerBands();
                         var count = lData15m.Count();
-                        var lAdd = new List<QuoteEx>();
+                        var lAdd = new List<Quote>();
                         for (int i = 0; i < count; i++)
                         {
                             var element = lData15m[i];
@@ -393,10 +393,7 @@ namespace TestPr.Service
                                 Close = element.Close,
                                 High = element.High,
                                 Low = element.Low,
-                                Volume = element.Volume,
-                                TotalRateMa20_UP = upMA20,
-                                TotalRate1_3_UP = rateUP,
-                                TotalRate1_3_DOWN = rateDOWN
+                                Volume = element.Volume
                             };
                             lAdd.Add(itemAdd);
                         }
@@ -434,15 +431,7 @@ namespace TestPr.Service
                         {
                             try
                             {
-                                var flag = lData15m.Where(x => x.Date <= ma20.Date).Select(x => new Quote
-                                {
-                                    Date = x.Date,
-                                    Open = x.Open,
-                                    High = x.High,
-                                    Low = x.Low,
-                                    Close = x.Close,
-                                    Volume = x.Volume
-                                }).ToList().IsFlagSell();
+                                var flag = lData15m.Where(x => x.Date <= ma20.Date).ToList().IsFlagSell();
                                 if (!flag.Item1)
                                     continue;
 
