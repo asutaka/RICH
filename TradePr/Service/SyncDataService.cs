@@ -640,14 +640,14 @@ namespace TradePr.Service
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
                     builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy),
-                    builder.Eq(x => x.op, (int)op)
+                    builder.Gte(x => x.op, (int)op)
                 ));
 
                 var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Buy);
                 var rank = 1;
                 foreach (var item in lRes)
                 {
-                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s && x.op == ((int)op - 1));
+                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s);
                     if (exists != null)
                         continue;
 
@@ -1197,14 +1197,14 @@ namespace TradePr.Service
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
                     builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell),
-                    builder.Eq(x => x.op, (int)op)
+                    builder.Gte(x => x.op, (int)op)
                 ));
 
                 var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Sell);
                 var rank = 1;
                 foreach (var item in lRes)
                 {
-                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s && x.op == ((int)op - 1));
+                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s);
                     if (exists != null)
                         continue;
 
