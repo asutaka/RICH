@@ -1196,18 +1196,25 @@ namespace TradePr.Service
                 var builder = Builders<Symbol>.Filter;
                 _symRepo.DeleteMany(builder.And(
                     builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell)
+                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell),
+                    builder.Eq(x => x.op, (int)op)
                 ));
 
+                var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Sell);
                 var rank = 1;
                 foreach (var item in lRes)
                 {
+                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s && x.op == ((int)op - 1));
+                    if (exists != null)
+                        continue;
+
                     Console.WriteLine(item.Mes);
                     _symRepo.InsertOne(new Symbol
                     {
                         s = item.s,
                         ex = exchange,
                         ty = (int)Binance.Net.Enums.OrderSide.Sell,
+                        op = (int)op,
                         rank = rank++
                     });
                 }
