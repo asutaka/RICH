@@ -379,23 +379,44 @@ namespace CoinUtilsPr
                 //Check Sig
                 if (e_Sig.Close <= e_Sig.Open
                     || e_Sig.High <= (decimal)bb_Pivot.UpperBand.Value
-                    || e_Sig.Close - (decimal)bb_Pivot.LowerBand.Value >= (decimal)bb_Pivot.Sma.Value - e_Sig.Close
+                    || (decimal)bb_Pivot.UpperBand.Value - e_Sig.Close >= e_Sig.Close - (decimal)bb_Pivot.Sma.Value
                     || e_Sig.Volume < (decimal)(vol_Sig.Sma.Value * 1.5)
                     || rsi_Sig.Rsi < 65
                     )
                     return (false, null);
 
                 //Check Pivot 
-                if (e_Pivot.Low >= (decimal)bb_Pivot.LowerBand.Value
-                    || e_Pivot.High >= (decimal)bb_Pivot.Sma.Value
-                    || rsi_Pivot.Rsi > 35
-                    || rsi_Pivot.Rsi < 25
+                if (e_Pivot.High <= (decimal)bb_Pivot.UpperBand.Value
+                    || e_Pivot.Low <= (decimal)bb_Pivot.Sma.Value
+                    || rsi_Pivot.Rsi > 80
+                    || rsi_Pivot.Rsi < 65
                     )
+                    return (false, null);
+
+                //check div by zero
+                if (e_Sig.High == e_Sig.Low
+                    || e_Pivot.High == e_Pivot.Low
+                    || Math.Min(e_Pivot.Open, e_Pivot.Close) == e_Pivot.Low)
                     return (false, null);
 
                 //Check độ dài nến Sig - Pivot
                 var body_Sig = Math.Abs((e_Sig.Open - e_Sig.Close) / (e_Sig.High - e_Sig.Low));
-                if (body_Sig > (decimal)0.8)
+                var body_Pivot = Math.Abs((e_Pivot.Open - e_Pivot.Close) / (e_Pivot.High - e_Pivot.Low));  //độ dài nến pivot
+                var isHammer = (e_Sig.High - e_Sig.Close) >= (decimal)1.2 * (e_Sig.Close - e_Sig.Low);
+
+                if (isHammer)
+                {
+
+                }
+                else if (body_Pivot < (decimal)0.2)
+                {
+                    var checkDoji = (e_Pivot.High - Math.Max(e_Pivot.Open, e_Pivot.Close)) / (Math.Min(e_Pivot.Open, e_Pivot.Close) - e_Pivot.Low);
+                    if (checkDoji >= (decimal)0.75 && checkDoji <= (decimal)1.25)
+                    {
+                        return (false, null);
+                    }
+                }
+                else if (body_Sig > (decimal)0.8)
                 {
                     var isValid = Math.Abs(e_Pivot.Open - e_Pivot.Close) >= Math.Abs(e_Sig.Open - e_Sig.Close);
                     if (isValid)
@@ -407,9 +428,9 @@ namespace CoinUtilsPr
                 if (rateVol > (decimal)0.6)
                     return (false, null);
 
-                var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistTopB();
-                if (!checkTop.Item1)
-                    return (false, null);
+                //var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistBotB();
+                //if (!checkTop.Item1)
+                //    return (false, null);
 
                 return (true, e_Pivot);
             }

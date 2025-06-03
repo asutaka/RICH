@@ -432,73 +432,21 @@ namespace TestPr.Service
                         {
                             try
                             {
-                                if (ma20.Sma is null
-                                    || dtFlag >= ma20.Date)
-                                    continue;
-
-                                var entity_Sig = lData15m.First(x => x.Date == ma20.Date);
-                                var rsi_Sig = lrsi.First(x => x.Date == ma20.Date);
-                                var maVol_Sig = lMaVol.First(x => x.Date == ma20.Date);
-
-                                var entity_Pivot = lData15m.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-                                var rsi_Pivot = lrsi.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-                                var bb_Pivot = lbb.FirstOrDefault(x => x.Date == ma20.Date.AddMinutes(15));
-
-                                if (
-                                    entity_Sig.Close <= entity_Sig.Open
-                                   || rsi_Sig.Rsi < 65
-                                   || entity_Sig.High <= (decimal)ma20.UpperBand.Value
-                                   || Math.Abs(entity_Sig.Close - (decimal)ma20.UpperBand.Value) > Math.Abs((decimal)ma20.Sma.Value - entity_Sig.Close)
-                                   )
-                                    continue;
-
-                                if (entity_Sig.Volume < (decimal)(maVol_Sig.Sma.Value * 1.5))
-                                    continue;
-
-                                if (entity_Pivot is null
-                                  || rsi_Pivot.Rsi > 80 || rsi_Pivot.Rsi < 65
-                                  || entity_Pivot.Low <= (decimal)bb_Pivot.Sma.Value
-                                  || entity_Pivot.High <= (decimal)bb_Pivot.UpperBand.Value
-                                  )
-                                    continue;
-
-                                var rateVol = Math.Round(entity_Pivot.Volume / entity_Sig.Volume, 1);
-                                if (rateVol > (decimal)0.6) //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
-                                    continue;
-
-                                //check div by zero
-                                if (entity_Sig.High == entity_Sig.Low
-                                    || entity_Pivot.High == entity_Pivot.Low
-                                    || Math.Min(entity_Pivot.Open, entity_Pivot.Close) == entity_Pivot.Low)
-                                    continue;
-
-                                var rateCur = Math.Abs((entity_Sig.Open - entity_Sig.Close) / (entity_Sig.High - entity_Sig.Low));  //độ dài nến hiện tại
-                                var ratePivot = Math.Abs((entity_Pivot.Open - entity_Pivot.Close) / (entity_Pivot.High - entity_Pivot.Low));  //độ dài nến pivot
-                                var isHammer = (entity_Sig.High - entity_Sig.Close) >= (decimal)1.2 * (entity_Sig.Close - entity_Sig.Low);
-
-                                if (isHammer)
+                                var flag = lData15m.Where(x => x.Date <= ma20.Date).Select(x => new Quote
                                 {
+                                    Date = x.Date,
+                                    Open = x.Open,
+                                    High = x.High,
+                                    Low = x.Low,
+                                    Close = x.Close,
+                                    Volume = x.Volume
+                                }).ToList().IsFlagSell();
+                                if (!flag.Item1)
+                                    continue;
 
-                                }
-                                else if (ratePivot < (decimal)0.2)
-                                {
-                                    var checkDoji = (entity_Pivot.High - Math.Max(entity_Pivot.Open, entity_Pivot.Close)) / (Math.Min(entity_Pivot.Open, entity_Pivot.Close) - entity_Pivot.Low);
-                                    if (checkDoji >= (decimal)0.75 && checkDoji <= (decimal)1.25)
-                                    {
-                                        continue;
-                                    }
-                                }
-                                else if (rateCur > (decimal)0.8)
-                                {
-                                    //check độ dài nến pivot
-                                    var isValid = Math.Abs(entity_Pivot.Open - entity_Pivot.Close) >= Math.Abs(entity_Sig.Open - entity_Sig.Close);
-                                    if (isValid)
-                                        continue;
-                                }
-
-                                //var checkBot = lData15m.Where(x => x.Date <= entity_Pivot.Date).ToList().IsExistBotB();
-                                //if (!checkBot.Item1)
-                                //    continue;
+                                var entity_Pivot = flag.Item2;
+                                var entity_Sig = lData15m.First(x => x.Date == entity_Pivot.Date.AddMinutes(-15));
+                                var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
 
                                 #region Thêm xử lý
                                 var isPass = false;
