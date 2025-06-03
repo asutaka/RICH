@@ -95,8 +95,7 @@ namespace TradePr.Service
                 await Entry_LONG();
                 await Entry_SHORT();
 
-                if (true)
-                //if (dt.Minute % 15 == 0)
+                if (dt.Minute % 15 == 0)
                 {
                     if (!flagLong)
                     {
