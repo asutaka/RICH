@@ -89,17 +89,7 @@ namespace TestPr.Service
                                 var is1_3 = Math.Abs(element.Close - (decimal)element_BB.Sma.Value) >= 2 * Math.Abs((decimal)element_BB.LowerBand.Value - element.Close);
                                 rateDOWN = is1_3 ? 1 : 0;
                             }
-
-                            var itemAdd = new Quote
-                            {
-                                Date = element.Date,
-                                Open = element.Open,
-                                Close = element.Close,
-                                High = element.High,
-                                Low = element.Low,
-                                Volume = element.Volume
-                            };
-                            lAdd.Add(itemAdd);
+                            lAdd.Add(element);
                         }
                         dic.Add(item, lAdd);
                     }
@@ -385,17 +375,8 @@ namespace TestPr.Service
                                 var is1_3 = Math.Abs(element.Close - (decimal)element_BB.Sma.Value) >= 2 * Math.Abs((decimal)element_BB.LowerBand.Value - element.Close);
                                 rateDOWN = is1_3 ? 1 : 0;
                             }
-
-                            var itemAdd = new QuoteEx
-                            {
-                                Date = element.Date,
-                                Open = element.Open,
-                                Close = element.Close,
-                                High = element.High,
-                                Low = element.Low,
-                                Volume = element.Volume
-                            };
-                            lAdd.Add(itemAdd);
+                          
+                            lAdd.Add(element);
                         }
                         dic.Add(item, lAdd);
                     }
@@ -411,6 +392,9 @@ namespace TestPr.Service
                         continue;
 
                     var element = lSym.First(x => x.s == item);
+                    //if (element.op == (int)EOrderSideOption.OP_1)
+                    //    continue;
+
                     var winCount = 0;
                     var lossCount = 0;
                     try
