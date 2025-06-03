@@ -32,12 +32,10 @@ namespace TestPr.Service
             {
                 var start = DateTime.Now;
                 var exchange = (int)EExchange.Bybit;
-                var op = EOrderSideOption.OP_1;
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
                     builder.Eq(x => x.ex, exchange),
                     builder.Eq(x => x.ty, (int)OrderSide.Buy),
-                    builder.Eq(x => x.op, (int)op),
                     builder.Eq(x => x.status, 0)
                 ));
                 decimal SL_RATE = 2.5m;
@@ -114,6 +112,8 @@ namespace TestPr.Service
                 {
                     if (item.Contains('-'))
                         continue;
+
+                    var element = lSym.First(x => x.s == item);
                     var winCount = 0;
                     var lossCount = 0;
                     try
@@ -145,7 +145,7 @@ namespace TestPr.Service
                                 //var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
-                                    var action = check.IsBuy(flag.Item2.Close, op);
+                                    var action = check.IsBuy(flag.Item2.Close, (EOrderSideOption)element.op);
                                     if (!action.Item1)
                                         continue;
 
@@ -235,7 +235,7 @@ namespace TestPr.Service
                                     lossCount++;
                                 }
 
-                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}({entity_Pivot.Close})|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}({eClose.Close})";
+                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
