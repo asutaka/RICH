@@ -337,15 +337,16 @@ namespace CoinUtilsPr
 
             decimal DetectOption()
             {
-                if(op == EOrderSideOption.OP_0)
-                {
-                    return 2.5m;
-                }
-                else if(op == EOrderSideOption.OP_1)
+                //1m
+                if (op == EOrderSideOption.OP_1)
                 {
                     return 1.5m;
                 }
-                return 0;
+                else if (op == EOrderSideOption.OP_2)
+                {
+                    return 1m;
+                }
+                return 2.5m;
             }
         }
 
@@ -471,15 +472,15 @@ namespace CoinUtilsPr
             decimal DetectOption()
             {
                 //1m
-                if (op == EOrderSideOption.OP_0)
-                {
-                    return 1m;
-                }
-                else if (op == EOrderSideOption.OP_1)
+                if (op == EOrderSideOption.OP_1)
                 {
                     return 1.5m;
                 }
-                return 0;
+                else if (op == EOrderSideOption.OP_2)
+                {
+                    return 1m;
+                }
+                return 2.5m;
             }
         }
     }

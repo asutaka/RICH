@@ -462,14 +462,6 @@ namespace TestPr.Service
 
                                     entity_Pivot = action.Item2;
                                     isPass = true; break;
-
-                                    //var rateCheck = Math.Round(100 * (-1 + check.High / entity_Pivot.Close), 1);
-                                    //if (rateCheck >= 1m)
-                                    //{
-                                    //    entity_Pivot = check;
-                                    //    entity_Pivot.Close = entity_Pivot.Close * 1.01m;
-                                    //    isPass = true; break;
-                                    //}
                                 }
                                 if (!isPass)
                                     continue;
@@ -523,18 +515,18 @@ namespace TestPr.Service
                                         break;
                                     }
                                 }
-                                //zz
-                                var trace = lData15m.First(x => x.Date > entity_Sig.Date);
-                                float avg1_3_UP = 0;
-                                foreach (var val in dic.Values)
-                                {
-                                    var first = val.First(x => x.Date > entity_Sig.Date);
-                                    if (first.TotalRate1_3_UP == 1)
-                                        avg1_3_UP++;
-                                }
-                                double rate1_3_UP = Math.Round(100 * avg1_3_UP / dic.Count());
-                                if (rate1_3_UP >= 90)
-                                    continue;
+                                ////zz
+                                //var trace = lData15m.First(x => x.Date > entity_Sig.Date);
+                                //float avg1_3_UP = 0;
+                                //foreach (var val in dic.Values)
+                                //{
+                                //    var first = val.First(x => x.Date > entity_Sig.Date);
+                                //    if (first.TotalRate1_3_UP == 1)
+                                //        avg1_3_UP++;
+                                //}
+                                //double rate1_3_UP = Math.Round(100 * avg1_3_UP / dic.Count());
+                                //if (rate1_3_UP >= 90)
+                                //    continue;
 
                                 //dtFlag = eClose.Date;
                                 var rate = Math.Round(100 * (-1 + entity_Pivot.Close / eClose.Close), 1);

@@ -1,3 +1,4 @@
+using CoinUtilsPr;
 using TradePr.Service;
 
 namespace TradePr
@@ -45,20 +46,21 @@ namespace TradePr
                         }
                         else if (dt.Minute == 0)
                         {
-                            _syncService.Bybit_LONG(CoinUtilsPr.EOrderSideOption.OP_0);
+                            _syncService.Bybit_LONG(EOrderSideOption.OP_0);
                             //_syncService.Binance_LONG();
                         }
                         else if(dt.Minute == 15)
                         {
-                            _syncService.Bybit_LONG(CoinUtilsPr.EOrderSideOption.OP_1);
-                        }    
-                        //else if(dt.Minute == 30)
-                        //{
-                        //    _syncService.Binance_SHORT();
-                        //}    
+                            _syncService.Bybit_LONG(EOrderSideOption.OP_1);
+                        }
+                        else if (dt.Minute == 30)
+                        {
+                            //_syncService.Binance_SHORT();
+                            _syncService.Bybit_SHORT(EOrderSideOption.OP_0);
+                        }
                         else if(dt.Minute == 45)
                         {
-                            _syncService.Bybit_SHORT();
+                            _syncService.Bybit_SHORT(EOrderSideOption.OP_1);
                         }    
                     }   
                 }
