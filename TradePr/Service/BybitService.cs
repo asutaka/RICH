@@ -281,7 +281,7 @@ namespace TradePr.Service
         {
             try
             {
-                if (lSym == null)
+                if (!lSym.Any())
                     return;
 
                 foreach (var sym in lSym)
@@ -345,7 +345,7 @@ namespace TradePr.Service
         {
             try
             {
-                if (lSym == null)
+                if (!lSym.Any())
                     return;
 
                 var count1_3 = 0;
