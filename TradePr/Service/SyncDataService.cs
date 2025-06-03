@@ -629,10 +629,10 @@ namespace TradePr.Service
                 var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
                 if (lRes.Count() < _TAKE)
                 {
-                    lRes = lResultOrder.Take(_TAKE).ToList();
+                    lRes = lResultOrder.Where(x => x.Winrate >= 0.7).ToList();
                 }
 
-                if (lRes.Count() < _TAKE - 15)
+                if (lRes.Count() < _TAKE - 20)
                     return;
 
                 //Delete
@@ -1186,10 +1186,10 @@ namespace TradePr.Service
                 var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
                 if(lRes.Count() < _TAKE)
                 {
-                    lRes = lResultOrder.Take(_TAKE).ToList();
+                    lRes = lResultOrder.Where(x => x.Winrate >= 0.7).ToList();
                 }
 
-                if (lRes.Count() < _TAKE - 15)
+                if (lRes.Count() < _TAKE - 20)
                     return;
 
                 //Delete
