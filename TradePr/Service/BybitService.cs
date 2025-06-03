@@ -281,6 +281,9 @@ namespace TradePr.Service
         {
             try
             {
+                if (lSym == null)
+                    return;
+
                 foreach (var sym in lSym)
                 {
                     try
@@ -342,6 +345,9 @@ namespace TradePr.Service
         {
             try
             {
+                if (lSym == null)
+                    return;
+
                 var count1_3 = 0;
                 var lPrepare = new List<Prepare>();
                 foreach (var sym in lSym)
