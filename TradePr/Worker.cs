@@ -47,7 +47,6 @@ namespace TradePr
                         else if (dt.Minute == 0)
                         {
                             _syncService.Bybit_LONG(EOrderSideOption.OP_0);
-                            //_syncService.Binance_LONG();
                         }
                         else if(dt.Minute == 15)
                         {
@@ -55,14 +54,30 @@ namespace TradePr
                         }
                         else if (dt.Minute == 30)
                         {
-                            //_syncService.Binance_SHORT();
-                            _syncService.Bybit_SHORT(EOrderSideOption.OP_0);
+                            _syncService.Bybit_LONG(EOrderSideOption.OP_2);
+                        }   
+                    }   
+                    if(dt.Hour == 10)
+                    {
+                        if (false)
+                        {
+
                         }
-                        else if(dt.Minute == 45)
+                        else if (dt.Minute == 0)
+                        {
+                            _syncService.Bybit_SHORT(EOrderSideOption.OP_0);
+                            //_syncService.Binance_LONG();
+                        }
+                        else if (dt.Minute == 15)
                         {
                             _syncService.Bybit_SHORT(EOrderSideOption.OP_1);
-                        }    
-                    }   
+                        }
+                        else if (dt.Minute == 30)
+                        {
+                            //_syncService.Binance_SHORT();
+                            _syncService.Bybit_SHORT(EOrderSideOption.OP_2);
+                        }
+                    }
                 }
 
                 //if(dt.Hour == 7 && dt.Minute == 0)
