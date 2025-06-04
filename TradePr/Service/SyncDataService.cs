@@ -1222,7 +1222,7 @@ namespace TradePr.Service
                 Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
-                await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT SHORT");
+                await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT SHORT: {op}");
             }
             catch (Exception ex)
             {
