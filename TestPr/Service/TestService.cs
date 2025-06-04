@@ -105,7 +105,7 @@ namespace TestPr.Service
                         continue;
 
                     var element = lSym.First(x => x.s == item);
-                    //if (element.op == (int)EOrderSideOption.OP_1)
+                    //if (element.op != (int)EOrderSideOption.OP_2)
                     //    continue;
 
                     var winCount = 0;
@@ -392,7 +392,7 @@ namespace TestPr.Service
                         continue;
 
                     var element = lSym.First(x => x.s == item);
-                    //if (element.op == (int)EOrderSideOption.OP_1)
+                    //if (element.op != (int)EOrderSideOption.OP_0)
                     //    continue;
 
                     var winCount = 0;
