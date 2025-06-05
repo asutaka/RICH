@@ -133,7 +133,7 @@ namespace StockPr.Service
                         user = userName
                     });
 
-                    item.Message = $"[{item.Title.Replace("\"","")}](https://f319.com/{item.Url})|{userName}:{item.Content}";
+                    item.Message = $"[{item.Title.Replace("\"","").Replace("“","").Replace("”","")}](https://f319.com/{item.Url})|{userName}:{item.Content}";
                     lOutput.Add(item);
                 }
             }
