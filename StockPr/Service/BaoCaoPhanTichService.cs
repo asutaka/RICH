@@ -91,15 +91,15 @@ namespace StockPr.Service
                     lMes.AddRange(mbs_COM.Item2);
                 }
 
-                var fpts_COM = await FPTS(false);
-                if (!fpts_COM.Item1)
-                {
-                    lError.Add("[ERROR] Báo cáo phân tích FPTS");
-                }
-                if (fpts_COM.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(fpts_COM.Item2);
-                }
+                //var fpts_COM = await FPTS(false);
+                //if (!fpts_COM.Item1)
+                //{
+                //    lError.Add("[ERROR] Báo cáo phân tích FPTS");
+                //}
+                //if (fpts_COM.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(fpts_COM.Item2);
+                //}
 
                 var bsc_COM = await BSC(false);
                 if (!bsc_COM.Item1)
@@ -169,11 +169,11 @@ namespace StockPr.Service
                     lMes.AddRange(mbs_Ins.Item2);
                 }
 
-                var fpts_Ins = await FPTS(true);
-                if (fpts_Ins.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(fpts_Ins.Item2);
-                }
+                //var fpts_Ins = await FPTS(true);
+                //if (fpts_Ins.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(fpts_Ins.Item2);
+                //}
 
                 var bsc_Ins = await BSC(true);
                 if (bsc_Ins.Item2?.Any() ?? false)

@@ -148,7 +148,8 @@ namespace StockPr
                             }
                         }
 
-                        if (dt.Hour == 14 && dt.Minute >= 45)
+                        if ((dt.Hour == 14 && dt.Minute >= 45)
+                            || (dt.Hour == 15 && dt.Minute <= 30))
                         {
                             var mes = await _analyzeService.ThongKeGDNN_NhomNganh();
                             if (!string.IsNullOrWhiteSpace(mes))
