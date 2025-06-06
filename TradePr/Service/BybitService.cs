@@ -713,11 +713,11 @@ namespace TradePr.Service
                     decimal sl = 0;
                     if (side == OrderSide.Buy)
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - _SL_RATE), tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - _SL_RATE * 2), tronGia);
                     }
                     else
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE), tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE * 2), tronGia);
                     }
                     res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                             first.Symbol,
