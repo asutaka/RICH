@@ -29,6 +29,7 @@ namespace TestPr.Service
         {
             try
             {
+                var DAY = 20;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
                 var builder = Builders<Symbol>.Filter;
@@ -66,7 +67,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-20));
+                        var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-DAY));
                         var count = lData15m.Count();
                         var lbb = lData15m.GetBollingerBands();
                         var lAdd = new List<Quote>();
