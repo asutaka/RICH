@@ -346,6 +346,14 @@ namespace CoinUtilsPr
                 {
                     return 1m;
                 }
+                else if (op == EOrderSideOption.OP_3)
+                {
+                    return 0.5m;
+                }
+                else if (op == EOrderSideOption.OP_4)
+                {
+                    return 0m;
+                }
                 return 2.5m;
             }
         }

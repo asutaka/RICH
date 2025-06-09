@@ -39,7 +39,9 @@ namespace CoinUtilsPr
     {
         OP_0 = 0,
         OP_1 = 1,
-        OP_2 = 2
+        OP_2 = 2,
+        OP_3 = 3,
+        OP_4 = 4,
     }
 
     public enum EKey
