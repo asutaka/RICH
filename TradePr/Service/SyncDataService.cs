@@ -52,7 +52,7 @@ namespace TradePr.Service
                 if (_dData_Bybit.ContainsKey(symbol))
                     return _dData_Bybit[symbol].ToList();
 
-                var l15m = await _apiService.GetData_Bybit(symbol, DateTime.Now.AddDays(-20));
+                var l15m = await _apiService.GetData_Bybit(symbol, DateTime.UtcNow.AddDays(-20));
                 if (l15m is null || !l15m.Any())
                     return null;
 

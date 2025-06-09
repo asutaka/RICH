@@ -29,7 +29,7 @@ namespace TestPr.Service
         {
             try
             {
-                var start = DateTime.Now;
+                var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
                 var builder = Builders<Symbol>.Filter;
                 var lSym = _symRepo.GetByFilter(builder.And(
@@ -53,7 +53,8 @@ namespace TestPr.Service
                     lSym.Clear();
                     lSym.Add(new Symbol
                     {
-                        s = s
+                        s = s,
+                        op = (int)EOrderSideOption.OP_4
                     });
                 }
                 var dic = new Dictionary<string, List<Quote>>();
@@ -350,7 +351,7 @@ namespace TestPr.Service
 
                     try
                     {
-                        var lData15m = await _apiService.GetData_Bybit(item, DateTime.Now.AddDays(-20));
+                        var lData15m = await _apiService.GetData_Bybit(item, DateTime.UtcNow.AddDays(-20));
                         var lbb = lData15m.GetBollingerBands();
                         var count = lData15m.Count();
                         var lAdd = new List<Quote>();
