@@ -57,15 +57,15 @@ namespace TestPr.Service
                     });
                 }
                 var dic = new Dictionary<string, List<Quote>>();
-                foreach (var item in lSym.Select(x => x.s))
+                foreach (var sym in lSym.Select(x => x.s))
                 {
-                    if (item.Contains('-'))
+                    if (sym.Contains('-'))
                         continue;
                     var winCount = 0;
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = await _apiService.GetData_Bybit(item, start.AddDays(-20));
+                        var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-20));
                         var count = lData15m.Count();
                         var lbb = lData15m.GetBollingerBands();
                         var lAdd = new List<Quote>();
@@ -88,20 +88,17 @@ namespace TestPr.Service
                             }
                             lAdd.Add(element);
                         }
-                        dic.Add(item, lAdd);
+                        dic.Add(sym, lAdd);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"{item}| {ex.Message}");
+                        Console.WriteLine($"{sym}| {ex.Message}");
                     }
                 }
 
-                foreach (var item in dic.Select(x => x.Key))
+                foreach (var sym in dic.Select(x => x.Key))
                 {
-                    if (item.Contains('-'))
-                        continue;
-
-                    var element = lSym.First(x => x.s == item);
+                    var element = lSym.First(x => x.s == sym);
                     //if (element.op != (int)EOrderSideOption.OP_2)
                     //    continue;
 
@@ -109,7 +106,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = dic[item];
+                        var lData15m = dic[sym];
                         var lbb = lData15m.GetBollingerBands();
                         var lrsi = lData15m.GetRsi();
                         var lVol = lData15m.Select(x => new Quote
@@ -120,20 +117,20 @@ namespace TestPr.Service
                         var lMaVol = lVol.GetSma(20);
 
                         DateTime dtFlag = DateTime.MinValue;
-                        foreach (var ma20 in lbb)
+                        foreach (var cur in lData15m)
                         {
                             try
                             {
-                                var flag = lData15m.Where(x => x.Date <= ma20.Date).ToList().IsFlagBuy();
+                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagBuy();
                                 if (!flag.Item1)
                                     continue;
+
                                 var entity_Pivot = flag.Item2;
                                 var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
 
-                                #region Thêm xử lý
+                                #region Buy ENTRY
                                 var isPass = false;
                                 var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
-                                //var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
                                     var action = check.IsBuy(flag.Item2.Close, (EOrderSideOption)element.op);
@@ -145,10 +142,6 @@ namespace TestPr.Service
                                 }
                                 if (!isPass)
                                     continue;
-
-                                var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
-                                if (eClose is null)
-                                    continue;
                                 #endregion
 
                                 var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
@@ -158,7 +151,11 @@ namespace TestPr.Service
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+                                var closeCount = lClose.Count();
+                                var isEnd = closeCount == hour * 4;
+
                                 var isChotNon = false;
+                                Quote eClose = null;
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
@@ -182,52 +179,51 @@ namespace TestPr.Service
                                         isChotNon = true;
                                     }
 
-                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); //chốt khi lãi > 10%
-                                    if (rateCheck > rateBB)
+                                    var rateH = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); 
+                                    if (rateH >= rateBB)
                                     {
                                         var close = entity_Pivot.Close * (decimal)(1 + rateBB / 100);
                                         itemClose.Close = close;
                                         eClose = itemClose;
                                         break;
                                     }
+                                    var rateL = Math.Round(100 * (-1 + itemClose.Low / entity_Pivot.Close), 1);
+                                    if(rateL <= -SL_RATE)
+                                    {
+                                        var close = entity_Pivot.Close * (decimal)(1 - SL_RATE / 100);
+                                        itemClose.Close = close;
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    eClose = itemClose;
+                                }
+                                if (!isEnd)
+                                {
+                                    continue;
                                 }
 
                                 dtFlag = eClose.Date;
                                 var rate = Math.Round(100 * (-1 + eClose.Close / entity_Pivot.Close), 1);
                                 var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
-                                var maxH = lRange.Max(x => x.High);
-                                var minL = lRange.Min(x => x.Low);
 
                                 var winloss = "W";
                                 if (rate <= (decimal)0)
                                 {
                                     winloss = "L";
-                                }
-
-                                var maxSL = Math.Round(100 * (-1 + minL / entity_Pivot.Close), 1);
-                                if (maxSL <= -SL_RATE)
-                                {
-                                    rate = -SL_RATE;
-                                    winloss = "L";
-                                }
-
-                                if (winloss == "W")
-                                {
-                                    rate = Math.Abs(rate);
-                                    winCount++;
+                                    lossCount++;
                                 }
                                 else
                                 {
-                                    rate = -Math.Abs(rate);
-                                    lossCount++;
+                                    winCount++;
                                 }
 
-                                var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
                                 {
-                                    s = item,
+                                    s = sym,
                                     Date = entity_Pivot.Date,
                                     Rate = rate,
                                 });
@@ -239,22 +235,14 @@ namespace TestPr.Service
 
                         }
 
-                        if (winCount + lossCount <= 1)
+                        if (winCount + lossCount <= 0)
                             continue;
 
                         var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
-                        var count = lModel.Count(x => x.s == item);
-                        var items = lModel.Where(x => x.s == item);
+                        var sumRate = lModel.Where(x => x.s == sym).Sum(x => x.Rate);
+                        var count = lModel.Count(x => x.s == sym);
+                        var items = lModel.Where(x => x.s == sym);
                         var perRate = Math.Round((float)sumRate / count, 1);
-                        ////Special
-                        //if (rateRes < (decimal)0.5
-                        //  || perRate <= 0.7)
-                        //{
-                        //    lModel = lModel.Except(items).ToList();
-                        //    continue;
-                        //}
-
                         var realWin = 0;
                         foreach (var model in items)
                         {
@@ -269,12 +257,12 @@ namespace TestPr.Service
 
                         var winrate = Math.Round((double)realWin / count, 1);
 
-                        var mes = $"{item}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
+                        var mes = $"{sym}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
                         //Console.WriteLine(mes);
 
                         lResult.Add(new clsResult
                         {
-                            s = item,
+                            s = sym,
                             Win = realWin,
                             Winrate = winrate,
                             Perate = perRate,
@@ -283,7 +271,7 @@ namespace TestPr.Service
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"{item}| {ex.Message}");
+                        Console.WriteLine($"{sym}| {ex.Message}");
                     }
                 }
 
