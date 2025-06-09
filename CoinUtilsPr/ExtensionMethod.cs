@@ -313,7 +313,7 @@ namespace CoinUtilsPr
         {
             try
             {
-                decimal ENTRY_RATE = DetectOption();
+                decimal ENTRY_RATE = DetectOption(op);
                 decimal LEN = 2.5m;
                 decimal SL_PRICE = close * (1 - ENTRY_RATE / 100);
                 var rateCheck = Math.Round(100 * (-1 + val.Low / close), 1);
@@ -334,28 +334,27 @@ namespace CoinUtilsPr
             }
 
             return (false, null);
+        }
 
-            decimal DetectOption()
+        private static decimal DetectOption(EOrderSideOption op)
+        {
+            if (op == EOrderSideOption.OP_1)
             {
-                //1m
-                if (op == EOrderSideOption.OP_1)
-                {
-                    return 1.5m;
-                }
-                else if (op == EOrderSideOption.OP_2)
-                {
-                    return 1m;
-                }
-                else if (op == EOrderSideOption.OP_3)
-                {
-                    return 0.5m;
-                }
-                else if (op == EOrderSideOption.OP_4)
-                {
-                    return 0m;
-                }
-                return 2.5m;
+                return 1.5m;
             }
+            else if (op == EOrderSideOption.OP_2)
+            {
+                return 1m;
+            }
+            else if (op == EOrderSideOption.OP_3)
+            {
+                return 0.5m;
+            }
+            else if (op == EOrderSideOption.OP_4)
+            {
+                return 0m;
+            }
+            return 2.5m;
         }
 
         public static (bool, Quote) IsFlagSell(this List<Quote> lData)
@@ -455,11 +454,11 @@ namespace CoinUtilsPr
         {
             try
             {
-                decimal SL_RATE = DetectOption();
+                decimal ENTRY_RATE = DetectOption(op);
                 decimal LEN = 2.5m;
-                decimal SL_PRICE = close * (1 + SL_RATE / 100);
+                decimal SL_PRICE = close * (1 + ENTRY_RATE / 100);
                 var rateCheck = Math.Round(100 * (-1 + val.High / close), 1);
-                if (rateCheck >= SL_RATE)
+                if (rateCheck >= ENTRY_RATE)
                 {
                     //var dodainen = Math.Abs(Math.Round(100 * (-1 + SL_PRICE / val.Open), 1));
                     //if (dodainen >= LEN)
@@ -476,20 +475,6 @@ namespace CoinUtilsPr
             }
 
             return (false, null);
-
-            decimal DetectOption()
-            {
-                //1m
-                if (op == EOrderSideOption.OP_1)
-                {
-                    return 1.5m;
-                }
-                else if (op == EOrderSideOption.OP_2)
-                {
-                    return 1m;
-                }
-                return 2.5m;
-            }
         }
     }
 }
