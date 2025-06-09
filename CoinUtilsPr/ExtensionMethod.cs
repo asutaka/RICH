@@ -239,6 +239,7 @@ namespace CoinUtilsPr
 
         public static (bool, Quote) IsFlagBuy(this List<Quote> lData)
         {
+            decimal BB_Min = 2.5m;
             try
             {
                 if ((lData?.Count() ?? 0) < 50)
@@ -263,6 +264,12 @@ namespace CoinUtilsPr
                 var rsi_Sig = lrsi.First(x => x.Date == e_Sig.Date);
                 var bb_Sig = lbb.First(x => x.Date == e_Sig.Date);
                 var vol_Sig = lMaVol.First(x => x.Date == e_Sig.Date);
+
+                var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
+                if (rateBB < BB_Min)
+                {
+                    return (false, null);
+                }
 
                 //Check Sig
                 if (e_Sig.Close >= e_Sig.Open

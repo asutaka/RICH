@@ -39,7 +39,6 @@ namespace TestPr.Service
                 ));
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
-                decimal rateProfit_Min = 2.5m;
                 decimal rateProfit_Max = 7m;
 
                 var lModel = new List<clsData>();
@@ -146,18 +145,14 @@ namespace TestPr.Service
                                 }
                                 if (!isPass)
                                     continue;
-                                #endregion
 
                                 var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
                                 if (eClose is null)
                                     continue;
+                                #endregion
 
                                 var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
-                                if (rateBB < rateProfit_Min - 1)
-                                {
-                                    continue;
-                                }
-                                else if (rateBB > rateProfit_Max)
+                                if (rateBB > rateProfit_Max)
                                 {
                                     rateBB = rateProfit_Max;
                                 }
