@@ -59,16 +59,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = new List<Quote>();
-                        var last = new Quote();
-                        var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
-
-                        var lData10 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                        var lData15m = await _apiService.GetData_Bybit(item, start.AddDays(-20));
                         var count = lData15m.Count();
                         var lbb = lData15m.GetBollingerBands();
                         var lAdd = new List<Quote>();
@@ -345,16 +336,7 @@ namespace TestPr.Service
 
                     try
                     {
-                        var lData15m = new List<Quote>();
-                        var last = new Quote();
-                        var lData20 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                        last = lData15m.Last();
-
-                        var lData10 = await _apiService.GetData_Bybit(item, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
-                        Thread.Sleep(200);
-                        lData15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                        var lData15m = await _apiService.GetData_Bybit(item, DateTime.Now.AddDays(-20));
                         var lbb = lData15m.GetBollingerBands();
                         var count = lData15m.Count();
                         var lAdd = new List<Quote>();

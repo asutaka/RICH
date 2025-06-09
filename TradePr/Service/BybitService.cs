@@ -411,7 +411,7 @@ namespace TradePr.Service
                         return _dData[symbol].ToList();
                 }
                
-                var l15m = await _apiService.GetData_Bybit(symbol, EInterval.M15);
+                var l15m = await _apiService.GetData_Bybit(symbol, DateTime.MinValue);
                 Thread.Sleep(100);
                 if (l15m is null || !l15m.Any())
                     return null;

@@ -52,17 +52,7 @@ namespace TradePr.Service
                 if (_dData_Bybit.ContainsKey(symbol))
                     return _dData_Bybit[symbol].ToList();
 
-                var l15m = new List<Quote>();
-                var last = new Quote();
-
-                var lData20 = await _apiService.GetData_Bybit(symbol, EInterval.M15, DateTimeOffset.Now.AddDays(-20).ToUnixTimeMilliseconds());
-                Thread.Sleep(100);
-                l15m.AddRange(lData20.Where(x => x.Date > last.Date));
-                last = l15m.Last();
-
-                var lData10 = await _apiService.GetData_Bybit(symbol, EInterval.M15, DateTimeOffset.Now.AddDays(-10).ToUnixTimeMilliseconds());
-                Thread.Sleep(100);
-                l15m.AddRange(lData10.Where(x => x.Date > last.Date));
+                var l15m = await _apiService.GetData_Bybit(symbol, DateTime.Now.AddDays(-20));
                 if (l15m is null || !l15m.Any())
                     return null;
 

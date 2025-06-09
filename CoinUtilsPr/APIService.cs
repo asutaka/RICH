@@ -11,7 +11,7 @@ namespace CoinUtilsPr
     public interface IAPIService
     {
         Task<List<Quote>> GetData(string symbol, EInterval interval, long fromTime = 0);
-        Task<List<Quote>> GetData_Bybit(string symbol, EInterval interval, long fromTime = 0);
+        Task<List<Quote>> GetData_Bybit(string symbol, DateTime fromTime);
         Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, long fromTime = 0);
     }
     public class APIService : IAPIService
@@ -61,25 +61,70 @@ namespace CoinUtilsPr
             return null;
         }
 
-        public async Task<List<Quote>> GetData_Bybit(string symbol, EInterval interval, long fromTime = 0)
+        public async Task<List<Quote>> GetData_Bybit(string symbol, DateTime fromTime)
         {
             try
             {
-                var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: fromTime.UnixTimeStampMinisecondToDateTime(), limit: 1000);
-                if (!lres.Success)
-                    return null;
-                if (lres.Data.List.Any())
+                var now = DateTime.UtcNow;
+                if(fromTime == DateTime.MinValue)
                 {
-                    return lres.Data.List.Reverse().Select(x => new Quote
-                    {
-                        Open = x.OpenPrice,
-                        High = x.HighPrice,
-                        Low = x.LowPrice,
-                        Close = x.ClosePrice,
-                        Volume = x.Volume,
-                        Date = x.StartTime
-                    }).ToList();
+                    fromTime = now.AddDays(-10);
                 }
+                var divDay = (int)(now - fromTime).TotalDays;
+                var even = divDay / 10;
+                var odd = divDay % 10;
+
+                var lAll = new List<Quote>();
+                var timeLast = DateTime.MaxValue;
+                for (int i = 0; i < even; i++)
+                {
+                    var time = now.AddDays(-(i + 1) * 10);
+                    var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: time, limit: 1000);
+                    Thread.Sleep(200);
+                    if (!lres.Success)
+                        return null;
+                    if (lres.Data.List.Any())
+                    {
+                        var lParsing = lres.Data.List.Where(x => x.StartTime < timeLast).Select(x => new Quote
+                        {
+                            Open = x.OpenPrice,
+                            High = x.HighPrice,
+                            Low = x.LowPrice,
+                            Close = x.ClosePrice,
+                            Volume = x.Volume,
+                            Date = x.StartTime
+                        });
+
+                        timeLast = lParsing.Last().Date;
+                        lAll.AddRange(lParsing);
+                    }
+                }
+
+                if(odd > 0)
+                {
+                    var lres = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetKlinesAsync(Category.Linear, symbol, KlineInterval.FifteenMinutes, startTime: fromTime, limit: 1000);
+                    Thread.Sleep(200);
+                    if (!lres.Success)
+                        return null;
+                    if (lres.Data.List.Any())
+                    {
+                        var lParsing = lres.Data.List.Where(x => x.StartTime < timeLast).Select(x => new Quote
+                        {
+                            Open = x.OpenPrice,
+                            High = x.HighPrice,
+                            Low = x.LowPrice,
+                            Close = x.ClosePrice,
+                            Volume = x.Volume,
+                            Date = x.StartTime
+                        });
+
+                        timeLast = lParsing.Last().Date;
+                        lAll.AddRange(lParsing);
+                    }
+                }
+                lAll.Reverse();
+
+                return lAll;
             }
             catch (Exception ex)
             {
