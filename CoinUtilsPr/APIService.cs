@@ -93,7 +93,7 @@ namespace CoinUtilsPr
                             Close = x.ClosePrice,
                             Volume = x.Volume,
                             Date = x.StartTime
-                        });
+                        }).ToList();
 
                         timeLast = lParsing.Last().Date;
                         lAll.AddRange(lParsing);
@@ -116,7 +116,7 @@ namespace CoinUtilsPr
                             Close = x.ClosePrice,
                             Volume = x.Volume,
                             Date = x.StartTime
-                        });
+                        }).ToList();
 
                         timeLast = lParsing.Last().Date;
                         lAll.AddRange(lParsing);
