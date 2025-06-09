@@ -265,11 +265,11 @@ namespace CoinUtilsPr
                 var bb_Sig = lbb.First(x => x.Date == e_Sig.Date);
                 var vol_Sig = lMaVol.First(x => x.Date == e_Sig.Date);
 
-                var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
-                if (rateBB < BB_Min)
-                {
-                    return (false, null);
-                }
+                //var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
+                //if (rateBB < BB_Min)
+                //{
+                //    return (false, null);
+                //}
 
                 //Check Sig
                 if (e_Sig.Close >= e_Sig.Open
