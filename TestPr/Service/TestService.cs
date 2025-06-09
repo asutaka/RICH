@@ -39,6 +39,7 @@ namespace TestPr.Service
                 ));
                 decimal SL_RATE = 2.5m;
                 int hour = 4;
+                decimal rateProfit_Min = 2.5m;
                 decimal rateProfit_Max = 7m;
 
                 var lModel = new List<clsData>();
@@ -121,7 +122,10 @@ namespace TestPr.Service
                         {
                             try
                             {
-                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagBuy();
+                                if (cur.Date <= dtFlag)
+                                    continue;
+
+                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagBuy2();
                                 if (!flag.Item1)
                                     continue;
 
@@ -133,11 +137,15 @@ namespace TestPr.Service
                                 var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
                                 foreach (var check in lCheck)
                                 {
-                                    var action = check.IsBuy(flag.Item2.Close, (EOrderSideOption)element.op);
-                                    if (!action.Item1)
+                                    if (flag.Item3)
+                                    {
+                                        isPass = true; break;
+                                    }
+                                    var action = check.IsBuy2();
+                                    if (!action)
                                         continue;
 
-                                    entity_Pivot = action.Item2;
+                                    entity_Pivot = check;
                                     isPass = true; break;
                                 }
                                 if (!isPass)
@@ -148,6 +156,10 @@ namespace TestPr.Service
                                 if (rateBB > rateProfit_Max)
                                 {
                                     rateBB = rateProfit_Max;
+                                }
+                                else if(rateBB < rateProfit_Min)
+                                {
+                                    rateBB = rateProfit_Min;
                                 }
 
                                 var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
