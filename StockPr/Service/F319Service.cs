@@ -101,6 +101,13 @@ namespace StockPr.Service
                 {
                     lOutput.AddRange(lKOL10Clean);
                 }
+
+                var lKOL11 = await _apiService.F319_Scout("gaotimmauhoaca.489472");//Am hiểu BDS Miền Nam
+                var lKOL11Clean = Handle(lKOL11, "gaotimmauhoaca");
+                if (lKOL11Clean.Any())
+                {
+                    lOutput.AddRange(lKOL11Clean);
+                }
             }
             catch (Exception ex)
             {
