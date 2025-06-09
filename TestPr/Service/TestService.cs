@@ -3,17 +3,15 @@ using CoinUtilsPr;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
-using System.Xml.Linq;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
-using TestPr.Model;
 
 namespace TestPr.Service
 {
     public interface ITestService
     {
-        Task Bybit_LONG();
-        Task Bybit_SHORT();
+        Task Bybit_LONG(string s = "");
+        Task Bybit_SHORT(string s = "");
     }
     public class TestService : ITestService
     {
@@ -27,7 +25,7 @@ namespace TestPr.Service
             _symRepo = symRepo;
         }
 
-        public async Task Bybit_LONG()
+        public async Task Bybit_LONG(string s = "")
         {
             try
             {
@@ -50,6 +48,14 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
 
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    lSym.Clear();
+                    lSym.Add(new Symbol
+                    {
+                        s = s
+                    });
+                }
                 var dic = new Dictionary<string, List<Quote>>();
                 foreach (var item in lSym.Select(x => x.s))
                 {
@@ -305,7 +311,7 @@ namespace TestPr.Service
         }
 
         //Tong: 340.7%|W/L: 287/119
-        public async Task Bybit_SHORT()
+        public async Task Bybit_SHORT(string s = "")
         {
             try
             {
@@ -328,6 +334,14 @@ namespace TestPr.Service
                 var winTotal = 0;
                 var lossTotal = 0;
                 //
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    lSym.Clear();
+                    lSym.Add(new Symbol
+                    {
+                        s = s
+                    });
+                }
                 var dic = new Dictionary<string, List<Quote>>();
                 foreach (var item in lSym.Select(x => x.s))
                 {
