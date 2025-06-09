@@ -29,7 +29,8 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 20;
+                var DAY = 180;
+                int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
                 var builder = Builders<Symbol>.Filter;
@@ -39,7 +40,6 @@ namespace TestPr.Service
                     builder.Eq(x => x.status, 0)
                 ));
                 decimal SL_RATE = 2.5m;
-                int hour = 4;
                 decimal rateProfit_Min = 2.5m;
                 decimal rateProfit_Max = 7m;
 
@@ -163,9 +163,9 @@ namespace TestPr.Service
                                     rateBB = rateProfit_Min;
                                 }
 
-                                var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+                                var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(HOUR));
                                 var closeCount = lClose.Count();
-                                var isEnd = closeCount == hour * 4;
+                                var isEnd = closeCount == HOUR * 4;
 
                                 var isChotNon = false;
                                 Quote eClose = null;
@@ -178,19 +178,19 @@ namespace TestPr.Service
                                         break;
                                     }
 
-                                    if (isChotNon
-                                       && itemClose.Close < (decimal)ma.Sma.Value
-                                       && itemClose.Close <= itemClose.Open
-                                       && itemClose.Close >= entity_Pivot.Close)
-                                    {
-                                        eClose = itemClose;
-                                        break;
-                                    }
+                                    //if (isChotNon
+                                    //   && itemClose.Close < (decimal)ma.Sma.Value
+                                    //   && itemClose.Close <= itemClose.Open
+                                    //   && itemClose.Close >= entity_Pivot.Close)
+                                    //{
+                                    //    eClose = itemClose;
+                                    //    break;
+                                    //}
 
-                                    if (itemClose.High >= (decimal)ma.Sma.Value)
-                                    {
-                                        isChotNon = true;
-                                    }
+                                    //if (itemClose.High >= (decimal)ma.Sma.Value)
+                                    //{
+                                    //    isChotNon = true;
+                                    //}
 
                                     var rateH = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); 
                                     if (rateH >= rateBB)
@@ -217,7 +217,7 @@ namespace TestPr.Service
                                 }
 
                                 dtFlag = eClose.Date;
-                                var rate = Math.Round(100 * (-1 + eClose.Close / entity_Pivot.Close), 1);
+                                var rate = Math.Round(100 * (-1 + eClose.Close / entity_Pivot.Close), 2);
                                 var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
 
                                 var winloss = "W";
@@ -259,7 +259,7 @@ namespace TestPr.Service
                         var realWin = 0;
                         foreach (var model in items)
                         {
-                            if (model.Rate > (decimal)0.5)
+                            if (model.Rate > (decimal)0)
                                 realWin++;
                         }
 
