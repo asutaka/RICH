@@ -178,19 +178,19 @@ namespace TestPr.Service
                                         break;
                                     }
 
-                                    //if (isChotNon
-                                    //   && itemClose.Close < (decimal)ma.Sma.Value
-                                    //   && itemClose.Close <= itemClose.Open
-                                    //   && itemClose.Close >= entity_Pivot.Close)
-                                    //{
-                                    //    eClose = itemClose;
-                                    //    break;
-                                    //}
+                                    if (isChotNon
+                                       && itemClose.Close < (decimal)ma.Sma.Value
+                                       && itemClose.Close <= itemClose.Open
+                                       && itemClose.Close >= entity_Pivot.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
 
-                                    //if (itemClose.High >= (decimal)ma.Sma.Value)
-                                    //{
-                                    //    isChotNon = true;
-                                    //}
+                                    if (itemClose.High >= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
+                                    }
 
                                     var rateH = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); 
                                     if (rateH >= rateBB)
