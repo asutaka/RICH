@@ -527,7 +527,7 @@ namespace CoinUtilsPr
             return (false, null, false);
         }
 
-        public static bool IsBuy2(this Quote val, Quote e_Pivot)
+        public static decimal IsBuy2(this Quote val, Quote e_Pivot)
         {
             try
             {
@@ -538,14 +538,14 @@ namespace CoinUtilsPr
                 var pp = (e_Pivot.High + e_Pivot.Low + e_Pivot.Close) / 3;
                 var s1 = 2 * pp - e_Pivot.Low;
 
-                return val.Low < e_Pivot.Close;
+                return val.Low < s1 ? s1 : -1;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
 
-            return false;
+            return -1;
         }
 
         private static decimal DetectOption(EOrderSideOption op)

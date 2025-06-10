@@ -143,10 +143,10 @@ namespace TestPr.Service
                                         isPass = true; break;
                                     }
                                     var action = check.IsBuy2(flag.Item2);
-                                    if (!action)
+                                    if (action <= 0)
                                         continue;
 
-                                    check.Close = flag.Item2.Low;
+                                    check.Close = action;
                                     entity_Pivot = check;
                                     isPass = true; break;
                                 }
