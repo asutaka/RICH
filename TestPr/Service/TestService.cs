@@ -233,7 +233,28 @@ namespace TestPr.Service
                                     winCount++;
                                 }
 
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
+
+                                //for test
+                                //Số nến High > ma20
+                                var lzz = lData15m.Where(x => x.Date < flag.Item2.Date).TakeLast(20);
+                                var countzz = 0;
+                                var countzz_green = 0;
+                                foreach (var itemzz in lzz)
+                                {
+                                    var bb = lbb.First(x => x.Date == itemzz.Date);
+                                    if (itemzz.High > (decimal)bb.Sma.Value)
+                                        countzz++;
+
+                                    if(itemzz.Close > itemzz.Open)
+                                        countzz_green++;
+                                }
+                                var ratezz = Math.Round(100 * (decimal)countzz / lzz.Count(), 1);
+                                var ratezz_green = Math.Round(100 * (decimal)countzz_green / lzz.Count(), 1);
+                                var ispass = (ratezz <= 85 && ratezz >= 25) || ratezz_green >= 30;
+                                if (!ispass)
+                                    continue;
+                                //////////////////////////////////////////////////////////////////////////////
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|Green: {ratezz_green}%";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData

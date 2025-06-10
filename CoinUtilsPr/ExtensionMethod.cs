@@ -456,14 +456,20 @@ namespace CoinUtilsPr
                 var bb_Sig = lbb.First(x => x.Date == e_Sig.Date);
                 var vol_Sig = lMaVol.First(x => x.Date == e_Sig.Date);
 
+                //Vol pivot phải gấp đôi 2 vol liền trước và liền sau
+                var rateVolSig = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
+                var rateVolCur = Math.Round(e_Pivot.Volume / e_Cur.Volume, 1);
+
                 var flag = true
-                        //&& e_Cur.Low < e_Pivot.Low
-                        //&& e_Pivot.Low < e_Sig.Low
-                        //&& e_Cur.Low < (decimal)bb_Cur.LowerBand.Value
-                        && e_Pivot.Low < (decimal)bb_Pivot.LowerBand.Value
-                        //&& e_Sig.Low < (decimal)bb_Sig.LowerBand.Value
                         && e_Pivot.Open > e_Pivot.Close
-                        && e_Pivot.Volume > (decimal)vol_Pivot.Sma.Value;
+                        && e_Pivot.Low < (decimal)bb_Pivot.LowerBand.Value
+                        && e_Pivot.High < (decimal)bb_Pivot.Sma.Value
+                        //&& rsi_Pivot.Rsi.Value >= 25
+                        //&& rsi_Pivot.Rsi.Value <= 35
+                        && e_Pivot.Volume >= 1.5m * (decimal)vol_Pivot.Sma.Value
+                        && rateVolSig >= 2
+                        && rateVolCur >= 2
+                        && true;
 
                 if (!flag)
                     return (false, null, false);
@@ -484,14 +490,6 @@ namespace CoinUtilsPr
                 //    )
                 //    return (false, null, false);
 
-                ////Check Pivot 
-                //if (e_Pivot.Low >= (decimal)bb_Pivot.LowerBand.Value
-                //    || e_Pivot.High >= (decimal)bb_Pivot.Sma.Value
-                //    || rsi_Pivot.Rsi > 35
-                //    || rsi_Pivot.Rsi < 25
-                //    )
-                //    return (false, null, false);
-
                 ////Check độ dài nến Sig - Pivot
                 //var body_Sig = Math.Abs((e_Sig.Open - e_Sig.Close) / (e_Sig.High - e_Sig.Low));
                 //if (body_Sig > (decimal)0.8)
@@ -500,13 +498,6 @@ namespace CoinUtilsPr
                 //    if (isValid)
                 //        return (false, null, false);
                 //}
-
-                //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
-                var rateVolSig = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
-                var rateVolCur = Math.Round(e_Pivot.Volume / e_Cur.Volume, 1);
-                if (rateVolSig < 2
-                    || rateVolCur < 2)
-                    return (false, null, false);
 
                 //var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistTopB();
                 //if (!checkTop.Item1)
