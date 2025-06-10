@@ -29,7 +29,7 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 30;
+                var DAY = 10;
                 int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
@@ -175,6 +175,7 @@ namespace TestPr.Service
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
                                     if (itemClose.High > (decimal)ma.UpperBand)//do something
                                     {
+                                        itemClose.Close = (decimal)ma.UpperBand;
                                         eClose = itemClose;
                                         break;
                                     }
@@ -193,7 +194,7 @@ namespace TestPr.Service
                                         //isChotNon = true;
                                     }
 
-                                    var rateH = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); 
+                                    var rateH = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1);
                                     if (rateH >= rateBB)
                                     {
                                         var close = entity_Pivot.Close * (decimal)(1 + rateBB / 100);
@@ -202,7 +203,7 @@ namespace TestPr.Service
                                         break;
                                     }
                                     var rateL = Math.Round(100 * (-1 + itemClose.Low / entity_Pivot.Close), 1);
-                                    if(rateL <= -SL_RATE)
+                                    if (rateL <= -SL_RATE)
                                     {
                                         var close = entity_Pivot.Close * (decimal)(1 - SL_RATE / 100);
                                         itemClose.Close = close;
