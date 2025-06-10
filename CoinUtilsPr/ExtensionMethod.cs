@@ -537,9 +537,8 @@ namespace CoinUtilsPr
 
                 var pp = (e_Pivot.High + e_Pivot.Low + e_Pivot.Close) / 3;
                 var s1 = 2 * pp - e_Pivot.Low;
-                var s2 = pp - (e_Pivot.High - e_Pivot.Low);
 
-                return val.Low < s1;
+                return val.Low < e_Pivot.Close;
             }
             catch (Exception ex)
             {
