@@ -535,7 +535,11 @@ namespace CoinUtilsPr
                 //                || val.Close > val.Open;
                 //return isHammer;
 
-                return val.Low < e_Pivot.Low;
+                var pp = (e_Pivot.High + e_Pivot.Low + e_Pivot.Close) / 3;
+                var s1 = 2 * pp - e_Pivot.Low;
+                var s2 = pp - (e_Pivot.High - e_Pivot.Low);
+
+                return val.Low < s1;
             }
             catch (Exception ex)
             {
