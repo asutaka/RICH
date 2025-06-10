@@ -29,8 +29,8 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 180;
-                int HOUR = 4;
+                var DAY = 30;
+                int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
                 var builder = Builders<Symbol>.Filter;
@@ -190,7 +190,7 @@ namespace TestPr.Service
 
                                     if (itemClose.High >= (decimal)ma.Sma.Value)
                                     {
-                                        isChotNon = true;
+                                        //isChotNon = true;
                                     }
 
                                     var rateH = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); 

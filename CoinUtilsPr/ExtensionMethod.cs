@@ -461,9 +461,9 @@ namespace CoinUtilsPr
                         //&& e_Pivot.Low < e_Sig.Low
                         //&& e_Cur.Low < (decimal)bb_Cur.LowerBand.Value
                         && e_Pivot.Low < (decimal)bb_Pivot.LowerBand.Value
-                        && e_Sig.Low < (decimal)bb_Sig.LowerBand.Value
+                        //&& e_Sig.Low < (decimal)bb_Sig.LowerBand.Value
                         && e_Pivot.Open > e_Pivot.Close
-                        && e_Pivot.Volume < 1.5m * (decimal)vol_Pivot.Sma.Value;
+                        && e_Pivot.Volume > (decimal)vol_Pivot.Sma.Value;
 
                 if (!flag)
                     return (false, null, false);
@@ -505,7 +505,7 @@ namespace CoinUtilsPr
                 var rateVolSig = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
                 var rateVolCur = Math.Round(e_Pivot.Volume / e_Cur.Volume, 1);
                 if (rateVolSig < 2
-                    && rateVolCur > 2)
+                    || rateVolCur < 2)
                     return (false, null, false);
 
                 //var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistTopB();
@@ -532,7 +532,7 @@ namespace CoinUtilsPr
         {
             try
             {
-                return val.Low < e_Pivot.Low ? e_Pivot.Low : -1;
+                return val.Low < e_Pivot.Close ? e_Pivot.Close : -1;
             }
             catch (Exception ex)
             {
