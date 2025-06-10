@@ -456,14 +456,15 @@ namespace CoinUtilsPr
                 var bb_Sig = lbb.First(x => x.Date == e_Sig.Date);
                 var vol_Sig = lMaVol.First(x => x.Date == e_Sig.Date);
 
-                var flag = e_Cur.Low < e_Pivot.Low
-                        && e_Pivot.Low < e_Sig.Low
-                        && e_Cur.Low < (decimal)bb_Cur.LowerBand.Value
+                var flag = true
+                        //&& e_Cur.Low < e_Pivot.Low
+                        //&& e_Pivot.Low < e_Sig.Low
+                        //&& e_Cur.Low < (decimal)bb_Cur.LowerBand.Value
                         && e_Pivot.Low < (decimal)bb_Pivot.LowerBand.Value
                         && e_Sig.Low < (decimal)bb_Sig.LowerBand.Value
                         && e_Pivot.Open > e_Pivot.Close;
 
-                if(!flag)
+                if (!flag)
                     return (false, null, false);
 
 
@@ -500,20 +501,21 @@ namespace CoinUtilsPr
                 //}
 
                 //Vol hiện tại phải nhỏ hơn hoặc bằng 0.6 lần vol của nến liền trước
-                var rateVol = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
-                var rateVolCur = Math.Round(e_Cur.Volume / e_Pivot.Volume, 1);
-                if (rateVol > (decimal)0.6
-                    && rateVolCur > (decimal)0.6)
+                var rateVolSig = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
+                var rateVolCur = Math.Round(e_Pivot.Volume / e_Cur.Volume, 1);
+                if (rateVolSig < 2
+                    && rateVolCur > 2)
                     return (false, null, false);
 
-                var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistTopB();
-                if (!checkTop.Item1)
-                    return (false, null, false);
+                //var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistTopB();
+                //if (!checkTop.Item1)
+                //    return (false, null, false);
 
                 //Check Mua MP
                 var isHammer = (e_Sig.Close - e_Sig.Low) >= 2 * (e_Sig.High - e_Sig.Close)
                                 || (e_Pivot.Close - e_Pivot.Low) >= 2 * (e_Pivot.High - e_Pivot.Close)
                                 || e_Pivot.Close > e_Pivot.Open;
+                isHammer = false;
 
                 return (true, e_Pivot, isHammer);
             }
@@ -525,13 +527,15 @@ namespace CoinUtilsPr
             return (false, null, false);
         }
 
-        public static bool IsBuy2(this Quote val)
+        public static bool IsBuy2(this Quote val, Quote e_Pivot)
         {
             try
             {
-                var isHammer = (val.Close - val.Low) >= 2 * (val.High - val.Close)
-                                || val.Close > val.Open;
-                return isHammer;
+                //var isHammer = (val.Close - val.Low) >= 2 * (val.High - val.Close)
+                //                || val.Close > val.Open;
+                //return isHammer;
+
+                return val.Low < e_Pivot.Low;
             }
             catch (Exception ex)
             {

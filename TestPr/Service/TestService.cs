@@ -29,8 +29,8 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 180;
-                int HOUR = 8;
+                var DAY = 30;
+                int HOUR = 4;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
                 var builder = Builders<Symbol>.Filter;
@@ -142,10 +142,11 @@ namespace TestPr.Service
                                     {
                                         isPass = true; break;
                                     }
-                                    var action = check.IsBuy2();
+                                    var action = check.IsBuy2(flag.Item2);
                                     if (!action)
                                         continue;
 
+                                    check.Close = flag.Item2.Low;
                                     entity_Pivot = check;
                                     isPass = true; break;
                                 }
