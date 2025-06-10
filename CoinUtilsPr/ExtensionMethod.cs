@@ -462,7 +462,8 @@ namespace CoinUtilsPr
                         //&& e_Cur.Low < (decimal)bb_Cur.LowerBand.Value
                         && e_Pivot.Low < (decimal)bb_Pivot.LowerBand.Value
                         && e_Sig.Low < (decimal)bb_Sig.LowerBand.Value
-                        && e_Pivot.Open > e_Pivot.Close;
+                        && e_Pivot.Open > e_Pivot.Close
+                        && e_Pivot.Volume < 1.5m * (decimal)vol_Pivot.Sma.Value;
 
                 if (!flag)
                     return (false, null, false);
@@ -531,14 +532,7 @@ namespace CoinUtilsPr
         {
             try
             {
-                //var isHammer = (val.Close - val.Low) >= 2 * (val.High - val.Close)
-                //                || val.Close > val.Open;
-                //return isHammer;
-
-                var pp = (e_Pivot.High + e_Pivot.Low + e_Pivot.Close) / 3;
-                var s1 = 2 * pp - e_Pivot.Low;
-
-                return val.Low < s1 ? s1 : -1;
+                return val.Low < e_Pivot.Low ? e_Pivot.Low : -1;
             }
             catch (Exception ex)
             {
