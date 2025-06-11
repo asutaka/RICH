@@ -560,7 +560,7 @@ namespace CoinUtilsPr
         {
             try
             {
-                return val.Close;
+                return val.Close > Math.Max(e_Pivot.Open, e_Pivot.Close) ? -1 : val.Close;
                 //return val.Low < e_Pivot.Close ? e_Pivot.Close : -1;
             }
             catch (Exception ex)

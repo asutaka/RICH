@@ -29,7 +29,7 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 30;
+                var DAY = 60;
                 int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
@@ -135,7 +135,7 @@ namespace TestPr.Service
 
                                 #region Buy ENTRY
                                 var isPass = false;
-                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(1);
                                 foreach (var check in lCheck)
                                 {
                                     if (flag.Item3)
@@ -191,7 +191,7 @@ namespace TestPr.Service
 
                                     if (itemClose.High >= (decimal)ma.Sma.Value)
                                     {
-                                        //isChotNon = true;
+                                        isChotNon = true;
                                     }
 
                                     var rateH = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1);
@@ -266,7 +266,7 @@ namespace TestPr.Service
                                 var ratezz_green = Math.Round(100 * (decimal)countzz_green / lzz.Count(), 1);
                                 var ratezz_CUPMa20 = Math.Round(100 * (decimal)countCUPMa20 / lzz.Count(), 1);
                                 //////////////////////////////////////////////////////////////////////////////
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
