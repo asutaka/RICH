@@ -474,6 +474,27 @@ namespace CoinUtilsPr
                 if (!flag)
                     return (false, null, false);
 
+                //Đếm số nến
+                var NUM_CHECK = 20;
+                var lCheck = lData.Where(x => x.Date < e_Pivot.Date).TakeLast(NUM_CHECK);
+                var count_UPMa20 = 0;
+                var count_GREEN = 0;
+                foreach (var itemzz in lCheck)
+                {
+                    var bb = lbb.First(x => x.Date == itemzz.Date);
+                    if (itemzz.High > (decimal)bb.Sma.Value)
+                        count_UPMa20++;
+
+                    if (itemzz.Close > itemzz.Open)
+                        count_GREEN++;
+                }
+                var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
+                var rateGREEN = Math.Round(100 * (decimal)count_GREEN / NUM_CHECK, 1);
+                if(rateGREEN < 30)
+                {
+                    if(rateUPMa20 < 30)
+                        return (false, null, false);
+                }    
 
                 //var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
                 //if (rateBB < BB_Min)

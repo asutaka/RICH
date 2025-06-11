@@ -239,22 +239,24 @@ namespace TestPr.Service
                                 var lzz = lData15m.Where(x => x.Date < flag.Item2.Date).TakeLast(20);
                                 var countzz = 0;
                                 var countzz_green = 0;
+                                var countCUPMa20 = 0;
                                 foreach (var itemzz in lzz)
                                 {
                                     var bb = lbb.First(x => x.Date == itemzz.Date);
                                     if (itemzz.High > (decimal)bb.Sma.Value)
                                         countzz++;
 
+                                    if(itemzz.Close >  (decimal)bb.Sma.Value)
+                                        countCUPMa20++;
+
                                     if(itemzz.Close > itemzz.Open)
                                         countzz_green++;
                                 }
                                 var ratezz = Math.Round(100 * (decimal)countzz / lzz.Count(), 1);
                                 var ratezz_green = Math.Round(100 * (decimal)countzz_green / lzz.Count(), 1);
-                                var ispass = (ratezz <= 85 && ratezz >= 25) || ratezz_green >= 30;
-                                if (!ispass)
-                                    continue;
+                                var ratezz_CUPMa20 = Math.Round(100 * (decimal)countCUPMa20 / lzz.Count(), 1);
                                 //////////////////////////////////////////////////////////////////////////////
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|Green: {ratezz_green}%";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
