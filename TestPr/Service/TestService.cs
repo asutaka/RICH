@@ -29,7 +29,7 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 60;
+                var DAY = 30;
                 int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
@@ -39,7 +39,7 @@ namespace TestPr.Service
                     builder.Eq(x => x.ty, (int)OrderSide.Buy),
                     builder.Eq(x => x.status, 0)
                 ));
-                decimal SL_RATE = 2.5m;
+                decimal SL_RATE = 3m;
                 decimal rateProfit_Min = 2.5m;
                 decimal rateProfit_Max = 7m;
 
@@ -189,7 +189,7 @@ namespace TestPr.Service
                                         break;
                                     }
 
-                                    if (itemClose.High >= (decimal)ma.Sma.Value)
+                                    if (itemClose.Close >= (decimal)ma.Sma.Value)
                                     {
                                         isChotNon = true;
                                     }
