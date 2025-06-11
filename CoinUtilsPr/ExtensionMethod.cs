@@ -560,7 +560,8 @@ namespace CoinUtilsPr
         {
             try
             {
-                return val.Low < e_Pivot.Close ? e_Pivot.Close : -1;
+                return val.Close;
+                //return val.Low < e_Pivot.Close ? e_Pivot.Close : -1;
             }
             catch (Exception ex)
             {

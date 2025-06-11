@@ -266,7 +266,7 @@ namespace TestPr.Service
                                 var ratezz_green = Math.Round(100 * (decimal)countzz_green / lzz.Count(), 1);
                                 var ratezz_CUPMa20 = Math.Round(100 * (decimal)countCUPMa20 / lzz.Count(), 1);
                                 //////////////////////////////////////////////////////////////////////////////
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%";
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
