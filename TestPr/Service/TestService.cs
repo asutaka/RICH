@@ -29,7 +29,7 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 180;
+                var DAY = 30;
                 int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
