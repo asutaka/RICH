@@ -29,7 +29,7 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 30;
+                var DAY = 120;
                 int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
@@ -242,6 +242,7 @@ namespace TestPr.Service
                                 var countCUPMa20 = 0;
                                 var index = 0;
                                 var count10 = 0;
+                                var lavg = new List<decimal>();
                                 foreach (var itemzz in lzz)
                                 {
                                     index++;
@@ -259,14 +260,24 @@ namespace TestPr.Service
                                     {
                                         if (itemzz.High > (decimal)bb.Sma.Value)
                                             count10++;
-                                    }    
+                                    }
+
+                                    var len = Math.Round(100 * (-1 + itemzz.High / itemzz.Low), 2);
+                                    lavg.Add(len);
                                 }
                                 var ratezz = Math.Round(100 * (decimal)countzz / lzz.Count(), 1);
                                 var ratezz10 = Math.Round(100 * (decimal)count10 / 10, 1);
                                 var ratezz_green = Math.Round(100 * (decimal)countzz_green / lzz.Count(), 1);
                                 var ratezz_CUPMa20 = Math.Round(100 * (decimal)countCUPMa20 / lzz.Count(), 1);
+
+                                var lenSig = Math.Round(100 * (-1 + flag.Item2.High / flag.Item2.Low), 2);
+                                var lenRateSig = Math.Round(lenSig / lavg.Average(), 1);
+
+                                var lenPivot = Math.Round(100 * (-1 + entity_Pivot.High / entity_Pivot.Low), 2);
+                                var lenRatePivot = Math.Round(lenPivot / lavg.Average(), 1);
+
                                 //////////////////////////////////////////////////////////////////////////////
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|lenRateSig: {lenRateSig}|lenRatePivot: {lenRatePivot}";
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%";
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);

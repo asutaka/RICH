@@ -480,7 +480,7 @@ namespace CoinUtilsPr
                 var count_UPMa20 = 0;
                 var count_CUPMa20 = 0;
                 var count_GREEN = 0;
-                var index = 0;
+                var lavg = new List<decimal>();
 
                 foreach (var itemzz in lCheck)
                 {
@@ -493,24 +493,41 @@ namespace CoinUtilsPr
 
                     if (itemzz.Close > itemzz.Open)
                         count_GREEN++;
+
+                    var len = Math.Round(100 * (-1 + itemzz.High / itemzz.Low), 2);
+                    lavg.Add(len);
                 }
+
+                var lenPivot = Math.Round(100 * (-1 + e_Pivot.High / e_Pivot.Low), 2);
+                var lenPivotRate = Math.Round(lenPivot / lavg.Average(), 1);
+                //if (lenPivotRate > 2m)
+                //    return (false, null, false);
+
+                var lenCur = Math.Round(100 * (-1 + e_Cur.High / e_Cur.Low), 2);
+                var lenCurRate = Math.Round(lenCur / lavg.Average(), 1);
+                //if (lenCurRate > 1.5m)
+                //    return (false, null, false);
+
                 var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
                 var rateCUPMa20 = Math.Round(100 * (decimal)count_CUPMa20 / NUM_CHECK, 1);
                 var rateGREEN = Math.Round(100 * (decimal)count_GREEN / NUM_CHECK, 1);
-                if(rateGREEN < 30)
-                {
-                    if(rateUPMa20 < 30)
-                        return (false, null, false);
-                }   
-                else if(rateUPMa20 == 100)
-                {
-                    if (rateCUPMa20 >= 85)
-                        return (false, null, false);
-                }
-                else if( rateCUPMa20 == 0)
-                {
-                    return (false, null, false);
-                }
+                //if (false) { }
+                //else if (rateGREEN < 30)
+                //{
+                //    if (rateUPMa20 < 30)
+                //        return (false, null, false);
+                //}
+                //else if (rateUPMa20 == 100)
+                //{
+                //    if (rateCUPMa20 >= 85)
+                //        return (false, null, false);
+                //}
+                //else if (rateCUPMa20 == 0)
+                //{
+                //    return (false, null, false);
+                //}
+
+
 
                 //var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
                 //if (rateBB < BB_Min)
