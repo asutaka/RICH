@@ -500,13 +500,13 @@ namespace CoinUtilsPr
 
                 var lenPivot = Math.Round(100 * (-1 + e_Pivot.High / e_Pivot.Low), 2);
                 var lenPivotRate = Math.Round(lenPivot / lavg.Average(), 1);
-                //if (lenPivotRate > 2m)
-                //    return (false, null, false);
+                if (lenPivotRate > 3m)
+                    return (false, null, false);
 
                 var lenCur = Math.Round(100 * (-1 + e_Cur.High / e_Cur.Low), 2);
                 var lenCurRate = Math.Round(lenCur / lavg.Average(), 1);
-                //if (lenCurRate > 1.5m)
-                //    return (false, null, false);
+                if (lenCurRate > 1.5m)
+                    return (false, null, false);
 
                 var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
                 var rateCUPMa20 = Math.Round(100 * (decimal)count_CUPMa20 / NUM_CHECK, 1);
