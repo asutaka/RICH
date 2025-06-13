@@ -429,7 +429,7 @@ namespace CoinUtilsPr
 
         public static (bool, Quote, bool) IsFlagBuy3(this List<Quote> lData)
         {
-            decimal BB_Min = 2.5m;
+            decimal BB_Min = 1m;
             try
             {
                 if ((lData?.Count() ?? 0) < 50)
@@ -511,29 +511,27 @@ namespace CoinUtilsPr
                 var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
                 var rateCUPMa20 = Math.Round(100 * (decimal)count_CUPMa20 / NUM_CHECK, 1);
                 var rateGREEN = Math.Round(100 * (decimal)count_GREEN / NUM_CHECK, 1);
-                //if (false) { }
-                //else if (rateGREEN < 30)
-                //{
-                //    if (rateUPMa20 < 30)
-                //        return (false, null, false);
-                //}
-                //else if (rateUPMa20 == 100)
-                //{
-                //    if (rateCUPMa20 >= 85)
-                //        return (false, null, false);
-                //}
-                //else if (rateCUPMa20 == 0)
-                //{
-                //    return (false, null, false);
-                //}
+                if (false) { }
+                else if (rateUPMa20 <= 20)
+                {
+                    return (false, null, false);
+                }
+                else if (rateUPMa20 == 100)
+                {
+                    if (rateCUPMa20 >= 85)
+                        return (false, null, false);
+                }
+                else if (rateGREEN < 30)
+                {
+                    return (false, null, false);
+                }
 
 
-
-                //var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
-                //if (rateBB < BB_Min)
-                //{
-                //    return (false, null);
-                //}
+                var rateBB = (Math.Round(100 * (-1 + (decimal)bb_Pivot.UpperBand.Value / e_Cur.Close)) - 1);
+                if (rateBB < BB_Min)
+                {
+                    return (false, null, false);
+                }
 
                 ////Check Sig
                 //if (e_Sig.Close >= e_Sig.Open
