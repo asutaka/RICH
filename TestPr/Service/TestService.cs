@@ -29,7 +29,7 @@ namespace TestPr.Service
         {
             try
             {
-                var DAY = 20;
+                var DAY = 150;
                 int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
@@ -271,10 +271,11 @@ namespace TestPr.Service
 
                                 var lenPivot = Math.Round(100 * (-1 + entity_Pivot.High / entity_Pivot.Low), 2);
                                 var lenRatePivot = Math.Round(lenPivot / lavg.Average(), 1);
+                                var nearRate = Math.Round(lzz.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
 
                                 //////////////////////////////////////////////////////////////////////////////
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
                                 mesItem = mesItem.Replace("|",",");
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);

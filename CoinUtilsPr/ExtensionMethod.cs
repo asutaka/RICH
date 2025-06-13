@@ -508,6 +508,10 @@ namespace CoinUtilsPr
                 if (lenCurRate > 1.5m)
                     return (false, null);
 
+                var lenPrev5 = Math.Round(lCheck.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
+                if (lenPrev5 > 3.5m)
+                    return (false, null);
+
                 var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
                 var rateCUPMa20 = Math.Round(100 * (decimal)count_CUPMa20 / NUM_CHECK, 1);
                 var rateGREEN = Math.Round(100 * (decimal)count_GREEN / NUM_CHECK, 1);
