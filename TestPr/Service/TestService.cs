@@ -138,10 +138,6 @@ namespace TestPr.Service
                                 var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(1);
                                 foreach (var check in lCheck)
                                 {
-                                    if (flag.Item3)
-                                    {
-                                        isPass = true; break;
-                                    }
                                     var action = check.IsBuy2(flag.Item2);
                                     if (action <= 0)
                                         continue;

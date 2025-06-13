@@ -427,13 +427,13 @@ namespace CoinUtilsPr
             return (false, null, false);
         }
 
-        public static (bool, Quote, bool) IsFlagBuy3(this List<Quote> lData)
+        public static (bool, Quote) IsFlagBuy3(this List<Quote> lData)
         {
             decimal BB_Min = 1m;
             try
             {
                 if ((lData?.Count() ?? 0) < 50)
-                    return (false, null, false);
+                    return (false, null);
 
                 var lbb = lData.GetBollingerBands();
                 var lrsi = lData.GetRsi();
@@ -472,7 +472,7 @@ namespace CoinUtilsPr
                         && true;
 
                 if (!flag)
-                    return (false, null, false);
+                    return (false, null);
 
                 //Đếm số nến
                 var NUM_CHECK = 20;
@@ -501,12 +501,12 @@ namespace CoinUtilsPr
                 var lenPivot = Math.Round(100 * (-1 + e_Pivot.High / e_Pivot.Low), 2);
                 var lenPivotRate = Math.Round(lenPivot / lavg.Average(), 1);
                 if (lenPivotRate > 3m)
-                    return (false, null, false);
+                    return (false, null);
 
                 var lenCur = Math.Round(100 * (-1 + e_Cur.High / e_Cur.Low), 2);
                 var lenCurRate = Math.Round(lenCur / lavg.Average(), 1);
                 if (lenCurRate > 1.5m)
-                    return (false, null, false);
+                    return (false, null);
 
                 var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
                 var rateCUPMa20 = Math.Round(100 * (decimal)count_CUPMa20 / NUM_CHECK, 1);
@@ -514,61 +514,33 @@ namespace CoinUtilsPr
                 if (false) { }
                 else if (rateUPMa20 <= 20)
                 {
-                    return (false, null, false);
+                    return (false, null);
                 }
                 else if (rateUPMa20 == 100)
                 {
                     if (rateCUPMa20 >= 85)
-                        return (false, null, false);
+                        return (false, null);
                 }
                 else if (rateGREEN < 30)
                 {
-                    return (false, null, false);
+                    return (false, null);
                 }
 
 
                 var rateBB = (Math.Round(100 * (-1 + (decimal)bb_Pivot.UpperBand.Value / e_Cur.Close)) - 1);
                 if (rateBB < BB_Min)
                 {
-                    return (false, null, false);
+                    return (false, null);
                 }
 
-                ////Check Sig
-                //if (e_Sig.Close >= e_Sig.Open
-                //    || e_Sig.Low >= (decimal)bb_Sig.LowerBand.Value
-                //    || e_Sig.Close - (decimal)bb_Sig.LowerBand.Value >= (decimal)bb_Sig.Sma.Value - e_Sig.Close
-                //    || e_Sig.Volume < (decimal)(vol_Sig.Sma.Value * 1.5)
-                //    || rsi_Sig.Rsi > 35
-                //    )
-                //    return (false, null, false);
-
-                ////Check độ dài nến Sig - Pivot
-                //var body_Sig = Math.Abs((e_Sig.Open - e_Sig.Close) / (e_Sig.High - e_Sig.Low));
-                //if (body_Sig > (decimal)0.8)
-                //{
-                //    var isValid = Math.Abs(e_Pivot.Open - e_Pivot.Close) >= Math.Abs(e_Sig.Open - e_Sig.Close);
-                //    if (isValid)
-                //        return (false, null, false);
-                //}
-
-                //var checkTop = lData.Where(x => x.Date <= e_Pivot.Date).ToList().IsExistTopB();
-                //if (!checkTop.Item1)
-                //    return (false, null, false);
-
-                //Check Mua MP
-                var isHammer = (e_Sig.Close - e_Sig.Low) >= 2 * (e_Sig.High - e_Sig.Close)
-                                || (e_Pivot.Close - e_Pivot.Low) >= 2 * (e_Pivot.High - e_Pivot.Close)
-                                || e_Pivot.Close > e_Pivot.Open;
-                isHammer = false;
-
-                return (true, e_Pivot, isHammer);
+                return (true, e_Pivot);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
 
-            return (false, null, false);
+            return (false, null);
         }
 
         public static decimal IsBuy2(this Quote val, Quote e_Pivot)
