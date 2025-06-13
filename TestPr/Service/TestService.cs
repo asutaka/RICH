@@ -274,9 +274,9 @@ namespace TestPr.Service
                                 var nearRate = Math.Round(lzz.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
 
                                 //////////////////////////////////////////////////////////////////////////////
-                                //var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
-                                mesItem = mesItem.Replace("|",",");
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
+                                //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
+                                //mesItem = mesItem.Replace("|",",");
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
