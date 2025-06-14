@@ -10,8 +10,9 @@ namespace TestPr.Service
 {
     public interface ITestService
     {
-        Task Bybit_LONG(string s = "", int num = 20);
-        Task Bybit_SHORT(string s = "");
+        Task ListLong();
+        Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20);
+        Task<List<clsResult>> Bybit_SHORT(string s = "");
     }
     public class TestService : ITestService
     {
@@ -25,7 +26,86 @@ namespace TestPr.Service
             _symRepo = symRepo;
         }
 
-        public async Task Bybit_LONG(string s = "", int DAY = 20)
+        public async Task ListLong()
+        {
+            try
+            {
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+
+                var lRank = new List<clsShow>();
+
+                foreach (var s in lUsdt)
+                {
+                    try
+                    {
+                        var res10 = await Bybit_LONG(s, 10);
+                        var res20 = await Bybit_LONG(s, 20);
+                        var res30 = await Bybit_LONG(s, 30);
+                        var res60 = await Bybit_LONG(s, 60);
+                        var res90 = await Bybit_LONG(s, 90);
+                        var res120 = await Bybit_LONG(s, 120);
+                        var res150 = await Bybit_LONG(s, 150);
+                        var res180 = await Bybit_LONG(s, 180);
+                        Thread.Sleep(1000);
+
+                        var total = res10.First().Total
+                                    + res20.First().Total
+                                    + res30.First().Total
+                                    + res60.First().Total
+                                    + res90.First().Total
+                                    + res120.First().Total
+                                    + res150.First().Total
+                                    + res180.First().Total;
+
+                        var win = res10.First().Win
+                                  + res20.First().Win
+                                  + res30.First().Win
+                                  + res60.First().Win
+                                  + res90.First().Win
+                                  + res120.First().Win
+                                  + res150.First().Win
+                                  + res180.First().Win;
+
+                        var winrate = Math.Round((double)win / total, 2);
+                        var per = res10.First().Perate
+                                 + res20.First().Perate
+                                 + res30.First().Perate
+                                 + res60.First().Perate
+                                 + res90.First().Perate
+                                 + res120.First().Perate
+                                 + res150.First().Perate
+                                 + res180.First().Perate;
+                        var perRate = Math.Round((double)per / 8, 2);
+
+                        lRank.Add(new clsShow
+                        {
+                            s = s,
+                            Win = win,
+                            Total = total,
+                            Winrate = winrate,
+                            PerRate = perRate
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{s}| {ex.Message}");
+                    }
+                }
+                Console.WriteLine("///////////////////////////////////////////////");
+                Console.WriteLine("///////////////////////////////////////////////");
+                Console.WriteLine("///////////////////////////////////////////////");
+                foreach (var item in lRank.OrderByDescending(x => x.PerRate).ThenByDescending(x => x.Winrate).ThenByDescending(x => x.Total))
+                {
+                    Console.WriteLine($"{item.s}, W/Total: {item.Win}/{item.Total} = {item.Winrate}%, Per: {item.PerRate}%");
+                }
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20)
         {
             try
             {
@@ -336,7 +416,9 @@ namespace TestPr.Service
                             s = sym,
                             Win = realWin,
                             Winrate = winrate,
+                            Sumrate = sumRate,
                             Perate = perRate,
+                            Total = count,
                             Mes = mes
                         });
                     }
@@ -358,15 +440,19 @@ namespace TestPr.Service
 
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
+
+                return lResult;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"TestService.Bybit_LONG|EXCEPTION| {ex.Message}");
             }
+
+            return null;
         }
 
         //Tong: 340.7%|W/L: 287/119
-        public async Task Bybit_SHORT(string s = "")
+        public async Task<List<clsResult>> Bybit_SHORT(string s = "")
         {
             try
             {
@@ -640,6 +726,7 @@ namespace TestPr.Service
                             s = item,
                             Win = realWin,
                             Winrate = winrate,
+                            Sumrate = sumRate,
                             Perate = perRate,
                             Mes = mes
                         });
@@ -660,11 +747,15 @@ namespace TestPr.Service
 
                 var end = DateTime.Now;
                 Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
+
+                return lResult;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"SyncDataService.Bybit_SHORT|EXCEPTION| {ex.Message}");
             }
+
+            return null;
         }
 
         public class clsData
@@ -672,16 +763,27 @@ namespace TestPr.Service
             public string s { get; set; }
             public DateTime Date { get; set; }
             public decimal Rate { get; set; }
-        }
+        }  
+    }
 
-        public class clsResult
-        {
-            public string s { get; set; }
-            public int Win { get; set; }
-            public double Winrate { get; set; }
-            public double Perate { get; set; }
-            public string Mes { get; set; }
-        }
+    public class clsResult
+    {
+        public string s { get; set; }
+        public int Win { get; set; }
+        public double Winrate { get; set; }
+        public decimal Sumrate { get; set; }
+        public double Perate { get; set; }
+        public int Total { get; set; }
+        public string Mes { get; set; }
+    }
+
+    public class clsShow
+    {
+        public string s { get; set; }
+        public int Win { get; set; }
+        public int Total { get; set; }
+        public double Winrate { get; set; }
+        public double PerRate { get; set; }
     }
 }
 
