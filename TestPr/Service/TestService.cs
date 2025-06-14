@@ -58,7 +58,7 @@ namespace TestPr.Service
                 var lTake = lUsdt.Skip(0).Take(20);
                 var lRank = new List<clsShow>();
 
-                foreach (var s in lUsdt)
+                foreach (var s in lTake)
                 {
                     try
                     {
