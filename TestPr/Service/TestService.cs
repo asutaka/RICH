@@ -25,7 +25,30 @@ namespace TestPr.Service
             _apiService = apiService;
             _symRepo = symRepo;
         }
+        private Dictionary<string, List<Quote>> _dicData = new Dictionary<string, List<Quote>>();
+        private async Task<List<Quote>> GetData(string sym, int DAY)
+        {
+            try
+            {
+                var start = DateTime.UtcNow;
+                var day = start.AddDays(-DAY);
+                if (_dicData.ContainsKey(sym))
+                {
+                    var dat = _dicData[sym];
+                    var lData = dat.Where(x => x.Date >= day).ToList();
+                    return lData;
+                } 
 
+                var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-DAY));
+                return lData15m;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
         public async Task ListLong()
         {
             try
@@ -39,6 +62,7 @@ namespace TestPr.Service
                 {
                     try
                     {
+                        var res180 = await Bybit_LONG(s, 180);
                         var res10 = await Bybit_LONG(s, 10);
                         var res20 = await Bybit_LONG(s, 20);
                         var res30 = await Bybit_LONG(s, 30);
@@ -46,7 +70,6 @@ namespace TestPr.Service
                         var res90 = await Bybit_LONG(s, 90);
                         var res120 = await Bybit_LONG(s, 120);
                         var res150 = await Bybit_LONG(s, 150);
-                        var res180 = await Bybit_LONG(s, 180);
                         Thread.Sleep(1000);
 
                         var total = res10.First().Total
@@ -147,7 +170,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-DAY));
+                        var lData15m = await GetData(sym, DAY);
                         var count = lData15m.Count();
                         var lbb = lData15m.GetBollingerBands();
                         var lAdd = new List<Quote>();
