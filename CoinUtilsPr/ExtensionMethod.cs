@@ -481,10 +481,17 @@ namespace CoinUtilsPr
                 var count_CUPMa20 = 0;
                 var count_GREEN = 0;
                 var lavg = new List<decimal>();
+                var index = 0;
+                double bb_Prev20 = 0;
 
                 foreach (var itemzz in lCheck)
                 {
                     var bb = lbb.First(x => x.Date == itemzz.Date);
+                    if (index == 0)
+                    {
+                        bb_Prev20 = bb.UpperBand.Value - bb.LowerBand.Value;
+                    }
+
                     if (itemzz.High > (decimal)bb.Sma.Value)
                         count_UPMa20++;
 
@@ -496,6 +503,7 @@ namespace CoinUtilsPr
 
                     var len = Math.Round(100 * (-1 + itemzz.High / itemzz.Low), 2);
                     lavg.Add(len);
+                    index++;
                 }
 
                 var lenPivot = Math.Round(100 * (-1 + e_Pivot.High / e_Pivot.Low), 2);
@@ -510,6 +518,11 @@ namespace CoinUtilsPr
 
                 var lenPrev5 = Math.Round(lCheck.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
                 if (lenPrev5 > 3.5m)
+                    return (false, null);
+
+                var bbPivot = lbb.First(x => x.Date == e_Pivot.Date);
+                var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
+                if(bbRate20 > 4)
                     return (false, null);
 
                 var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);

@@ -239,10 +239,16 @@ namespace TestPr.Service
                                 var index = 0;
                                 var count10 = 0;
                                 var lavg = new List<decimal>();
+                                double bb_Prev10 = 0, bb_Prev20 = 0;
                                 foreach (var itemzz in lzz)
                                 {
                                     index++;
+                                      
                                     var bb = lbb.First(x => x.Date == itemzz.Date);
+                                    if (index == 1)
+                                    {
+                                        bb_Prev20 = bb.UpperBand.Value - bb.LowerBand.Value;
+                                    }
                                     if (itemzz.High > (decimal)bb.Sma.Value)
                                         countzz++;
 
@@ -254,6 +260,9 @@ namespace TestPr.Service
 
                                     if(index >= 10)
                                     {
+                                        if(index == 10)
+                                            bb_Prev10 = bb.UpperBand.Value - bb.LowerBand.Value; 
+
                                         if (itemzz.High > (decimal)bb.Sma.Value)
                                             count10++;
                                     }
@@ -273,10 +282,14 @@ namespace TestPr.Service
                                 var lenRatePivot = Math.Round(lenPivot / lavg.Average(), 1);
                                 var nearRate = Math.Round(lzz.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
 
+                                var bbPivot = lbb.First(x => x.Date == entity_Pivot.Date);
+                                var bbRate10 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev10, 1);
+                                var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
+
                                 //////////////////////////////////////////////////////////////////////////////
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%, PREV10: {bbRate10}, PREV20: {bbRate20}";
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
-                                //mesItem = mesItem.Replace("|",",");
+                                mesItem = mesItem.Replace("|", ",");
                                 Console.WriteLine(mesItem);
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
