@@ -10,7 +10,7 @@ namespace TestPr.Service
 {
     public interface ITestService
     {
-        Task Bybit_LONG(string s = "");
+        Task Bybit_LONG(string s = "", int num = 20);
         Task Bybit_SHORT(string s = "");
     }
     public class TestService : ITestService
@@ -25,11 +25,11 @@ namespace TestPr.Service
             _symRepo = symRepo;
         }
 
-        public async Task Bybit_LONG(string s = "")
+        public async Task Bybit_LONG(string s = "", int DAY = 20)
         {
             try
             {
-                var DAY = 150;
+                //var DAY = 150;
                 int HOUR = 8;
                 var start = DateTime.UtcNow;
                 var exchange = (int)EExchange.Bybit;
@@ -287,7 +287,7 @@ namespace TestPr.Service
                                 var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
 
                                 //////////////////////////////////////////////////////////////////////////////
-                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%, PREV10: {bbRate10}, PREV20: {bbRate20}";
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
                                 mesItem = mesItem.Replace("|", ",");
                                 Console.WriteLine(mesItem);
