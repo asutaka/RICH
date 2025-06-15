@@ -3,6 +3,7 @@ using CoinUtilsPr;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
+using System.Threading.Tasks.Sources;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 
@@ -53,9 +54,10 @@ namespace TestPr.Service
         {
             try
             {
+                var dt = DateTime.UtcNow;   
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(0).Take(20);
+                var lTake = lUsdt.Skip(1).Take(20);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -122,6 +124,9 @@ namespace TestPr.Service
                 {
                     Console.WriteLine($"{item.s}, W/Total: {item.Win}/{item.Total} = {item.Winrate}%, Per: {item.PerRate}%");
                 }
+
+                var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
+                Console.WriteLine($"TotalTime: {totalMinute}");
             }
             catch (Exception ex) 
             {
