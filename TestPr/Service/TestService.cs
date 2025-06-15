@@ -41,6 +41,7 @@ namespace TestPr.Service
                 } 
 
                 var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-DAY));
+                _dicData.Add(sym, lData15m);
                 return lData15m;
             }
             catch (Exception ex)
