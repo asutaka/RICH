@@ -58,7 +58,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;   
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(20).Take(10);
+                var lTake = lUsdt.Skip(350).Take(500);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -235,7 +235,7 @@ namespace TestPr.Service
                                 if (cur.Date <= dtFlag)
                                     continue;
 
-                                var flag = lData15m.Where(x => x.Date <= cur.Date).TakeLast(80).ToList().IsFlagBuy3();
+                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagBuy3();
                                 if (!flag.Item1)
                                     continue;
 

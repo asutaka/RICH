@@ -351,6 +351,8 @@ namespace CoinUtilsPr
                 if ((lData?.Count() ?? 0) < 50)
                     return (false, null);
 
+                lData = lData.TakeLast(80).ToList();
+
                 var lbb = lData.GetBollingerBands();
                 var lrsi = lData.GetRsi();
                 var lMaVol = lData.Select(x => new Quote
