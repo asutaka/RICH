@@ -51,6 +51,7 @@ namespace TestPr.Service
 
             return null;
         }
+        //Tìm danh sách các Coin có tỉ lệ winrate tốt nhất
         public async Task ListLong()
         {
             try
