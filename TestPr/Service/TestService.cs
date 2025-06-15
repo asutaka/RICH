@@ -58,7 +58,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;   
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(1).Take(20);
+                var lTake = lUsdt.Skip(20).Take(10);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -235,7 +235,7 @@ namespace TestPr.Service
                                 if (cur.Date <= dtFlag)
                                     continue;
 
-                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagBuy3();
+                                var flag = lData15m.Where(x => x.Date <= cur.Date).TakeLast(80).ToList().IsFlagBuy3();
                                 if (!flag.Item1)
                                     continue;
 
@@ -341,59 +341,59 @@ namespace TestPr.Service
 
                                 //for test
                                 //Số nến High > ma20
-                                var lzz = lData15m.Where(x => x.Date < flag.Item2.Date).TakeLast(20);
-                                var countzz = 0;
-                                var countzz_green = 0;
-                                var countCUPMa20 = 0;
-                                var index = 0;
-                                var count10 = 0;
-                                var lavg = new List<decimal>();
-                                double bb_Prev10 = 0, bb_Prev20 = 0;
-                                foreach (var itemzz in lzz)
-                                {
-                                    index++;
+                                //var lzz = lData15m.Where(x => x.Date < flag.Item2.Date).TakeLast(20);
+                                //var countzz = 0;
+                                //var countzz_green = 0;
+                                //var countCUPMa20 = 0;
+                                //var index = 0;
+                                //var count10 = 0;
+                                //var lavg = new List<decimal>();
+                                //double bb_Prev10 = 0, bb_Prev20 = 0;
+                                //foreach (var itemzz in lzz)
+                                //{
+                                //    index++;
                                       
-                                    var bb = lbb.First(x => x.Date == itemzz.Date);
-                                    if (index == 1)
-                                    {
-                                        bb_Prev20 = bb.UpperBand.Value - bb.LowerBand.Value;
-                                    }
-                                    if (itemzz.High > (decimal)bb.Sma.Value)
-                                        countzz++;
+                                //    var bb = lbb.First(x => x.Date == itemzz.Date);
+                                //    if (index == 1)
+                                //    {
+                                //        bb_Prev20 = bb.UpperBand.Value - bb.LowerBand.Value;
+                                //    }
+                                //    if (itemzz.High > (decimal)bb.Sma.Value)
+                                //        countzz++;
 
-                                    if(itemzz.Close >  (decimal)bb.Sma.Value)
-                                        countCUPMa20++;
+                                //    if(itemzz.Close >  (decimal)bb.Sma.Value)
+                                //        countCUPMa20++;
 
-                                    if(itemzz.Close > itemzz.Open)
-                                        countzz_green++;
+                                //    if(itemzz.Close > itemzz.Open)
+                                //        countzz_green++;
 
-                                    if(index >= 10)
-                                    {
-                                        if(index == 10)
-                                            bb_Prev10 = bb.UpperBand.Value - bb.LowerBand.Value; 
+                                //    if(index >= 10)
+                                //    {
+                                //        if(index == 10)
+                                //            bb_Prev10 = bb.UpperBand.Value - bb.LowerBand.Value; 
 
-                                        if (itemzz.High > (decimal)bb.Sma.Value)
-                                            count10++;
-                                    }
+                                //        if (itemzz.High > (decimal)bb.Sma.Value)
+                                //            count10++;
+                                //    }
 
-                                    var len = Math.Round(100 * (-1 + itemzz.High / itemzz.Low), 2);
-                                    lavg.Add(len);
-                                }
-                                var ratezz = Math.Round(100 * (decimal)countzz / lzz.Count(), 1);
-                                var ratezz10 = Math.Round(100 * (decimal)count10 / 10, 1);
-                                var ratezz_green = Math.Round(100 * (decimal)countzz_green / lzz.Count(), 1);
-                                var ratezz_CUPMa20 = Math.Round(100 * (decimal)countCUPMa20 / lzz.Count(), 1);
+                                //    var len = Math.Round(100 * (-1 + itemzz.High / itemzz.Low), 2);
+                                //    lavg.Add(len);
+                                //}
+                                //var ratezz = Math.Round(100 * (decimal)countzz / lzz.Count(), 1);
+                                //var ratezz10 = Math.Round(100 * (decimal)count10 / 10, 1);
+                                //var ratezz_green = Math.Round(100 * (decimal)countzz_green / lzz.Count(), 1);
+                                //var ratezz_CUPMa20 = Math.Round(100 * (decimal)countCUPMa20 / lzz.Count(), 1);
 
-                                var lenSig = Math.Round(100 * (-1 + flag.Item2.High / flag.Item2.Low), 2);
-                                var lenRateSig = Math.Round(lenSig / lavg.Average(), 1);
+                                //var lenSig = Math.Round(100 * (-1 + flag.Item2.High / flag.Item2.Low), 2);
+                                //var lenRateSig = Math.Round(lenSig / lavg.Average(), 1);
 
-                                var lenPivot = Math.Round(100 * (-1 + entity_Pivot.High / entity_Pivot.Low), 2);
-                                var lenRatePivot = Math.Round(lenPivot / lavg.Average(), 1);
-                                var nearRate = Math.Round(lzz.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
+                                //var lenPivot = Math.Round(100 * (-1 + entity_Pivot.High / entity_Pivot.Low), 2);
+                                //var lenRatePivot = Math.Round(lenPivot / lavg.Average(), 1);
+                                //var nearRate = Math.Round(lzz.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
 
-                                var bbPivot = lbb.First(x => x.Date == entity_Pivot.Date);
-                                var bbRate10 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev10, 1);
-                                var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
+                                //var bbPivot = lbb.First(x => x.Date == entity_Pivot.Date);
+                                //var bbRate10 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev10, 1);
+                                //var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
 
                                 //////////////////////////////////////////////////////////////////////////////
                                 var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
