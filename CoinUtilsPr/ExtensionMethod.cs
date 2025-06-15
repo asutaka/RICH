@@ -373,8 +373,14 @@ namespace CoinUtilsPr
                 var vol_Sig = lMaVol.First(x => x.Date == e_Sig.Date);
 
                 //Vol pivot phải gấp đôi 2 vol liền trước và liền sau
+                if(e_Sig.Volume == 0 
+                    || e_Cur.Volume == 0
+                    || e_Pivot.Volume == 0)
+                {
+                    return (false, null);
+                }
                 var rateVolSig = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
-                var rateVolCur = Math.Round(e_Pivot.Volume / e_Cur.Volume, 1);
+                var rateVolCur = Math.Round(e_Pivot.Volume / e_Cur.Volume, 1);   
 
                 var flag = true
                         && e_Pivot.Open > e_Pivot.Close
@@ -421,24 +427,25 @@ namespace CoinUtilsPr
                     lavg.Add(len);
                     index++;
                 }
+                var avg = lavg.Average();
 
                 var lenPivot = Math.Round(100 * (-1 + e_Pivot.High / e_Pivot.Low), 2);
-                var lenPivotRate = Math.Round(lenPivot / lavg.Average(), 1);
+                var lenPivotRate = Math.Round(lenPivot / avg, 1);
                 if (lenPivotRate > 3m)
                     return (false, null);
 
                 var lenCur = Math.Round(100 * (-1 + e_Cur.High / e_Cur.Low), 2);
-                var lenCurRate = Math.Round(lenCur / lavg.Average(), 1);
+                var lenCurRate = Math.Round(lenCur / avg, 1);
                 if (lenCurRate > 1.5m)
                     return (false, null);
 
-                var lenPrev5 = Math.Round(lCheck.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / lavg.Average(), 1);
+                var lenPrev5 = Math.Round(lCheck.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / avg, 1);
                 if (lenPrev5 > 3.5m)
                     return (false, null);
 
                 var bbPivot = lbb.First(x => x.Date == e_Pivot.Date);
                 var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
-                if(bbRate20 > 4)
+                if (bbRate20 > 4)
                     return (false, null);
 
                 var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
