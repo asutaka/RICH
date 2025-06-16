@@ -125,10 +125,8 @@ namespace TestPr.Service
                     "RPLUSDT",
                     "BEAMUSDT",
                     "ENAUSDT",
-                    "LQTYUSDT",
                     "STEEMUSDT",
                     "CAKEUSDT",
-                    "ORDERUSDT",
                     "LSKUSDT",
                     "NEOUSDT",
                     "MEWUSDT",
@@ -142,7 +140,6 @@ namespace TestPr.Service
                     "LRCUSDT",
                     "NOTUSDT",
                     "GALAUSDT",
-                    "MASAUSDT",
                     "BCHUSDT",
                     "ONEUSDT",
                     "CELOUSDT",
@@ -152,7 +149,6 @@ namespace TestPr.Service
                     "ACTUSDT",
                     "PERPUSDT",
                     "REZUSDT",
-                    "A8USDT",
                     "AGIUSDT",
                 };
                 var lRank = new List<clsShow>();
