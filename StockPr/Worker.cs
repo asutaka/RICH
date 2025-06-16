@@ -20,6 +20,7 @@ namespace StockPr
         private readonly IEPSRankService _epsService;
         private readonly IF319Service _f319Service;
         private readonly ITestService _testService;
+        private readonly INewsService _newsService;
         private readonly ICommonService _commonService;
 
         private const long _idGroup = -4237476810;
@@ -28,8 +29,10 @@ namespace StockPr
         private const long _idUser = 1066022551;
 
         public Worker(ILogger<Worker> logger, 
-                    ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, IAnalyzeService analyzeService,
-                    ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService, IF319Service f319Service, ICommonService commonService)
+                    ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, 
+                    IAnalyzeService analyzeService, ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, 
+                    IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService, IF319Service f319Service, 
+                    ICommonService commonService, INewsService newsService)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -46,6 +49,7 @@ namespace StockPr
             _testService = testService;
             _f319Service = f319Service;
             _commonService = commonService;
+            _newsService = newsService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
