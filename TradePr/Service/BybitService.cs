@@ -3,6 +3,7 @@ using Bybit.Net.Objects.Models.V5;
 using CoinUtilsPr;
 using CoinUtilsPr.DAL;
 using CoinUtilsPr.DAL.Entity;
+using CryptoExchange.Net.Objects;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
@@ -67,33 +68,22 @@ namespace TradePr.Service
 
                 await Bybit_TakeProfit();
                 var lConfig = _configRepo.GetAll();
-                var disableAll = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableAll && x.status == 1);
                 var disableLong = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableLong && x.status == 1);
                 var disableShort = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableShort && x.status == 1);
 
-                var flagLong = disableAll != null || disableLong != null;
-                var flagShort = disableAll != null || disableShort != null;
+                var flagLong = disableLong != null;
+                var flagShort = disableShort != null;
 
-                if(flagLong)
-                {
-                    var builder = Builders<Prepare>.Filter;
-                    _prepareRepo.DeleteMany(builder.And(
-                        builder.Eq(x => x.ex, _exchange),
-                        builder.Eq(x => x.side, (int)OrderSide.Buy)
-                    ));
-                }
+                //if (flagShort)
+                //{
+                //    var builder = Builders<Prepare>.Filter;
+                //    _prepareRepo.DeleteMany(builder.And(
+                //        builder.Eq(x => x.ex, _exchange),
+                //        builder.Eq(x => x.side, (int)OrderSide.Sell)
+                //    ));
+                //}
 
-                if (flagShort)
-                {
-                    var builder = Builders<Prepare>.Filter;
-                    _prepareRepo.DeleteMany(builder.And(
-                        builder.Eq(x => x.ex, _exchange),
-                        builder.Eq(x => x.side, (int)OrderSide.Sell)
-                    ));
-                }
-
-                await Entry_LONG();
-                await Entry_SHORT();
+                //await Entry_SHORT();
 
                 if (dt.Minute % 15 == 0)
                 {
@@ -108,7 +98,7 @@ namespace TradePr.Service
                         await Bybit_TradeRSI_LONG(lLong);
                     }
 
-                    if(!flagShort)
+                    if (!flagShort)
                     {
                         var builderSHORT = Builders<Symbol>.Filter;
                         var lShort = _symRepo.GetByFilter(builderSHORT.And(
@@ -128,149 +118,78 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Entry_LONG()
-        {
-            var now = DateTime.UtcNow;
-            var builderFilter = Builders<Prepare>.Filter;
-            var lLong = _prepareRepo.GetByFilter(builderFilter.And(
-                builderFilter.Eq(x => x.ex, _exchange),
-                builderFilter.Eq(x => x.side, (int)OrderSide.Buy)
-            ));
-            //Console.WriteLine($"LONG: {lLong.Count()}");
-
-            foreach (var item in lLong)
-            {
-                try
-                {
-                    var l15m = await GetData(item.s, true);
-                    if (l15m is null || !l15m.Any())
-                        continue;
-
-                    var bb = l15m.GetBollingerBands();
-
-                    var builder = Builders<Prepare>.Filter;
-                    var last = l15m.Last();
-                    var near = l15m.SkipLast(1).Last();
-                    var bb_last = bb.First(x => x.Date == last.Date);
-                    var bb_near = bb.First(x => x.Date == near.Date);
-                    if (last.High >= (decimal)bb_last.UpperBand.Value
-                        || near.High >= (decimal)bb_near.UpperBand.Value)
-                    {
-                        _prepareRepo.DeleteMany(builder.And(
-                              builder.Eq(x => x.ex, _exchange),
-                              builder.Eq(x => x.s, item.s)
-                          ));
-                        continue;
-                    }
-
-                    var action = last.IsBuy(item.Close, (EOrderSideOption)item.op);
-
-                    if (action.Item1)
-                    {
-                        await PlaceOrder(new SignalBase
-                        {
-                            s = item.s,
-                            ex = _exchange,
-                            Side = item.side,
-                            timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-                            quote = last,
-                            rank = item.Index
-                        });
-
-                        _prepareRepo.DeleteMany(builder.And(
-                               builder.Eq(x => x.ex, _exchange),
-                               builder.Eq(x => x.s, item.s)
-                           ));
-                        continue;
-                    }    
-
-                    var time = (now - item.Date).TotalHours;
-                    if (time >= 2)
-                    {
-                        _prepareRepo.DeleteMany(builder.And(
-                               builder.Eq(x => x.ex, _exchange),
-                               builder.Eq(x => x.s, item.s)
-                           ));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Entry_LONG|INPUT: {JsonConvert.SerializeObject(item)}|EXCEPTION| {ex.Message}");
-                }
-            }
-        }
         private async Task Entry_SHORT()
         {
-            var now = DateTime.UtcNow;
-            var builderFilter = Builders<Prepare>.Filter;
-            var lShort = _prepareRepo.GetByFilter(builderFilter.And(
-                builderFilter.Eq(x => x.ex, _exchange),
-                builderFilter.Eq(x => x.side, (int)OrderSide.Sell)
-            ));
+            //var now = DateTime.UtcNow;
+            //var builderFilter = Builders<Prepare>.Filter;
+            //var lShort = _prepareRepo.GetByFilter(builderFilter.And(
+            //    builderFilter.Eq(x => x.ex, _exchange),
+            //    builderFilter.Eq(x => x.side, (int)OrderSide.Sell)
+            //));
 
-            //Console.WriteLine($"SHORT: {lShort.Count()}");
+            ////Console.WriteLine($"SHORT: {lShort.Count()}");
 
-            foreach (var item in lShort)
-            {
-                try
-                {
-                    var l15m = await GetData(item.s, true);
-                    if (l15m is null || !l15m.Any())
-                        continue;
-                    var bb = l15m.GetBollingerBands();
+            //foreach (var item in lShort)
+            //{
+            //    try
+            //    {
+            //        var l15m = await GetData(item.s, true);
+            //        if (l15m is null || !l15m.Any())
+            //            continue;
+            //        var bb = l15m.GetBollingerBands();
 
-                    var builder = Builders<Prepare>.Filter;
-                    var last = l15m.Last();
-                    if ((last.Date - item.Date).TotalMinutes < 15)
-                        continue;
+            //        var builder = Builders<Prepare>.Filter;
+            //        var last = l15m.Last();
+            //        if ((last.Date - item.Date).TotalMinutes < 15)
+            //            continue;
 
-                    var near = l15m.SkipLast(1).Last();
-                    var bb_last = bb.First(x => x.Date == last.Date);
-                    var bb_near = bb.First(x => x.Date == near.Date);
-                    if(last.Low <= (decimal)bb_last.LowerBand.Value
-                        || near.Low <= (decimal)bb_near.LowerBand.Value)
-                    {
-                        _prepareRepo.DeleteMany(builder.And(
-                              builder.Eq(x => x.ex, _exchange),
-                              builder.Eq(x => x.s, item.s)
-                          ));
-                        continue;
-                    }
+            //        var near = l15m.SkipLast(1).Last();
+            //        var bb_last = bb.First(x => x.Date == last.Date);
+            //        var bb_near = bb.First(x => x.Date == near.Date);
+            //        if(last.Low <= (decimal)bb_last.LowerBand.Value
+            //            || near.Low <= (decimal)bb_near.LowerBand.Value)
+            //        {
+            //            _prepareRepo.DeleteMany(builder.And(
+            //                  builder.Eq(x => x.ex, _exchange),
+            //                  builder.Eq(x => x.s, item.s)
+            //              ));
+            //            continue;
+            //        }
 
-                    var action = last.IsSell(item.Close, (EOrderSideOption)item.op);
-                    if (action.Item1)
-                    {
-                        await PlaceOrder(new SignalBase
-                        {
-                            s = item.s,
-                            ex = _exchange,
-                            Side = item.side,
-                            timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
-                            quote = last,
-                            rank = item.Index
-                        });
+            //        var action = last.IsSell(item.Close, (EOrderSideOption)item.op);
+            //        if (action.Item1)
+            //        {
+            //            await PlaceOrder(new SignalBase
+            //            {
+            //                s = item.s,
+            //                ex = _exchange,
+            //                Side = item.side,
+            //                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+            //                quote = last,
+            //                rank = item.Index
+            //            });
 
-                        _prepareRepo.DeleteMany(builder.And(
-                               builder.Eq(x => x.ex, _exchange),
-                               builder.Eq(x => x.s, item.s)
-                           ));
-                        continue;
-                    }
+            //            _prepareRepo.DeleteMany(builder.And(
+            //                   builder.Eq(x => x.ex, _exchange),
+            //                   builder.Eq(x => x.s, item.s)
+            //               ));
+            //            continue;
+            //        }
 
-                    var time = (now - item.Date).TotalHours;
-                    if(time >= 2)
-                    {
-                        _prepareRepo.DeleteMany(builder.And(
-                               builder.Eq(x => x.ex, _exchange),
-                               builder.Eq(x => x.s, item.s)
-                           ));
-                    }
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Entry_SHORT|INPUT: {JsonConvert.SerializeObject(item)}|EXCEPTION| {ex.Message}");
-                }
-            }
+            //        var time = (now - item.Date).TotalHours;
+            //        if(time >= 2)
+            //        {
+            //            _prepareRepo.DeleteMany(builder.And(
+            //                   builder.Eq(x => x.ex, _exchange),
+            //                   builder.Eq(x => x.s, item.s)
+            //               ));
+            //        }
+            //    }
+            //    catch(Exception ex)
+            //    {
+            //        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Entry_SHORT|INPUT: {JsonConvert.SerializeObject(item)}|EXCEPTION| {ex.Message}");
+            //    }
+            //}
         }
 
         private async Task Bybit_TradeRSI_LONG(IEnumerable<Symbol> lSym)
@@ -293,37 +212,20 @@ namespace TradePr.Service
                         if (last.Volume <= 0)
                             continue;
 
-                        var flag = l15m.IsFlagBuy();
+                        var flag = l15m.SkipLast(1).IsFlagBuy();
                         if (!flag.Item1)
-                            continue;
-
-                        var builder = Builders<Prepare>.Filter;
-                        var filter = builder.And(
-                            builder.Eq(x => x.ex, _exchange),
-                            builder.Eq(x => x.s, sym.s)
-                        );
-                        var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
-
-                        if (entityPrepare != null)
                         {
-                            _prepareRepo.DeleteMany(filter);
+                            var res = await PlaceOrder(new SignalBase
+                            {
+                                s = sym.s,
+                                ex = _exchange,
+                                Side = (int)OrderSide.Buy,
+                                timeFlag = (int)DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                quote = last
+                            });
+                            if (res == EError.MaxThread)
+                                return;
                         }
-
-                        var pivot = flag.Item2;
-                        _prepareRepo.InsertOne(new Prepare
-                        {
-                            Open = pivot.Open,
-                            Close = pivot.Close,
-                            High = pivot.High,
-                            Low = pivot.Low,
-                            Volume = pivot.Volume,
-                            Date = pivot.Date,
-                            s = sym.s,
-                            ex = _exchange,
-                            Index = sym.rank,
-                            side = (int)OrderSide.Buy,
-                            op = sym.op
-                        });
                     }
                     catch (Exception ex)
                     {
@@ -339,66 +241,66 @@ namespace TradePr.Service
         
         private async Task Bybit_TradeRSI_SHORT(IEnumerable<Symbol> lSym)
         {
-            try
-            {
-                if (!lSym.Any())
-                    return;
+            //try
+            //{
+            //    if (!lSym.Any())
+            //        return;
 
-                var lPrepare = new List<Prepare>();
-                foreach (var sym in lSym)
-                {
-                    try
-                    {
-                        //gia
-                        var l15m = await GetData(sym.s, false);
-                        if (l15m is null || !l15m.Any())
-                            continue;
+            //    var lPrepare = new List<Prepare>();
+            //    foreach (var sym in lSym)
+            //    {
+            //        try
+            //        {
+            //            //gia
+            //            var l15m = await GetData(sym.s, false);
+            //            if (l15m is null || !l15m.Any())
+            //                continue;
 
-                        var last = l15m.Last();
-                        if (last.Volume <= 0)
-                            continue;
+            //            var last = l15m.Last();
+            //            if (last.Volume <= 0)
+            //                continue;
 
-                        var flag = l15m.IsFlagSell();
-                        if (!flag.Item1)
-                            continue;
+            //            var flag = l15m.IsFlagSell();
+            //            if (!flag.Item1)
+            //                continue;
 
-                        var builder = Builders<Prepare>.Filter;
-                        var filter = builder.And(
-                            builder.Eq(x => x.ex, _exchange),
-                            builder.Eq(x => x.s, sym.s)
-                        );
-                        var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
+            //            var builder = Builders<Prepare>.Filter;
+            //            var filter = builder.And(
+            //                builder.Eq(x => x.ex, _exchange),
+            //                builder.Eq(x => x.s, sym.s)
+            //            );
+            //            var entityPrepare = _prepareRepo.GetEntityByFilter(filter);
 
-                        if (entityPrepare != null)
-                        {
-                            _prepareRepo.DeleteMany(filter);
-                        }
+            //            if (entityPrepare != null)
+            //            {
+            //                _prepareRepo.DeleteMany(filter);
+            //            }
 
-                        var pivot = flag.Item2;
-                        _prepareRepo.InsertOne(new Prepare
-                        {
-                            Open = pivot.Open,
-                            Close = pivot.Close,
-                            High = pivot.High,
-                            Low = pivot.Low,
-                            Volume = pivot.Volume,
-                            Date = pivot.Date,
-                            s = sym.s,
-                            ex = _exchange,
-                            Index = sym.rank,
-                            side = (int)OrderSide.Sell
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|INPUT: {sym.s}|EXCEPTION| {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|EXCEPTION| {ex.Message}");
-            }
+            //            var pivot = flag.Item2;
+            //            _prepareRepo.InsertOne(new Prepare
+            //            {
+            //                Open = pivot.Open,
+            //                Close = pivot.Close,
+            //                High = pivot.High,
+            //                Low = pivot.Low,
+            //                Volume = pivot.Volume,
+            //                Date = pivot.Date,
+            //                s = sym.s,
+            //                ex = _exchange,
+            //                Index = sym.rank,
+            //                side = (int)OrderSide.Sell
+            //            });
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|INPUT: {sym.s}|EXCEPTION| {ex.Message}");
+            //        }
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_SHORT|EXCEPTION| {ex.Message}");
+            //}
         }
 
         private async Task<List<Quote>> GetData(string symbol, bool isOverride)
@@ -590,7 +492,7 @@ namespace TradePr.Service
             }
         }
 
-        private async Task<bool> PlaceOrder(SignalBase entity)
+        private async Task<EError> PlaceOrder(SignalBase entity)
         {
             try
             {
@@ -600,7 +502,7 @@ namespace TradePr.Service
                 if (account == null)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được thông tin tài khoản");
-                    return false;
+                    return EError.Error;
                 }
                 //Lay Unit tu database
                 var lConfig = _configRepo.GetAll();
@@ -608,14 +510,14 @@ namespace TradePr.Service
                 var thread = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Thread);
 
                 if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= (decimal)max.value)
-                    return false;
+                    return EError.Error;
 
                 //Nếu trong 4 tiếng gần nhất giảm quá 10% thì không mua mới
                 var lIncome = await StaticTrade.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
                 if (lIncome == null || !lIncome.Success)
                 {
                     await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được lịch sử thay đổi số dư");
-                    return false;
+                    return EError.Error;
                 }
                 var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-4));
                 if (lIncomeCheck.Count() >= 2)
@@ -628,23 +530,23 @@ namespace TradePr.Service
                         var div = last.CashBalance.Value - first.CashBalance.Value;
 
                         if ((double)div * 10 > 0.6 * max.value)
-                            return false;
+                            return EError.Error;
 
                         if (rate <= -0.13m)
-                            return false;
+                            return EError.Error;
                     }
                 }
 
                 var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos.Data.List.Count() >= thread.value)
-                    return false;
+                    return EError.MaxThread;
 
                 if (pos.Data.List.Any(x => x.Symbol == entity.s))
-                    return false;
+                    return EError.Error;
 
                 var lInfo = await StaticTrade.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, entity.s);
                 var info = lInfo.Data.List.FirstOrDefault();
-                if (info == null) return false;
+                if (info == null) return EError.Error;
                 var tronGia = (int)info.PriceScale;
                 var tronSL = info.LotSizeFilter.QuantityStep;
 
@@ -695,7 +597,7 @@ namespace TradePr.Service
                     {
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
                     }
-                    return false;
+                    return EError.Error;
                 }
 
                 var resPosition = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, entity.s);
@@ -703,7 +605,7 @@ namespace TradePr.Service
                 if (!resPosition.Success)
                 {
                     await _teleService.SendMessage(_idUser, $"[ERROR_Bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
-                    return false;
+                    return EError.Error;
                 }
 
                 if (resPosition.Data.List.Any())
@@ -737,7 +639,7 @@ namespace TradePr.Service
                     if (!res.Success)
                     {
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{first.Symbol}|{res.Error.Code}:{res.Error.Message}");
-                        return false;
+                        return EError.Error;
                     }
                     //Print
                     var entry = Math.Round(first.AveragePrice.Value, tronGia);
@@ -751,14 +653,14 @@ namespace TradePr.Service
                         s = first.Symbol,
                         time = DateTime.Now
                     });
-                    return true;
+                    return EError.Success;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.PlaceOrder|EXCEPTION| {ex.Message}");
             }
-            return false;
+            return EError.Error;
         }
 
         private async Task<bool> PlaceOrderClose(BybitPosition pos)

@@ -288,7 +288,6 @@ namespace TestPr.Service
                     lSym.Add(new Symbol
                     {
                         s = s,
-                        op = (int)EOrderSideOption.OP_4
                     });
                 }
                 var dic = new Dictionary<string, List<Quote>>();
@@ -702,12 +701,12 @@ namespace TestPr.Service
                                 var dtPrint = entity_Pivot.Date;
                                 foreach (var check in lCheck)
                                 {
-                                    var action = check.IsSell(flag.Item2.Close, (EOrderSideOption)element.op);
-                                    if (!action.Item1)
-                                        continue;
+                                    //var action = check.IsSell(flag.Item2.Close, (EOrderSideOption)element.op);
+                                    //if (!action.Item1)
+                                    //    continue;
 
-                                    entity_Pivot = action.Item2;
-                                    isPass = true; break;
+                                    //entity_Pivot = action.Item2;
+                                    //isPass = true; break;
                                 }
                                 if (!isPass)
                                     continue;

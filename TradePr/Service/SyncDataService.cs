@@ -14,10 +14,10 @@ namespace TradePr.Service
         void ClearData();
 
         Task Binance_LONG();
-        Task Bybit_LONG(EOrderSideOption op = EOrderSideOption.OP_0);
+        Task Bybit_LONG();
 
         Task Binance_SHORT();
-        Task Bybit_SHORT(EOrderSideOption op = EOrderSideOption.OP_0);
+        Task Bybit_SHORT();
     }
     public class SyncDataService : ISyncDataService
     {
@@ -403,264 +403,264 @@ namespace TradePr.Service
             }
         }
 
-        public async Task Bybit_LONG(EOrderSideOption op = EOrderSideOption.OP_0)
+        public async Task Bybit_LONG()
         {
-            try
-            {
-                var start = DateTime.Now;
-                var exchange = (int)EExchange.Bybit;
-                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
-                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.ToList();
-                decimal SL_RATE = 2.5m;
-                int hour = 4;
-                decimal rateProfit_Min = 2.5m;
-                decimal rateProfit_Max = 7m;
+            //try
+            //{
+            //    var start = DateTime.Now;
+            //    var exchange = (int)EExchange.Bybit;
+            //    var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+            //    var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+            //    var lTake = lUsdt.ToList();
+            //    decimal SL_RATE = 2.5m;
+            //    int hour = 4;
+            //    decimal rateProfit_Min = 2.5m;
+            //    decimal rateProfit_Max = 7m;
 
-                var lModel = new List<clsData>();
-                var lResult = new List<clsResult>();
+            //    var lModel = new List<clsData>();
+            //    var lResult = new List<clsResult>();
 
-                var winTotal = 0;
-                var lossTotal = 0;
+            //    var winTotal = 0;
+            //    var lossTotal = 0;
 
-                foreach (var item in lTake)
-                {
-                    if (item.Contains('-'))
-                        continue;
-                    var winCount = 0;
-                    var lossCount = 0;
-                    try
-                    {
-                        var lData15m = await GetData_Bybit(item);
-                        var lbb = lData15m.GetBollingerBands();
-                        var lrsi = lData15m.GetRsi();
-                        var lVol = lData15m.Select(x => new Quote
-                        {
-                            Date = x.Date,
-                            Close = x.Volume
-                        }).ToList();
-                        var lMaVol = lVol.GetSma(20);
+            //    foreach (var item in lTake)
+            //    {
+            //        if (item.Contains('-'))
+            //            continue;
+            //        var winCount = 0;
+            //        var lossCount = 0;
+            //        try
+            //        {
+            //            var lData15m = await GetData_Bybit(item);
+            //            var lbb = lData15m.GetBollingerBands();
+            //            var lrsi = lData15m.GetRsi();
+            //            var lVol = lData15m.Select(x => new Quote
+            //            {
+            //                Date = x.Date,
+            //                Close = x.Volume
+            //            }).ToList();
+            //            var lMaVol = lVol.GetSma(20);
 
-                        DateTime dtFlag = DateTime.MinValue;
-                        foreach (var ma20 in lbb)
-                        {
-                            try
-                            {
-                                var flag = lData15m.Where(x => x.Date <= ma20.Date).ToList().IsFlagBuy();
-                                if (!flag.Item1)
-                                    continue;
-                                var entity_Pivot = flag.Item2;
-                                var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
+            //            DateTime dtFlag = DateTime.MinValue;
+            //            foreach (var ma20 in lbb)
+            //            {
+            //                try
+            //                {
+            //                    var flag = lData15m.Where(x => x.Date <= ma20.Date).ToList().IsFlagBuy();
+            //                    if (!flag.Item1)
+            //                        continue;
+            //                    var entity_Pivot = flag.Item2;
+            //                    var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
 
-                                #region Thêm xử lý
-                                var isPass = false;
-                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
-                                //var dtPrint = entity_Pivot.Date;
-                                foreach (var check in lCheck)
-                                {
-                                    var action = check.IsBuy(flag.Item2.Close, op);
-                                    if (!action.Item1)
-                                        continue;
+            //                    #region Thêm xử lý
+            //                    var isPass = false;
+            //                    var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8);
+            //                    //var dtPrint = entity_Pivot.Date;
+            //                    foreach (var check in lCheck)
+            //                    {
+            //                        var action = check.IsBuy(flag.Item2.Close, op);
+            //                        if (!action.Item1)
+            //                            continue;
 
-                                    entity_Pivot = action.Item2;
-                                    isPass = true; break;
-                                }
-                                if (!isPass)
-                                    continue;
-                                #endregion
+            //                        entity_Pivot = action.Item2;
+            //                        isPass = true; break;
+            //                    }
+            //                    if (!isPass)
+            //                        continue;
+            //                    #endregion
 
-                                var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
-                                if (eClose is null)
-                                    continue;
+            //                    var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
+            //                    if (eClose is null)
+            //                        continue;
 
-                                var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
-                                if (rateBB < rateProfit_Min - 1)
-                                {
-                                    continue;
-                                }
-                                else if (rateBB > rateProfit_Max)
-                                {
-                                    rateBB = rateProfit_Max;
-                                }
+            //                    var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
+            //                    if (rateBB < rateProfit_Min - 1)
+            //                    {
+            //                        continue;
+            //                    }
+            //                    else if (rateBB > rateProfit_Max)
+            //                    {
+            //                        rateBB = rateProfit_Max;
+            //                    }
 
-                                var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
-                                var isChotNon = false;
-                                foreach (var itemClose in lClose)
-                                {
-                                    var ma = lbb.First(x => x.Date == itemClose.Date);
-                                    if (itemClose.High > (decimal)ma.UpperBand)//do something
-                                    {
-                                        eClose = itemClose;
-                                        break;
-                                    }
+            //                    var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+            //                    var isChotNon = false;
+            //                    foreach (var itemClose in lClose)
+            //                    {
+            //                        var ma = lbb.First(x => x.Date == itemClose.Date);
+            //                        if (itemClose.High > (decimal)ma.UpperBand)//do something
+            //                        {
+            //                            eClose = itemClose;
+            //                            break;
+            //                        }
 
-                                    if(isChotNon
-                                        && itemClose.Close < (decimal)ma.Sma.Value
-                                        && itemClose.Close <= itemClose.Open
-                                        && itemClose.Close >= entity_Pivot.Close)
-                                    {
-                                        eClose = itemClose;
-                                        break;
-                                    }
+            //                        if(isChotNon
+            //                            && itemClose.Close < (decimal)ma.Sma.Value
+            //                            && itemClose.Close <= itemClose.Open
+            //                            && itemClose.Close >= entity_Pivot.Close)
+            //                        {
+            //                            eClose = itemClose;
+            //                            break;
+            //                        }
 
-                                    if(itemClose.High >= (decimal)ma.Sma.Value)
-                                    {
-                                        isChotNon = true; 
-                                    }
+            //                        if(itemClose.High >= (decimal)ma.Sma.Value)
+            //                        {
+            //                            isChotNon = true; 
+            //                        }
 
-                                    var rateCheck = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); //chốt khi lãi > 10%
-                                    if (rateCheck > rateBB)
-                                    {
-                                        var close = entity_Pivot.Close * (decimal)(1 + rateBB / 100);
-                                        itemClose.Close = close;
-                                        eClose = itemClose;
-                                        break;
-                                    }
-                                }
+            //                        var rateCheck = Math.Round(100 * (-1 + itemClose.High / entity_Pivot.Close), 1); //chốt khi lãi > 10%
+            //                        if (rateCheck > rateBB)
+            //                        {
+            //                            var close = entity_Pivot.Close * (decimal)(1 + rateBB / 100);
+            //                            itemClose.Close = close;
+            //                            eClose = itemClose;
+            //                            break;
+            //                        }
+            //                    }
 
-                                dtFlag = eClose.Date;
-                                var rate = Math.Round(100 * (-1 + eClose.Close / entity_Pivot.Close), 1);
-                                var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
-                                var maxH = lRange.Max(x => x.High);
-                                var minL = lRange.Min(x => x.Low);
+            //                    dtFlag = eClose.Date;
+            //                    var rate = Math.Round(100 * (-1 + eClose.Close / entity_Pivot.Close), 1);
+            //                    var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
+            //                    var maxH = lRange.Max(x => x.High);
+            //                    var minL = lRange.Min(x => x.Low);
 
-                                var winloss = "W";
-                                if (rate <= (decimal)0)
-                                {
-                                    winloss = "L";
-                                }
+            //                    var winloss = "W";
+            //                    if (rate <= (decimal)0)
+            //                    {
+            //                        winloss = "L";
+            //                    }
 
-                                var maxSL = Math.Round(100 * (-1 + minL / entity_Pivot.Close), 1);
-                                if (maxSL <= -SL_RATE)
-                                {
-                                    rate = -SL_RATE;
-                                    winloss = "L";
-                                }
+            //                    var maxSL = Math.Round(100 * (-1 + minL / entity_Pivot.Close), 1);
+            //                    if (maxSL <= -SL_RATE)
+            //                    {
+            //                        rate = -SL_RATE;
+            //                        winloss = "L";
+            //                    }
 
-                                if (winloss == "W")
-                                {
-                                    rate = Math.Abs(rate);
-                                    winCount++;
-                                }
-                                else
-                                {
-                                    rate = -Math.Abs(rate);
-                                    lossCount++;
-                                }
+            //                    if (winloss == "W")
+            //                    {
+            //                        rate = Math.Abs(rate);
+            //                        winCount++;
+            //                    }
+            //                    else
+            //                    {
+            //                        rate = -Math.Abs(rate);
+            //                        lossCount++;
+            //                    }
 
-                                //var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
-                                //Console.WriteLine(mesItem);
+            //                    //var mesItem = $"{item}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}";
+            //                    //Console.WriteLine(mesItem);
 
-                                //lRate.Add(rate);
-                                lModel.Add(new clsData
-                                {
-                                    s = item,
-                                    Date = entity_Pivot.Date,
-                                    Rate = rate,
-                                });
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, $"SyncDataService.Bybit_LONG|EXCEPTION| {ex.Message}");
-                            }
+            //                    //lRate.Add(rate);
+            //                    lModel.Add(new clsData
+            //                    {
+            //                        s = item,
+            //                        Date = entity_Pivot.Date,
+            //                        Rate = rate,
+            //                    });
+            //                }
+            //                catch (Exception ex)
+            //                {
+            //                    _logger.LogError(ex, $"SyncDataService.Bybit_LONG|EXCEPTION| {ex.Message}");
+            //                }
 
-                        }
+            //            }
 
-                        if (winCount + lossCount <= 1)
-                            continue;
+            //            if (winCount + lossCount <= 1)
+            //                continue;
 
-                        var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
-                        var count = lModel.Count(x => x.s == item);
-                        var items = lModel.Where(x => x.s == item);
-                        var perRate = Math.Round((float)sumRate / count, 1);
-                        //Special
-                        if (rateRes < (decimal)0.5
-                          || perRate <= 0.7)
-                        {
-                            lModel = lModel.Except(items).ToList();
-                            continue;
-                        }
+            //            var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
+            //            var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
+            //            var count = lModel.Count(x => x.s == item);
+            //            var items = lModel.Where(x => x.s == item);
+            //            var perRate = Math.Round((float)sumRate / count, 1);
+            //            //Special
+            //            if (rateRes < (decimal)0.5
+            //              || perRate <= 0.7)
+            //            {
+            //                lModel = lModel.Except(items).ToList();
+            //                continue;
+            //            }
 
-                        var realWin = 0;
-                        foreach (var model in items)
-                        {
-                            if (model.Rate > (decimal)0.5)
-                                realWin++;
-                        }
+            //            var realWin = 0;
+            //            foreach (var model in items)
+            //            {
+            //                if (model.Rate > (decimal)0.5)
+            //                    realWin++;
+            //            }
 
-                        winTotal += winCount;
-                        lossTotal += lossCount;
-                        winCount = 0;
-                        lossCount = 0;
+            //            winTotal += winCount;
+            //            lossTotal += lossCount;
+            //            winCount = 0;
+            //            lossCount = 0;
 
-                        var winrate = Math.Round((double)realWin / count, 1);
+            //            var winrate = Math.Round((double)realWin / count, 1);
 
-                        var mes = $"{item}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
-                        //Console.WriteLine(mes);
+            //            var mes = $"{item}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
+            //            //Console.WriteLine(mes);
 
-                        lResult.Add(new clsResult
-                        {
-                            s = item,
-                            Win = realWin,
-                            Winrate = winrate,
-                            Perate = perRate,
-                            Mes = mes
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"{item}| {ex.Message}");
-                    }
-                }
+            //            lResult.Add(new clsResult
+            //            {
+            //                s = item,
+            //                Win = realWin,
+            //                Winrate = winrate,
+            //                Perate = perRate,
+            //                Mes = mes
+            //            });
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Console.WriteLine($"{item}| {ex.Message}");
+            //        }
+            //    }
 
-                var lResultOrder = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
-                var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
-                if (lRes.Count() < _TAKE)
-                {
-                    lRes = lResultOrder.Where(x => x.Winrate >= 0.7).ToList();
-                }
+            //    var lResultOrder = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
+            //    var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
+            //    if (lRes.Count() < _TAKE)
+            //    {
+            //        lRes = lResultOrder.Where(x => x.Winrate >= 0.7).ToList();
+            //    }
 
-                if (lRes.Count() < _TAKE - 20)
-                    return;
+            //    if (lRes.Count() < _TAKE - 20)
+            //        return;
 
-                //Delete
-                var builder = Builders<Symbol>.Filter;
-                _symRepo.DeleteMany(builder.And(
-                    builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy),
-                    builder.Gte(x => x.op, (int)op)
-                ));
+            //    //Delete
+            //    var builder = Builders<Symbol>.Filter;
+            //    _symRepo.DeleteMany(builder.And(
+            //        builder.Eq(x => x.ex, exchange),
+            //        builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Buy),
+            //        builder.Gte(x => x.op, (int)op)
+            //    ));
 
-                var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Buy);
-                var rank = 1;
-                foreach (var item in lRes)
-                {
-                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s);
-                    if (exists != null)
-                        continue;
+            //    var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Buy);
+            //    var rank = 1;
+            //    foreach (var item in lRes)
+            //    {
+            //        var exists = lSymAll.FirstOrDefault(x => x.s == item.s);
+            //        if (exists != null)
+            //            continue;
 
-                    Console.WriteLine(item.Mes);
-                    _symRepo.InsertOne(new Symbol
-                    {
-                        s = item.s,
-                        ex = exchange,
-                        ty = (int)Binance.Net.Enums.OrderSide.Buy,
-                        op = (int)op,
-                        rank = rank++
-                    });
-                }
+            //        Console.WriteLine(item.Mes);
+            //        _symRepo.InsertOne(new Symbol
+            //        {
+            //            s = item.s,
+            //            ex = exchange,
+            //            ty = (int)Binance.Net.Enums.OrderSide.Buy,
+            //            op = (int)op,
+            //            rank = rank++
+            //        });
+            //    }
 
-                Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
+            //    Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
 
-                var end = DateTime.Now;
-                Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
-                await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT LONG: {op}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"SyncDataService.Bybit_LONG|EXCEPTION| {ex.Message}");
-            }
+            //    var end = DateTime.Now;
+            //    Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
+            //    await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT LONG: {op}");
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, $"SyncDataService.Bybit_LONG|EXCEPTION| {ex.Message}");
+            //}
         }
 
         public async Task Binance_SHORT()
@@ -960,263 +960,263 @@ namespace TradePr.Service
             }
         }
 
-        public async Task Bybit_SHORT(EOrderSideOption op = EOrderSideOption.OP_0)
+        public async Task Bybit_SHORT()
         {
-            try
-            {
-                var start = DateTime.Now;
-                var exchange = (int)EExchange.Bybit;
-                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
-                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.ToList();
-                decimal SL_RATE = 2.5m;
-                int hour = 4;
-                decimal rateProfit_Min = 2.5m;
-                decimal rateProfit_Max = 7m;
+            //try
+            //{
+            //    var start = DateTime.Now;
+            //    var exchange = (int)EExchange.Bybit;
+            //    var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+            //    var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+            //    var lTake = lUsdt.ToList();
+            //    decimal SL_RATE = 2.5m;
+            //    int hour = 4;
+            //    decimal rateProfit_Min = 2.5m;
+            //    decimal rateProfit_Max = 7m;
 
-                var lModel = new List<clsData>();
-                var lResult = new List<clsResult>();
+            //    var lModel = new List<clsData>();
+            //    var lResult = new List<clsResult>();
 
-                var winTotal = 0;
-                var lossTotal = 0;
+            //    var winTotal = 0;
+            //    var lossTotal = 0;
 
-                foreach (var item in lTake)
-                {
-                    if (item.Contains('-'))
-                        continue;
+            //    foreach (var item in lTake)
+            //    {
+            //        if (item.Contains('-'))
+            //            continue;
 
-                    var winCount = 0;
-                    var lossCount = 0;
-                    try
-                    {
-                        var lData15m = await GetData_Bybit(item);
-                        var lbb = lData15m.GetBollingerBands();
-                        var lrsi = lData15m.GetRsi();
-                        var lVol = lData15m.Select(x => new Quote
-                        {
-                            Date = x.Date,
-                            Close = x.Volume
-                        }).ToList();
-                        var lMaVol = lVol.GetSma(20);
+            //        var winCount = 0;
+            //        var lossCount = 0;
+            //        try
+            //        {
+            //            var lData15m = await GetData_Bybit(item);
+            //            var lbb = lData15m.GetBollingerBands();
+            //            var lrsi = lData15m.GetRsi();
+            //            var lVol = lData15m.Select(x => new Quote
+            //            {
+            //                Date = x.Date,
+            //                Close = x.Volume
+            //            }).ToList();
+            //            var lMaVol = lVol.GetSma(20);
 
-                        DateTime dtFlag = DateTime.MinValue;
-                        //var count = 0;
-                        foreach (var ma20 in lbb)
-                        {
-                            try
-                            {
-                                var flag = lData15m.Where(x => x.Date <= ma20.Date).ToList().IsFlagSell();
-                                if (!flag.Item1)
-                                    continue;
+            //            DateTime dtFlag = DateTime.MinValue;
+            //            //var count = 0;
+            //            foreach (var ma20 in lbb)
+            //            {
+            //                try
+            //                {
+            //                    var flag = lData15m.Where(x => x.Date <= ma20.Date).ToList().IsFlagSell();
+            //                    if (!flag.Item1)
+            //                        continue;
 
-                                var entity_Pivot = flag.Item2;
-                                var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
+            //                    var entity_Pivot = flag.Item2;
+            //                    var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
 
-                                #region Thêm xử lý
-                                var isPass = false;
-                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8).Skip(1);
-                                foreach (var check in lCheck)
-                                {
-                                    var action = check.IsSell(flag.Item2.Close, op);
-                                    if (!action.Item1)
-                                        continue;
+            //                    #region Thêm xử lý
+            //                    var isPass = false;
+            //                    var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(8).Skip(1);
+            //                    foreach (var check in lCheck)
+            //                    {
+            //                        var action = check.IsSell(flag.Item2.Close, op);
+            //                        if (!action.Item1)
+            //                            continue;
 
-                                    entity_Pivot = action.Item2;
-                                    isPass = true; break;
-                                }
-                                if (!isPass)
-                                    continue;
-                                #endregion
+            //                        entity_Pivot = action.Item2;
+            //                        isPass = true; break;
+            //                    }
+            //                    if (!isPass)
+            //                        continue;
+            //                    #endregion
 
-                                var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
-                                if (eClose is null)
-                                    continue;
+            //                    var eClose = lData15m.FirstOrDefault(x => x.Date >= entity_Pivot.Date.AddHours(hour));
+            //                    if (eClose is null)
+            //                        continue;
 
-                                var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
-                                if (rateBB < rateProfit_Min - 1)
-                                {
-                                    continue;
-                                }
-                                else if (rateBB > rateProfit_Max)
-                                {
-                                    rateBB = rateProfit_Max;
-                                }
+            //                    var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
+            //                    if (rateBB < rateProfit_Min - 1)
+            //                    {
+            //                        continue;
+            //                    }
+            //                    else if (rateBB > rateProfit_Max)
+            //                    {
+            //                        rateBB = rateProfit_Max;
+            //                    }
 
-                                var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
-                                var isChotNon = false;
-                                foreach (var itemClose in lClose)
-                                {
-                                    var ma = lbb.First(x => x.Date == itemClose.Date);
-                                    if (itemClose.Low < (decimal)ma.LowerBand)
-                                    {
-                                        eClose = itemClose;
-                                        break;
-                                    }
+            //                    var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(hour));
+            //                    var isChotNon = false;
+            //                    foreach (var itemClose in lClose)
+            //                    {
+            //                        var ma = lbb.First(x => x.Date == itemClose.Date);
+            //                        if (itemClose.Low < (decimal)ma.LowerBand)
+            //                        {
+            //                            eClose = itemClose;
+            //                            break;
+            //                        }
 
-                                    if (isChotNon
-                                      && itemClose.Close > (decimal)ma.Sma.Value
-                                      && itemClose.Close >= itemClose.Open
-                                      && itemClose.Close <= entity_Pivot.Close)
-                                    {
-                                        eClose = itemClose;
-                                        break;
-                                    }
+            //                        if (isChotNon
+            //                          && itemClose.Close > (decimal)ma.Sma.Value
+            //                          && itemClose.Close >= itemClose.Open
+            //                          && itemClose.Close <= entity_Pivot.Close)
+            //                        {
+            //                            eClose = itemClose;
+            //                            break;
+            //                        }
 
-                                    if (itemClose.Low <= (decimal)ma.Sma.Value)
-                                    {
-                                        isChotNon = true;
-                                    }
+            //                        if (itemClose.Low <= (decimal)ma.Sma.Value)
+            //                        {
+            //                            isChotNon = true;
+            //                        }
 
-                                    var rateCheck = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.Low), 1);
-                                    if (rateCheck > rateBB)
-                                    {
-                                        var close = entity_Pivot.Close * (1 - rateBB / 100);
-                                        itemClose.Close = close;
-                                        eClose = itemClose;
-                                        break;
-                                    }
-                                }
+            //                        var rateCheck = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.Low), 1);
+            //                        if (rateCheck > rateBB)
+            //                        {
+            //                            var close = entity_Pivot.Close * (1 - rateBB / 100);
+            //                            itemClose.Close = close;
+            //                            eClose = itemClose;
+            //                            break;
+            //                        }
+            //                    }
 
-                                dtFlag = eClose.Date;
-                                var rate = Math.Round(100 * (-1 + entity_Pivot.Close / eClose.Close), 1);
-                                var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
-                                var maxH = lRange.Max(x => x.High);
-                                var minL = lRange.Min(x => x.Low);
+            //                    dtFlag = eClose.Date;
+            //                    var rate = Math.Round(100 * (-1 + entity_Pivot.Close / eClose.Close), 1);
+            //                    var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
+            //                    var maxH = lRange.Max(x => x.High);
+            //                    var minL = lRange.Min(x => x.Low);
 
-                                var winloss = "W";
-                                if (rate <= (decimal)0)
-                                {
-                                    winloss = "L";
-                                }
+            //                    var winloss = "W";
+            //                    if (rate <= (decimal)0)
+            //                    {
+            //                        winloss = "L";
+            //                    }
 
-                                var maxSL = Math.Round(100 * (-1 + entity_Pivot.Close / maxH), 1);
-                                if (maxSL <= -SL_RATE)
-                                {
-                                    rate = -SL_RATE;
-                                    winloss = "L";
-                                }
+            //                    var maxSL = Math.Round(100 * (-1 + entity_Pivot.Close / maxH), 1);
+            //                    if (maxSL <= -SL_RATE)
+            //                    {
+            //                        rate = -SL_RATE;
+            //                        winloss = "L";
+            //                    }
 
-                                if (winloss == "W")
-                                {
-                                    rate = Math.Abs(rate);
-                                    winCount++;
-                                }
-                                else
-                                {
-                                    rate = -Math.Abs(rate);
-                                    lossCount++;
-                                }
+            //                    if (winloss == "W")
+            //                    {
+            //                        rate = Math.Abs(rate);
+            //                        winCount++;
+            //                    }
+            //                    else
+            //                    {
+            //                        rate = -Math.Abs(rate);
+            //                        lossCount++;
+            //                    }
 
-                                //lRate.Add(rate);
-                                lModel.Add(new clsData
-                                {
-                                    s = item,
-                                    Date = entity_Pivot.Date,
-                                    Rate = rate
-                                });
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, $"SyncDataService.Bybit_SHORT|EXCEPTION| {ex.Message}");
-                            }
+            //                    //lRate.Add(rate);
+            //                    lModel.Add(new clsData
+            //                    {
+            //                        s = item,
+            //                        Date = entity_Pivot.Date,
+            //                        Rate = rate
+            //                    });
+            //                }
+            //                catch (Exception ex)
+            //                {
+            //                    _logger.LogError(ex, $"SyncDataService.Bybit_SHORT|EXCEPTION| {ex.Message}");
+            //                }
 
-                        }
+            //            }
 
-                        if (winCount + lossCount <= 1)
-                            continue;
+            //            if (winCount + lossCount <= 1)
+            //                continue;
 
-                        var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
-                        var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
-                        var count = lModel.Count(x => x.s == item);
-                        var items = lModel.Where(x => x.s == item);
-                        var perRate = Math.Round((float)sumRate / count, 1);
+            //            var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
+            //            var sumRate = lModel.Where(x => x.s == item).Sum(x => x.Rate);
+            //            var count = lModel.Count(x => x.s == item);
+            //            var items = lModel.Where(x => x.s == item);
+            //            var perRate = Math.Round((float)sumRate / count, 1);
 
-                        //Special 
-                        if (rateRes < (decimal)0.5
-                          || perRate <= 0.7)
-                        {
-                            lModel = lModel.Except(items).ToList();
-                            continue;
-                        }
+            //            //Special 
+            //            if (rateRes < (decimal)0.5
+            //              || perRate <= 0.7)
+            //            {
+            //                lModel = lModel.Except(items).ToList();
+            //                continue;
+            //            }
 
-                        var realWin = 0;
-                        foreach (var model in lModel.Where(x => x.s == item))
-                        {
-                            if (model.Rate > (decimal)0)
-                                realWin++;
-                        }
+            //            var realWin = 0;
+            //            foreach (var model in lModel.Where(x => x.s == item))
+            //            {
+            //                if (model.Rate > (decimal)0)
+            //                    realWin++;
+            //            }
 
-                        winTotal += winCount;
-                        lossTotal += lossCount;
-                        winCount = 0;
-                        lossCount = 0;
+            //            winTotal += winCount;
+            //            lossTotal += lossCount;
+            //            winCount = 0;
+            //            lossCount = 0;
 
-                        var winrate = Math.Round((double)realWin / count, 1);
+            //            var winrate = Math.Round((double)realWin / count, 1);
 
-                        var mes = $"{item}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
-                        //Console.WriteLine(mes);
+            //            var mes = $"{item}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
+            //            //Console.WriteLine(mes);
 
-                        lResult.Add(new clsResult
-                        {
-                            s = item,
-                            Win = realWin,
-                            Winrate = winrate,
-                            Perate = perRate,
-                            Mes = mes
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"{item}| {ex.Message}");
-                    }
-                }
+            //            lResult.Add(new clsResult
+            //            {
+            //                s = item,
+            //                Win = realWin,
+            //                Winrate = winrate,
+            //                Perate = perRate,
+            //                Mes = mes
+            //            });
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Console.WriteLine($"{item}| {ex.Message}");
+            //        }
+            //    }
 
-                var lResultOrder = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
-                var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
-                if(lRes.Count() < _TAKE)
-                {
-                    lRes = lResultOrder.Where(x => x.Winrate >= 0.7).ToList();
-                }
+            //    var lResultOrder = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
+            //    var lRes = lResultOrder.Where(x => x.Winrate >= 0.8).ToList();
+            //    if(lRes.Count() < _TAKE)
+            //    {
+            //        lRes = lResultOrder.Where(x => x.Winrate >= 0.7).ToList();
+            //    }
 
-                if (lRes.Count() < _TAKE - 20)
-                    return;
+            //    if (lRes.Count() < _TAKE - 20)
+            //        return;
 
-                //Delete
-                var builder = Builders<Symbol>.Filter;
-                _symRepo.DeleteMany(builder.And(
-                    builder.Eq(x => x.ex, exchange),
-                    builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell),
-                    builder.Gte(x => x.op, (int)op)
-                ));
+            //    //Delete
+            //    var builder = Builders<Symbol>.Filter;
+            //    _symRepo.DeleteMany(builder.And(
+            //        builder.Eq(x => x.ex, exchange),
+            //        builder.Eq(x => x.ty, (int)Binance.Net.Enums.OrderSide.Sell),
+            //        builder.Gte(x => x.op, (int)op)
+            //    ));
 
-                var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Sell);
-                var rank = 1;
-                foreach (var item in lRes)
-                {
-                    var exists = lSymAll.FirstOrDefault(x => x.s == item.s);
-                    if (exists != null)
-                        continue;
+            //    var lSymAll = _symRepo.GetAll().Where(x => x.ex == exchange && x.ty == (int)Binance.Net.Enums.OrderSide.Sell);
+            //    var rank = 1;
+            //    foreach (var item in lRes)
+            //    {
+            //        var exists = lSymAll.FirstOrDefault(x => x.s == item.s);
+            //        if (exists != null)
+            //            continue;
 
-                    Console.WriteLine(item.Mes);
-                    _symRepo.InsertOne(new Symbol
-                    {
-                        s = item.s,
-                        ex = exchange,
-                        ty = (int)Binance.Net.Enums.OrderSide.Sell,
-                        op = (int)op,
-                        rank = rank++
-                    });
-                }
+            //        Console.WriteLine(item.Mes);
+            //        _symRepo.InsertOne(new Symbol
+            //        {
+            //            s = item.s,
+            //            ex = exchange,
+            //            ty = (int)Binance.Net.Enums.OrderSide.Sell,
+            //            op = (int)op,
+            //            rank = rank++
+            //        });
+            //    }
 
-                Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
-                var end = DateTime.Now;
-                Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
-                await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT SHORT: {op}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"SyncDataService.Bybit_SHORT|EXCEPTION| {ex.Message}");
-            }
+            //    Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
+            //    var end = DateTime.Now;
+            //    Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
+            //    await _teleService.SendMessage(_idUser, $"[Đã đồng bộ] BYBIT SHORT: {op}");
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, $"SyncDataService.Bybit_SHORT|EXCEPTION| {ex.Message}");
+            //}
         }
     }
 

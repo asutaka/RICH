@@ -171,16 +171,7 @@ namespace TradePr.Service
                 if(model.Exchange != null)
                 {
                     //Thực thi lệnh
-                    if (!string.IsNullOrWhiteSpace(model.Coin))
-                    {
-                        if(model.Action != null && model.Position != null)
-                        {
-                            //Thêm bớt coin
-                            ThemBotCoin(model);
-                            await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã {model.Action.ToString().ToUpper()} {model.Coin} đối với danh sách {model.Position.ToString().ToUpper()}");
-                        }
-                    }
-                    else if(model.Max != null)
+                    if(model.Max != null)
                     {
                         //Set lại giá trị lệnh
                         SetGiaTriLenh(model);
@@ -199,12 +190,6 @@ namespace TradePr.Service
                             //Bật tắt một vị thế
                             BatTatMotViThe(model);
                             await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã {model.Terminal.ToString().ToUpper()} các vị thế {model.Position.ToString().ToUpper()}");
-                        }
-                        else
-                        {
-                            //Bật tắt toàn bộ 
-                            BatTatToanBo(model);
-                            await SendMessage(_idUser, $"[{model.Exchange.ToString().ToUpper()}] Đã {model.Terminal.ToString().ToUpper()} toàn bộ các vị thế");
                         }
                     }
                     else if(model.Balance)
@@ -270,43 +255,6 @@ namespace TradePr.Service
             }
         }
 
-        private void ThemBotCoin(clsTerminal model)
-        {
-            var ex = model.Exchange == EKey.Binance ? (int)EExchange.Binance : (int)EExchange.Bybit;
-            var pos = model.Position == EKey.Long ? (int)Binance.Net.Enums.OrderSide.Buy : (int)Binance.Net.Enums.OrderSide.Sell;
-            var builder = Builders<Symbol>.Filter;
-            var entity = _symRepo.GetEntityByFilter(builder.And(
-                builder.Eq(x => x.ex, ex),
-                builder.Eq(x => x.ty, pos),
-                builder.Eq(x => x.s, model.Coin)
-            ));
-
-            if (model.Action == EKey.Add)
-            {
-                if(entity is null)
-                {
-                    _symRepo.InsertOne(new Symbol
-                    {
-                        s = model.Coin,
-                        ex = ex,
-                        ty = pos,
-                        rank = 1
-                    });
-                }
-            }
-            else
-            {
-                if(entity != null)
-                {
-                    _symRepo.DeleteOne(builder.And(
-                        builder.Eq(x => x.ex, ex),
-                        builder.Eq(x => x.ty, pos),
-                        builder.Eq(x => x.s, model.Coin)
-                    ));
-                }
-            }
-        }
-
         private void SetGiaTriLenh(clsTerminal model)
         {
             var lConfig = _configRepo.GetAll();
@@ -351,29 +299,6 @@ namespace TradePr.Service
                     op = (int)EOption.Thread,
                     value = thread,
                     status = 1
-                });
-            }
-        }
-
-        private void BatTatToanBo(clsTerminal model)
-        {
-            var lConfig = _configRepo.GetAll();
-            var ex = model.Exchange == EKey.Binance ? (int)EExchange.Binance : (int)EExchange.Bybit;
-            var terminal = model.Terminal == EKey.Start ? 0 : 1;
-
-            var config = lConfig.FirstOrDefault(x => x.ex == ex && x.op == (int)EOption.DisableAll);
-            if(config != null)
-            {
-                config.status = terminal;
-                _configRepo.Update(config);
-            }
-            else
-            {
-                _configRepo.InsertOne(new ConfigData
-                {
-                    ex = ex,
-                    op = (int)EOption.DisableAll,
-                    status = terminal
                 });
             }
         }

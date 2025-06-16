@@ -68,10 +68,8 @@ namespace TradePr.Service
                 await Binance_TakeProfit();
 
                 var lConfig = _configRepo.GetAll();
-                var disableAll = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableAll && x.status == 1);
 
-                if (dt.Minute % 15 == 0
-                    && (disableAll is null || disableAll.status == 0))
+                if (dt.Minute % 15 == 0)
                 {
                     var disableLong = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableLong && x.status == 1);
                     var disableShort = lConfig.FirstOrDefault(x => x.ex == _exchange && x.op == (int)EOption.DisableShort && x.status == 1);

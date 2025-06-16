@@ -30,18 +30,15 @@ namespace CoinUtilsPr
     {
         Max = 1,// Giá trị lệnh 
         Thread = 2,//Số lệnh tối đa trong một thời điểm
-        DisableAll = 3,//Tắt toàn bộ
         DisableLong = 4,//Tắt Long
         DisableShort = 5,//Tắt Short
     }
 
-    public enum EOrderSideOption
+    public enum EError
     {
-        OP_0 = 0,
-        OP_1 = 1,
-        OP_2 = 2,
-        OP_3 = 3,
-        OP_4 = 4,
+        Success = 0,
+        MaxThread = -9,
+        Error = -1
     }
 
     public enum EKey
