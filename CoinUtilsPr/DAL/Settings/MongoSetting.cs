@@ -1,4 +1,4 @@
-﻿namespace TradePr.DAL.Settings
+﻿namespace CoinUtilsPr.DAL.Settings
 {
     public static class MongoSetting
     {

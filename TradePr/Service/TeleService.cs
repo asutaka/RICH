@@ -2,11 +2,11 @@
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using TradePr.Model;
-using TradePr.DAL;
-using TradePr.DAL.Entity;
 using MongoDB.Driver;
 using Bybit.Net.Enums;
 using CoinUtilsPr;
+using CoinUtilsPr.DAL;
+using CoinUtilsPr.DAL.Entity;
 
 namespace TradePr.Service
 {

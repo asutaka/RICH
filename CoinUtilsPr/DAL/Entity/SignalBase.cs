@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using Skender.Stock.Indicators;
 
-namespace TradePr.DAL.Entity
+namespace CoinUtilsPr.DAL.Entity
 {
     [BsonIgnoreExtraElements]
     public class SignalBase : BaseDTO

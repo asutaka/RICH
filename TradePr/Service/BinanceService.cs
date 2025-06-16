@@ -1,13 +1,13 @@
 ﻿using Binance.Net.Objects.Models.Futures;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
-using TradePr.DAL.Entity;
-using TradePr.DAL;
+using CoinUtilsPr.DAL.Entity;
 using TradePr.Utils;
 using Binance.Net.Enums;
 using Binance.Net.Objects.Models.Spot;
 using Newtonsoft.Json;
 using CoinUtilsPr;
+using CoinUtilsPr.DAL;
 
 namespace TradePr.Service
 {

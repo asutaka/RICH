@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
-namespace TradePr.DAL.Entity
+namespace CoinUtilsPr.DAL.Entity
 {
     public abstract class BaseDTO
     {

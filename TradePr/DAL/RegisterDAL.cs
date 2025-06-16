@@ -1,4 +1,6 @@
-﻿namespace TradePr.DAL.Settings
+﻿using CoinUtilsPr.DAL;
+
+namespace TradePr.DAL
 {
     public static class RegisterDAL
     {

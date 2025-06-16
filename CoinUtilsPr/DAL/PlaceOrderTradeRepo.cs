@@ -1,6 +1,6 @@
-﻿using TradePr.DAL.Entity;
+﻿using CoinUtilsPr.DAL.Entity;
 
-namespace TradePr.DAL
+namespace CoinUtilsPr.DAL
 {
     public interface IPlaceOrderTradeRepo : IBaseRepo<PlaceOrderTrade>
     {

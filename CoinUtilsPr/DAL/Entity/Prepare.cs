@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace TradePr.DAL.Entity
+namespace CoinUtilsPr.DAL.Entity
 {
     [BsonIgnoreExtraElements]
     public class Prepare : BaseDTO

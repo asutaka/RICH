@@ -1,9 +1,10 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.Core.Extensions.DiagnosticSources;
-using TradePr.DAL.Entity;
-using TradePr.DAL.Settings;
+using CoinUtilsPr.DAL.Entity;
+using CoinUtilsPr.DAL.Settings;
+using Microsoft.Extensions.Logging;
 
-namespace TradePr.DAL
+namespace CoinUtilsPr.DAL
 {
     public interface IBaseRepo<T> where T : BaseDTO
     {

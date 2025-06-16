@@ -1,5 +1,5 @@
 using TradePr;
-using TradePr.DAL.Settings;
+using TradePr.DAL;
 using TradePr.Service.Settings;
 using TradePr.Utils;
 

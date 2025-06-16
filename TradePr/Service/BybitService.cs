@@ -1,11 +1,11 @@
 ﻿using Bybit.Net.Enums;
 using Bybit.Net.Objects.Models.V5;
 using CoinUtilsPr;
+using CoinUtilsPr.DAL;
+using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
-using TradePr.DAL;
-using TradePr.DAL.Entity;
 using TradePr.Utils;
 
 namespace TradePr.Service

@@ -1,11 +1,6 @@
-﻿using Bybit.Net.Enums;
-using Bybit.Net.Objects.Models.V5;
-using CoinUtilsPr;
-using MongoDB.Driver;
-using Newtonsoft.Json;
-using TradePr.DAL;
-using TradePr.DAL.Entity;
-using TradePr.Utils;
+﻿using CoinUtilsPr;
+using CoinUtilsPr.DAL;
+using CoinUtilsPr.DAL.Entity;
 
 namespace TradePr.Service
 {
