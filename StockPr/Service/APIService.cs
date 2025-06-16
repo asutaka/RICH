@@ -63,6 +63,8 @@ namespace StockPr.Service
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
 
         Task<List<F319Model>> F319_Scout(string acc);
+
+        Task<List<string>> News_NguoiQuanSat();
     }
     public class APIService : IAPIService
     {
@@ -1767,6 +1769,31 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.GetFinanceIndexDataValue|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        #endregion
+
+        #region NEWS
+        public async Task<List<string>> News_NguoiQuanSat()
+        {
+            try
+            {
+                var url = $"https://dulieu.nguoiquansat.vn/home/GetHeaderNews?_={DateTimeOffset.Now.ToUnixTimeMilliseconds()}";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(5);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var result = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Money24h_NhomNganhResponse>(result);
+                if (responseModel.status == 200)
+                {
+                    //return responseModel;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.News_NguoiQuanSat|EXCEPTION| {ex.Message}");
             }
             return null;
         }
