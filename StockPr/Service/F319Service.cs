@@ -20,11 +20,13 @@ namespace StockPr.Service
         private readonly ILogger<F319Service> _logger;
         private readonly IAPIService _apiService;
         private readonly IConfigF319Repo _f319Repo;
-        public F319Service(ILogger<F319Service> logger, IAPIService apiService, IConfigF319Repo f319Repo)
+        private readonly IF319AccountRepo _accRepo;
+        public F319Service(ILogger<F319Service> logger, IAPIService apiService, IConfigF319Repo f319Repo, IF319AccountRepo accRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _f319Repo = f319Repo;
+            _accRepo = accRepo;
         }
 
         public async Task<List<F319Model>> F319KOL()
@@ -32,81 +34,23 @@ namespace StockPr.Service
             var lOutput = new List<F319Model>();
             try
             {
-                var lKOL1 = await _apiService.F319_Scout("trungken18.701187");//Nghiên cứu sâu
-                var lKOL1Clean = Handle(lKOL1, "Trung kiên");
-                if (lKOL1Clean.Any())
+                var lAcc = _accRepo.GetAll();
+                lAcc = lAcc.Where(x => x.status >= 0).OrderBy(x => x.rank).ToList();
+                foreach (var acc in lAcc)
                 {
-                    lOutput.AddRange(lKOL1Clean);
-                }
-
-                var lKOL2 = await _apiService.F319_Scout("livermore888.497341");//Nhạy bén
-                var lKOL2Clean = Handle(lKOL2, "Livermore");
-                if (lKOL2Clean.Any())
-                {
-                    lOutput.AddRange(lKOL2Clean);
-                }
-
-                var lKOL3 = await _apiService.F319_Scout("s400.169627");//Chuyên đánh theo bảng điện
-                var lKOL3Clean = Handle(lKOL3, "S400");
-                if (lKOL3Clean.Any())
-                {
-                    lOutput.AddRange(lKOL3Clean);
-                }
-
-                var lKOL4 = await _apiService.F319_Scout("soigia1997.530085");//FA tốt
-                var lKOL4Clean = Handle(lKOL4, "Sói già 1997");
-                if (lKOL4Clean.Any())
-                {
-                    lOutput.AddRange(lKOL4Clean);
-                }
-
-                var lKOL5 = await _apiService.F319_Scout("f3192006.435540");//Gần như là quen lái DPG
-                var lKOL5Clean = Handle(lKOL5, "f3192006");
-                if (lKOL5Clean.Any())
-                {
-                    lOutput.AddRange(lKOL5Clean);
-                }
-
-                var lKOL6 = await _apiService.F319_Scout("xigalahabana.504787");//Chuyên BDS
-                var lKOL6Clean = Handle(lKOL6, "xigalahabana");
-                if (lKOL6Clean.Any())
-                {
-                    lOutput.AddRange(lKOL6Clean);
-                }
-
-                var lKOL7 = await _apiService.F319_Scout("cuongnb89.704953");//Lựa hàng tốt
-                var lKOL7Clean = Handle(lKOL7, "Cường NB");
-                if (lKOL7Clean.Any())
-                {
-                    lOutput.AddRange(lKOL7Clean);
-                }
-
-                var lKOL8 = await _apiService.F319_Scout("hoctusailam.528279");//FA
-                var lKOL8Clean = Handle(lKOL8, "hoctusailam");
-                if (lKOL8Clean.Any())
-                {
-                    lOutput.AddRange(lKOL8Clean);
-                }
-
-                var lKOL9 = await _apiService.F319_Scout("silencers_one_shot.591225");//PTKT
-                var lKOL9Clean = Handle(lKOL9, "silencers_one_shot");
-                if (lKOL9Clean.Any())
-                {
-                    lOutput.AddRange(lKOL9Clean);
-                }
-
-                var lKOL10 = await _apiService.F319_Scout("daccuong_ht.500551");//PTKT
-                var lKOL10Clean = Handle(lKOL10, "daccuong_ht");
-                if (lKOL10Clean.Any())
-                {
-                    lOutput.AddRange(lKOL10Clean);
-                }
-
-                var lKOL11 = await _apiService.F319_Scout("gaotimmauhoaca.489472");//Am hiểu BDS Miền Nam
-                var lKOL11Clean = Handle(lKOL11, "gaotimmauhoaca");
-                if (lKOL11Clean.Any())
-                {
-                    lOutput.AddRange(lKOL11Clean);
+                    try
+                    {
+                        var lDat = await _apiService.F319_Scout(acc.url);
+                        var lDatClean = Handle(lDat, acc.name);
+                        if (lDatClean.Any())
+                        {
+                            lOutput.AddRange(lDatClean);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.Message);
+                    }
                 }
             }
             catch (Exception ex)

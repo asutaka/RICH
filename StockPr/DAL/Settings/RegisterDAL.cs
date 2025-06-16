@@ -15,6 +15,7 @@
             services.AddSingleton<IMacroMicroRepo, MacroMicroRepo>();
             services.AddSingleton<IConfigPortfolioRepo, ConfigPortfolioRepo>();
             services.AddSingleton<ISymbolRepo, SymbolRepo>();
+            services.AddSingleton<IF319AccountRepo, F319AccountRepo>();
         }
     }
 }
