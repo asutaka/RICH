@@ -3,7 +3,6 @@ using CoinUtilsPr;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
-using System.Threading.Tasks.Sources;
 using TestPr.DAL;
 using TestPr.DAL.Entity;
 
@@ -11,6 +10,7 @@ namespace TestPr.Service
 {
     public interface ITestService
     {
+        Task PreTest();
         Task ListLong();
         Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20);
         Task<List<clsResult>> Bybit_SHORT(string s = "");
@@ -51,6 +51,133 @@ namespace TestPr.Service
 
             return null;
         }
+
+        //Lấy các kết quả trả về để PreTest
+        public async Task PreTest()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lTake = new List<string>
+                {
+                    "RVNUSDT",
+                    "KAIAUSDT",
+                    "MOODENGUSDT",
+                    "HIGHUSDT",
+                    "TRXUSDT",
+                    "KSMUSDT",
+                    "ETHFIUSDT",
+                    "POLYXUSDT",
+                    "SUPERUSDT",
+                    "FLRUSDT",
+                    "ETHUSDT",
+                    "API3USDT",
+                    "WAXPUSDT",
+                    "TOKENUSDT",
+                    "ACXUSDT",
+                    "FLMUSDT",
+                    "FARTCOINUSDT",
+                    "ALEOUSDT",
+                    "SEIUSDT",
+                    "ZEUSUSDT",
+                    "ZRCUSDT",
+                    "ACHUSDT",
+                    "AIXBTUSDT",
+                    "PHBUSDT",
+                    "SUNUSDT",
+                    "ZENTUSDT",
+                    "STRKUSDT",
+                    "RIFUSDT",
+                    "UMAUSDT",
+                    "VELOUSDT",
+                    "ACEUSDT",
+                    "AUDIOUSDT",
+                    "ONGUSDT",
+                    "ATHUSDT",
+                    "BNTUSDT",
+                    "ORBSUSDT",
+                    "SAFEUSDT",
+                    "SDUSDT",
+                    "NTRNUSDT",
+                    "HYPEUSDT",
+                    "AEVOUSDT",
+                    "SOLUSDT",
+                    "OLUSDT",
+                    "UNIUSDT",
+                    "ETHWUSDT",
+                    "WIFUSDT",
+                    "MOCAUSDT",
+                    "GASUSDT",
+                    "AVAILUSDT",
+                    "VELODROMEUSDT",
+                    "BALUSDT",
+                    "FBUSDT",
+                    "NFPUSDT",
+                    "SLFUSDT",
+                    "WLDUSDT",
+                    "ZROUSDT",
+                    "SNXUSDT",
+                    "LUMIAUSDT",
+                    "NEIROETHUSDT",
+                    "KOMAUSDT",
+                    "RSS3USDT",
+                    "QNTUSDT",
+                    "RPLUSDT",
+                    "BEAMUSDT",
+                    "ENAUSDT",
+                    "LQTYUSDT",
+                    "STEEMUSDT",
+                    "CAKEUSDT",
+                    "ORDERUSDT",
+                    "LSKUSDT",
+                    "NEOUSDT",
+                    "MEWUSDT",
+                    "ORDIUSDT",
+                    "PUFFERUSDT",
+                    "USTCUSDT",
+                    "XVGUSDT",
+                    "PYRUSDT",
+                    "SCRUSDT",
+                    "MAVUSDT",
+                    "LRCUSDT",
+                    "NOTUSDT",
+                    "GALAUSDT",
+                    "MASAUSDT",
+                    "BCHUSDT",
+                    "ONEUSDT",
+                    "CELOUSDT",
+                    "WOOUSDT",
+                    "GLMUSDT",
+                    "TAIUSDT",
+                    "ACTUSDT",
+                    "PERPUSDT",
+                    "REZUSDT",
+                    "A8USDT",
+                    "AGIUSDT",
+                };
+                var lRank = new List<clsShow>();
+
+                foreach (var s in lTake)
+                {
+                    try
+                    {
+                        var res20 = await Bybit_LONG(s, 20);
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{s}| {ex.Message}");
+                    }
+                }
+                var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
+                Console.WriteLine($"TotalTime: {totalMinute}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         //Tìm danh sách các Coin có tỉ lệ winrate tốt nhất
         public async Task ListLong()
         {
