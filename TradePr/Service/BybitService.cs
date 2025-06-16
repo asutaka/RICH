@@ -213,7 +213,7 @@ namespace TradePr.Service
                             continue;
 
                         var flag = l15m.SkipLast(1).IsFlagBuy();
-                        if (!flag.Item1)
+                        if (flag.Item1)
                         {
                             var res = await PlaceOrder(new SignalBase
                             {
