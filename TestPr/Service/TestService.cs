@@ -370,23 +370,6 @@ namespace TestPr.Service
                                 var entity_Pivot = flag.Item2;
                                 var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
 
-                                #region Buy ENTRY
-                                var isPass = false;
-                                var lCheck = lData15m.Where(x => x.Date > entity_Pivot.Date).Take(1);
-                                foreach (var check in lCheck)
-                                {
-                                    var action = check.IsBuy2(flag.Item2);
-                                    if (action <= 0)
-                                        continue;
-
-                                    check.Close = action;
-                                    entity_Pivot = check;
-                                    isPass = true; break;
-                                }
-                                if (!isPass)
-                                    continue;
-                                #endregion
-
                                 var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
                                 if (rateBB > rateProfit_Max)
                                 {

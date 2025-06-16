@@ -396,7 +396,12 @@ namespace CoinUtilsPr
                     return (false, null);
                 }
 
-                return (true, e_Pivot);
+                if(e_Cur.Close > Math.Max(e_Pivot.Open, e_Pivot.Close))
+                {
+                    return (false, null);
+                }
+
+                return (true, e_Cur);
             }
             catch (Exception ex)
             {
@@ -404,21 +409,6 @@ namespace CoinUtilsPr
             }
 
             return (false, null);
-        }
-
-        public static decimal IsBuy2(this Quote val, Quote e_Pivot)
-        {
-            try
-            {
-                return val.Close > Math.Max(e_Pivot.Open, e_Pivot.Close) ? -1 : val.Close;
-                //return val.Low < e_Pivot.Close ? e_Pivot.Close : -1;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return -1;
         }
 
         private static decimal DetectOption(EOrderSideOption op)
