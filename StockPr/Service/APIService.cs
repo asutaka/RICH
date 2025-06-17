@@ -65,6 +65,7 @@ namespace StockPr.Service
         Task<List<F319Model>> F319_Scout(string acc);
 
         Task<List<string>> News_NguoiQuanSat();
+        Task<News_KinhTeChungKhoan> News_KinhTeChungKhoan();
     }
     public class APIService : IAPIService
     {
@@ -1794,6 +1795,26 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.News_NguoiQuanSat|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<News_KinhTeChungKhoan> News_KinhTeChungKhoan()
+        {
+            try
+            {
+                var url = $"https://kinhtechungkhoan.vn/home/channel/970";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(5);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var result = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<News_KinhTeChungKhoan>(result);
+                return responseModel;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.News_KinhTeChungKhoan|EXCEPTION| {ex.Message}");
             }
             return null;
         }
