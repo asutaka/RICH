@@ -14,7 +14,7 @@ namespace StockPr.Service
 {
     public interface INewsService
     {
-        Task<List<NewsVM>> GetNews();
+        Task<List<string>> GetNews();
     }
     public class NewsService : INewsService
     {
@@ -28,9 +28,9 @@ namespace StockPr.Service
             _configRepo = configRepo;
         }
 
-        public async Task<List<NewsVM>> GetNews()
+        public async Task<List<string>> GetNews()
         {
-            var lNews = new List<NewsVM>();
+            var lNews = new List<string>();
             try
             {
                 var now = DateTime.Now;
@@ -57,11 +57,7 @@ namespace StockPr.Service
                             key = item.PublisherId.ToString()
                         });
 
-                        lNews.Add(new NewsVM
-                        {
-                            mes = item.Title,
-                            url = item.LinktoMe2
-                        });
+                        lNews.Add($"[{item.Title}]({item.LinktoMe2})");
                     }
                 }
 

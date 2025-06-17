@@ -1,10 +1,5 @@
 ﻿namespace StockPr.Model
 {
-    public class NewsVM
-    {
-        public string mes { get; set; }
-        public string url { get; set; }
-    }
     public class News_KinhTeChungKhoan
     {
         public News_KinhTeChungKhoan_Data data { get; set; }

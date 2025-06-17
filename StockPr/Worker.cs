@@ -91,16 +91,25 @@ namespace StockPr
                         await _teleService.SendMessage(_idGroupF319, item.Message, true);
                         Thread.Sleep(200);
                     }
-                }    
+                }
 
-                if(dt.Day == 1)
+                var news = await _newsService.GetNews();
+                if (news.Any())
                 {
-                    var eps = await _epsService.RankEPS(DateTime.Now);
-                    if (eps.Item1 > 0)
+                    foreach (var item in news)
                     {
-                        await _teleService.SendMessage(_idGroup, eps.Item2, true);
+                        await _teleService.SendMessage(_idChannelNews, item, true);
+                        Thread.Sleep(200);
                     }
                 }
+                //if(dt.Day == 1)
+                //{
+                //    var eps = await _epsService.RankEPS(DateTime.Now);
+                //    if (eps.Item1 > 0)
+                //    {
+                //        await _teleService.SendMessage(_idGroup, eps.Item2, true);
+                //    }
+                //}
 
                 //Quỹ đầu tư
                 var portfolio = await _portfolioService.Portfolio();

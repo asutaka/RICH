@@ -81,15 +81,15 @@ namespace StockPr.Service
                     lMes.AddRange(vndirect_COM.Item2);
                 }
 
-                var mbs_COM = await MBS(false);
-                if (!mbs_COM.Item1)
-                {
-                    lError.Add("[ERROR] Báo cáo phân tích MBS");
-                }
-                if (mbs_COM.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(mbs_COM.Item2);
-                }
+                //var mbs_COM = await MBS(false);
+                //if (!mbs_COM.Item1)
+                //{
+                //    lError.Add("[ERROR] Báo cáo phân tích MBS");
+                //}
+                //if (mbs_COM.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(mbs_COM.Item2);
+                //}
 
                 //var fpts_COM = await FPTS(false);
                 //if (!fpts_COM.Item1)
@@ -101,15 +101,15 @@ namespace StockPr.Service
                 //    lMes.AddRange(fpts_COM.Item2);
                 //}
 
-                var bsc_COM = await BSC(false);
-                if (!bsc_COM.Item1)
-                {
-                    lError.Add("[ERROR] Báo cáo phân tích BSC");
-                }
-                if (bsc_COM.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(bsc_COM.Item2);
-                }
+                //var bsc_COM = await BSC(false);
+                //if (!bsc_COM.Item1)
+                //{
+                //    lError.Add("[ERROR] Báo cáo phân tích BSC");
+                //}
+                //if (bsc_COM.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(bsc_COM.Item2);
+                //}
 
                 var ma = await MigrateAsset();
                 if (!ma.Item1)
@@ -121,25 +121,25 @@ namespace StockPr.Service
                     lMes.AddRange(ma.Item2);
                 }
 
-                var agribank_COM = await Agribank(false);
-                if (!agribank_COM.Item1)
-                {
-                    lError.Add("[ERROR] Báo cáo phân tích Agribank");
-                }
-                if (agribank_COM.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(agribank_COM.Item2);
-                }
+                //var agribank_COM = await Agribank(false);
+                //if (!agribank_COM.Item1)
+                //{
+                //    lError.Add("[ERROR] Báo cáo phân tích Agribank");
+                //}
+                //if (agribank_COM.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(agribank_COM.Item2);
+                //}
 
-                var psi_COM = await PSI(false);
-                if (!psi_COM.Item1)
-                {
-                    lError.Add("[ERROR] Báo cáo phân tích PSI");
-                }
-                if (psi_COM.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(psi_COM.Item2);
-                }
+                //var psi_COM = await PSI(false);
+                //if (!psi_COM.Item1)
+                //{
+                //    lError.Add("[ERROR] Báo cáo phân tích PSI");
+                //}
+                //if (psi_COM.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(psi_COM.Item2);
+                //}
 
                 var kbs_COM = await KBS(false);
                 if (!kbs_COM.Item1)
@@ -163,11 +163,11 @@ namespace StockPr.Service
                     lMes.AddRange(vndirect_Ins.Item2);
                 }
 
-                var mbs_Ins = await MBS(true);
-                if (mbs_Ins.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(mbs_Ins.Item2);
-                }
+                //var mbs_Ins = await MBS(true);
+                //if (mbs_Ins.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(mbs_Ins.Item2);
+                //}
 
                 //var fpts_Ins = await FPTS(true);
                 //if (fpts_Ins.Item2?.Any() ?? false)
@@ -175,23 +175,23 @@ namespace StockPr.Service
                 //    lMes.AddRange(fpts_Ins.Item2);
                 //}
 
-                var bsc_Ins = await BSC(true);
-                if (bsc_Ins.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(bsc_Ins.Item2);
-                }
+                //var bsc_Ins = await BSC(true);
+                //if (bsc_Ins.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(bsc_Ins.Item2);
+                //}
 
-                var agribank_Ins = await Agribank(true);
-                if (agribank_Ins.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(agribank_Ins.Item2);
-                }
+                //var agribank_Ins = await Agribank(true);
+                //if (agribank_Ins.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(agribank_Ins.Item2);
+                //}
 
-                var psi_Ins = await PSI(true);
-                if (psi_Ins.Item2?.Any() ?? false)
-                {
-                    lMes.AddRange(psi_Ins.Item2);
-                }
+                //var psi_Ins = await PSI(true);
+                //if (psi_Ins.Item2?.Any() ?? false)
+                //{
+                //    lMes.AddRange(psi_Ins.Item2);
+                //}
 
                 var kbs_Ins = await KBS(true);
                 if (kbs_Ins.Item2?.Any() ?? false)
