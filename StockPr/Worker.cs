@@ -26,6 +26,7 @@ namespace StockPr
         private const long _idGroup = -4237476810;
         private const long _idGroupF319 = -4739186506;
         private const long _idChannel = -1002247826353;
+        private const long _idChannelNews = -1002709849640;
         private const long _idUser = 1066022551;
 
         public Worker(ILogger<Worker> logger, 
@@ -57,7 +58,6 @@ namespace StockPr
             StockInstance();
             //////for Test
             //await _testService.CheckCrossMa50_BB();
-            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
