@@ -44,7 +44,6 @@ namespace StockPr.Service
                     {
                         var builder = Builders<ConfigNews>.Filter;
                         var news = _configRepo.GetEntityByFilter(builder.And(
-                            builder.Eq(x => x.d, time),
                             builder.Eq(x => x.key, item.PublisherId.ToString())
                         ));
 
