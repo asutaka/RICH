@@ -27,8 +27,8 @@ namespace TradePr.Service
         private readonly IPrepareRepo _prepareRepo;
         private const long _idUser = 1066022551;
         private const decimal _margin = 10;
-        private readonly int _HOUR = 4;//MA20 là 2h
-        private readonly decimal _SL_RATE = 0.025m; //MA20 là 0.017
+        private readonly int _HOUR = 8;//MA20 là 2h
+        private readonly decimal _SL_RATE = 0.03m; //MA20 là 0.017
         private readonly decimal _TP_RATE_MIN = 0.025m;
         private readonly decimal _TP_RATE_MAX = 0.07m;
         private readonly int _exchange = (int)EExchange.Bybit;
@@ -615,11 +615,11 @@ namespace TradePr.Service
                     decimal sl = 0;
                     if (side == OrderSide.Buy)
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - _SL_RATE * 2), tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - _SL_RATE), tronGia);
                     }
                     else
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE * 2), tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE), tronGia);
                     }
                     res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                             first.Symbol,
