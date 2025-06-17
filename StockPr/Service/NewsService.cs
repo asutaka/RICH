@@ -14,7 +14,7 @@ namespace StockPr.Service
 {
     public interface INewsService
     {
-        Task GetNews();
+        Task<List<NewsVM>> GetNews();
     }
     public class NewsService : INewsService
     {
@@ -28,14 +28,14 @@ namespace StockPr.Service
             _configRepo = configRepo;
         }
 
-        public async Task GetNews()
+        public async Task<List<NewsVM>> GetNews()
         {
-            //var lOutput = new List<F319Model>();
+            var lNews = new List<NewsVM>();
             try
             {
                 var now = DateTime.Now;
                 var time = int.Parse($"{now.Year}{now.Month.To2Digit()}{now.Day.To2Digit()}");
-                var lNews = new List<NewsVM>();
+                
 
                 var KinhTeChungKhoan = await _apiService.News_KinhTeChungKhoan();
                 if(KinhTeChungKhoan != null)
@@ -72,7 +72,7 @@ namespace StockPr.Service
             {
                 _logger.LogError($"F319Service.F319KOL|EXCEPTION| {ex.Message}");
             }
-            //return lOutput;
+            return lNews;
         }
     }
 }
