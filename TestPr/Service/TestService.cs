@@ -719,7 +719,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(200).Take(200);
+                var lTake = lUsdt.Skip(0).Take(100);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -921,7 +921,7 @@ namespace TestPr.Service
                                 foreach (var itemClose in lClose)
                                 {
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
-                                    if (itemClose.Low > (decimal)ma.LowerBand)//do something
+                                    if (itemClose.Low < (decimal)ma.LowerBand)//do something
                                     {
                                         itemClose.Close = (decimal)ma.LowerBand;
                                         eClose = itemClose;
