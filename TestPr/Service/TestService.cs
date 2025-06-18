@@ -719,7 +719,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(0).Take(100);
+                var lTake = lUsdt.Skip(200).Take(100);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
