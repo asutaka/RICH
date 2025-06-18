@@ -12,11 +12,11 @@ namespace TestPr.Service
     {
         Task PreTestLONG();
         Task ListLong();
-        Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20);
+        Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20, int SKIP_DAY = 0);
 
         Task PreTestSHORT();
         Task ListShort();
-        Task<List<clsResult>> Bybit_SHORT(string s = "", int DAY = 20);
+        Task<List<clsResult>> Bybit_SHORT(string s = "", int DAY = 20, int SKIP_DAY = 0);
     }
     public class TestService : ITestService
     {
@@ -30,7 +30,7 @@ namespace TestPr.Service
             _symRepo = symRepo;
         }
         private Dictionary<string, List<Quote>> _dicData = new Dictionary<string, List<Quote>>();
-        private async Task<List<Quote>> GetData(string sym, int DAY)
+        private async Task<List<Quote>> GetData(string sym, int DAY, int SKIP_DAY)
         {
             try
             {
@@ -38,8 +38,9 @@ namespace TestPr.Service
                 var day = start.AddDays(-DAY);
                 if (_dicData.ContainsKey(sym))
                 {
+                    var skip = start.AddDays(-SKIP_DAY);
                     var dat = _dicData[sym];
-                    var lData = dat.Where(x => x.Date >= day).ToList();
+                    var lData = dat.Where(x => x.Date >= day && x.Date < skip).ToList();
                     return lData;
                 } 
 
@@ -261,7 +262,7 @@ namespace TestPr.Service
                 Console.WriteLine(ex.Message);
             }
         }
-        public async Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20)
+        public async Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20, int SKIP_DAY = 0)
         {
             try
             {
@@ -302,7 +303,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = await GetData(sym, DAY);
+                        var lData15m = await GetData(sym, DAY, SKIP_DAY);
                         var count = lData15m.Count();
                         //var lbb = lData15m.GetBollingerBands();
                         var lAdd = new List<Quote>();
@@ -719,7 +720,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(300).Take(100);
+                var lTake = lUsdt.Skip(0).Take(1000);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -795,7 +796,7 @@ namespace TestPr.Service
                 Console.WriteLine(ex.Message);
             }
         }
-        public async Task<List<clsResult>> Bybit_SHORT(string s = "", int DAY = 20)
+        public async Task<List<clsResult>> Bybit_SHORT(string s = "", int DAY = 20, int SKIP_DAY = 0)
         {
             try
             {
@@ -836,7 +837,7 @@ namespace TestPr.Service
                     var lossCount = 0;
                     try
                     {
-                        var lData15m = await GetData(sym, DAY);
+                        var lData15m = await GetData(sym, DAY, SKIP_DAY);
                         var count = lData15m.Count();
                         //var lbb = lData15m.GetBollingerBands();
                         var lAdd = new List<Quote>();
