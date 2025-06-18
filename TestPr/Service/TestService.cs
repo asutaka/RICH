@@ -720,7 +720,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(0).Take(1000);
+                var lTake = lUsdt.Skip(0).Take(200);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -728,43 +728,33 @@ namespace TestPr.Service
                     try
                     {
                         var res180 = await Bybit_SHORT(s, 180);
-                        var res10 = await Bybit_SHORT(s, 10);
+                        //var res10 = await Bybit_SHORT(s, 10);
                         var res20 = await Bybit_SHORT(s, 20);
-                        var res30 = await Bybit_SHORT(s, 30);
-                        var res60 = await Bybit_SHORT(s, 60);
-                        var res90 = await Bybit_SHORT(s, 90);
-                        var res120 = await Bybit_SHORT(s, 120);
-                        var res150 = await Bybit_SHORT(s, 150);
+                        //var res30 = await Bybit_SHORT(s, 30);
+                        var res60 = await Bybit_SHORT(s, 60, 20);
+                        var res90 = await Bybit_SHORT(s, 90, 60);
+                        var res150 = await Bybit_SHORT(s, 150, 90);
                         Thread.Sleep(1000);
 
-                        var total = res10.First().Total
-                                    + res20.First().Total
-                                    + res30.First().Total
+                        var total = res20.First().Total
                                     + res60.First().Total
                                     + res90.First().Total
-                                    + res120.First().Total
                                     + res150.First().Total
                                     + res180.First().Total;
 
-                        var win = res10.First().Win
-                                  + res20.First().Win
-                                  + res30.First().Win
+                        var win = res20.First().Win
                                   + res60.First().Win
                                   + res90.First().Win
-                                  + res120.First().Win
                                   + res150.First().Win
                                   + res180.First().Win;
 
                         var winrate = Math.Round((double)win / total, 2);
-                        var per = res10.First().Perate
-                                 + res20.First().Perate
-                                 + res30.First().Perate
+                        var per = res20.First().Perate
                                  + res60.First().Perate
                                  + res90.First().Perate
-                                 + res120.First().Perate
                                  + res150.First().Perate
                                  + res180.First().Perate;
-                        var perRate = Math.Round((double)per / 8, 2);
+                        var perRate = Math.Round((double)per / 5, 2);
 
                         lRank.Add(new clsShow
                         {
