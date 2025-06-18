@@ -10,9 +10,12 @@ namespace TestPr.Service
 {
     public interface ITestService
     {
-        Task PreTest();
+        Task PreTestLONG();
         Task ListLong();
         Task<List<clsResult>> Bybit_LONG(string s = "", int DAY = 20);
+
+        Task PreTestSHORT();
+        Task ListShort();
         Task<List<clsResult>> Bybit_SHORT(string s = "", int DAY = 20);
     }
     public class TestService : ITestService
@@ -53,7 +56,7 @@ namespace TestPr.Service
         }
 
         //Lấy các kết quả trả về để PreTest
-        public async Task PreTest()
+        public async Task PreTestLONG()
         {
             try
             {
@@ -586,6 +589,212 @@ namespace TestPr.Service
             return null;
         }
 
+
+        //Lấy các kết quả trả về để PreTest
+        public async Task PreTestSHORT()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lTake = new List<string>
+                {
+                    "RVNUSDT",
+                    "KAIAUSDT",
+                    "MOODENGUSDT",
+                    "HIGHUSDT",
+                    "TRXUSDT",
+                    "KSMUSDT",
+                    "ETHFIUSDT",
+                    "POLYXUSDT",
+                    "SUPERUSDT",
+                    "FLRUSDT",
+                    "ETHUSDT",
+                    "API3USDT",
+                    "WAXPUSDT",
+                    "TOKENUSDT",
+                    "ACXUSDT",
+                    "FLMUSDT",
+                    "FARTCOINUSDT",
+                    "ALEOUSDT",
+                    "SEIUSDT",
+                    "ZEUSUSDT",
+                    "ZRCUSDT",
+                    "ACHUSDT",
+                    "AIXBTUSDT",
+                    "PHBUSDT",
+                    "SUNUSDT",
+                    "ZENTUSDT",
+                    "STRKUSDT",
+                    "RIFUSDT",
+                    "UMAUSDT",
+                    "VELOUSDT",
+                    "ACEUSDT",
+                    "AUDIOUSDT",
+                    "ONGUSDT",
+                    "ATHUSDT",
+                    "BNTUSDT",
+                    "ORBSUSDT",
+                    "SAFEUSDT",
+                    "SDUSDT",
+                    "NTRNUSDT",
+                    "HYPEUSDT",
+                    "AEVOUSDT",
+                    "SOLUSDT",
+                    "OLUSDT",
+                    "UNIUSDT",
+                    "ETHWUSDT",
+                    "WIFUSDT",
+                    "MOCAUSDT",
+                    "GASUSDT",
+                    "AVAILUSDT",
+                    "VELODROMEUSDT",
+                    "BALUSDT",
+                    "FBUSDT",
+                    "NFPUSDT",
+                    "SLFUSDT",
+                    "WLDUSDT",
+                    "ZROUSDT",
+                    "SNXUSDT",
+                    "LUMIAUSDT",
+                    "NEIROETHUSDT",
+                    "KOMAUSDT",
+                    "RSS3USDT",
+                    "QNTUSDT",
+                    "RPLUSDT",
+                    "BEAMUSDT",
+                    "ENAUSDT",
+                    "STEEMUSDT",
+                    "CAKEUSDT",
+                    "LSKUSDT",
+                    "NEOUSDT",
+                    "MEWUSDT",
+                    "ORDIUSDT",
+                    "PUFFERUSDT",
+                    "USTCUSDT",
+                    "XVGUSDT",
+                    "PYRUSDT",
+                    "SCRUSDT",
+                    "MAVUSDT",
+                    "LRCUSDT",
+                    "NOTUSDT",
+                    "GALAUSDT",
+                    "BCHUSDT",
+                    "ONEUSDT",
+                    "CELOUSDT",
+                    "WOOUSDT",
+                    "GLMUSDT",
+                    "TAIUSDT",
+                    "ACTUSDT",
+                    "PERPUSDT",
+                    "REZUSDT",
+                    "AGIUSDT",
+                };
+                var lRank = new List<clsShow>();
+
+                foreach (var s in lTake)
+                {
+                    try
+                    {
+                        var res20 = await Bybit_SHORT(s, 20);
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{s}| {ex.Message}");
+                    }
+                }
+                var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
+                Console.WriteLine($"TotalTime: {totalMinute}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        //Tìm danh sách các Coin có tỉ lệ winrate tốt nhất
+        public async Task ListShort()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                var lTake = lUsdt.Skip(350).Take(500);
+                var lRank = new List<clsShow>();
+
+                foreach (var s in lTake)
+                {
+                    try
+                    {
+                        var res180 = await Bybit_SHORT(s, 180);
+                        var res10 = await Bybit_SHORT(s, 10);
+                        var res20 = await Bybit_SHORT(s, 20);
+                        var res30 = await Bybit_SHORT(s, 30);
+                        var res60 = await Bybit_SHORT(s, 60);
+                        var res90 = await Bybit_SHORT(s, 90);
+                        var res120 = await Bybit_SHORT(s, 120);
+                        var res150 = await Bybit_SHORT(s, 150);
+                        Thread.Sleep(1000);
+
+                        var total = res10.First().Total
+                                    + res20.First().Total
+                                    + res30.First().Total
+                                    + res60.First().Total
+                                    + res90.First().Total
+                                    + res120.First().Total
+                                    + res150.First().Total
+                                    + res180.First().Total;
+
+                        var win = res10.First().Win
+                                  + res20.First().Win
+                                  + res30.First().Win
+                                  + res60.First().Win
+                                  + res90.First().Win
+                                  + res120.First().Win
+                                  + res150.First().Win
+                                  + res180.First().Win;
+
+                        var winrate = Math.Round((double)win / total, 2);
+                        var per = res10.First().Perate
+                                 + res20.First().Perate
+                                 + res30.First().Perate
+                                 + res60.First().Perate
+                                 + res90.First().Perate
+                                 + res120.First().Perate
+                                 + res150.First().Perate
+                                 + res180.First().Perate;
+                        var perRate = Math.Round((double)per / 8, 2);
+
+                        lRank.Add(new clsShow
+                        {
+                            s = s,
+                            Win = win,
+                            Total = total,
+                            Winrate = winrate,
+                            PerRate = perRate
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{s}| {ex.Message}");
+                    }
+                }
+                Console.WriteLine("///////////////////////////////////////////////");
+                Console.WriteLine("///////////////////////////////////////////////");
+                Console.WriteLine("///////////////////////////////////////////////");
+                foreach (var item in lRank.OrderByDescending(x => x.PerRate).ThenByDescending(x => x.Winrate).ThenByDescending(x => x.Total))
+                {
+                    Console.WriteLine($"{item.s}, W/Total: {item.Win}/{item.Total} = {item.Winrate}%, Per: {item.PerRate}%");
+                }
+
+                var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
+                Console.WriteLine($"TotalTime: {totalMinute}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
         public async Task<List<clsResult>> Bybit_SHORT(string s = "", int DAY = 20)
         {
             try
