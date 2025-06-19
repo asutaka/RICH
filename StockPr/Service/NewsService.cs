@@ -35,7 +35,6 @@ namespace StockPr.Service
             {
                 var now = DateTime.Now;
                 var time = int.Parse($"{now.Year}{now.Month.To2Digit()}{now.Day.To2Digit()}");
-                
 
                 var KinhTeChungKhoan = await _apiService.News_KinhTeChungKhoan();
                 if(KinhTeChungKhoan != null)
@@ -56,11 +55,32 @@ namespace StockPr.Service
                             key = item.PublisherId.ToString()
                         });
 
-                        lNews.Add($"[{item.Title}]({item.LinktoMe2})");
+                        lNews.Add($"[|Kinh Tế Chứng Khoán|{item.Title}]({item.LinktoMe2})");
                     }
                 }
 
+                var lNguoiDuaTin = await _apiService.News_NguoiDuaTin();
+                if (lNguoiDuaTin.Any())
+                {
+                    foreach (var item in lNguoiDuaTin)
+                    {
+                        var builder = Builders<ConfigNews>.Filter;
+                        var news = _configRepo.GetEntityByFilter(builder.And(
+                            builder.Eq(x => x.key, item.ID)
+                        ));
 
+                        if (news != null)
+                            continue;
+
+                        _configRepo.InsertOne(new ConfigNews
+                        {
+                            d = time,
+                            key = item.ID
+                        });
+
+                        lNews.Add($"[|Người Đưa Tin|{item.Title}]({item.LinktoMe2})");
+                    }
+                }
                 //var lNguoiQuanSat = await _apiService.News_NguoiQuanSat();
             }
             catch (Exception ex)

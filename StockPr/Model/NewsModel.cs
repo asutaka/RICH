@@ -8,9 +8,15 @@
     {
         public List<News_KinhTeChungKhoan_Articles> articles { get; set; }
     }
-    public class News_KinhTeChungKhoan_Articles
+
+    public class News_KinhTeChungKhoan_Articles : News_Raw
     {
         public int PublisherId { get; set; }
+    }
+
+    public class News_Raw
+    {
+        public string ID { get; set; }
         public string Title { get; set; }
         public string LinktoMe2 { get; set; }
     }

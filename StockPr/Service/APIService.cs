@@ -5,8 +5,12 @@ using Skender.Stock.Indicators;
 using StockPr.Model;
 using StockPr.Model.BCPT;
 using StockPr.Utils;
+using System;
 using System.Net;
+using System.Net.WebSockets;
 using System.Text;
+using System.Web;
+using System.Xml.Linq;
 
 namespace StockPr.Service
 {
@@ -66,6 +70,7 @@ namespace StockPr.Service
 
         Task<List<string>> News_NguoiQuanSat();
         Task<News_KinhTeChungKhoan> News_KinhTeChungKhoan();
+        Task<List<News_Raw>> News_NguoiDuaTin();
     }
     public class APIService : IAPIService
     {
@@ -379,7 +384,7 @@ namespace StockPr.Service
                 requestMessage.Method = HttpMethod.Get;
                 var responseMessage = await client.SendAsync(requestMessage);
 
-                if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
                     return (false, null);
 
                 var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
@@ -1815,6 +1820,54 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.News_KinhTeChungKhoan|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<List<News_Raw>> News_NguoiDuaTin()
+        {
+            var lRes = new List<News_Raw>();
+
+            try
+            {
+                var url = $"https://antt.nguoiduatin.vn/ajax/detail-box/205223.htm";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(5);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var html = await responseMessage.Content.ReadAsStringAsync();
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var categoryNodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'box-category-item')]");
+                foreach ( var node in categoryNodes )
+                {
+                    var linkNodes = node.SelectNodes(".//a");
+                    if (linkNodes != null)
+                    {
+                        foreach (HtmlNode link in linkNodes)
+                        {
+                            var linkText = link.InnerText.Trim();
+                            var linkHref = link.GetAttributeValue("href", "");
+                            if (string.IsNullOrWhiteSpace(linkText))
+                                continue;
+
+                            lRes.Add(new News_Raw
+                            {
+                                ID = linkText.RemoveSignVietnamese().Replace(" ","").Substring(0, 60),
+                                LinktoMe2 = $"https://antt.nguoiduatin.vn{linkHref.Trim()}",
+                                Title = HttpUtility.HtmlDecode(linkText.Trim())
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                return lRes;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.News_NguoiDuaTin|EXCEPTION| {ex.Message}");
             }
             return null;
         }
