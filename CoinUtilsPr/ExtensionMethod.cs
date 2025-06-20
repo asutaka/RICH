@@ -525,5 +525,179 @@ namespace CoinUtilsPr
 
             return (false, null);
         }
+
+        public static (bool, Quote) IsFlagSell2(this List<Quote> lData)
+        {
+            decimal BB_Min = 1m;
+            try
+            {
+                if ((lData?.Count() ?? 0) < 50)
+                    return (false, null);
+
+                lData = lData.TakeLast(80).ToList();
+                var lbb = lData.GetBollingerBands();
+                var lrsi = lData.GetRsi();
+                var lMaVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Close = x.Volume
+                }).GetSma(20);
+
+                var e_Cur = lData.Last();
+                var bb_Cur = lbb.First(x => x.Date == e_Cur.Date);
+
+                var e_Pivot = lData.SkipLast(1).Last();
+                var rsi_Pivot = lrsi.First(x => x.Date == e_Pivot.Date);
+                var bb_Pivot = lbb.First(x => x.Date == e_Pivot.Date);
+                var vol_Pivot = lMaVol.First(x => x.Date == e_Pivot.Date);
+
+                var e_Sig = lData.SkipLast(2).Last();
+                var rsi_Sig = lrsi.First(x => x.Date == e_Sig.Date);
+                var bb_Sig = lbb.First(x => x.Date == e_Sig.Date);
+                var vol_Sig = lMaVol.First(x => x.Date == e_Sig.Date);
+   
+                //Vol pivot phải gấp đôi 2 vol liền trước và liền sau
+                if (e_Sig.Volume == 0
+                    || e_Cur.Volume == 0
+                    || e_Pivot.Volume == 0)
+                {
+                    return (false, null);
+                }
+
+                if(e_Cur.Open < (decimal)bb_Cur.UpperBand.Value)
+                {
+                    return (false, null);
+                }
+
+                var thannen = e_Cur.Open - e_Cur.Close;
+                var dodainen = e_Cur.High - e_Cur.Low;
+                var rauduoi = Math.Min(e_Cur.Open, e_Cur.Close) - e_Cur.Low;
+                var rautren = e_Cur.High - Math.Max(e_Cur.Open, e_Cur.Close);
+
+                var rate_thannen = thannen / dodainen;
+                if (rate_thannen >= 0.5m)
+                    return (false, null);
+
+                var rate_rauduoi = rauduoi / dodainen;
+                if (rate_rauduoi < 0.2m)
+                    return (false, null);
+
+                var rate_rautren = rautren / dodainen;
+                if (rate_rautren < 0.2m)
+                    return (false, null);
+
+                var countViolate = lData.SkipLast(1).TakeLast(5).Count(x => x.High > e_Cur.Open);
+                if (countViolate >= 2)
+                    return (false, null);
+
+                Console.WriteLine(e_Cur.Date.ToString("dd/MM/yyyy HH:mm"));
+
+
+                //var rateVolSig = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
+                //var rateVolCur = Math.Round(e_Pivot.Volume / e_Cur.Volume, 1);
+
+                //var flag = true
+                //        && e_Pivot.Open < e_Pivot.Close
+                //        && e_Pivot.High > (decimal)bb_Pivot.UpperBand.Value
+                //        && e_Pivot.Low > (decimal)bb_Pivot.Sma.Value
+                //        && e_Pivot.Volume >= 1.5m * (decimal)vol_Pivot.Sma.Value
+                //        && rateVolSig >= 2
+                //        && rateVolCur >= 2
+                //        && true;
+
+                //if (!flag)
+                //    return (false, null);
+
+                ////Đếm số nến
+                //var NUM_CHECK = 20;
+                //var lCheck = lData.Where(x => x.Date < e_Pivot.Date).TakeLast(NUM_CHECK);
+                //var count_UPMa20 = 0;
+                //var count_CUPMa20 = 0;
+                //var count_RED = 0;
+                //var lavg = new List<decimal>();
+                //var index = 0;
+                //double bb_Prev20 = 0;
+
+                //foreach (var itemzz in lCheck)
+                //{
+                //    var bb = lbb.First(x => x.Date == itemzz.Date);
+                //    if (index == 0)
+                //    {
+                //        bb_Prev20 = bb.UpperBand.Value - bb.LowerBand.Value;
+                //    }
+
+                //    if (itemzz.Low < (decimal)bb.Sma.Value)
+                //        count_UPMa20++;
+
+                //    if (itemzz.Close < (decimal)bb.Sma.Value)
+                //        count_CUPMa20++;
+
+                //    if (itemzz.Close < itemzz.Open)
+                //        count_RED++;
+
+                //    var len = Math.Round(100 * (-1 + itemzz.High / itemzz.Low), 2);
+                //    lavg.Add(len);
+                //    index++;
+                //}
+                //var avg = lavg.Average();
+
+                //var lenPivot = Math.Round(100 * (-1 + e_Pivot.High / e_Pivot.Low), 2);
+                //var lenPivotRate = Math.Round(lenPivot / avg, 1);
+                //if (lenPivotRate > 3m)
+                //    return (false, null);
+
+                //var lenCur = Math.Round(100 * (-1 + e_Cur.High / e_Cur.Low), 2);
+                //var lenCurRate = Math.Round(lenCur / avg, 1);
+                //if (lenCurRate > 1.5m)
+                //    return (false, null);
+
+                //var lenPrev5 = Math.Round(lCheck.TakeLast(5).Max(x => Math.Round(100 * (-1 + x.High / x.Low), 2)) / avg, 1);
+                //if (lenPrev5 > 3.5m)
+                //    return (false, null);
+
+                //var bbPivot = lbb.First(x => x.Date == e_Pivot.Date);
+                //var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
+                //if (bbRate20 > 4)
+                //    return (false, null);
+
+                //var rateUPMa20 = Math.Round(100 * (decimal)count_UPMa20 / NUM_CHECK, 1);
+                //var rateCUPMa20 = Math.Round(100 * (decimal)count_CUPMa20 / NUM_CHECK, 1);
+                //var rateRED = Math.Round(100 * (decimal)count_RED / NUM_CHECK, 1);
+                //if (false) { }
+                //else if (rateUPMa20 <= 20)
+                //{
+                //    return (false, null);
+                //}
+                //else if (rateUPMa20 == 100)
+                //{
+                //    if (rateCUPMa20 >= 85)
+                //        return (false, null);
+                //}
+                //else if (rateRED < 30)
+                //{
+                //    return (false, null);
+                //}
+
+
+                //var rateBB = (Math.Round(100 * (-1 + e_Cur.Close / (decimal)bb_Pivot.LowerBand.Value)) - 1);
+                //if (rateBB < BB_Min)
+                //{
+                //    return (false, null);
+                //}
+
+                //if (e_Cur.Close < Math.Min(e_Pivot.Open, e_Pivot.Close))
+                //{
+                //    return (false, null);
+                //}
+
+                return (true, e_Cur);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return (false, null);
+        }
     }
 }

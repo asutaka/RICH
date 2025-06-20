@@ -600,121 +600,121 @@ namespace TestPr.Service
                 var lTake = new List<string>
                 {
                     "ZEREBROUSDT",
-                    "MASKUSDT",
-                    "MOBILEUSDT",
-                    "FUSDT",
-                    "ALEOUSDT",
-                    "KOMAUSDT",
-                    "BADGERUSDT",
-                    "L3USDT",
-                    "DEXEUSDT",
-                    "FARTCOINUSDT",
-                    "SENDUSDT",
-                    "BEAMUSDT",
-                    "ETHFIUSDT",
-                    "ETHWUSDT",
-                    "ACXUSDT",
-                    "AIOZUSDT",
-                    "GMTUSDT",
-                    "DEGENUSDT",
-                    "HNTUSDT",
-                    "MNTUSDT",
-                    "MASAUSDT",
-                    "RAYDIUMUSDT",
-                    "LTCUSDT",
-                    "TIAUSDT",
-                    "XNOUSDT",
-                    "XVGUSDT",
-                    "ARPAUSDT",
-                    "POLUSDT",
-                    "ZEUSUSDT",
-                    "FLMUSDT",
-                    "SPELLUSDT",
-                    "CELOUSDT",
-                    "GALAUSDT",
-                    "AUCTIONUSDT",
-                    "JSTUSDT",
-                    "MKRUSDT",
-                    "HPOS10IUSDT",
-                    "DYDXUSDT",
-                    "ENSUSDT",
-                    "AKTUSDT",
-                    "THEUSDT",
-                    "WAXPUSDT",
-                    "SPECUSDT",
-                    "SWEATUSDT",
-                    "SSVUSDT",
-                    "AXSUSDT",
-                    "PROMUSDT",
-                    "EIGENUSDT",
-                    "MANTAUSDT",
-                    "HMSTRUSDT",
-                    "PEAQUSDT",
-                    "XAIUSDT",
-                    "ONEUSDT",
-                    "RLCUSDT",
-                    "KAIAUSDT",
-                    "FORTHUSDT",
-                    "GODSUSDT",
-                    "DYMUSDT",
-                    "ANKRUSDT",
-                    "ALPHAUSDT",
-                    "FLRUSDT",
-                    "HIVEUSDT",
-                    "OGNUSDT",
-                    "PRIMEUSDT",
-                    "LOOKSUSDT",
-                    "TUSDT",
-                    "XCHUSDT",
-                    "ROSEUSDT",
-                    "OPUSDT",
-                    "MVLUSDT",
-                    "HOTUSDT",
-                    "ORCAUSDT",
-                    "PONKEUSDT",
-                    "LQTYUSDT",
-                    "DOGEUSDT",
-                    "CLOUDUSDT",
-                    "AXLUSDT",
-                    "NEARUSDT",
-                    "ILVUSDT",
-                    "SKLUSDT",
-                    "UMAUSDT",
-                    "XLMUSDT",
-                    "SLPUSDT",
-                    "SUSHIUSDT",
-                    "IMXUSDT",
-                    "SCRUSDT",
-                    "OXTUSDT",
-                    "KASUSDT",
-                    "QUICKUSDT",
-                    "ORBSUSDT",
-                    "MINAUSDT",
-                    "MAVIAUSDT",
-                    "ONDOUSDT",
-                    "ARBUSDT",
-                    "APTUSDT",
-                    "1INCHUSDT",
-                    "FLOWUSDT",
-                    "CETUSUSDT",
-                    "CRVUSDT",
-                    "AAVEUSDT",
-                    "COREUSDT",
-                    "CATIUSDT",
-                    "BICOUSDT",
-                    "RIFUSDT",
-                    "PHAUSDT",
-                    "ENJUSDT",
-                    "GASUSDT",
-                    "DOGUSDT",
-                    "IDEXUSDT",
-                    "QTUMUSDT",
-                    "SOLUSDT",
-                    "XVSUSDT",
-                    "WUSDT",
-                    "SUPERUSDT",
-                    "BANANAUSDT",
-                    "CHILLGUYUSDT",
+                    //"MASKUSDT",
+                    //"MOBILEUSDT",
+                    //"FUSDT",
+                    //"ALEOUSDT",
+                    //"KOMAUSDT",
+                    //"BADGERUSDT",
+                    //"L3USDT",
+                    //"DEXEUSDT",
+                    //"FARTCOINUSDT",
+                    //"SENDUSDT",
+                    //"BEAMUSDT",
+                    //"ETHFIUSDT",
+                    //"ETHWUSDT",
+                    //"ACXUSDT",
+                    //"AIOZUSDT",
+                    //"GMTUSDT",
+                    //"DEGENUSDT",
+                    //"HNTUSDT",
+                    //"MNTUSDT",
+                    //"MASAUSDT",
+                    //"RAYDIUMUSDT",
+                    //"LTCUSDT",
+                    //"TIAUSDT",
+                    //"XNOUSDT",
+                    //"XVGUSDT",
+                    //"ARPAUSDT",
+                    //"POLUSDT",
+                    //"ZEUSUSDT",
+                    //"FLMUSDT",
+                    //"SPELLUSDT",
+                    //"CELOUSDT",
+                    //"GALAUSDT",
+                    //"AUCTIONUSDT",
+                    //"JSTUSDT",
+                    //"MKRUSDT",
+                    //"HPOS10IUSDT",
+                    //"DYDXUSDT",
+                    //"ENSUSDT",
+                    //"AKTUSDT",
+                    //"THEUSDT",
+                    //"WAXPUSDT",
+                    //"SPECUSDT",
+                    //"SWEATUSDT",
+                    //"SSVUSDT",
+                    //"AXSUSDT",
+                    //"PROMUSDT",
+                    //"EIGENUSDT",
+                    //"MANTAUSDT",
+                    //"HMSTRUSDT",
+                    //"PEAQUSDT",
+                    //"XAIUSDT",
+                    //"ONEUSDT",
+                    //"RLCUSDT",
+                    //"KAIAUSDT",
+                    //"FORTHUSDT",
+                    //"GODSUSDT",
+                    //"DYMUSDT",
+                    //"ANKRUSDT",
+                    //"ALPHAUSDT",
+                    //"FLRUSDT",
+                    //"HIVEUSDT",
+                    //"OGNUSDT",
+                    //"PRIMEUSDT",
+                    //"LOOKSUSDT",
+                    //"TUSDT",
+                    //"XCHUSDT",
+                    //"ROSEUSDT",
+                    //"OPUSDT",
+                    //"MVLUSDT",
+                    //"HOTUSDT",
+                    //"ORCAUSDT",
+                    //"PONKEUSDT",
+                    //"LQTYUSDT",
+                    //"DOGEUSDT",
+                    //"CLOUDUSDT",
+                    //"AXLUSDT",
+                    //"NEARUSDT",
+                    //"ILVUSDT",
+                    //"SKLUSDT",
+                    //"UMAUSDT",
+                    //"XLMUSDT",
+                    //"SLPUSDT",
+                    //"SUSHIUSDT",
+                    //"IMXUSDT",
+                    //"SCRUSDT",
+                    //"OXTUSDT",
+                    //"KASUSDT",
+                    //"QUICKUSDT",
+                    //"ORBSUSDT",
+                    //"MINAUSDT",
+                    //"MAVIAUSDT",
+                    //"ONDOUSDT",
+                    //"ARBUSDT",
+                    //"APTUSDT",
+                    //"1INCHUSDT",
+                    //"FLOWUSDT",
+                    //"CETUSUSDT",
+                    //"CRVUSDT",
+                    //"AAVEUSDT",
+                    //"COREUSDT",
+                    //"CATIUSDT",
+                    //"BICOUSDT",
+                    //"RIFUSDT",
+                    //"PHAUSDT",
+                    //"ENJUSDT",
+                    //"GASUSDT",
+                    //"DOGUSDT",
+                    //"IDEXUSDT",
+                    //"QTUMUSDT",
+                    //"SOLUSDT",
+                    //"XVSUSDT",
+                    //"WUSDT",
+                    //"SUPERUSDT",
+                    //"BANANAUSDT",
+                    //"CHILLGUYUSDT",
                 };
                 var lRank = new List<clsShow>();
 
@@ -722,7 +722,7 @@ namespace TestPr.Service
                 {
                     try
                     {
-                        var res20 = await Bybit_SHORT(s, 20);
+                        var res20 = await Bybit_SHORT2(s, 20);
                         Thread.Sleep(1000);
                     }
                     catch (Exception ex)
@@ -1054,6 +1054,285 @@ namespace TestPr.Service
                                 //var bbPivot = lbb.First(x => x.Date == entity_Pivot.Date);
                                 //var bbRate10 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev10, 1);
                                 //var bbRate20 = Math.Round((bbPivot.UpperBand.Value - bbPivot.LowerBand.Value) / bb_Prev20, 1);
+
+                                //////////////////////////////////////////////////////////////////////////////
+                                var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
+                                //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
+                                mesItem = mesItem.Replace("|", ",");
+                                Console.WriteLine(mesItem);
+                                //lRate.Add(rate);
+                                lModel.Add(new clsData
+                                {
+                                    s = sym,
+                                    Date = entity_Pivot.Date,
+                                    Rate = rate,
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"SyncDataService.Bybit_LONG|EXCEPTION| {ex.Message}");
+                            }
+
+                        }
+
+                        if (winCount + lossCount <= 0)
+                            continue;
+
+                        var rateRes = Math.Round(((decimal)winCount / (winCount + lossCount)), 2);
+                        var sumRate = lModel.Where(x => x.s == sym).Sum(x => x.Rate);
+                        var count = lModel.Count(x => x.s == sym);
+                        var items = lModel.Where(x => x.s == sym);
+                        var perRate = Math.Round((float)sumRate / count, 1);
+                        var realWin = 0;
+                        foreach (var model in items)
+                        {
+                            if (model.Rate > (decimal)0)
+                                realWin++;
+                        }
+
+                        winTotal += winCount;
+                        lossTotal += lossCount;
+                        winCount = 0;
+                        lossCount = 0;
+
+                        var winrate = Math.Round((double)realWin / count, 1);
+
+                        var mes = $"{sym}\t\t\t| W/Total: {realWin}/{count} = {winrate}%|Rate: {sumRate}%|Per: {perRate}%";
+                        //Console.WriteLine(mes);
+
+                        lResult.Add(new clsResult
+                        {
+                            s = sym,
+                            Win = realWin,
+                            Winrate = winrate,
+                            Sumrate = sumRate,
+                            Perate = perRate,
+                            Total = count,
+                            Mes = mes
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{sym}| {ex.Message}");
+                    }
+                }
+
+                var lRes = lResult.OrderByDescending(x => x.Winrate).ThenByDescending(x => x.Win).ThenByDescending(x => x.Perate).ToList();
+
+                foreach (var item in lRes)
+                {
+                    Console.WriteLine(item.Mes);
+                }
+
+                Console.WriteLine($"Tong: {lModel.Sum(x => x.Rate)}%|W/L: {winTotal}/{lossTotal}");
+
+
+                var end = DateTime.Now;
+                Console.WriteLine($"TotalTime: {(end - start).TotalSeconds}");
+
+                return lResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.Bybit_SHORT|EXCEPTION| {ex.Message}");
+            }
+
+            return null;
+        }
+
+        public async Task<List<clsResult>> Bybit_SHORT2(string s = "", int DAY = 20, int SKIP_DAY = 0)
+        {
+            try
+            {
+                //var DAY = 150;
+                int HOUR = 8;
+                var start = DateTime.UtcNow;
+                var exchange = (int)EExchange.Bybit;
+                var builder = Builders<Symbol>.Filter;
+                var lSym = _symRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, exchange),
+                    builder.Eq(x => x.ty, (int)OrderSide.Sell),
+                    builder.Eq(x => x.status, 0)
+                ));
+                decimal SL_RATE = 3m;
+                decimal rateProfit_Min = 2.5m;
+                decimal rateProfit_Max = 7m;
+
+                var lModel = new List<clsData>();
+                var lResult = new List<clsResult>();
+
+                var winTotal = 0;
+                var lossTotal = 0;
+
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    lSym.Clear();
+                    lSym.Add(new Symbol
+                    {
+                        s = s,
+                    });
+                }
+                var dic = new Dictionary<string, List<Quote>>();
+                foreach (var sym in lSym.Select(x => x.s))
+                {
+                    if (sym.Contains('-'))
+                        continue;
+                    var winCount = 0;
+                    var lossCount = 0;
+                    try
+                    {
+                        var lData15m = await GetData(sym, DAY, SKIP_DAY);
+                        var count = lData15m.Count();
+                        //var lbb = lData15m.GetBollingerBands();
+                        var lAdd = new List<Quote>();
+                        for (int i = 0; i < count; i++)
+                        {
+                            var element = lData15m[i];
+                            //var element_BB = lbb.ElementAt(i);
+                            //var upMA20 = element_BB.Sma is null ? -1 : (element.Close >= (decimal)element_BB.Sma.Value ? 1 : 0);
+                            //var rateUP = -1;
+                            //var rateDOWN = -1;
+                            //if (upMA20 == 1)
+                            //{
+                            //    var is1_3 = Math.Abs(element.Close - (decimal)element_BB.Sma.Value) >= 2 * Math.Abs((decimal)element_BB.UpperBand.Value - element.Close);
+                            //    rateUP = is1_3 ? 1 : 0;
+                            //}
+                            //else if (upMA20 == 0)
+                            //{
+                            //    var is1_3 = Math.Abs(element.Close - (decimal)element_BB.Sma.Value) >= 2 * Math.Abs((decimal)element_BB.LowerBand.Value - element.Close);
+                            //    rateDOWN = is1_3 ? 1 : 0;
+                            //}
+                            lAdd.Add(element);
+                        }
+                        dic.Add(sym, lAdd);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{sym}| {ex.Message}");
+                    }
+                }
+
+                foreach (var sym in dic.Select(x => x.Key))
+                {
+                    var element = lSym.First(x => x.s == sym);
+                    //if (element.op != (int)EOrderSideOption.OP_2)
+                    //    continue;
+
+                    var winCount = 0;
+                    var lossCount = 0;
+                    try
+                    {
+                        var lData15m = dic[sym];
+                        var lbb = lData15m.GetBollingerBands();
+                        var lrsi = lData15m.GetRsi();
+                        var lVol = lData15m.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).ToList();
+                        var lMaVol = lVol.GetSma(20);
+
+                        DateTime dtFlag = DateTime.MinValue;
+                        foreach (var cur in lData15m)
+                        {
+                            try
+                            {
+                                if (cur.Date <= dtFlag)
+                                    continue;
+
+                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagSell2();
+                                if (!flag.Item1)
+                                    continue;
+
+                                var entity_Pivot = flag.Item2;
+                                var entity_Sig = lData15m.Last(x => x.Date < entity_Pivot.Date);
+                                var bb_Pivot = lbb.First(x => x.Date == entity_Pivot.Date);
+
+                                var rateBB = (decimal)(Math.Round(100 * (-1 + bb_Pivot.UpperBand.Value / bb_Pivot.LowerBand.Value)) - 1);
+                                if (rateBB > rateProfit_Max)
+                                {
+                                    rateBB = rateProfit_Max;
+                                }
+                                else if (rateBB < rateProfit_Min)
+                                {
+                                    rateBB = rateProfit_Min;
+                                }
+
+                                var lClose = lData15m.Where(x => x.Date > entity_Pivot.Date && x.Date <= entity_Pivot.Date.AddHours(HOUR));
+                                var closeCount = lClose.Count();
+                                var isEnd = closeCount == HOUR * 4;
+
+                                var isChotNon = false;
+                                Quote eClose = null;
+                                foreach (var itemClose in lClose)
+                                {
+                                    if ((itemClose.Date - entity_Pivot.Date).TotalHours >= 1
+                                        && itemClose.Close < entity_Pivot.Close
+                                        && itemClose.Close > entity_Sig.Open)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+                                    var ma = lbb.First(x => x.Date == itemClose.Date);
+                                    if (itemClose.Low < (decimal)ma.LowerBand)//do something
+                                    {
+                                        itemClose.Close = (decimal)ma.LowerBand;
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (isChotNon
+                                       && itemClose.Close > (decimal)ma.Sma.Value
+                                       && itemClose.Close >= itemClose.Open
+                                       && itemClose.Close <= entity_Pivot.Close)
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    if (itemClose.Close <= (decimal)ma.Sma.Value)
+                                    {
+                                        isChotNon = true;
+                                    }
+
+                                    var rateH = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.Low), 1);
+                                    if (rateH >= rateBB)
+                                    {
+                                        var close = entity_Pivot.Close * (decimal)(1 - rateBB / 100);
+                                        itemClose.Close = close;
+                                        eClose = itemClose;
+                                        break;
+                                    }
+                                    var rateL = Math.Round(100 * (-1 + entity_Pivot.Close / itemClose.High), 1);
+                                    if (rateL <= -SL_RATE)
+                                    {
+                                        var close = entity_Pivot.Close * (decimal)(1 + SL_RATE / 100);
+                                        itemClose.Close = close;
+                                        eClose = itemClose;
+                                        break;
+                                    }
+
+                                    eClose = itemClose;
+                                }
+                                if (!isEnd)
+                                {
+                                    continue;
+                                }
+
+                                dtFlag = eClose.Date;
+                                var rate = Math.Round(100 * (-1 + entity_Pivot.Close / eClose.Close), 2);
+                                var lRange = lData15m.Where(x => x.Date >= entity_Pivot.Date.AddMinutes(15) && x.Date <= eClose.Date);
+
+                                var winloss = "W";
+                                if (rate <= (decimal)0)
+                                {
+                                    winloss = "L";
+                                    lossCount++;
+                                }
+                                else
+                                {
+                                    winCount++;
+                                }
 
                                 //////////////////////////////////////////////////////////////////////////////
                                 var mesItem = $"{sym}|{winloss}|ENTRY: {entity_Pivot.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%";
