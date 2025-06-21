@@ -31,7 +31,6 @@ namespace TradePr.Service
         private readonly decimal _TP_RATE_MIN = 0.025m;
         private readonly decimal _TP_RATE_MAX = 0.07m;
         private readonly int _exchange = (int)EExchange.Bybit;
-        private Dictionary<string, List<Quote>> _dData = new Dictionary<string, List<Quote>>();
 
         public BybitService(ILogger<BybitService> logger,
                             IAPIService apiService, ITeleService teleService, IPlaceOrderTradeRepo placeRepo, ISymbolRepo symRepo,
@@ -73,17 +72,6 @@ namespace TradePr.Service
                 var flagLong = disableLong != null;
                 var flagShort = disableShort != null;
 
-                //if (flagShort)
-                //{
-                //    var builder = Builders<Prepare>.Filter;
-                //    _prepareRepo.DeleteMany(builder.And(
-                //        builder.Eq(x => x.ex, _exchange),
-                //        builder.Eq(x => x.side, (int)OrderSide.Sell)
-                //    ));
-                //}
-
-                //await Entry_SHORT();
-
                 if (dt.Minute % 15 == 0)
                 {
                     if (!flagLong)
@@ -107,8 +95,6 @@ namespace TradePr.Service
                         )).OrderBy(x => x.rank).ToList();
                         await Bybit_TradeRSI_SHORT(lShort);
                     }
-
-                    _dData.Clear();
                 }
             }
             catch(Exception ex)
@@ -203,7 +189,7 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var l15m = await GetData(sym.s, false);
+                        var l15m = await GetData(sym.s);
                         if (l15m is null || !l15m.Any())
                             continue;
 
@@ -302,29 +288,14 @@ namespace TradePr.Service
             //}
         }
 
-        private async Task<List<Quote>> GetData(string symbol, bool isOverride)
+        private async Task<List<Quote>> GetData(string symbol)
         {
             try
             {
-                if(!isOverride)
-                {
-                    if (_dData.ContainsKey(symbol))
-                        return _dData[symbol].ToList();
-                }
-               
                 var l15m = await _apiService.GetData_Bybit(symbol, DateTime.MinValue);
                 Thread.Sleep(100);
                 if (l15m is null || !l15m.Any())
                     return null;
-
-                if (_dData.ContainsKey(symbol))
-                {
-                    _dData[symbol] = l15m;
-                }
-                else
-                {
-                    _dData.Add(symbol, l15m);
-                }
 
                 return l15m.ToList();
             }
@@ -373,7 +344,7 @@ namespace TradePr.Service
                     }
                     else
                     {
-                        var l15m = await GetData(item.Symbol, true);
+                        var l15m = await GetData(item.Symbol);
                         if (l15m is null || !l15m.Any())
                             continue;
 
