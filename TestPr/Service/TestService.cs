@@ -36,17 +36,24 @@ namespace TestPr.Service
             {
                 var start = DateTime.UtcNow;
                 var day = start.AddDays(-DAY);
+                var skip = DateTime.MinValue;
+                if(SKIP_DAY > 0)
+                {
+                    skip = start.AddDays(-SKIP_DAY);
+                }    
+
                 if (_dicData.ContainsKey(sym))
                 {
-                    var skip = start.AddDays(-SKIP_DAY);
                     var dat = _dicData[sym];
-                    var lData = dat.Where(x => x.Date >= day && x.Date < skip).ToList();
+                    var lData = dat.Where(x => x.Date >= day && (skip == DateTime.MinValue || x.Date < skip)).ToList();
                     return lData;
                 } 
 
                 var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-DAY));
                 _dicData.Add(sym, lData15m);
-                return lData15m;
+
+
+                return lData15m.Where(x => (skip == DateTime.MinValue || x.Date < skip)).ToList();;
             }
             catch (Exception ex)
             {
@@ -597,17 +604,15 @@ namespace TestPr.Service
             try
             {
                 var dt = DateTime.UtcNow;
-                var lTake = new List<string>
+                var lTake = new List<string>//Origin
                 {
                     "ZEREBROUSDT",
                     "MASKUSDT",
-                    "MOBILEUSDT",
                     "FUSDT",
                     "ALEOUSDT",
                     "KOMAUSDT",
                     "BADGERUSDT",
                     "L3USDT",
-                    "DEXEUSDT",
                     "FARTCOINUSDT",
                     "SENDUSDT",
                     "BEAMUSDT",
@@ -622,12 +627,9 @@ namespace TestPr.Service
                     "MASAUSDT",
                     "RAYDIUMUSDT",
                     "LTCUSDT",
-                    "TIAUSDT",
                     "XNOUSDT",
-                    "XVGUSDT",
                     "ARPAUSDT",
                     "POLUSDT",
-                    "ZEUSUSDT",
                     "FLMUSDT",
                     "SPELLUSDT",
                     "CELOUSDT",
@@ -648,10 +650,6 @@ namespace TestPr.Service
                     "PROMUSDT",
                     "EIGENUSDT",
                     "MANTAUSDT",
-                    "HMSTRUSDT",
-                    "PEAQUSDT",
-                    "XAIUSDT",
-                    "ONEUSDT",
                     "RLCUSDT",
                     "KAIAUSDT",
                     "FORTHUSDT",
@@ -659,16 +657,13 @@ namespace TestPr.Service
                     "DYMUSDT",
                     "ANKRUSDT",
                     "ALPHAUSDT",
-                    "FLRUSDT",
                     "HIVEUSDT",
                     "OGNUSDT",
                     "PRIMEUSDT",
                     "LOOKSUSDT",
-                    "TUSDT",
                     "XCHUSDT",
                     "ROSEUSDT",
                     "OPUSDT",
-                    "MVLUSDT",
                     "HOTUSDT",
                     "ORCAUSDT",
                     "PONKEUSDT",
@@ -716,13 +711,50 @@ namespace TestPr.Service
                     "BANANAUSDT",
                     "CHILLGUYUSDT",
                 };
+                //var lTake = new List<string>//Doji
+                //{
+                //    "SXPUSDT",
+                //    "EDUUSDT",
+                //    "FIOUSDT",
+                //    "DEXEUSDT",
+                //    "XVGUSDT",
+                //    "FIDAUSDT",
+                //    "FLRUSDT",
+                //    "MVLUSDT",
+                //    "JUPUSDT",
+                //    "PHBUSDT",
+                //    "OSMOUSDT",
+                //    "TUSDT",
+                //    "XAIUSDT",
+                //    "TIAUSDT",
+                //    "PERPUSDT",
+                //    "RSRUSDT",
+                //    "ONEUSDT",
+                //    "AVAILUSDT",
+                //    "CARVUSDT",
+                //    "CVCUSDT",
+                //    "MOBILEUSDT",
+                //    "ZEUSUSDT",
+                //    "AUDIOUSDT",
+                //    "LUMIAUSDT",
+                //    "GIGAUSDT",
+                //    "CTKUSDT",
+                //    "HMSTRUSDT",
+                //    "PIXELUSDT",
+                //    "PEAQUSDT",
+                //    "WOOUSDT",
+                //    "ONGUSDT",
+                //    "ICXUSDT",
+                //    "YFIUSDT",
+                //    "STGUSDT",
+                //};
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
                 {
                     try
                     {
-                        var res20 = await Bybit_SHORT(s, 20);
+                        var res20 = await Bybit_SHORT(s, 60, 40);
                         Thread.Sleep(1000);
                     }
                     catch (Exception ex)
@@ -746,20 +778,20 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(400).Take(200);
+                var lTake = lUsdt.Skip(0).Take(400);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
                 {
                     try
                     {
-                        var res180 = await Bybit_SHORT(s, 180);
+                        var res180 = await Bybit_SHORT2(s, 180);
                         //var res10 = await Bybit_SHORT(s, 10);
-                        var res20 = await Bybit_SHORT(s, 20);
+                        var res20 = await Bybit_SHORT2(s, 20);
                         //var res30 = await Bybit_SHORT(s, 30);
-                        var res60 = await Bybit_SHORT(s, 60, 20);
-                        var res90 = await Bybit_SHORT(s, 90, 60);
-                        var res150 = await Bybit_SHORT(s, 150, 90);
+                        var res60 = await Bybit_SHORT2(s, 60, 20);
+                        var res90 = await Bybit_SHORT2(s, 90, 60);
+                        var res150 = await Bybit_SHORT2(s, 150, 90);
                         Thread.Sleep(1000);
 
                         var total = res20.First().Total

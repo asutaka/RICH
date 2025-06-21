@@ -434,6 +434,11 @@ namespace CoinUtilsPr
                 if (!flag)
                     return (false, null);
 
+                //Độ dài nến hiện tại
+                var rateCur = 100 * (-1 + e_Cur.High / e_Cur.Low);
+                if(rateCur > 5)
+                    return (false, null);
+
                 //Đếm số nến
                 var NUM_CHECK = 20;
                 var lCheck = lData.Where(x => x.Date < e_Pivot.Date).TakeLast(NUM_CHECK);
@@ -590,7 +595,7 @@ namespace CoinUtilsPr
                 if (countViolate >= 2)
                     return (false, null);
 
-                Console.WriteLine(e_Cur.Date.ToString("dd/MM/yyyy HH:mm"));
+                //Console.WriteLine(e_Cur.Date.ToString("dd/MM/yyyy HH:mm"));
 
 
                 //var rateVolSig = Math.Round(e_Pivot.Volume / e_Sig.Volume, 1);
