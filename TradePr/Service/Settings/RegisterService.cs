@@ -10,7 +10,6 @@ namespace TradePr.Service.Settings
             services.AddSingleton<IBybitService, BybitService>();
             services.AddSingleton<IAPIService, APIService>();
             services.AddSingleton<ITeleService, TeleService>();
-            services.AddSingleton<ISyncDataService, SyncDataService>();
             services.AddSingleton<IWebSocketService, WebSocketService>();
             services.AddSingleton<IBybitSocketService, BybitSocketService>();
         }

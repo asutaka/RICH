@@ -3,7 +3,6 @@ using Bybit.Net.Objects.Models.V5;
 using CoinUtilsPr;
 using CoinUtilsPr.DAL;
 using CoinUtilsPr.DAL.Entity;
-using CryptoExchange.Net.Objects;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
