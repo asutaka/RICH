@@ -968,13 +968,13 @@ namespace TestPr.Service
                                 Quote eClose = null;
                                 foreach (var itemClose in lClose)
                                 {
-                                    //if ((itemClose.Date - entity_Pivot.Date).TotalHours >= 1
-                                    //    && itemClose.Close < entity_Pivot.Close
-                                    //    && itemClose.Close > entity_Sig.Open)
-                                    //{
-                                    //    eClose = itemClose;
-                                    //    break;
-                                    //}
+                                    if ((itemClose.Date - entity_Pivot.Date).TotalHours >= 1
+                                        && itemClose.Close < entity_Pivot.Close
+                                        && itemClose.Close > Math.Min(entity_Pivot.Open, entity_Pivot.Close))
+                                    {
+                                        eClose = itemClose;
+                                        break;
+                                    }
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
                                     if (itemClose.Low < (decimal)ma.LowerBand)//do something
                                     {
