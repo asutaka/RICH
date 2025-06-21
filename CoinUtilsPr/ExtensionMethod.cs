@@ -436,7 +436,7 @@ namespace CoinUtilsPr
 
                 //Độ dài nến hiện tại
                 var rateCur = 100 * (-1 + e_Cur.High / e_Cur.Low);
-                if(rateCur > 5)
+                if(rateCur > 4 && e_Cur.Open > e_Cur.Close)
                     return (false, null);
 
                 //Đếm số nến

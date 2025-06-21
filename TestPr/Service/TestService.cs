@@ -607,7 +607,6 @@ namespace TestPr.Service
                 var lTake = new List<string>//Origin
                 {
                     "ZEREBROUSDT",
-                    "MASKUSDT",
                     "FUSDT",
                     "ALEOUSDT",
                     "KOMAUSDT",
@@ -633,11 +632,9 @@ namespace TestPr.Service
                     "FLMUSDT",
                     "SPELLUSDT",
                     "CELOUSDT",
-                    "GALAUSDT",
                     "AUCTIONUSDT",
                     "JSTUSDT",
                     "MKRUSDT",
-                    "HPOS10IUSDT",
                     "DYDXUSDT",
                     "ENSUSDT",
                     "AKTUSDT",
@@ -754,7 +751,7 @@ namespace TestPr.Service
                 {
                     try
                     {
-                        var res20 = await Bybit_SHORT(s, 60, 40);
+                        var res20 = await Bybit_SHORT(s, 20);
                         Thread.Sleep(1000);
                     }
                     catch (Exception ex)
