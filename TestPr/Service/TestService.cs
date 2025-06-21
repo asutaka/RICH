@@ -1278,7 +1278,7 @@ namespace TestPr.Service
                                 if (cur.Date <= dtFlag)
                                     continue;
 
-                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagSell2();
+                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagSell_Doji();
                                 if (!flag.Item1)
                                     continue;
 
@@ -1304,13 +1304,13 @@ namespace TestPr.Service
                                 Quote eClose = null;
                                 foreach (var itemClose in lClose)
                                 {
-                                    if ((itemClose.Date - entity_Pivot.Date).TotalHours >= 1
-                                        && itemClose.Close < entity_Pivot.Close
-                                        && itemClose.Close > entity_Sig.Open)
-                                    {
-                                        eClose = itemClose;
-                                        break;
-                                    }
+                                    //if ((itemClose.Date - entity_Pivot.Date).TotalHours >= 1
+                                    //    && itemClose.Close < entity_Pivot.Close
+                                    //    && itemClose.Close > entity_Sig.Open)
+                                    //{
+                                    //    eClose = itemClose;
+                                    //    break;
+                                    //}
                                     var ma = lbb.First(x => x.Date == itemClose.Date);
                                     if (itemClose.Low < (decimal)ma.LowerBand)//do something
                                     {

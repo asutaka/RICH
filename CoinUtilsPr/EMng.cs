@@ -77,4 +77,11 @@ namespace CoinUtilsPr
         Max800 = 800,
         Max1000 = 1000,
     }
+
+    public enum EOptionTrade
+    {
+        None = -1,
+        Normal = 0,
+        Doji = 1
+    }
 }
