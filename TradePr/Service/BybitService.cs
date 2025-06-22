@@ -80,7 +80,7 @@ namespace TradePr.Service
                             builderLONG.Eq(x => x.ty, (int)OrderSide.Buy),
                             builderLONG.Eq(x => x.status, 0)
                         )).OrderBy(x => x.rank).ToList();
-                        //await Bybit_TradeRSI_LONG(lLong);
+                        await Bybit_TradeRSI_LONG(lLong);
                     }
 
                     if (!flagShort)
