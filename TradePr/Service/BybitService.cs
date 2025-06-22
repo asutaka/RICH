@@ -121,11 +121,15 @@ namespace TradePr.Service
                         if (last.Volume <= 0)
                             continue;
 
-                        EOptionTrade eOp = EOptionTrade.None;
-                        var flag = l15m.SkipLast(1).IsFlagBuy_Doji();
-                        if (flag.Item1)
+                        var eOp = EOptionTrade.None;
+                        (bool, QuoteEx) flag = (false, null);
+                        if (sym.op == (int)EOptionTrade.Doji)
                         {
-                            eOp = EOptionTrade.Doji;
+                            flag = l15m.SkipLast(1).IsFlagBuy_Doji();
+                            if (flag.Item1)
+                            {
+                                eOp = EOptionTrade.Doji;
+                            }
                         }
                         else
                         {
@@ -200,11 +204,15 @@ namespace TradePr.Service
                         if (last.Volume <= 0)
                             continue;
 
-                        EOptionTrade eOp = EOptionTrade.None;
-                        var flag = l15m.SkipLast(1).IsFlagSell_Doji();
-                        if (flag.Item1)
+                        var eOp = EOptionTrade.None;
+                        (bool, QuoteEx) flag = (false, null);
+                        if(sym.op == (int)EOptionTrade.Doji)
                         {
-                            eOp = EOptionTrade.Doji;
+                            flag = l15m.SkipLast(1).IsFlagSell_Doji();
+                            if (flag.Item1)
+                            {
+                                eOp = EOptionTrade.Doji;
+                            }
                         }
                         else
                         {
