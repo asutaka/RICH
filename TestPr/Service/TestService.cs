@@ -17,6 +17,10 @@ namespace TestPr.Service
         Task PreTestSHORT();
         Task ListShort();
         Task<List<clsResult>> Bybit_SHORT(string s = "", int DAY = 20, int SKIP_DAY = 0);
+
+        Task PreTestSHORT_DOJI();
+        Task ListShort_DOJI();
+        Task<List<clsResult>> Bybit_SHORT_DOJI(string s = "", int DAY = 20, int SKIP_DAY = 0);
     }
     public class TestService : ITestService
     {
@@ -604,146 +608,109 @@ namespace TestPr.Service
             try
             {
                 var dt = DateTime.UtcNow;
-                //var lTake = new List<string>//Origin
-                //{
-                //    "ZEREBROUSDT",
-                //    "FUSDT",
-                //    "ALEOUSDT",
-                //    "KOMAUSDT",
-                //    "BADGERUSDT",
-                //    "L3USDT",
-                //    "FARTCOINUSDT",
-                //    "SENDUSDT",
-                //    "BEAMUSDT",
-                //    "ETHFIUSDT",
-                //    "ETHWUSDT",
-                //    "ACXUSDT",
-                //    "AIOZUSDT",
-                //    "GMTUSDT",
-                //    "DEGENUSDT",
-                //    "HNTUSDT",
-                //    "MNTUSDT",
-                //    "MASAUSDT",
-                //    "RAYDIUMUSDT",
-                //    "LTCUSDT",
-                //    "XNOUSDT",
-                //    "ARPAUSDT",
-                //    "POLUSDT",
-                //    "FLMUSDT",
-                //    "SPELLUSDT",
-                //    "CELOUSDT",
-                //    "AUCTIONUSDT",
-                //    "JSTUSDT",
-                //    "MKRUSDT",
-                //    "DYDXUSDT",
-                //    "ENSUSDT",
-                //    "AKTUSDT",
-                //    "THEUSDT",
-                //    "WAXPUSDT",
-                //    "SPECUSDT",
-                //    "SWEATUSDT",
-                //    "SSVUSDT",
-                //    "AXSUSDT",
-                //    "PROMUSDT",
-                //    "EIGENUSDT",
-                //    "MANTAUSDT",
-                //    "RLCUSDT",
-                //    "KAIAUSDT",
-                //    "FORTHUSDT",
-                //    "GODSUSDT",
-                //    "DYMUSDT",
-                //    "ANKRUSDT",
-                //    "ALPHAUSDT",
-                //    "HIVEUSDT",
-                //    "OGNUSDT",
-                //    "PRIMEUSDT",
-                //    "LOOKSUSDT",
-                //    "XCHUSDT",
-                //    "ROSEUSDT",
-                //    "OPUSDT",
-                //    "HOTUSDT",
-                //    "ORCAUSDT",
-                //    "PONKEUSDT",
-                //    "LQTYUSDT",
-                //    "DOGEUSDT",
-                //    "CLOUDUSDT",
-                //    "AXLUSDT",
-                //    "NEARUSDT",
-                //    "ILVUSDT",
-                //    "SKLUSDT",
-                //    "UMAUSDT",
-                //    "XLMUSDT",
-                //    "SLPUSDT",
-                //    "SUSHIUSDT",
-                //    "IMXUSDT",
-                //    "SCRUSDT",
-                //    "OXTUSDT",
-                //    "KASUSDT",
-                //    "QUICKUSDT",
-                //    "ORBSUSDT",
-                //    "MINAUSDT",
-                //    "MAVIAUSDT",
-                //    "ONDOUSDT",
-                //    "ARBUSDT",
-                //    "APTUSDT",
-                //    "1INCHUSDT",
-                //    "FLOWUSDT",
-                //    "CETUSUSDT",
-                //    "CRVUSDT",
-                //    "AAVEUSDT",
-                //    "COREUSDT",
-                //    "CATIUSDT",
-                //    "BICOUSDT",
-                //    "RIFUSDT",
-                //    "PHAUSDT",
-                //    "ENJUSDT",
-                //    "GASUSDT",
-                //    "DOGUSDT",
-                //    "IDEXUSDT",
-                //    "QTUMUSDT",
-                //    "SOLUSDT",
-                //    "XVSUSDT",
-                //    "WUSDT",
-                //    "SUPERUSDT",
-                //    "BANANAUSDT",
-                //    "CHILLGUYUSDT",
-                //};
-                var lTake = new List<string>//Doji
+                var lTake = new List<string>//Origin
                 {
-                    "SXPUSDT",
-                    "EDUUSDT",
-                    "FIOUSDT",
-                    "DEXEUSDT",
-                    "XVGUSDT",
-                    "FIDAUSDT",
-                    "FLRUSDT",
-                    "MVLUSDT",
-                    "JUPUSDT",
-                    "PHBUSDT",
-                    "OSMOUSDT",
-                    "TUSDT",
-                    "XAIUSDT",
-                    "TIAUSDT",
-                    "PERPUSDT",
-                    "RSRUSDT",
-                    "ONEUSDT",
-                    "AVAILUSDT",
-                    "CARVUSDT",
-                    "CVCUSDT",
-                    "MOBILEUSDT",
-                    "ZEUSUSDT",
-                    "AUDIOUSDT",
-                    "LUMIAUSDT",
-                    "GIGAUSDT",
-                    "CTKUSDT",
-                    "HMSTRUSDT",
-                    "PIXELUSDT",
-                    "PEAQUSDT",
-                    "WOOUSDT",
-                    "ONGUSDT",
-                    "ICXUSDT",
-                    "YFIUSDT",
-                    "STGUSDT",
+                    "ZEREBROUSDT",
+                    "FUSDT",
+                    "ALEOUSDT",
+                    "KOMAUSDT",
+                    "BADGERUSDT",
+                    "L3USDT",
+                    "FARTCOINUSDT",
+                    "SENDUSDT",
+                    "BEAMUSDT",
+                    "ETHFIUSDT",
+                    "ETHWUSDT",
+                    "ACXUSDT",
+                    "AIOZUSDT",
+                    "GMTUSDT",
+                    "DEGENUSDT",
+                    "HNTUSDT",
+                    "MNTUSDT",
+                    "MASAUSDT",
+                    "RAYDIUMUSDT",
+                    "LTCUSDT",
+                    "XNOUSDT",
+                    "ARPAUSDT",
+                    "POLUSDT",
+                    "FLMUSDT",
+                    "SPELLUSDT",
+                    "CELOUSDT",
+                    "AUCTIONUSDT",
+                    "JSTUSDT",
+                    "MKRUSDT",
+                    "DYDXUSDT",
+                    "ENSUSDT",
+                    "AKTUSDT",
+                    "THEUSDT",
+                    "WAXPUSDT",
+                    "SPECUSDT",
+                    "SWEATUSDT",
+                    "SSVUSDT",
+                    "AXSUSDT",
+                    "PROMUSDT",
+                    "EIGENUSDT",
+                    "MANTAUSDT",
+                    "RLCUSDT",
+                    "KAIAUSDT",
+                    "FORTHUSDT",
+                    "GODSUSDT",
+                    "DYMUSDT",
+                    "ANKRUSDT",
+                    "ALPHAUSDT",
+                    "HIVEUSDT",
+                    "OGNUSDT",
+                    "PRIMEUSDT",
+                    "LOOKSUSDT",
+                    "XCHUSDT",
+                    "ROSEUSDT",
+                    "OPUSDT",
+                    "HOTUSDT",
+                    "ORCAUSDT",
+                    "PONKEUSDT",
+                    "LQTYUSDT",
+                    "DOGEUSDT",
+                    "CLOUDUSDT",
+                    "AXLUSDT",
+                    "NEARUSDT",
+                    "ILVUSDT",
+                    "SKLUSDT",
+                    "UMAUSDT",
+                    "XLMUSDT",
+                    "SLPUSDT",
+                    "SUSHIUSDT",
+                    "IMXUSDT",
+                    "SCRUSDT",
+                    "OXTUSDT",
+                    "KASUSDT",
+                    "QUICKUSDT",
+                    "ORBSUSDT",
+                    "MINAUSDT",
+                    "MAVIAUSDT",
+                    "ONDOUSDT",
+                    "ARBUSDT",
+                    "APTUSDT",
+                    "1INCHUSDT",
+                    "FLOWUSDT",
+                    "CETUSUSDT",
+                    "CRVUSDT",
+                    "AAVEUSDT",
+                    "COREUSDT",
+                    "CATIUSDT",
+                    "BICOUSDT",
+                    "RIFUSDT",
+                    "PHAUSDT",
+                    "ENJUSDT",
+                    "GASUSDT",
+                    "DOGUSDT",
+                    "IDEXUSDT",
+                    "QTUMUSDT",
+                    "SOLUSDT",
+                    "XVSUSDT",
+                    "WUSDT",
+                    "SUPERUSDT",
+                    "BANANAUSDT",
+                    "CHILLGUYUSDT",
                 };
                 var lRank = new List<clsShow>();
 
@@ -751,7 +718,7 @@ namespace TestPr.Service
                 {
                     try
                     {
-                        var res20 = await Bybit_SHORT2(s, 20);
+                        var res20 = await Bybit_SHORT(s, 20);
                         Thread.Sleep(1000);
                     }
                     catch (Exception ex)
@@ -782,13 +749,11 @@ namespace TestPr.Service
                 {
                     try
                     {
-                        var res180 = await Bybit_SHORT2(s, 180);
-                        //var res10 = await Bybit_SHORT(s, 10);
-                        var res20 = await Bybit_SHORT2(s, 20);
-                        //var res30 = await Bybit_SHORT(s, 30);
-                        var res60 = await Bybit_SHORT2(s, 60, 20);
-                        var res90 = await Bybit_SHORT2(s, 90, 60);
-                        var res150 = await Bybit_SHORT2(s, 150, 90);
+                        var res180 = await Bybit_SHORT(s, 180);
+                        var res20 = await Bybit_SHORT(s, 20);
+                        var res60 = await Bybit_SHORT(s, 60, 20);
+                        var res90 = await Bybit_SHORT(s, 90, 60);
+                        var res150 = await Bybit_SHORT(s, 150, 90);
                         Thread.Sleep(1000);
 
                         var total = res20.First().Total
@@ -1178,7 +1143,145 @@ namespace TestPr.Service
             return null;
         }
 
-        public async Task<List<clsResult>> Bybit_SHORT2(string s = "", int DAY = 20, int SKIP_DAY = 0)
+
+        //Lấy các kết quả trả về để PreTest
+        public async Task PreTestSHORT_DOJI()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lTake = new List<string>//Doji
+                {
+                    "SXPUSDT",
+                    "EDUUSDT",
+                    "FIOUSDT",
+                    "DEXEUSDT",
+                    "XVGUSDT",
+                    "FIDAUSDT",
+                    "FLRUSDT",
+                    "MVLUSDT",
+                    "JUPUSDT",
+                    "PHBUSDT",
+                    "OSMOUSDT",
+                    "TUSDT",
+                    "XAIUSDT",
+                    "TIAUSDT",
+                    "PERPUSDT",
+                    "RSRUSDT",
+                    "ONEUSDT",
+                    "AVAILUSDT",
+                    "CARVUSDT",
+                    "CVCUSDT",
+                    "MOBILEUSDT",
+                    "ZEUSUSDT",
+                    "AUDIOUSDT",
+                    "LUMIAUSDT",
+                    "GIGAUSDT",
+                    "CTKUSDT",
+                    "HMSTRUSDT",
+                    "PIXELUSDT",
+                    "PEAQUSDT",
+                    "WOOUSDT",
+                    "ONGUSDT",
+                    "ICXUSDT",
+                    "YFIUSDT",
+                    "STGUSDT",
+                };
+                var lRank = new List<clsShow>();
+
+                foreach (var s in lTake)
+                {
+                    try
+                    {
+                        var res20 = await Bybit_SHORT_DOJI(s, 20);
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{s}| {ex.Message}");
+                    }
+                }
+                var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
+                Console.WriteLine($"TotalTime: {totalMinute}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        //Tìm danh sách các Coin có tỉ lệ winrate tốt nhất
+        public async Task ListShort_DOJI()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                var lTake = lUsdt.Skip(0).Take(400);
+                var lRank = new List<clsShow>();
+
+                foreach (var s in lTake)
+                {
+                    try
+                    {
+                        var res180 = await Bybit_SHORT_DOJI(s, 180);
+                        var res20 = await Bybit_SHORT_DOJI(s, 20);
+                        var res60 = await Bybit_SHORT_DOJI(s, 60, 20);
+                        var res90 = await Bybit_SHORT_DOJI(s, 90, 60);
+                        var res150 = await Bybit_SHORT_DOJI(s, 150, 90);
+                        Thread.Sleep(1000);
+
+                        var total = res20.First().Total
+                                    + res60.First().Total
+                                    + res90.First().Total
+                                    + res150.First().Total
+                                    + res180.First().Total;
+
+                        var win = res20.First().Win
+                                  + res60.First().Win
+                                  + res90.First().Win
+                                  + res150.First().Win
+                                  + res180.First().Win;
+
+                        var winrate = Math.Round((double)win / total, 2);
+                        var per = res20.First().Perate
+                                 + res60.First().Perate
+                                 + res90.First().Perate
+                                 + res150.First().Perate
+                                 + res180.First().Perate;
+                        var perRate = Math.Round((double)per / 5, 2);
+
+                        lRank.Add(new clsShow
+                        {
+                            s = s,
+                            Win = win,
+                            Total = total,
+                            Winrate = winrate,
+                            PerRate = perRate
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{s}| {ex.Message}");
+                    }
+                }
+                Console.WriteLine("///////////////////////////////////////////////");
+                Console.WriteLine("///////////////////////////////////////////////");
+                Console.WriteLine("///////////////////////////////////////////////");
+                foreach (var item in lRank.OrderByDescending(x => x.PerRate).ThenByDescending(x => x.Winrate).ThenByDescending(x => x.Total))
+                {
+                    Console.WriteLine($"{item.s}, W/Total: {item.Win}/{item.Total} = {item.Winrate}%, Per: {item.PerRate}%");
+                }
+
+                var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
+                Console.WriteLine($"TotalTime: {totalMinute}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task<List<clsResult>> Bybit_SHORT_DOJI(string s = "", int DAY = 20, int SKIP_DAY = 0)
         {
             try
             {
