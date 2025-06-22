@@ -1,5 +1,5 @@
 using TestPr;
-using TestPr.DAL.Settings;
+using TestPr.DAL;
 using TestPr.Service.Settings;
 
 IHost host = Host.CreateDefaultBuilder(args)

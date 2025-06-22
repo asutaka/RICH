@@ -1,10 +1,10 @@
 ﻿using Bybit.Net.Enums;
 using CoinUtilsPr;
+using CoinUtilsPr.DAL;
+using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
-using TestPr.DAL;
-using TestPr.DAL.Entity;
 
 namespace TestPr.Service
 {
