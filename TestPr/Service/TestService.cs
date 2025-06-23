@@ -848,29 +848,7 @@ namespace TestPr.Service
                     try
                     {
                         var lData15m = await GetData(sym, DAY, SKIP_DAY);
-                        var count = lData15m.Count();
-                        //var lbb = lData15m.GetBollingerBands();
-                        var lAdd = new List<Quote>();
-                        for (int i = 0; i < count; i++)
-                        {
-                            var element = lData15m[i];
-                            //var element_BB = lbb.ElementAt(i);
-                            //var upMA20 = element_BB.Sma is null ? -1 : (element.Close >= (decimal)element_BB.Sma.Value ? 1 : 0);
-                            //var rateUP = -1;
-                            //var rateDOWN = -1;
-                            //if (upMA20 == 1)
-                            //{
-                            //    var is1_3 = Math.Abs(element.Close - (decimal)element_BB.Sma.Value) >= 2 * Math.Abs((decimal)element_BB.UpperBand.Value - element.Close);
-                            //    rateUP = is1_3 ? 1 : 0;
-                            //}
-                            //else if (upMA20 == 0)
-                            //{
-                            //    var is1_3 = Math.Abs(element.Close - (decimal)element_BB.Sma.Value) >= 2 * Math.Abs((decimal)element_BB.LowerBand.Value - element.Close);
-                            //    rateDOWN = is1_3 ? 1 : 0;
-                            //}
-                            lAdd.Add(element);
-                        }
-                        dic.Add(sym, lAdd);
+                        dic.Add(sym, lData15m);
                     }
                     catch (Exception ex)
                     {
