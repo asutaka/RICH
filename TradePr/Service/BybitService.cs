@@ -162,7 +162,7 @@ namespace TradePr.Service
                             ex = _exchange,
                             s = sym.s,
                             d = (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds(),
-                            Date = DateTime.Now,
+                            Date = DateTime.UtcNow,
                             Side = (int)OrderSide.Buy,
                             Op = (int)eOp,
                             Entry = (double)last.Close,
@@ -245,7 +245,7 @@ namespace TradePr.Service
                             ex = _exchange,
                             s = sym.s,
                             d = (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds(),
-                            Date = DateTime.Now,
+                            Date = DateTime.UtcNow,
                             Side = (int)OrderSide.Sell,
                             Op = (int)eOp,
                             Entry = (double)last.Close,
@@ -314,13 +314,15 @@ namespace TradePr.Service
                     //Lỗi gì đó ko lưu lại đc log
                     if (place is null)
                     {
+                        Console.WriteLine($"Place null");
                         await PlaceOrderClose(item);
                         continue;
                     }
                     //Hết thời gian
-                    var dTime = (DateTime.Now - place.Date).TotalHours;
+                    var dTime = (dt - place.Date).TotalHours;
                     if(curTime >= _HOUR || dTime >= _HOUR)
                     {
+                        Console.WriteLine($"Het thoi gian: curTime: {curTime}, dTime: {dTime}");
                         await PlaceOrderClose(item);
                         continue;
                     }
@@ -329,6 +331,7 @@ namespace TradePr.Service
                     if((place.Side == (int)OrderSide.Buy && rate >= (decimal)place.RateTP)
                         || (place.Side == (int)OrderSide.Sell && rate <= -(decimal)place.RateTP))
                     {
+                        Console.WriteLine($"Dat Target: rate: {rate}, RateTP:{place.RateTP}");
                         await PlaceOrderClose(item);
                         continue;
                     }    
@@ -396,6 +399,7 @@ namespace TradePr.Service
                     }
                     if(flag)
                     {
+                        Console.WriteLine($"Flag");
                         await PlaceOrderClose(item);
                         continue;
                     }    
@@ -417,6 +421,7 @@ namespace TradePr.Service
                     {
                         if(item.Value >= _TP_RATE_MIN) 
                         {
+                            Console.WriteLine($"_TP_RATE_MIN");
                             await PlaceOrderClose(item.Key);
                         }
                     }
