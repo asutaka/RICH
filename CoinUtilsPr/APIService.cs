@@ -5,6 +5,7 @@ using Skender.Stock.Indicators;
 using System.Net.Http.Headers;
 using System.Text;
 using MongoDB.Driver.Core.WireProtocol.Messages;
+using System.Net;
 
 namespace CoinUtilsPr
 {
@@ -30,7 +31,7 @@ namespace CoinUtilsPr
 
             try
             {
-                using var client = _client.CreateClient();
+                using var client = _client.CreateClient("ConfiguredHttpMessageHandler");
                 client.BaseAddress = new Uri(url);
                 client.DefaultRequestHeaders
                       .Accept
@@ -40,7 +41,8 @@ namespace CoinUtilsPr
                 request.Content = new StringContent("",
                                                     Encoding.UTF8,
                                                     "application/json");
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                request.Headers.Add("User-Agent", "PostmanRuntime/7.43.4");
+                //request.Headers.Add("Accept-Encoding", "gzip");
 
                 var response = await client.SendAsync(request);
                 var contents = await response.Content.ReadAsStringAsync();
