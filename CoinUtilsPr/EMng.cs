@@ -82,6 +82,7 @@ namespace CoinUtilsPr
     {
         None = -1,
         Normal = 0,
-        Doji = 1
+        Doji = 1,
+        Normal_Doji = 2
     }
 }
