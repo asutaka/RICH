@@ -271,7 +271,7 @@ namespace TradePr.Service
         {
             try
             {
-                var l15m = await _apiService.GetData_Bybit(symbol, DateTime.MinValue);
+                var l15m = await _apiService.GetData_Bybit(symbol);
                 Thread.Sleep(100);
                 if (l15m is null || !l15m.Any())
                     return null;
