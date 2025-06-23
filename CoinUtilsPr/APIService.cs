@@ -42,7 +42,6 @@ namespace CoinUtilsPr
                                                     Encoding.UTF8,
                                                     "application/json");
                 request.Headers.Add("User-Agent", "PostmanRuntime/7.43.4");
-                //request.Headers.Add("Accept-Encoding", "gzip");
 
                 var response = await client.SendAsync(request);
                 var contents = await response.Content.ReadAsStringAsync();
