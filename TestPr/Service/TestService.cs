@@ -38,9 +38,9 @@ namespace TestPr.Service
         {
             try
             {
-                var start = DateTime.UtcNow;
+                var start = DateTimeOffset.UtcNow;
                 var day = start.AddDays(-DAY);
-                var skip = DateTime.MinValue;
+                var skip = DateTimeOffset.MinValue;
                 if(SKIP_DAY > 0)
                 {
                     skip = start.AddDays(-SKIP_DAY);
@@ -53,7 +53,7 @@ namespace TestPr.Service
                     return lData;
                 } 
 
-                var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-DAY));
+                var lData15m = await _apiService.GetData_Bybit(sym, start.AddDays(-DAY), DateTimeOffset.MinValue);
                 _dicData.Add(sym, lData15m);
 
 
