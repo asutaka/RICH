@@ -884,7 +884,7 @@ namespace TestPr.Service
                                 if (cur.Date <= dtFlag)
                                     continue;
 
-                                var flag = lData15m.Where(x => x.Date <= cur.Date).ToList().IsFlagSell();
+                                var flag = lData15m.Where(x => x.Date < cur.Date).ToList().IsFlagSell();
                                 if (!flag.Item1)
                                     continue;
 
