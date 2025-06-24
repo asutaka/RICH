@@ -1150,7 +1150,6 @@ namespace TestPr.Service
                     "KAITOUSDT",
                 };
                 var lRank = new List<clsShow>();
-
                 foreach (var s in lTake)
                 {
                     try
