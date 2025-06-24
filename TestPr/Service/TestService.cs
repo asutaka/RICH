@@ -600,6 +600,23 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lTake = new List<string>//Doji
                 {
+//                    DUCKUSDT, W/Total: 86 / 134 = 0.64 %, Per: 1 %
+//FARTCOINUSDT, W / Total: 93 / 173 = 0.54 %, Per: 0.9 %
+//DEXEUSDT, W / Total: 123 / 168 = 0.73 %, Per: 0.6 %
+//FUSDT, W / Total: 136 / 197 = 0.69 %, Per: 0.6 %
+//FORTHUSDT, W / Total: 119 / 160 = 0.74 %, Per: 0.56 %
+//DOGUSDT, W / Total: 117 / 164 = 0.71 %, Per: 0.52 %
+//BEAMUSDT, W / Total: 123 / 176 = 0.7 %, Per: 0.52 %
+//COOKUSDT, W / Total: 108 / 167 = 0.65 %, Per: 0.52 %
+//FBUSDT, W / Total: 114 / 186 = 0.61 %, Per: 0.52 %
+//BANDUSDT, W / Total: 134 / 182 = 0.74 %, Per: 0.44 %
+//BMTUSDT, W / Total: 71 / 115 = 0.62 %, Per: 0.42 %
+//CATIUSDT, W / Total: 144 / 197 = 0.73 %, Per: 0.4 %
+//BSWUSDT, W / Total: 122 / 182 = 0.67 %, Per: 0.4 %
+//BLURUSDT, W / Total: 143 / 216 = 0.66 %, Per: 0.4 %
+//BANUSDT, W / Total: 122 / 186 = 0.66 %, Per: 0.4 %
+//CVCUSDT, W / Total: 135 / 179 = 0.75 %, Per: 0.38 %
+//BRUSDT, W / Total: 80 / 114 = 0.7 %, Per: 0.38 %
                     //"TUTUSDT",
                     //"ALUUSDT",
                     //"AVAAIUSDT",
