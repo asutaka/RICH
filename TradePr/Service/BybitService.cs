@@ -123,7 +123,8 @@ namespace TradePr.Service
 
                         var eOp = EOptionTrade.None;
                         (bool, QuoteEx) flag = (false, null);
-                        if (sym.op == (int)EOptionTrade.Doji)
+                        if (sym.op == (int)EOptionTrade.Doji 
+                            || sym.op == (int)EOptionTrade.Normal_Doji)
                         {
                             flag = l15m.SkipLast(1).IsFlagBuy_Doji();
                             if (flag.Item1)
@@ -131,7 +132,9 @@ namespace TradePr.Service
                                 eOp = EOptionTrade.Doji;
                             }
                         }
-                        else
+
+                        if (sym.op == (int)EOptionTrade.Normal
+                           || sym.op == (int)EOptionTrade.Normal_Doji)
                         {
                             flag = l15m.SkipLast(1).IsFlagBuy();
                             if (flag.Item1)
