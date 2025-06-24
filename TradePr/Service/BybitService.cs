@@ -438,7 +438,7 @@ namespace TradePr.Service
         {
             try
             {
-                Console.WriteLine($"BYBIT PlaceOrder: {JsonConvert.SerializeObject(entity)}");
+                Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}|BYBIT PlaceOrder: {JsonConvert.SerializeObject(entity)}");
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                 var account = await Bybit_GetAccountInfo();
                 if (account == null)
