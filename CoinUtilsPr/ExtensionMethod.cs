@@ -406,80 +406,80 @@ namespace CoinUtilsPr
 
         public static (bool, QuoteEx) IsFlagBuy_Doji(this IEnumerable<Quote> lData)
         {
-            //decimal BB_Min = 1m;
-            //decimal RateTP_Min = 2.5m;
-            //decimal RateTP_Max = 7m;
-            //try
-            //{
-            //    if ((lData?.Count() ?? 0) < 50)
-            //        return (false, null);
+            decimal BB_Min = 1m;
+            decimal RateTP_Min = 2.5m;
+            decimal RateTP_Max = 7m;
+            try
+            {
+                if ((lData?.Count() ?? 0) < 50)
+                    return (false, null);
 
-            //    lData = lData.TakeLast(80).ToList();
-            //    var lbb = lData.GetBollingerBands();
+                lData = lData.TakeLast(80).ToList();
+                var lbb = lData.GetBollingerBands();
 
-            //    var e_Cur = lData.Last();
-            //    var bb_Cur = lbb.First(x => x.Date == e_Cur.Date);
+                var e_Cur = lData.Last();
+                var bb_Cur = lbb.First(x => x.Date == e_Cur.Date);
 
-            //    var e_Pivot = lData.SkipLast(1).Last();
-            //    var e_Sig = lData.SkipLast(2).Last();
-            //    if (e_Sig.Volume == 0
-            //        || e_Cur.Volume == 0
-            //        || e_Pivot.Volume == 0)
-            //    {
-            //        return (false, null);
-            //    }
+                var e_Pivot = lData.SkipLast(1).Last();
+                var e_Sig = lData.SkipLast(2).Last();
+                if (e_Sig.Volume == 0
+                    || e_Cur.Volume == 0
+                    || e_Pivot.Volume == 0)
+                {
+                    return (false, null);
+                }
 
-            //    if (e_Cur.Open < (decimal)bb_Cur.UpperBand.Value)
-            //    {
-            //        return (false, null);
-            //    }
+                if (e_Cur.Open > (decimal)bb_Cur.LowerBand.Value)
+                {
+                    return (false, null);
+                }
 
-            //    var thannen = e_Cur.Open - e_Cur.Close;
-            //    var dodainen = e_Cur.High - e_Cur.Low;
-            //    var rauduoi = Math.Min(e_Cur.Open, e_Cur.Close) - e_Cur.Low;
-            //    var rautren = e_Cur.High - Math.Max(e_Cur.Open, e_Cur.Close);
+                var thannen = e_Cur.Open - e_Cur.Close;
+                var dodainen = e_Cur.High - e_Cur.Low;
+                var rauduoi = Math.Min(e_Cur.Open, e_Cur.Close) - e_Cur.Low;
+                var rautren = e_Cur.High - Math.Max(e_Cur.Open, e_Cur.Close);
 
-            //    var rate_thannen = thannen / dodainen;
-            //    if (rate_thannen >= 0.5m)
-            //        return (false, null);
+                var rate_thannen = thannen / dodainen;
+                if (rate_thannen >= 0.5m)
+                    return (false, null);
 
-            //    var rate_rauduoi = rauduoi / dodainen;
-            //    if (rate_rauduoi < 0.2m)
-            //        return (false, null);
+                var rate_rauduoi = rauduoi / dodainen;
+                if (rate_rauduoi < 0.2m)
+                    return (false, null);
 
-            //    var rate_rautren = rautren / dodainen;
-            //    if (rate_rautren < 0.2m)
-            //        return (false, null);
+                var rate_rautren = rautren / dodainen;
+                if (rate_rautren < 0.2m)
+                    return (false, null);
 
-            //    var countViolate = lData.SkipLast(1).TakeLast(5).Count(x => x.High > e_Cur.Open);
-            //    if (countViolate >= 2)
-            //        return (false, null);
+                var countViolate = lData.SkipLast(1).TakeLast(5).Count(x => x.Low < e_Cur.Open);
+                if (countViolate >= 2)
+                    return (false, null);
 
-            //    var rate_TP = (decimal)(Math.Round(100 * (-1 + bb_Cur.UpperBand.Value / bb_Cur.LowerBand.Value)) - 1);
-            //    if (rate_TP > RateTP_Max)
-            //    {
-            //        rate_TP = RateTP_Max;
-            //    }
-            //    else if (rate_TP < RateTP_Min)
-            //    {
-            //        rate_TP = RateTP_Min;
-            //    }
+                var rate_TP = (decimal)(Math.Round(100 * (-1 + bb_Cur.UpperBand.Value / bb_Cur.LowerBand.Value)) - 1);
+                if (rate_TP > RateTP_Max)
+                {
+                    rate_TP = RateTP_Max;
+                }
+                else if (rate_TP < RateTP_Min)
+                {
+                    rate_TP = RateTP_Min;
+                }
 
-            //    return (true, new QuoteEx
-            //    {
-            //        Date = e_Cur.Date,
-            //        Open = e_Cur.Open,
-            //        Close = e_Cur.Close,
-            //        High = e_Cur.High,
-            //        Low = e_Cur.Low,
-            //        Volume = e_Cur.Volume,
-            //        Rate_TP = rate_TP,
-            //    });
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine(ex.Message);
-            //}
+                return (true, new QuoteEx
+                {
+                    Date = e_Cur.Date,
+                    Open = e_Cur.Open,
+                    Close = e_Cur.Close,
+                    High = e_Cur.High,
+                    Low = e_Cur.Low,
+                    Volume = e_Cur.Volume,
+                    Rate_TP = rate_TP,
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
             return (false, null);
         }
