@@ -123,6 +123,7 @@ namespace TradePr.Service
 
                         var eOp = EOptionTrade.None;
                         (bool, QuoteEx) flag = (false, null);
+
                         if (sym.op == (int)EOptionTrade.Doji 
                             || sym.op == (int)EOptionTrade.Normal_Doji)
                         {
