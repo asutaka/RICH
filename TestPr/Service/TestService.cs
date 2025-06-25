@@ -31,6 +31,7 @@ namespace TestPr.Service
         private readonly ILogger<TestService> _logger;
         private readonly IAPIService _apiService;
         private readonly ISymbolRepo _symRepo;
+        private int _COUNT = 0;
         public TestService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symRepo)
         {
             _logger = logger;
@@ -184,7 +185,7 @@ namespace TestPr.Service
                     }
                 }
                 var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
-                Console.WriteLine($"TotalTime: {totalMinute}");
+                Console.WriteLine($"TotalTime: {totalMinute}| COUNT: {_COUNT}");
             }
             catch (Exception ex)
             {
@@ -511,6 +512,7 @@ namespace TestPr.Service
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
                                 mesItem = mesItem.Replace("|", ",");
                                 Console.WriteLine(mesItem);
+                                _COUNT++;
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
                                 {
@@ -600,66 +602,30 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lTake = new List<string>//Doji
                 {
-//                    DUCKUSDT, W/Total: 86 / 134 = 0.64 %, Per: 1 %
-//FARTCOINUSDT, W / Total: 93 / 173 = 0.54 %, Per: 0.9 %
-//DEXEUSDT, W / Total: 123 / 168 = 0.73 %, Per: 0.6 %
-//FUSDT, W / Total: 136 / 197 = 0.69 %, Per: 0.6 %
-//FORTHUSDT, W / Total: 119 / 160 = 0.74 %, Per: 0.56 %
-//DOGUSDT, W / Total: 117 / 164 = 0.71 %, Per: 0.52 %
-//BEAMUSDT, W / Total: 123 / 176 = 0.7 %, Per: 0.52 %
-//COOKUSDT, W / Total: 108 / 167 = 0.65 %, Per: 0.52 %
-//FBUSDT, W / Total: 114 / 186 = 0.61 %, Per: 0.52 %
-//BANDUSDT, W / Total: 134 / 182 = 0.74 %, Per: 0.44 %
-//BMTUSDT, W / Total: 71 / 115 = 0.62 %, Per: 0.42 %
-//CATIUSDT, W / Total: 144 / 197 = 0.73 %, Per: 0.4 %
-//BSWUSDT, W / Total: 122 / 182 = 0.67 %, Per: 0.4 %
-//BLURUSDT, W / Total: 143 / 216 = 0.66 %, Per: 0.4 %
-//BANUSDT, W / Total: 122 / 186 = 0.66 %, Per: 0.4 %
-//CVCUSDT, W / Total: 135 / 179 = 0.75 %, Per: 0.38 %
-//BRUSDT, W / Total: 80 / 114 = 0.7 %, Per: 0.38 %
-                    //"TUTUSDT",
-                    //"ALUUSDT",
-                    //"AVAAIUSDT",
-                    //"REXUSDT",
-                    //"SXPUSDT",
-                    //"CGPTUSDT",
-                    //"TUSDT",
-                    //"MEMEUSDT",
-                    //"MYROUSDT",
-                    //"FWOGUSDT",
-                    //"FIOUSDT",
-                    //"BRETTUSDT",
-                    //"COOKIEUSDT",
-                    //"ZEUSUSDT",
-                    //"EPICUSDT",
-                    //"VTHOUSDT",
-                    //"XEMUSDT",
-                    //"VVVUSDT",
-                    //"ZBCNUSDT",
-                    //"PROMUSDT",
-                    //"RAREUSDT",
-                    //"PEAQUSDT",
-                    //"COOKUSDT",
-                    //"ALEOUSDT",
-                    //"MVLUSDT",
-                    //"LOOKSUSDT",
-                    //"AXSUSDT",
-                    //"ENAUSDT",
-                    //"ARKMUSDT",
-                    //"ALCHUSDT",
-                    //"SHELLUSDT",
-                    //"MUBARAKUSDT",
-                    //"ATOMUSDT",
-                    //"FORTHUSDT",
-                    //"CVXUSDT",
-                    //"DOGUSDT",
-                    //"TIAUSDT",
-                    //"VANAUSDT",
-                    //"SPELLUSDT",
-                    //"HMSTRUSDT",
-                    //"LUMIAUSDT",
-                    //"MELANIAUSDT",
-                    //"KAITOUSDT",
+                    "DUCKUSDT",
+                    "FARTCOINUSDT",
+                    "SOLAYERUSDT",
+                    "NMRUSDT",
+                    "SOLOUSDT",
+                    "QUICKUSDT",
+                    "DEXEUSDT",
+                    "FUSDT",
+                    "COOKUSDT",
+                    "FBUSDT",
+                    "KAITOUSDT",
+                    "VRUSDT",
+                    "NCUSDT",
+                    "ZRCUSDT",
+                    "VELODROMEUSDT",
+                    "PLUMEUSDT",
+                    "BSWUSDT",
+                    "BLURUSDT",
+                    "HNTUSDT",
+                    "ONEUSDT",
+                    "SWARMSUSDT",
+                    "KAVAUSDT",
+                    "HYPEUSDT",
+                    "BRUSDT",
                 };
                 var lRank = new List<clsShow>();
                 foreach (var s in lTake)
@@ -675,7 +641,7 @@ namespace TestPr.Service
                     }
                 }
                 var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
-                Console.WriteLine($"TotalTime: {totalMinute}");
+                Console.WriteLine($"TotalTime: {totalMinute}| COUNT: {_COUNT}");
             }
             catch (Exception ex)
             {
@@ -690,7 +656,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(0).Take(200);
+                var lTake = lUsdt.Skip(400).Take(400);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -921,6 +887,7 @@ namespace TestPr.Service
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
                                 mesItem = mesItem.Replace("|", ",");
                                 Console.WriteLine(mesItem);
+                                _COUNT++;
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
                                 {
@@ -1103,7 +1070,7 @@ namespace TestPr.Service
                     }
                 }
                 var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
-                Console.WriteLine($"TotalTime: {totalMinute}");
+                Console.WriteLine($"TotalTime: {totalMinute}| COUNT: {_COUNT}");
             }
             catch (Exception ex)
             {
@@ -1417,6 +1384,7 @@ namespace TestPr.Service
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
                                 mesItem = mesItem.Replace("|", ",");
                                 Console.WriteLine(mesItem);
+                                _COUNT++;
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
                                 {
@@ -1564,7 +1532,7 @@ namespace TestPr.Service
                     }
                 }
                 var totalMinute = (DateTime.UtcNow - dt).TotalMinutes;
-                Console.WriteLine($"TotalTime: {totalMinute}");
+                Console.WriteLine($"TotalTime: {totalMinute}| COUNT: {_COUNT}");
             }
             catch (Exception ex)
             {
@@ -1810,6 +1778,7 @@ namespace TestPr.Service
                                 //var mesItem = $"{sym}|{winloss}|ENTRY: {flag.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|CLOSE: {eClose.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%|zz: {ratezz}%|C: {ratezz_CUPMa20}%|Green: {ratezz_green}%|nearRate: {nearRate}";
                                 mesItem = mesItem.Replace("|", ",");
                                 Console.WriteLine(mesItem);
+                                _COUNT++;
                                 //lRate.Add(rate);
                                 lModel.Add(new clsData
                                 {
