@@ -105,6 +105,7 @@ namespace TestPr.Service
                     "TRXUSDT",
                     "SERAPHUSDT",
                 };
+                //lTake.Sync(EExchange.Bybit, OrderSide.Buy, EOptionTrade.Normal, _symRepo);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -559,6 +560,7 @@ namespace TestPr.Service
                     "HYPEUSDT",
                     "BRUSDT",
                 };
+                //lTake.Sync(EExchange.Bybit, OrderSide.Buy, EOptionTrade.Doji, _symRepo);
                 var lRank = new List<clsShow>();
                 foreach (var s in lTake)
                 {
@@ -973,6 +975,7 @@ namespace TestPr.Service
                     "DOGUSDT",
                     "DUCKUSDT",
                 };
+                //lTake.Sync(EExchange.Bybit, OrderSide.Sell, EOptionTrade.Normal, _symRepo);
                 var lRank = new List<clsShow>();
 
                 foreach (var s in lTake)
@@ -1433,6 +1436,7 @@ namespace TestPr.Service
                     "LUMIAUSDT",
                     "MELANIAUSDT"
                 };
+                //lTake.Sync(EExchange.Bybit, OrderSide.Sell, EOptionTrade.Doji, _symRepo);
                 var lRank = new List<clsShow>();
                 foreach (var s in lTake)
                 {
@@ -1780,6 +1784,38 @@ namespace TestPr.Service
             public DateTime Date { get; set; }
             public decimal Rate { get; set; }
         }  
+    }
+
+    public static class ExMethod
+    {
+        public static void Sync(this List<string> lDat, EExchange ex, OrderSide side, EOptionTrade op, ISymbolRepo symRepo)
+        {
+            try
+            {
+                var builder = Builders<Symbol>.Filter;
+                symRepo.DeleteMany(builder.And(
+                    builder.Eq(x => x.ex, (int)ex),
+                    builder.Eq(x => x.ty, (int)side),
+                    builder.Eq(x => x.op, (int)op)
+                ));
+                var index = 1;
+                foreach (var item in lDat)
+                {
+                    symRepo.InsertOne(new Symbol
+                    {
+                        ex = (int)ex,
+                        ty = (int)side,
+                        op = (int)op,
+                        s = item,
+                        rank = index++
+                    });
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
     }
 
     public class clsResult
