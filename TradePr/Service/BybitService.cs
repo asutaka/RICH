@@ -431,6 +431,19 @@ namespace TradePr.Service
                     }
                 }
                 #endregion
+
+                #region Clean DB
+                var lAll = _tradeRepo.GetAll().Where(x => x.Status == 0);
+                foreach (var item in lAll)
+                {
+                    var exist = pos.Data.List.FirstOrDefault(x => x.Symbol == item.s);
+                    if(exist is null)
+                    {
+                        item.Status = 1;
+                        _tradeRepo.Update(item);
+                    }    
+                }
+                #endregion
             }
             catch (Exception ex)
             {
