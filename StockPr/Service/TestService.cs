@@ -12,6 +12,7 @@ namespace StockPr.Service
         Task CheckGDNN();
         Task CheckCungCau();
         Task CheckCrossMa50_BB();
+        Task CheckWycKoff();
     }
     public class TestService : ITestService
     {
@@ -905,6 +906,118 @@ namespace StockPr.Service
                             //{
                             //    lResult.Add(tp);
                             //}
+                        }
+                        while (take <= count);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                foreach (var item in lResult.OrderBy(x => x.s))
+                {
+                    Console.WriteLine($"{item.s}|BUY: {item.date.ToString("dd/MM/yyyy")}|SELL: {item.dateSell.ToString("dd/MM/yyyy")}|Rate: {item.Signal}%");
+                }
+
+                var sumT3 = lResult.Sum(x => x.T3);
+                var sumT5 = lResult.Sum(x => x.T5);
+                var sumT10 = lResult.Sum(x => x.T10);
+                var sumSignal = lResult.Sum(x => x.Signal);
+                Console.WriteLine($"Total({lResult.Count()})| T3({lResult.Count(x => x.T3 > 0)}): {sumT3}%| T5({lResult.Count(x => x.T5 > 0)}): {sumT5}%| T10({lResult.Count(x => x.T10 > 0)}): {sumT10}%| Signal({lResult.Count(x => x.Signal > 0)}): {sumSignal}%|End: {lResult.Count(x => x.IsEnd)}");
+
+                var tmp = 1;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task CheckWycKoff()
+        {
+            try
+            {
+                decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
+                int hour = 10;//1h,2h,3h,4h
+
+                var lMesAll = new List<string>();
+
+                var winTotal = 0;
+                var lossTotal = 0;
+                var lPoint = new List<clsPoint>();
+                var lTrace = new List<clsTrace>();
+                var lResult = new List<clsResult>();
+                var lsym = _symbolRepo.GetAll();
+                foreach (var item in lsym.Select(x => x.s))
+                {
+                    try
+                    {
+                        if (item != "THG")
+                            continue;
+
+                        var lMes = new List<string>();
+                        var lData = await _apiService.SSI_GetDataStock(item);
+                        var lbb_Total = lData.GetBollingerBands();
+                        var lMaVol_Total = lData.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).GetSma(20);
+                        Thread.Sleep(200);
+                        if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 10000)
+                            continue;
+
+                        var timeLast = DateTime.MinValue;
+                        var count = lData.Count();
+                        var take = 250;
+                        do
+                        {
+                            var lData15m = lData.Take(take++);
+                            if (lData15m.Last().Date < timeLast)
+                                continue;
+
+                            var lbb = lData15m.GetBollingerBands();
+                            var lrsi = lData15m.GetRsi();
+                            var lMaVol = lData15m.Select(x => new Quote
+                            {
+                                Date = x.Date,
+                                Close = x.Volume
+                            }).GetSma(20);
+
+                            var lSOS = lData15m.SkipLast(3).TakeLast(30);
+                            foreach (var itemSOS in lSOS)
+                            {
+                                var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
+                                if (itemSOS.Volume < 2 * (decimal)ma20Vol.Sma.Value) continue;
+
+                                //Biên độ dao động <= 10% và SOS >= max
+                                var lPrev15 = lData15m.Where(x => x.Date < itemSOS.Date).TakeLast(15);
+                                var maxPrev = lPrev15.Max(x => Math.Max(x.Open, x.Close));
+                                var minPrev = lPrev15.Min(x => Math.Min(x.Open, x.Close));
+                                var rateMaxMin = Math.Round(100 * (-1 + maxPrev / minPrev));
+                                if (rateMaxMin > 10
+                                    || itemSOS.Close < maxPrev) continue;
+                                
+                                //Nến liền trước
+                                var prevSOS = lPrev15.Last();
+                                var rate = Math.Round(100 * (-1 + itemSOS.Close / prevSOS.Close));
+                                if (rate < 4) continue;
+
+                                timeLast = itemSOS.Date;
+                                var lEntry = lData15m.Where(x => x.Date > itemSOS.Date).Take(20);
+                                foreach (var itemEntry in lEntry)
+                                {
+                                    var bbEntry = lbb.First(x => x.Date == itemEntry.Date);
+                                    var rateEntry = Math.Round(100 * (-1 + itemEntry.Low / (decimal)bbEntry.Sma.Value));
+                                    if(rateEntry < 1)
+                                    {
+                                        timeLast = itemEntry.Date;
+                                        Console.WriteLine(itemEntry.Date.ToString("dd/MM/yyyy"));
+                                        break;
+                                    }
+                                }
+                            }
                         }
                         while (take <= count);
                     }
