@@ -986,6 +986,7 @@ namespace StockPr.Service
                             }).GetSma(20);
 
                             var lSOS = lData15m.SkipLast(3).TakeLast(30);
+                            var isSOS = false;
                             foreach (var itemSOS in lSOS)
                             {
                                 var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
@@ -1013,13 +1014,17 @@ namespace StockPr.Service
                                     if(rateEntry < 1)
                                     {
                                         timeLast = itemEntry.Date;
-                                        if (itemEntry.Date.Year == 2025 && itemEntry.Date.Month >= 5 && itemEntry.Date.Day >= 24)
+                                        if (itemEntry.Date.Year == 2025 && itemEntry.Date.Month >= 6 && itemEntry.Date.Day >= 24)
                                         {
                                             Console.WriteLine($"{item}: {itemEntry.Date.ToString("dd/MM/yyyy")}");
-                                        }    
-                                        
+                                        }
+                                        isSOS = true;
                                         break;
                                     }
+                                }
+                                if(isSOS)
+                                {
+                                    break;
                                 }
                             }
                         }
