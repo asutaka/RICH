@@ -953,8 +953,8 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        if (item != "THG")
-                            continue;
+                        //if (item != "THG")
+                        //    continue;
 
                         var lMes = new List<string>();
                         var lData = await _apiService.SSI_GetDataStock(item);
@@ -1013,7 +1013,11 @@ namespace StockPr.Service
                                     if(rateEntry < 1)
                                     {
                                         timeLast = itemEntry.Date;
-                                        Console.WriteLine(itemEntry.Date.ToString("dd/MM/yyyy"));
+                                        if (itemEntry.Date.Year == 2025 && itemEntry.Date.Month >= 5 && itemEntry.Date.Day >= 24)
+                                        {
+                                            Console.WriteLine($"{item}: {itemEntry.Date.ToString("dd/MM/yyyy")}");
+                                        }    
+                                        
                                         break;
                                     }
                                 }
