@@ -968,7 +968,7 @@ namespace StockPr.Service
                         if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 10000)
                             continue;
 
-                        var timeLast = DateTime.Now.AddMonths(-4);
+                        var timeLast = DateTime.Now.AddMonths(-2);
                         var count = lData.Count();
                         var take = 250;
                         do
