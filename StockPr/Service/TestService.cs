@@ -953,7 +953,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        //if (item != "ANV")
+                        //if (item != "BID")
                         //    continue;
 
                         var lMes = new List<string>();
@@ -968,20 +968,19 @@ namespace StockPr.Service
                         if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 10000)
                             continue;
 
-                        var timeLast = DateTime.Now.AddMonths(-2);
+                        var lbb = lData.GetBollingerBands();
+                        var lrsi = lData.GetRsi();
+                        var lMaVol = lData.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Close = x.Volume
+                        }).GetSma(20);
+                        var timeLast = DateTime.Now.AddMonths(-1);
                         var count = lData.Count();
                         var take = 250;
                         do
                         {
                             var lData15m = lData.Take(take++);
-                            var lbb = lData15m.GetBollingerBands();
-                            var lrsi = lData15m.GetRsi();
-                            var lMaVol = lData15m.Select(x => new Quote
-                            {
-                                Date = x.Date,
-                                Close = x.Volume
-                            }).GetSma(20);
-
                             var lSOS = lData15m.SkipLast(3).TakeLast(30);
                             var isSOS = false;
                             foreach (var itemSOS in lSOS)
@@ -1004,24 +1003,52 @@ namespace StockPr.Service
                                 var prevSOS = lPrev15.Last();
                                 var rate = Math.Round(100 * (-1 + itemSOS.Close / prevSOS.Close));
                                 if (rate < 4) continue;
-                                Console.WriteLine($"{item}: {itemSOS.Date.ToString("dd/MM/yyyy")}");
+
+
+                                #region 10 nến tiếp theo 
+                                var lEntry = lData.Where(x => x.Date > itemSOS.Date).Take(10);
+                                var countEntry = lEntry.Count();
+                                if (countEntry < 4)
+                                    continue;
+
+                                var countGreater = 0;
+                                foreach (var itemEntry in lEntry)
+                                {
+                                    if (itemEntry.Close > itemSOS.Close)
+                                        countGreater++;
+                                    //var bbEntry = lbb.First(x => x.Date == itemEntry.Date);
+                                    //var rateEntry = Math.Round(100 * (-1 + itemEntry.Low / (decimal)bbEntry.Sma.Value));
+                                    //if (rateEntry < 1)
+                                    //{
+                                    //    timeLast = itemEntry.Date;
+                                    //    if (itemEntry.Date.Year == 2025 && itemEntry.Date.Month >= 6 && itemEntry.Date.Day >= 24)
+                                    //    {
+                                    //        Console.WriteLine($"{item}: {itemEntry.Date.ToString("dd/MM/yyyy")}");
+                                    //    }
+                                    //    isSOS = true;
+                                    //    break;
+                                    //}
+                                }
+                                if (countGreater >= 5
+                                    || countGreater >= countEntry - 1)
+                                    continue;
+                                #endregion
+
+                                #region 20 nến tiếp theo 
+                                var lEntryBelow = lData.Where(x => x.Date > itemSOS.Date).Take(20);
+                                var countBelow = 0;
+                                foreach (var itemEntry in lEntryBelow)
+                                {
+                                    var bb = lbb.First(x => x.Date == itemEntry.Date);
+                                    if((decimal)bb.Sma.Value > itemEntry.Close)
+                                        countBelow++;
+                                }
+                                if (countBelow >= 5)
+                                    continue;
+                                #endregion
+
                                 timeLast = itemSOS.Date;
-                                //var lEntry = lData15m.Where(x => x.Date > itemSOS.Date).Take(20);
-                                //foreach (var itemEntry in lEntry)
-                                //{
-                                //    var bbEntry = lbb.First(x => x.Date == itemEntry.Date);
-                                //    var rateEntry = Math.Round(100 * (-1 + itemEntry.Low / (decimal)bbEntry.Sma.Value));
-                                //    if(rateEntry < 1)
-                                //    {
-                                //        timeLast = itemEntry.Date;
-                                //        if (itemEntry.Date.Year == 2025 && itemEntry.Date.Month >= 6 && itemEntry.Date.Day >= 24)
-                                //        {
-                                //            Console.WriteLine($"{item}: {itemEntry.Date.ToString("dd/MM/yyyy")}");
-                                //        }
-                                //        isSOS = true;
-                                //        break;
-                                //    }
-                                //}
+                                Console.WriteLine($"{item}: {itemSOS.Date.ToString("dd/MM/yyyy")}");
                                 //if(isSOS)
                                 //{
                                 //    break;
