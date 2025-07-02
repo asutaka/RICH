@@ -953,8 +953,8 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        //if (item != "THG")
-                        //    continue;
+                        if (item != "BCG")
+                            continue;
 
                         var lMes = new List<string>();
                         var lData = await _apiService.SSI_GetDataStock(item);
@@ -974,9 +974,6 @@ namespace StockPr.Service
                         do
                         {
                             var lData15m = lData.Take(take++);
-                            if (lData15m.Last().Date < timeLast)
-                                continue;
-
                             var lbb = lData15m.GetBollingerBands();
                             var lrsi = lData15m.GetRsi();
                             var lMaVol = lData15m.Select(x => new Quote
@@ -989,6 +986,9 @@ namespace StockPr.Service
                             var isSOS = false;
                             foreach (var itemSOS in lSOS)
                             {
+                                if (itemSOS.Date <= timeLast)
+                                    continue;
+
                                 var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
                                 if (itemSOS.Volume < 2 * (decimal)ma20Vol.Sma.Value) continue;
 
@@ -1004,28 +1004,28 @@ namespace StockPr.Service
                                 var prevSOS = lPrev15.Last();
                                 var rate = Math.Round(100 * (-1 + itemSOS.Close / prevSOS.Close));
                                 if (rate < 4) continue;
-
+                                Console.WriteLine($"{item}: {itemSOS.Date.ToString("dd/MM/yyyy")}");
                                 timeLast = itemSOS.Date;
-                                var lEntry = lData15m.Where(x => x.Date > itemSOS.Date).Take(20);
-                                foreach (var itemEntry in lEntry)
-                                {
-                                    var bbEntry = lbb.First(x => x.Date == itemEntry.Date);
-                                    var rateEntry = Math.Round(100 * (-1 + itemEntry.Low / (decimal)bbEntry.Sma.Value));
-                                    if(rateEntry < 1)
-                                    {
-                                        timeLast = itemEntry.Date;
-                                        if (itemEntry.Date.Year == 2025 && itemEntry.Date.Month >= 6 && itemEntry.Date.Day >= 24)
-                                        {
-                                            Console.WriteLine($"{item}: {itemEntry.Date.ToString("dd/MM/yyyy")}");
-                                        }
-                                        isSOS = true;
-                                        break;
-                                    }
-                                }
-                                if(isSOS)
-                                {
-                                    break;
-                                }
+                                //var lEntry = lData15m.Where(x => x.Date > itemSOS.Date).Take(20);
+                                //foreach (var itemEntry in lEntry)
+                                //{
+                                //    var bbEntry = lbb.First(x => x.Date == itemEntry.Date);
+                                //    var rateEntry = Math.Round(100 * (-1 + itemEntry.Low / (decimal)bbEntry.Sma.Value));
+                                //    if(rateEntry < 1)
+                                //    {
+                                //        timeLast = itemEntry.Date;
+                                //        if (itemEntry.Date.Year == 2025 && itemEntry.Date.Month >= 6 && itemEntry.Date.Day >= 24)
+                                //        {
+                                //            Console.WriteLine($"{item}: {itemEntry.Date.ToString("dd/MM/yyyy")}");
+                                //        }
+                                //        isSOS = true;
+                                //        break;
+                                //    }
+                                //}
+                                //if(isSOS)
+                                //{
+                                //    break;
+                                //}
                             }
                         }
                         while (take <= count);
