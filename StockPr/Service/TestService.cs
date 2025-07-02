@@ -953,8 +953,8 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        if (item != "BCG")
-                            continue;
+                        //if (item != "ANV")
+                        //    continue;
 
                         var lMes = new List<string>();
                         var lData = await _apiService.SSI_GetDataStock(item);
@@ -968,7 +968,7 @@ namespace StockPr.Service
                         if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 10000)
                             continue;
 
-                        var timeLast = DateTime.MinValue;
+                        var timeLast = DateTime.Now.AddMonths(-4);
                         var count = lData.Count();
                         var take = 250;
                         do
