@@ -395,9 +395,6 @@ namespace StockPr.Utils
 
         public static (bool, List<Quote>) IsWyckoff(this IEnumerable<Quote> lData)
         {
-            decimal BB_Min = 1m;
-            decimal RateTP_Min = 2.5m;
-            decimal RateTP_Max = 7m;
             try
             {
                 if ((lData?.Count() ?? 0) < 100)
