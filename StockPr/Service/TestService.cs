@@ -958,16 +958,6 @@ namespace StockPr.Service
 
                         var lMes = new List<string>();
                         var lData = await _apiService.SSI_GetDataStock(item);
-                        var lbb_Total = lData.GetBollingerBands();
-                        var lMaVol_Total = lData.Select(x => new Quote
-                        {
-                            Date = x.Date,
-                            Close = x.Volume
-                        }).GetSma(20);
-                        Thread.Sleep(200);
-                        if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 10000)
-                            continue;
-
                         var res = lData.IsWyckoff();
                         if(res.Item1)
                         {
