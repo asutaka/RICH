@@ -406,6 +406,7 @@ namespace StockPr.Utils
                     Date = x.Date,
                     Close = x.Volume
                 }).GetSma(20);
+                var cur = lData.Last();
                 var lSOS = lData.SkipLast(3).TakeLast(30);
                 var lWyc = new List<Quote>();
                 foreach (var itemSOS in lSOS)
@@ -457,6 +458,10 @@ namespace StockPr.Utils
                         if (countBelow >= 5)
                             continue;
                         #endregion
+
+                        //rate Hiện tại
+                        var rateCur = Math.Round(100 * (-1 + cur.Close / itemSOS.Close));
+                        if(rateCur >= 5) continue;
 
                         if (lWyc.Any(x => x.Date == itemSOS.Date))
                             continue;
