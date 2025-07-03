@@ -13,7 +13,7 @@ namespace StockPr.Service
         Task<string> Realtime();
         Task<string> ThongKeGDNN_NhomNganh();
         Task<string> ThongKeTuDoanh();
-        Task<(int, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave);
+        Task<(int, string, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
     }
     public class AnalyzeService : IAnalyzeService
@@ -721,7 +721,7 @@ namespace StockPr.Service
             return (0, null);
         }
 
-        public async Task<(int, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave)
+        public async Task<(int, string, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave)
         {
             try
             {
@@ -733,7 +733,7 @@ namespace StockPr.Service
                     if (lConfig.Any())
                     {
                         if (lConfig.Any(x => x.t == t))
-                            return (0, null, null);
+                            return (0, null, null, null);
 
                         _configRepo.DeleteMany(filterConfig);
                     }
@@ -795,14 +795,17 @@ namespace StockPr.Service
                     });
                 }
 
-                return (1, strOutput.ToString(), PrintSignal(lReport));
+                var lWyckoff = lReport.Where(x => x.Wyckoff != null);
+                var mesWyckoff = $">>Wyckoff: {string.Join("\n", lWyckoff.Select(x => $"+ {x.s}({x.Wyckoff})"))}";
+
+                return (1, strOutput.ToString(), PrintSignal(lReport), mesWyckoff);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"AnalyzeService.ChiBaoKyThuat|EXCEPTION| {ex.Message}");
             }
 
-            return (0, null, null);
+            return (0, null, null, null);
         }
 
         private async Task<ReportPTKT> ChiBaoKyThuatOnlyStock(string code, int limitvol)
@@ -891,6 +894,12 @@ namespace StockPr.Service
                     {
                         model.isForeignSell = true;
                     }
+                }
+
+                var wyckoff = lData.IsWyckoff();
+                if(wyckoff.Item1)
+                {
+                    model.Wyckoff = wyckoff.Item2.Last();
                 }
                
                 return model;

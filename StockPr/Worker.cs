@@ -57,8 +57,8 @@ namespace StockPr
         {
             StockInstance();
             //////for Test
-            await _testService.CheckWycKoff();
-            return;
+            //await _testService.CheckWycKoff();
+            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
@@ -179,6 +179,10 @@ namespace StockPr
                             if (!string.IsNullOrWhiteSpace(res.Item3))
                             {
                                 await _teleService.SendMessage(_idUser, res.Item3);
+                            }
+                            if (!string.IsNullOrWhiteSpace(res.Item4))
+                            {
+                                await _teleService.SendMessage(_idUser, res.Item4);
                             }
                         }
 

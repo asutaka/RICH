@@ -1,11 +1,4 @@
 ﻿using Skender.Stock.Indicators;
-using StockPr.DAL.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StockPr.Model
 {
@@ -220,6 +213,10 @@ namespace StockPr.Model
         public bool isSignalSell { get; set; }//cp cần quan tâm(có vol giảm 1 nửa)
         public bool isForeignBuy { get; set; }
         public bool isForeignSell { get; set; }
+        public Quote Wyckoff
+        {
+            get; set;
+        }
     }
 
     public class TopBotModel
