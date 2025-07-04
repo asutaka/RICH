@@ -25,6 +25,8 @@ namespace TestPr.Service
         Task PreTestSHORT_DOJI();
         Task ListShort_DOJI();
         Task<List<clsResult>> Bybit_SHORT_DOJI(string s = "", int DAY = 20, int SKIP_DAY = 0);
+
+        Task CheckWycKoff();
     }
     public class TestService : ITestService
     {
@@ -1776,6 +1778,46 @@ namespace TestPr.Service
             }
 
             return null;
+        }
+
+        public async Task CheckWycKoff()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                var lTake = lUsdt.Skip(400).Take(400);
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        if (item != "BTCUSDT")
+                            continue;
+
+                        var lMes = new List<string>();
+                        var lData15m = await GetData(item, 20, 0);
+                        var res = lData15m.IsWyckoff();
+                        if (res.Item1)
+                        {
+                            foreach (var itemWyc in res.Item2)
+                            {
+                                Console.WriteLine($"{item}: {itemWyc.Date.ToString("dd/MM/yyyy")}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine("END");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
         }
 
         public class clsData

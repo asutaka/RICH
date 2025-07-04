@@ -938,16 +938,6 @@ namespace StockPr.Service
         {
             try
             {
-                decimal SL_RATE = 10m;//1.5,1.6,1.8,1.9,2
-                int hour = 10;//1h,2h,3h,4h
-
-                var lMesAll = new List<string>();
-
-                var winTotal = 0;
-                var lossTotal = 0;
-                var lPoint = new List<clsPoint>();
-                var lTrace = new List<clsTrace>();
-                var lResult = new List<clsResult>();
                 var lsym = _symbolRepo.GetAll();
                 foreach (var item in lsym.Select(x => x.s))
                 {
@@ -971,11 +961,6 @@ namespace StockPr.Service
                     {
                         Console.WriteLine($"{item}| {ex.Message}");
                     }
-                }
-
-                foreach (var item in lResult.OrderBy(x => x.s))
-                {
-                    Console.WriteLine($"{item.s}|BUY: {item.date.ToString("dd/MM/yyyy")}|SELL: {item.dateSell.ToString("dd/MM/yyyy")}|Rate: {item.Signal}%");
                 }
 
                 Console.WriteLine("END");

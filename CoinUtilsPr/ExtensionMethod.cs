@@ -732,5 +732,98 @@ namespace CoinUtilsPr
 
             return (false, null);
         }
+
+        public static (bool, List<Quote>) IsWyckoff(this IEnumerable<Quote> lData)
+        {
+            try
+            {
+                if ((lData?.Count() ?? 0) < 100)
+                    return (false, null);
+
+                var lbb = lData.GetBollingerBands();
+                var lMaVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Close = x.Volume
+                }).GetSma(20);
+                var cur = lData.Last();
+                var lSOS = lData.SkipLast(3).TakeLast(30);
+                var lWyc = new List<Quote>();
+                foreach (var itemSOS in lSOS)
+                {
+                    try
+                    {
+                        var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
+                        if (itemSOS.Volume < 2 * (decimal)ma20Vol.Sma.Value) continue;
+
+                        //Biên độ dao động <= 10% và SOS >= max
+                        var lPrev15 = lData.Where(x => x.Date < itemSOS.Date).TakeLast(15);
+                        var maxPrev = lPrev15.Max(x => Math.Max(x.Open, x.Close));
+                        var minPrev = lPrev15.Min(x => Math.Min(x.Open, x.Close));
+                        var rateMaxMin = Math.Round(100 * (-1 + maxPrev / minPrev));
+                        if (rateMaxMin > 3//STEP1
+                            || itemSOS.Close < maxPrev) continue;
+
+                        //Nến liền trước
+                        var rate = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open));
+                        if (rate < 1) continue;//STEP2
+
+                        #region 10 nến tiếp theo 
+                        var lEntry = lData.Where(x => x.Date > itemSOS.Date).Take(10);
+                        var countEntry = lEntry.Count();
+                        if (countEntry < 4)
+                            continue;
+
+                        var countGreater = 0;
+                        foreach (var itemEntry in lEntry)
+                        {
+                            if (itemEntry.Close > itemSOS.Close)
+                                countGreater++;
+                        }
+                        if (countGreater >= 5
+                            || countGreater >= countEntry - 1)
+                            continue;
+                        #endregion
+
+                        #region 20 nến tiếp theo 
+                        var lEntryBelow = lData.Where(x => x.Date > itemSOS.Date).Take(20);
+                        var countBelow = 0;
+                        foreach (var itemEntry in lEntryBelow)
+                        {
+                            var bb = lbb.First(x => x.Date == itemEntry.Date);
+                            if ((decimal)bb.Sma.Value > itemEntry.Close)
+                                countBelow++;
+                        }
+                        if (countBelow >= 5)
+                            continue;
+                        #endregion
+
+                        //rate Hiện tại
+                        //var rateCur = Math.Round(100 * (-1 + cur.Close / itemSOS.Close));
+                        //if (rateCur >= 2) continue;//STEP3
+
+                        if (lWyc.Any(x => x.Date == itemSOS.Date))
+                            continue;
+
+                        lWyc.Add(itemSOS);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+
+                if (lWyc.Any())
+                {
+                    return (true, lWyc);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return (false, null);
+        }
     }
 }
