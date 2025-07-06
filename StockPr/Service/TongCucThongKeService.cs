@@ -37,13 +37,38 @@ namespace StockPr.Service
                 var index = url.IndexOf($".{year}");
                 if (index == -1)
                 {
-                    year = dtNow.Year - 1;
-                    index = url.IndexOf($".{year}");
+                    index = url.IndexOf($"-{year}");
+                    if(index == -1)
+                    {
+                        year = dtNow.Year - 1;
+                        index = url.IndexOf($".{year}");
+                        if(index == -1)
+                        {
+                            index = url.IndexOf($"-{year}");
+                        }    
+                    }
                 }
                 if (index == -1)
                     return (0, null);
                 var monthStr = url.Substring(index - 2, 2).Replace("T", "");
-                var month = Math.Abs(int.Parse(monthStr));
+                var isInt = int.TryParse(monthStr, out var month);
+                if (!isInt)
+                {
+                    var strSplit = url.Split('/');
+                    foreach (var item in strSplit)
+                    {
+                        isInt = int.TryParse(item, out var val);
+                        if(isInt && val <= 12)
+                        {
+                            month = val - 1;
+                            break;
+                        }    
+                    }
+                }
+
+                if(month <= 0)
+                    return (0, null);
+
                 var t = long.Parse($"{year}{month.To2Digit()}");
                 var dtLocal = new DateTime(year, month, 28);
 
