@@ -1801,16 +1801,15 @@ namespace TestPr.Service
 
                         var l1H = await _apiService.GetData_Bybit_1H(item);
                         var count = l1H.Count();
+                        var timeFlag = DateTime.MinValue;
                         for (int i = 100; i < count; i++)
                         {
                             var lDat = l1H.Take(i).ToList();
-                            var rs = lDat.IsWyckoff(20, 1);
-                            if(rs.Item1)
+                            var rs = lDat.IsWyckoff(2, 1);
+                            if(rs.Item1 && rs.Item2.Date > timeFlag)
                             {
-                                foreach (var itemMes in rs.Item2)
-                                {
-                                    Console.WriteLine(itemMes.Date.ToString("dd/MM/yyyy HH"));
-                                }
+                                timeFlag = rs.Item2.Date;
+                                Console.WriteLine(rs.Item2.Date.ToString("dd/MM/yyyy HH"));
                             }
                         }
 

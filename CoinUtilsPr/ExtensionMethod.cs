@@ -733,7 +733,7 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-        public static (bool, List<Quote>) IsWyckoff(this IEnumerable<Quote> lData, decimal biendonenphang = 3, decimal nenlientruoc = 1)
+        public static (bool, Quote) IsWyckoff(this IEnumerable<Quote> lData, decimal biendonenphang = 3, decimal nenlientruoc = 1)
         {
             try
             {
@@ -749,73 +749,86 @@ namespace CoinUtilsPr
                 var cur = lData.Last();
                 var lSOS = lData.SkipLast(3).TakeLast(30);
                 var lWyc = new List<Quote>();
-                foreach (var itemSOS in lSOS)
+                foreach (var itemSOS in lSOS.OrderByDescending(x => x.Date))
                 {
                     try
                     {
+                        //Nến xanh
+                        if (itemSOS.Open > itemSOS.Close) continue;
+
                         var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
+                        //Vol SOS phải lớn gấp đôi vol trung bình
                         if (itemSOS.Volume < 2 * (decimal)ma20Vol.Sma.Value) continue;
 
-                        //Biên độ dao động <= 10% và SOS >= max
-                        var lPrev15 = lData.Where(x => x.Date < itemSOS.Date).TakeLast(15);
-                        var maxPrev = lPrev15.Max(x => Math.Max(x.Open, x.Close));
-                        var minPrev = lPrev15.Min(x => Math.Min(x.Open, x.Close));
-                        var rateMaxMin = Math.Round(100 * (-1 + maxPrev / minPrev));
-                        if (rateMaxMin > biendonenphang//STEP1
-                            || itemSOS.Close < maxPrev) continue;
+                        var lPrev_50 = lData.Where(x => x.Date < itemSOS.Date).TakeLast(50);
+                        var lPrev_10 = lPrev_50.TakeLast(10);
+                        var distance_50 = lPrev_50.Max(x => Math.Max(x.Open, x.Close)) - lPrev_50.Min(x => Math.Min(x.Open, x.Close));
+                        var distance_10 = lPrev_10.Max(x => Math.Max(x.Open, x.Close)) - lPrev_10.Min(x => Math.Min(x.Open, x.Close));
 
-                        //Nến liền trước
-                        var rate = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open));
-                        if (rate < nenlientruoc) continue;//STEP2
+                        //Close tại SOS phải lớn hơn Max của 10 nến gần nhất
+                        if (itemSOS.Close <= lPrev_10.Max(x => Math.Max(x.Open, x.Close))) continue;
 
-                        #region 10 nến tiếp theo 
-                        var lEntry = lData.Where(x => x.Date > itemSOS.Date).Take(10);
-                        var countEntry = lEntry.Count();
-                        if (countEntry < 4)
-                            continue;
+                        //Độ lệch 50 nến trước phải gấp 2 lần độ lệch 10 nến trước
+                        if(distance_50 < 2 * distance_10) continue;
 
-                        var countGreater = 0;
-                        foreach (var itemEntry in lEntry)
+                        //Độ dài từ Close SOS đến Min 10 phải <= 2 lần độ dài nến SOS
+                        if ((itemSOS.Close - itemSOS.Open) < itemSOS.Open - lPrev_10.Min(x => Math.Min(x.Open, x.Close))) continue;
+
+                        //7 nến kế tiếp phải có nến có Low cắt Ma20 
+                        var lNext = lData.Where(x => x.Date > itemSOS.Date).Take(7);
+                        foreach (var itemNext in lNext)
                         {
-                            if (itemEntry.Close > itemSOS.Close)
-                                countGreater++;
+                            var bb = lbb.First(x => x.Date == itemNext.Date);
+                            //Tích lũy chạm Ma20
+                            var ma20 = (decimal)bb.Sma.Value;
+                            if (itemNext.Low <= ma20)
+                            {
+                                //Nến hiện tại hoặc 1,2 nến kế tiếp phải > Ma20
+                                if (itemNext.Close < itemSOS.Open)
+                                {
+                                    return (false, null);
+                                }    
+                                else if (itemNext.Close >= ma20 && itemNext.Close <= itemSOS.Close)
+                                {
+                                    return (true, itemNext);
+                                }
+
+                                var itemNext1 = lData.FirstOrDefault(x => x.Date > itemNext.Date);
+                                if(itemNext1 is null)
+                                {
+
+                                }
+                                if (itemNext1.Close < itemSOS.Open)
+                                {
+                                    return (false, null);
+                                }
+                                else if (itemNext1 != null && itemNext1.Close >= ma20 && itemNext1.Close <= itemSOS.Close)
+                                {
+                                    return (true, itemNext1);
+                                }
+
+                                var itemNext2 = lData.Where(x => x.Date > itemNext.Date).Skip(1).FirstOrDefault();
+                                if (itemNext2 is null)
+                                {
+
+                                }
+                                if (itemNext2.Close < itemSOS.Open)
+                                {
+                                    return (false, null);
+                                }
+                                if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close)
+                                {
+                                    return (true, itemNext2);
+                                }
+
+                                break;
+                            }
                         }
-                        if (countGreater >= 5
-                            || countGreater >= countEntry - 1)
-                            continue;
-                        #endregion
-
-                        #region 20 nến tiếp theo 
-                        var lEntryBelow = lData.Where(x => x.Date > itemSOS.Date).Take(20);
-                        var countBelow = 0;
-                        foreach (var itemEntry in lEntryBelow)
-                        {
-                            var bb = lbb.First(x => x.Date == itemEntry.Date);
-                            if ((decimal)bb.Sma.Value > itemEntry.Close)
-                                countBelow++;
-                        }
-                        if (countBelow >= 5)
-                            continue;
-                        #endregion
-
-                        //rate Hiện tại
-                        //var rateCur = Math.Round(100 * (-1 + cur.Close / itemSOS.Close));
-                        //if (rateCur >= 2) continue;//STEP3
-
-                        if (lWyc.Any(x => x.Date == itemSOS.Date))
-                            continue;
-
-                        lWyc.Add(itemSOS);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                     }
-                }
-
-                if (lWyc.Any())
-                {
-                    return (true, lWyc);
                 }
             }
             catch (Exception ex)
