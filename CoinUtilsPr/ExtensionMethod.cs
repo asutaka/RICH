@@ -733,7 +733,7 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-        public static (bool, List<Quote>) IsWyckoff(this IEnumerable<Quote> lData)
+        public static (bool, List<Quote>) IsWyckoff(this IEnumerable<Quote> lData, decimal biendonenphang = 3, decimal nenlientruoc = 1)
         {
             try
             {
@@ -761,12 +761,12 @@ namespace CoinUtilsPr
                         var maxPrev = lPrev15.Max(x => Math.Max(x.Open, x.Close));
                         var minPrev = lPrev15.Min(x => Math.Min(x.Open, x.Close));
                         var rateMaxMin = Math.Round(100 * (-1 + maxPrev / minPrev));
-                        if (rateMaxMin > 3//STEP1
+                        if (rateMaxMin > biendonenphang//STEP1
                             || itemSOS.Close < maxPrev) continue;
 
                         //Nến liền trước
                         var rate = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open));
-                        if (rate < 1) continue;//STEP2
+                        if (rate < nenlientruoc) continue;//STEP2
 
                         #region 10 nến tiếp theo 
                         var lEntry = lData.Where(x => x.Date > itemSOS.Date).Take(10);

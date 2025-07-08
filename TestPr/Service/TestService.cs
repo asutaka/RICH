@@ -5,6 +5,7 @@ using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
+using System.Net.WebSockets;
 
 namespace TestPr.Service
 {
@@ -1787,7 +1788,10 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(400).Take(400);
+                var lTake = lUsdt.Skip(0).Take(400);
+                /*
+                 
+                 */
                 foreach (var item in lTake)
                 {
                     try
@@ -1795,16 +1799,33 @@ namespace TestPr.Service
                         if (item != "BTCUSDT")
                             continue;
 
-                        var lMes = new List<string>();
-                        var lData15m = await GetData(item, 20, 0);
-                        var res = lData15m.IsWyckoff();
-                        if (res.Item1)
+                        var l1H = await _apiService.GetData_Bybit_1H(item);
+                        var count = l1H.Count();
+                        for (int i = 100; i < count; i++)
                         {
-                            foreach (var itemWyc in res.Item2)
+                            var lDat = l1H.Take(i).ToList();
+                            var rs = lDat.IsWyckoff(20, 1);
+                            if(rs.Item1)
                             {
-                                Console.WriteLine($"{item}: {itemWyc.Date.ToString("dd/MM/yyyy")}");
+                                foreach (var itemMes in rs.Item2)
+                                {
+                                    Console.WriteLine(itemMes.Date.ToString("dd/MM/yyyy HH"));
+                                }
                             }
                         }
+
+                        //var res1H = l1H.IsWyckoff(20, 1);
+
+                        //var lMes = new List<string>();
+                        //var lData15m = await GetData(item, 20, 0);
+                        //var res = lData15m.IsWyckoff();
+                        //if (res.Item1)
+                        //{
+                        //    foreach (var itemWyc in res.Item2)
+                        //    {
+                        //        Console.WriteLine($"{item}: {itemWyc.Date.ToString("dd/MM/yyyy")}");
+                        //    }
+                        //}
                     }
                     catch (Exception ex)
                     {

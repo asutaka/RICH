@@ -4,8 +4,6 @@ using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using System.Net.Http.Headers;
 using System.Text;
-using MongoDB.Driver.Core.WireProtocol.Messages;
-using System.Net;
 
 namespace CoinUtilsPr
 {
@@ -13,6 +11,7 @@ namespace CoinUtilsPr
     {
         Task<List<Quote>> GetData_Bybit(string symbol, int DAY = 10, int SKIP_DAY = 0);
         Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, long fromTime = 0);
+        Task<List<Quote>> GetData_Bybit_1H(string symbol);
     }
     public class APIService : IAPIService
     {
@@ -69,6 +68,56 @@ namespace CoinUtilsPr
             }
             return new List<Quote>();
         }
+
+        public async Task<List<Quote>> GetData_Bybit_1H(string symbol)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var from = now.AddMonths(-1).ToUnixTimeSeconds();
+            var to = now.ToUnixTimeSeconds();
+
+            var url = string.Format("https://www.bybitglobal.com/x-api/contract/v5/public/instrument/kline/market?contract_type=2&symbol={0}&resolution=60&from={1}&to={2}", symbol, from, to);
+
+            try
+            {
+                using var client = _client.CreateClient("ConfiguredHttpMessageHandler");
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+                request.Headers.Add("User-Agent", "PostmanRuntime/7.43.4");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return new List<Quote>();
+
+                var res = JsonConvert.DeserializeObject<clsBybit>(contents);
+                if (res.result.list.Any())
+                {
+                    var lOut = res.result.list.Select(x => new Quote
+                    {
+                        Date = long.Parse(x[0].ToString()).UnixTimeStampMinisecondToDateTime(),
+                        Open = decimal.Parse(x[1].ToString()),
+                        High = decimal.Parse(x[2].ToString()),
+                        Low = decimal.Parse(x[3].ToString()),
+                        Close = decimal.Parse(x[4].ToString()),
+                        Volume = decimal.Parse(x[5].ToString()),
+                    }).ToList();
+                    return lOut;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetData_Bybit|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+            }
+            return new List<Quote>();
+        }
+
         public async Task<List<Quote>> GetData_Bybit(string symbol, int DAY = 10, int SKIP_DAY = 0)
         {
             var lAll = new List<Quote>();
