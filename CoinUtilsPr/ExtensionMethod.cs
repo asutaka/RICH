@@ -788,7 +788,7 @@ namespace CoinUtilsPr
                                 {
                                     return (false, null);
                                 }    
-                                else if (itemNext.Close >= ma20 && itemNext.Close <= itemSOS.Close)
+                                else if (itemNext.Close >= ma20 && itemNext.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext.Close) >= 2 * (itemNext.Close - ma20))
                                 {
                                     return (true, itemNext);
                                 }
@@ -802,7 +802,7 @@ namespace CoinUtilsPr
                                 {
                                     return (false, null);
                                 }
-                                else if (itemNext1 != null && itemNext1.Close >= ma20 && itemNext1.Close <= itemSOS.Close)
+                                else if (itemNext1 != null && itemNext1.Close >= ma20 && itemNext1.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext1.Close) >= 2 * (itemNext1.Close - ma20))
                                 {
                                     return (true, itemNext1);
                                 }
@@ -816,7 +816,7 @@ namespace CoinUtilsPr
                                 {
                                     return (false, null);
                                 }
-                                else if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close)
+                                else if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext2.Close) >= 2 * (itemNext2.Close - ma20))
                                 {
                                     return (true, itemNext2);
                                 }
