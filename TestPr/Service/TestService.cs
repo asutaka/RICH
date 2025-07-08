@@ -1796,8 +1796,8 @@ namespace TestPr.Service
                 {
                     try
                     {
-                        if (item != "BTCUSDT")
-                            continue;
+                        //if (item != "BTCUSDT")
+                        //    continue;
 
                         var l1H = await _apiService.GetData_Bybit_1H(item);
                         var count = l1H.Count();

@@ -798,7 +798,7 @@ namespace CoinUtilsPr
                                 {
 
                                 }
-                                if (itemNext1.Close < itemSOS.Open)
+                                else if (itemNext1.Close < itemSOS.Open)
                                 {
                                     return (false, null);
                                 }
@@ -812,11 +812,11 @@ namespace CoinUtilsPr
                                 {
 
                                 }
-                                if (itemNext2.Close < itemSOS.Open)
+                                else if (itemNext2.Close < itemSOS.Open)
                                 {
                                     return (false, null);
                                 }
-                                if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close)
+                                else if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close)
                                 {
                                     return (true, itemNext2);
                                 }
