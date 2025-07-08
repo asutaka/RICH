@@ -1788,7 +1788,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(0).Take(400);
+                var lTake = lUsdt.Skip(0).Take(50);
                 /*
                  
                  */
@@ -1809,7 +1809,7 @@ namespace TestPr.Service
                             if(rs.Item1 && rs.Item2.Date > timeFlag)
                             {
                                 timeFlag = rs.Item2.Date;
-                                Console.WriteLine(rs.Item2.Date.ToString("dd/MM/yyyy HH"));
+                                Console.WriteLine($"{item}: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}");
                             }
                         }
 
