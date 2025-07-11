@@ -1800,6 +1800,7 @@ namespace TestPr.Service
                         //    continue;
 
                         var l1H = await _apiService.GetData_Bybit_1H(item);
+                        //var l1H = await GetData(item, 20, 0); 
                         var count = l1H.Count();
                         var timeFlag = DateTime.MinValue;
                         for (int i = 100; i < count; i++)
@@ -1809,7 +1810,7 @@ namespace TestPr.Service
                             if(rs.Item1 && rs.Item2.Date > timeFlag)
                             {
                                 timeFlag = rs.Item2.Date;
-                                Console.WriteLine($"{item}: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}");
+                                Console.WriteLine($"{item}: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
                             }
                         }
 
