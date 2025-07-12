@@ -757,7 +757,7 @@ namespace CoinUtilsPr
                     {
                         if (itemSOS.Open > itemSOS.Close) continue; //Loại nếu nến đỏ
                         var rsi = lrsi.First(x => x.Date == itemSOS.Date);
-                        if (rsi.Rsi <= 60) continue;//RSI phải lớn hơn 60
+                        if (rsi.Rsi <= 50) continue;//RSI phải lớn hơn 50
                         var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
                         if (itemSOS.Volume <= (decimal)ma20Vol.Sma.Value) continue; //Vol phải lớn hơn TB 20 phiên
 
@@ -775,74 +775,34 @@ namespace CoinUtilsPr
                         if(divBB_Prev_10 > 1.5 * divBB_Prev_30) continue;//Nếu band quá khứ 10 lớn hơn 1.5 lần band quá khứ 30 -> loại(chỉ lấy tại lần thứ nhất)
                         if(divBB > 2  * divBB_Prev_10) continue;//Nếu band hiện tại gấp đôi band quá khứ 10 -> loại
 
-                        Console.WriteLine(itemSOS.Date.ToString("dd/MM/yyyy HH"));
+                        if(itemSOS.Date.Day == 9 && itemSOS.Date.Month == 7 && itemSOS.Date.Hour == 16)
+                        {
+                            var tmp = 1;
+                        }    
+
+                        var lNext = lData.Where(x => x.Date > itemSOS.Date).Take(15);
+                        foreach( var itemNext in lNext)
+                        {
+                            var rsiNext = lrsi.First(x => x.Date == itemNext.Date);
+                            if (rsiNext.Rsi < 50) //RSI Entry không được nhỏ hơn 50
+                                return (false, null);
+
+                            if (rsiNext.Rsi > 60) //Entry chỉ khi RSI <= 70(CK: 70, coin: 60)
+                                continue;
+
+                            //var bb_Next = lbb.First(x => x.Date == itemNext.Date);
+                            //var div_Upper_Low = (decimal)bb_Next.UpperBand - itemNext.Low;
+                            //var div_Low_Ma20 = itemNext.Low - (decimal)bb_Next.Sma.Value;
+                            //if (div_Upper_Low < 2 * div_Low_Ma20) //Low cuả Next <= 1/3 của Ma20 -> Upper(sự khác biệt giữa coin và chứng khoán)
+                            //    continue;
 
 
 
-                        //var lPrev_50 = lData.Where(x => x.Date < itemSOS.Date).TakeLast(50);
-                        //var lPrev_10 = lPrev_50.TakeLast(10);
-                        //var distance_50 = lPrev_50.Max(x => Math.Max(x.Open, x.Close)) - lPrev_50.Min(x => Math.Min(x.Open, x.Close));
-                        //var distance_10 = lPrev_10.Max(x => Math.Max(x.Open, x.Close)) - lPrev_10.Min(x => Math.Min(x.Open, x.Close));
+                            Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
+                            break;
+                        }
 
-                        ////Close tại SOS phải lớn hơn Max của 10 nến gần nhất
-                        //if (itemSOS.Close <= lPrev_10.Max(x => Math.Max(x.Open, x.Close))) continue;
-
-                        ////Độ lệch 50 nến trước phải gấp 2 lần độ lệch 10 nến trước
-                        //if(distance_50 < 2 * distance_10) continue;
-
-                        ////Độ dài từ Close SOS đến Min 10 phải <= 2 lần độ dài nến SOS
-                        //if ((itemSOS.Close - itemSOS.Open) < itemSOS.Open - lPrev_10.Min(x => Math.Min(x.Open, x.Close))) continue;
-
-                        ////7 nến kế tiếp phải có nến có Low cắt Ma20 
-                        //var lNext = lData.Where(x => x.Date > itemSOS.Date).Take(7);
-                        //foreach (var itemNext in lNext)
-                        //{
-                        //    var bb = lbb.First(x => x.Date == itemNext.Date);
-                        //    //Tích lũy chạm Ma20
-                        //    var ma20 = (decimal)bb.Sma.Value;
-                        //    if (itemNext.Low <= ma20)
-                        //    {
-                        //        //Nến hiện tại hoặc 1,2 nến kế tiếp phải > Ma20
-                        //        if (itemNext.Close < itemSOS.Open)
-                        //        {
-                        //            return (false, null);
-                        //        }    
-                        //        else if (itemNext.Close >= ma20 && itemNext.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext.Close) >= 2 * (itemNext.Close - ma20))
-                        //        {
-                        //            return (true, itemNext);
-                        //        }
-
-                        //        var itemNext1 = lData.FirstOrDefault(x => x.Date > itemNext.Date);
-                        //        if(itemNext1 is null)
-                        //        {
-
-                        //        }
-                        //        else if (itemNext1.Close < itemSOS.Open)
-                        //        {
-                        //            return (false, null);
-                        //        }
-                        //        else if (itemNext1 != null && itemNext1.Close >= ma20 && itemNext1.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext1.Close) >= 2 * (itemNext1.Close - ma20))
-                        //        {
-                        //            return (true, itemNext1);
-                        //        }
-
-                        //        var itemNext2 = lData.Where(x => x.Date > itemNext.Date).Skip(1).FirstOrDefault();
-                        //        if (itemNext2 is null)
-                        //        {
-
-                        //        }
-                        //        else if (itemNext2.Close < itemSOS.Open)
-                        //        {
-                        //            return (false, null);
-                        //        }
-                        //        else if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext2.Close) >= 2 * (itemNext2.Close - ma20))
-                        //        {
-                        //            return (true, itemNext2);
-                        //        }
-
-                        //        break;
-                        //    }
-                        //}
+                        Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                     }
                     catch (Exception ex)
                     {
