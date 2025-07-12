@@ -1,5 +1,6 @@
 ﻿using CoinUtilsPr.DAL.Entity;
 using CoinUtilsPr.Model;
+using MongoDB.Driver;
 using Skender.Stock.Indicators;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -741,89 +742,107 @@ namespace CoinUtilsPr
                     return (false, null);
 
                 var lbb = lData.GetBollingerBands();
+                var lrsi = lData.GetRsi();
                 var lMaVol = lData.Select(x => new Quote
                 {
                     Date = x.Date,
                     Close = x.Volume
                 }).GetSma(20);
-                var cur = lData.Last();
-                var lSOS = lData.SkipLast(3).TakeLast(30);
+                var lTake = lData.SkipLast(3).TakeLast(35);
+                var lSOS = lData.TakeLast(15); //4 - 15
                 var lWyc = new List<Quote>();
                 foreach (var itemSOS in lSOS.OrderByDescending(x => x.Date))
                 {
                     try
                     {
-                        //Nến xanh
-                        if (itemSOS.Open > itemSOS.Close) continue;
-
+                        if (itemSOS.Open > itemSOS.Close) continue; //Loại nếu nến đỏ
+                        var rsi = lrsi.First(x => x.Date == itemSOS.Date);
+                        if (rsi.Rsi <= 60) continue;//RSI phải lớn hơn 60
                         var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
-                        //Vol SOS phải lớn gấp đôi vol trung bình
-                        if (itemSOS.Volume < 2 * (decimal)ma20Vol.Sma.Value) continue;
+                        if (itemSOS.Volume <= (decimal)ma20Vol.Sma.Value) continue; //Vol phải lớn hơn TB 20 phiên
 
-                        var lPrev_50 = lData.Where(x => x.Date < itemSOS.Date).TakeLast(50);
-                        var lPrev_10 = lPrev_50.TakeLast(10);
-                        var distance_50 = lPrev_50.Max(x => Math.Max(x.Open, x.Close)) - lPrev_50.Min(x => Math.Min(x.Open, x.Close));
-                        var distance_10 = lPrev_10.Max(x => Math.Max(x.Open, x.Close)) - lPrev_10.Min(x => Math.Min(x.Open, x.Close));
+                        var maxVolPrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Max(x => x.Volume);
+                        if(itemSOS.Volume < maxVolPrevSOS) continue; //Vol phải lớn hơn 20 nến liền trước
 
-                        //Close tại SOS phải lớn hơn Max của 10 nến gần nhất
-                        if (itemSOS.Close <= lPrev_10.Max(x => Math.Max(x.Open, x.Close))) continue;
 
-                        //Độ lệch 50 nến trước phải gấp 2 lần độ lệch 10 nến trước
-                        if(distance_50 < 2 * distance_10) continue;
+                        var bb = lbb.First(x => x.Date == itemSOS.Date);
+                        var bb_Prev_10 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(10).Last();
+                        var bb_Prev_30 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(50).Last();
 
-                        //Độ dài từ Close SOS đến Min 10 phải <= 2 lần độ dài nến SOS
-                        if ((itemSOS.Close - itemSOS.Open) < itemSOS.Open - lPrev_10.Min(x => Math.Min(x.Open, x.Close))) continue;
+                        var divBB = bb.UpperBand - bb.LowerBand;
+                        var divBB_Prev_10 = bb_Prev_10.UpperBand - bb_Prev_10.LowerBand;
+                        var divBB_Prev_30 = bb_Prev_30.UpperBand - bb_Prev_30.LowerBand;
+                        if(divBB_Prev_10 > 1.5 * divBB_Prev_30) continue;//Nếu band quá khứ 10 lớn hơn 1.5 lần band quá khứ 30 -> loại(chỉ lấy tại lần thứ nhất)
+                        if(divBB > 2  * divBB_Prev_10) continue;//Nếu band hiện tại gấp đôi band quá khứ 10 -> loại
 
-                        //7 nến kế tiếp phải có nến có Low cắt Ma20 
-                        var lNext = lData.Where(x => x.Date > itemSOS.Date).Take(7);
-                        foreach (var itemNext in lNext)
-                        {
-                            var bb = lbb.First(x => x.Date == itemNext.Date);
-                            //Tích lũy chạm Ma20
-                            var ma20 = (decimal)bb.Sma.Value;
-                            if (itemNext.Low <= ma20)
-                            {
-                                //Nến hiện tại hoặc 1,2 nến kế tiếp phải > Ma20
-                                if (itemNext.Close < itemSOS.Open)
-                                {
-                                    return (false, null);
-                                }    
-                                else if (itemNext.Close >= ma20 && itemNext.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext.Close) >= 2 * (itemNext.Close - ma20))
-                                {
-                                    return (true, itemNext);
-                                }
+                        Console.WriteLine(itemSOS.Date.ToString("dd/MM/yyyy HH"));
 
-                                var itemNext1 = lData.FirstOrDefault(x => x.Date > itemNext.Date);
-                                if(itemNext1 is null)
-                                {
 
-                                }
-                                else if (itemNext1.Close < itemSOS.Open)
-                                {
-                                    return (false, null);
-                                }
-                                else if (itemNext1 != null && itemNext1.Close >= ma20 && itemNext1.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext1.Close) >= 2 * (itemNext1.Close - ma20))
-                                {
-                                    return (true, itemNext1);
-                                }
 
-                                var itemNext2 = lData.Where(x => x.Date > itemNext.Date).Skip(1).FirstOrDefault();
-                                if (itemNext2 is null)
-                                {
+                        //var lPrev_50 = lData.Where(x => x.Date < itemSOS.Date).TakeLast(50);
+                        //var lPrev_10 = lPrev_50.TakeLast(10);
+                        //var distance_50 = lPrev_50.Max(x => Math.Max(x.Open, x.Close)) - lPrev_50.Min(x => Math.Min(x.Open, x.Close));
+                        //var distance_10 = lPrev_10.Max(x => Math.Max(x.Open, x.Close)) - lPrev_10.Min(x => Math.Min(x.Open, x.Close));
 
-                                }
-                                else if (itemNext2.Close < itemSOS.Open)
-                                {
-                                    return (false, null);
-                                }
-                                else if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext2.Close) >= 2 * (itemNext2.Close - ma20))
-                                {
-                                    return (true, itemNext2);
-                                }
+                        ////Close tại SOS phải lớn hơn Max của 10 nến gần nhất
+                        //if (itemSOS.Close <= lPrev_10.Max(x => Math.Max(x.Open, x.Close))) continue;
 
-                                break;
-                            }
-                        }
+                        ////Độ lệch 50 nến trước phải gấp 2 lần độ lệch 10 nến trước
+                        //if(distance_50 < 2 * distance_10) continue;
+
+                        ////Độ dài từ Close SOS đến Min 10 phải <= 2 lần độ dài nến SOS
+                        //if ((itemSOS.Close - itemSOS.Open) < itemSOS.Open - lPrev_10.Min(x => Math.Min(x.Open, x.Close))) continue;
+
+                        ////7 nến kế tiếp phải có nến có Low cắt Ma20 
+                        //var lNext = lData.Where(x => x.Date > itemSOS.Date).Take(7);
+                        //foreach (var itemNext in lNext)
+                        //{
+                        //    var bb = lbb.First(x => x.Date == itemNext.Date);
+                        //    //Tích lũy chạm Ma20
+                        //    var ma20 = (decimal)bb.Sma.Value;
+                        //    if (itemNext.Low <= ma20)
+                        //    {
+                        //        //Nến hiện tại hoặc 1,2 nến kế tiếp phải > Ma20
+                        //        if (itemNext.Close < itemSOS.Open)
+                        //        {
+                        //            return (false, null);
+                        //        }    
+                        //        else if (itemNext.Close >= ma20 && itemNext.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext.Close) >= 2 * (itemNext.Close - ma20))
+                        //        {
+                        //            return (true, itemNext);
+                        //        }
+
+                        //        var itemNext1 = lData.FirstOrDefault(x => x.Date > itemNext.Date);
+                        //        if(itemNext1 is null)
+                        //        {
+
+                        //        }
+                        //        else if (itemNext1.Close < itemSOS.Open)
+                        //        {
+                        //            return (false, null);
+                        //        }
+                        //        else if (itemNext1 != null && itemNext1.Close >= ma20 && itemNext1.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext1.Close) >= 2 * (itemNext1.Close - ma20))
+                        //        {
+                        //            return (true, itemNext1);
+                        //        }
+
+                        //        var itemNext2 = lData.Where(x => x.Date > itemNext.Date).Skip(1).FirstOrDefault();
+                        //        if (itemNext2 is null)
+                        //        {
+
+                        //        }
+                        //        else if (itemNext2.Close < itemSOS.Open)
+                        //        {
+                        //            return (false, null);
+                        //        }
+                        //        else if (itemNext2 != null && itemNext2.Close >= ma20 && itemNext2.Close <= itemSOS.Close && ((decimal)bb.UpperBand.Value - itemNext2.Close) >= 2 * (itemNext2.Close - ma20))
+                        //        {
+                        //            return (true, itemNext2);
+                        //        }
+
+                        //        break;
+                        //    }
+                        //}
                     }
                     catch (Exception ex)
                     {
