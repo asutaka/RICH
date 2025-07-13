@@ -1814,7 +1814,25 @@ namespace TestPr.Service
                             if(rs.Item1 && rs.Item2.Date > timeFlag)
                             {
                                 timeFlag = rs.Item2.Date;
-                                Console.WriteLine($"{item}: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
+
+                                for (int i2 = 0; i2 < count; i2++)
+                                {
+                                    var check = l1H.Where(x => x.Date > timeFlag).Skip(i2).FirstOrDefault();
+                                    if(check is null)
+                                        continue;
+
+                                    var lCheck = l1H.Where(x => x.Date <= check.Date);
+                                    var sell = rs.Item2.IsWyckoffOut(lCheck);
+                                    if(sell.Item1)
+                                    {
+                                        var rate = Math.Round(100 * (-1 + sell.Item2.Close / rs.Item2.Close));
+                                        var winlose = rate > 0 ? "W" : "L";
+                                        Console.WriteLine($"{item}|{winlose}|ENTRY: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}|TP: {sell.Item2.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
+                                        break;
+                                    }
+                                }
+                                
+                                //Console.WriteLine($"{item}: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
                             }
                         }
 

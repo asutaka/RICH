@@ -801,13 +801,9 @@ namespace CoinUtilsPr
                             var divNext = itemNext.Date - maxClose.Date;
                             if (divNext < divSOS) break;//Số nến phân phối phải lớn hơn số nến SOS
 
-
-
-                            Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
-                            break;
+                            //Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
+                            return (true, itemNext);
                         }
-
-                        //Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                     }
                     catch (Exception ex)
                     {
@@ -823,38 +819,44 @@ namespace CoinUtilsPr
             return (false, null);
         }
     
-        public static bool IsWyckoffOut(this Quote val, IEnumerable<Quote> lData)
+        public static (bool, Quote) IsWyckoffOut(this Quote val, IEnumerable<Quote> lData)
         {
             try
             {
-                var lRsi = lData.GetRsi();
-                var lBB = lData.GetBollingerBands();
-                var rsi = lRsi.Last();
-                if (rsi.Rsi >= 75)
-                    return true;
-
-                var rsi_Prev = lRsi.SkipLast(1).Last();
-                if(rsi_Prev.Rsi > 70)
-                    return true;
-
+                var last = lData.Last();
                 var cur = lData.SkipLast(1).Last();
                 var prev = lData.SkipLast(2).Last();
-                var bb_Prev = lBB.First(x => x.Date == prev.Date);
 
+                var lRsi = lData.GetRsi();
+                var lBB = lData.GetBollingerBands();
+                var rsi_Last = lRsi.First(x => x.Date == last.Date);
+                if (rsi_Last.Rsi >= 75)
+                    return (true, last);
+
+                var rsi_Cur = lRsi.First(x => x.Date == cur.Date);
+                if(rsi_Cur.Rsi > 70)
+                    return (true, cur);
+
+                var bb_Prev = lBB.First(x => x.Date == prev.Date);
                 if (prev.Close > (decimal)bb_Prev.UpperBand.Value
-                    && prev.Volume >= 2 * cur.Volume)
-                    return true;
+                    && prev.Volume >= 1.5m * cur.Volume)
+                    return (true, cur);
 
                 var count = lData.Count(x => x.Date > val.Date);
-                if(count > 24)
-                    return true;
+                if(count >= 48)
+                    return (true, last);
+
+                //STOPLOSS
+                var rate = Math.Round(100 * (-1 + last.Close / val.Close));
+                if(rate < -3)
+                    return (true, last);
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
 
-            return false;
+            return (false, null);
         }
     }
 }
