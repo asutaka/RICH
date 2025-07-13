@@ -761,9 +761,11 @@ namespace CoinUtilsPr
                         var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
                         if (itemSOS.Volume <= (decimal)ma20Vol.Sma.Value) continue; //Vol phải lớn hơn TB 20 phiên
 
-                        var maxVolPrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Max(x => x.Volume);
-                        if(itemSOS.Volume < maxVolPrevSOS) continue; //Vol phải lớn hơn 20 nến liền trước
+                        var countMaxVolPrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Count(x => x.Volume > itemSOS.Volume);
+                        if(countMaxVolPrevSOS > 1) continue; //Vol phải lớn hơn 20 nến liền trước
 
+                        var maxClosePrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Max(x => x.Close);
+                        if(itemSOS.Close < maxClosePrevSOS) continue; //Close phải lớn hơn 20 nến liền trước
 
                         var bb = lbb.First(x => x.Date == itemSOS.Date);
                         var bb_Prev_10 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(10).Last();
@@ -778,23 +780,26 @@ namespace CoinUtilsPr
                         if(itemSOS.Date.Day == 9 && itemSOS.Date.Month == 7 && itemSOS.Date.Hour == 16)
                         {
                             var tmp = 1;
-                        }    
+                        }
 
-                        var lNext = lData.Where(x => x.Date > itemSOS.Date).Take(15);
-                        foreach( var itemNext in lNext)
+                        var lNext = lData.Where(x => x.Date > itemSOS.Date).Skip(2).Take(13);
+                        foreach (var itemNext in lNext)
                         {
                             var rsiNext = lrsi.First(x => x.Date == itemNext.Date);
                             if (rsiNext.Rsi < 50) //RSI Entry không được nhỏ hơn 50
                                 return (false, null);
 
-                            if (rsiNext.Rsi > 60) //Entry chỉ khi RSI <= 70(CK: 70, coin: 60)
-                                continue;
+                            if (rsiNext.Rsi > 60) continue;//Entry chỉ khi RSI <= 70(CK: 70, coin: 60)
 
-                            //var bb_Next = lbb.First(x => x.Date == itemNext.Date);
-                            //var div_Upper_Low = (decimal)bb_Next.UpperBand - itemNext.Low;
-                            //var div_Low_Ma20 = itemNext.Low - (decimal)bb_Next.Sma.Value;
-                            //if (div_Upper_Low < 2 * div_Low_Ma20) //Low cuả Next <= 1/3 của Ma20 -> Upper(sự khác biệt giữa coin và chứng khoán)
-                            //    continue;
+                            var bb_Next = lbb.First(x => x.Date == itemNext.Date);
+                            var div_Upper_Low = (decimal)bb_Next.UpperBand - itemNext.Low;
+                            var div_Low_Ma20 = itemNext.Low - (decimal)bb_Next.Sma.Value;
+                            if (div_Upper_Low < 3 * div_Low_Ma20) continue;//Low cuả Next <= 1/4 của Ma20 -> Upper(sự khác biệt giữa coin và chứng khoán)
+
+                            var maxClose = lData.Where(x => x.Date >= itemSOS.Date && x.Date <= itemNext.Date).MaxBy(x => x.Close);
+                            var divSOS = maxClose.Date - itemSOS.Date;
+                            var divNext = itemNext.Date - maxClose.Date;
+                            if (divNext < divSOS) break;//Số nến phân phối phải lớn hơn số nến SOS
 
 
 
@@ -802,7 +807,7 @@ namespace CoinUtilsPr
                             break;
                         }
 
-                        Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                        //Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                     }
                     catch (Exception ex)
                     {
