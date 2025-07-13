@@ -1788,11 +1788,11 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                //var lTake = lUsdt.Skip(0).Take(50);
-                var lTake = new List<string>
-                {
-                    "MOODENGUSDT"
-                };
+                var lTake = lUsdt.Skip(0).Take(50);
+                //var lTake = new List<string>
+                //{
+                //    "ETHUSDT"
+                //};
                 /*
                  
                  */
@@ -1800,9 +1800,6 @@ namespace TestPr.Service
                 {
                     try
                     {
-                        if (item != "MOODENGUSDT")
-                            continue;
-
                         var l1H = await _apiService.GetData_Bybit_1H(item);
                         //var l1H = await GetData(item, 20, 0); 
                         var count = l1H.Count();
