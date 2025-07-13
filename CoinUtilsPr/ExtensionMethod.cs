@@ -822,5 +822,39 @@ namespace CoinUtilsPr
 
             return (false, null);
         }
+    
+        public static bool IsWyckoffOut(this Quote val, IEnumerable<Quote> lData)
+        {
+            try
+            {
+                var lRsi = lData.GetRsi();
+                var lBB = lData.GetBollingerBands();
+                var rsi = lRsi.Last();
+                if (rsi.Rsi >= 75)
+                    return true;
+
+                var rsi_Prev = lRsi.SkipLast(1).Last();
+                if(rsi_Prev.Rsi > 70)
+                    return true;
+
+                var cur = lData.SkipLast(1).Last();
+                var prev = lData.SkipLast(2).Last();
+                var bb_Prev = lBB.First(x => x.Date == prev.Date);
+
+                if (prev.Close > (decimal)bb_Prev.UpperBand.Value
+                    && prev.Volume >= 2 * cur.Volume)
+                    return true;
+
+                var count = lData.Count(x => x.Date > val.Date);
+                if(count > 24)
+                    return true;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return false;
+        }
     }
 }
