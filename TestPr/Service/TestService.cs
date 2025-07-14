@@ -1807,7 +1807,7 @@ namespace TestPr.Service
                         for (int i = 100; i < count; i++)
                         {
                             var lDat = l1H.Take(i).ToList();
-                            var rs = lDat.IsWyckoff(2, 1);
+                            var rs = lDat.IsWyckoff();
                             if(rs.Item1 && rs.Item2.Date > timeFlag)
                             {
                                 timeFlag = rs.Item2.Date;

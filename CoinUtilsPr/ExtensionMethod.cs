@@ -734,7 +734,7 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-        public static (bool, Quote) IsWyckoff(this IEnumerable<Quote> lData, decimal biendonenphang = 3, decimal nenlientruoc = 1)
+        public static (bool, Quote) IsWyckoff(this IEnumerable<Quote> lData)
         {
             try
             {
