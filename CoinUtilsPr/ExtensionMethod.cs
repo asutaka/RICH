@@ -858,5 +858,90 @@ namespace CoinUtilsPr
 
             return (false, null);
         }
+
+        public static (bool, Quote) IsWyckoff_Reverse(this IEnumerable<Quote> lData)
+        {
+            try
+            {
+                if ((lData?.Count() ?? 0) < 100)
+                    return (false, null);
+
+                var lbb = lData.GetBollingerBands();
+                var lrsi = lData.GetRsi();
+                var lMaVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Close = x.Volume
+                }).GetSma(20);
+                var lTake = lData.SkipLast(3).TakeLast(35);
+                var lSOS = lData.TakeLast(15); //4 - 15
+                var lWyc = new List<Quote>();
+                foreach (var itemSOS in lSOS.OrderByDescending(x => x.Date))
+                {
+                    try
+                    {
+                        if (itemSOS.Open < itemSOS.Close) continue; //Loại nếu nến xanh
+                        var rsi = lrsi.First(x => x.Date == itemSOS.Date);
+                        if (rsi.Rsi >= 50) continue;//RSI phải nhỏ hơn 50
+                        var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
+                        if (itemSOS.Volume <= (decimal)ma20Vol.Sma.Value) continue; //Vol phải lớn hơn TB 20 phiên
+
+                        var countMaxVolPrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Count(x => x.Volume > itemSOS.Volume);
+                        if (countMaxVolPrevSOS > 1) continue; //Vol phải lớn hơn 20 nến liền trước
+
+                        var minClosePrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Min(x => x.Close);
+                        if (itemSOS.Close > minClosePrevSOS) continue; //Close phải nhỏ hơn 20 nến liền trước
+
+                        var bb = lbb.First(x => x.Date == itemSOS.Date);
+                        var bb_Prev_10 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(10).Last();
+                        var bb_Prev_30 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(50).Last();
+
+                        var divBB = bb.UpperBand - bb.LowerBand;
+                        var divBB_Prev_10 = bb_Prev_10.UpperBand - bb_Prev_10.LowerBand;
+                        var divBB_Prev_30 = bb_Prev_30.UpperBand - bb_Prev_30.LowerBand;
+                        if (divBB_Prev_10 > 1.5 * divBB_Prev_30) continue;//Nếu band quá khứ 10 lớn hơn 1.5 lần band quá khứ 30 -> loại(chỉ lấy tại lần thứ nhất)
+                        if (divBB > 2 * divBB_Prev_10) continue;//Nếu band hiện tại gấp đôi band quá khứ 10 -> loại
+
+                        if (itemSOS.Date.Day == 9 && itemSOS.Date.Month == 7 && itemSOS.Date.Hour == 16)
+                        {
+                            var tmp = 1;
+                        }
+
+                        var lNext = lData.Where(x => x.Date > itemSOS.Date).Skip(2).Take(13);
+                        foreach (var itemNext in lNext)
+                        {
+                            var rsiNext = lrsi.First(x => x.Date == itemNext.Date);
+                            if (rsiNext.Rsi > 50) //RSI Entry không được lớn hơn 50
+                                return (false, null);
+
+                            if (rsiNext.Rsi < 40) continue;//Entry chỉ khi RSI >= 40
+
+                            var bb_Next = lbb.First(x => x.Date == itemNext.Date);
+                            var div_Ma20_High = (decimal)bb_Next.Sma.Value - itemNext.High;
+                            var div_High_Lower = itemNext.High - (decimal)bb_Next.LowerBand;
+                            if (div_High_Lower < 3 * div_Ma20_High) continue;//Low cuả Next <= 1/4 của Ma20 -> Upper(sự khác biệt giữa coin và chứng khoán)
+
+                            var minClose = lData.Where(x => x.Date >= itemSOS.Date && x.Date <= itemNext.Date).MinBy(x => x.Close);
+                            var divSOS = minClose.Date - itemSOS.Date;
+                            var divNext = itemNext.Date - minClose.Date;
+                            if (divNext < divSOS) break;//Số nến phân phối phải lớn hơn số nến SOS
+
+                            Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
+                            return (true, itemNext);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return (false, null);
+        }
     }
 }
