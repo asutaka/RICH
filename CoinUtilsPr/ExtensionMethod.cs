@@ -138,12 +138,19 @@ namespace CoinUtilsPr
         {
             try
             {
-                if (val is null || distance < 5)
+                var UNIT = 120;
+                if (distance < 1)
                     return 0;
 
-                var div = Math.Abs(val.Close - prev.Close);
+                var alpha = (double)val.Close / distance;
+                var beta = UNIT / alpha;
 
-                return Math.Acos(distance / Math.Sqrt((double)(div * div + distance * distance)));
+                var div = beta * (double)(val.Close - prev.Close);
+                var angle = Math.Round(Math.Acos(distance / Math.Sqrt(div * div + distance * distance)) * 180 / Math.PI);
+                if (div < 0)
+                    angle = -angle;
+
+                return angle;
             }
             catch (Exception ex)
             {
@@ -734,12 +741,12 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-        public static (bool, Quote) IsWyckoff(this IEnumerable<Quote> lData)
+        public static (bool, Quote, double?) IsWyckoff(this IEnumerable<Quote> lData)
         {
             try
             {
                 if ((lData?.Count() ?? 0) < 100)
-                    return (false, null);
+                    return (false, null, null);
 
                 var lbb = lData.GetBollingerBands();
                 var lrsi = lData.GetRsi();
@@ -787,7 +794,7 @@ namespace CoinUtilsPr
                         {
                             var rsiNext = lrsi.First(x => x.Date == itemNext.Date);
                             if (rsiNext.Rsi < 50) //RSI Entry không được nhỏ hơn 50
-                                return (false, null);
+                                return (false, null, null);
 
                             if (rsiNext.Rsi > 60) continue;//Entry chỉ khi RSI <= 70(CK: 70, coin: 60)
 
@@ -801,8 +808,11 @@ namespace CoinUtilsPr
                             var divNext = itemNext.Date - maxClose.Date;
                             if (divNext < divSOS) break;//Số nến phân phối phải lớn hơn số nến SOS
 
+                            var num = lData.Count(x => x.Date < itemNext.Date && x.Date >= itemSOS.Date);
+                            var angle = itemNext.GetAngle(itemSOS, num);
+
                             //Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
-                            return (true, itemNext);
+                            return (true, itemNext, angle);
                         }
                     }
                     catch (Exception ex)
@@ -816,7 +826,7 @@ namespace CoinUtilsPr
                 Console.WriteLine(ex.Message);
             }
 
-            return (false, null);
+            return (false, null, null);
         }
     
         public static (bool, Quote) IsWyckoffOut(this Quote val, IEnumerable<Quote> lData)
