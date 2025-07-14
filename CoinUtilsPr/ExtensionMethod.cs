@@ -801,7 +801,7 @@ namespace CoinUtilsPr
                             var divNext = itemNext.Date - maxClose.Date;
                             if (divNext < divSOS) break;//Số nến phân phối phải lớn hơn số nến SOS
 
-                            Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
+                            //Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
                             return (true, itemNext);
                         }
                     }
