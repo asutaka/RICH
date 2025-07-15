@@ -147,10 +147,8 @@ namespace CoinUtilsPr
 
                 var div = beta * (double)(val.Close - prev.Close);
                 var angle = Math.Round(Math.Acos(distance / Math.Sqrt(div * div + distance * distance)) * 180 / Math.PI);
-                if (div < 0)
-                    angle = -angle;
 
-                return angle;
+                return Math.Abs(angle);
             }
             catch (Exception ex)
             {
