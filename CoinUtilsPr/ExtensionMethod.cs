@@ -145,7 +145,7 @@ namespace CoinUtilsPr
                 var alpha = (double)val.Close / distance;
                 var beta = UNIT / alpha;
 
-                var div = beta * (double)(val.Close - prev.Close);
+                var div = beta * (double)(val.Open - prev.Close);
                 var angle = Math.Round(Math.Acos(distance / Math.Sqrt(div * div + distance * distance)) * 180 / Math.PI);
 
                 return Math.Abs(angle);
@@ -739,12 +739,12 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-        public static (bool, Quote, double?) IsWyckoff(this IEnumerable<Quote> lData)
+        public static (bool, Quote, Quote, double?) IsWyckoff(this IEnumerable<Quote> lData)
         {
             try
             {
                 if ((lData?.Count() ?? 0) < 100)
-                    return (false, null, null);
+                    return (false, null, null, null);
 
                 var lbb = lData.GetBollingerBands();
                 var lrsi = lData.GetRsi();
@@ -760,7 +760,8 @@ namespace CoinUtilsPr
                 {
                     try
                     {
-                        if (itemSOS.Open > itemSOS.Close) continue; //Loại nếu nến đỏ
+                        var lenSOS = itemSOS.Close - itemSOS.Open;
+                        if (lenSOS <= 0) continue; //Loại nếu nến đỏ
                         var rsi = lrsi.First(x => x.Date == itemSOS.Date);
                         if (rsi.Rsi <= 50) continue;//RSI phải lớn hơn 50
                         var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
@@ -770,7 +771,9 @@ namespace CoinUtilsPr
                         if(countMaxVolPrevSOS > 1) continue; //Vol phải lớn hơn 20 nến liền trước
 
                         var maxClosePrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Max(x => x.Close);
-                        if(itemSOS.Close < maxClosePrevSOS) continue; //Close phải lớn hơn 20 nến liền trước
+                        var minClosePrevSOS = lTake.Where(x => x.Date < itemSOS.Date).TakeLast(20).Min(x => x.Close);
+                        var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
+                        if (itemSOS.Close < maxClosePrevSOS) continue; //Close phải lớn hơn 20 nến liền trước
 
                         var bb = lbb.First(x => x.Date == itemSOS.Date);
                         var bb_Prev_10 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(10).Last();
@@ -792,7 +795,7 @@ namespace CoinUtilsPr
                         {
                             var rsiNext = lrsi.First(x => x.Date == itemNext.Date);
                             if (rsiNext.Rsi < 50) //RSI Entry không được nhỏ hơn 50
-                                return (false, null, null);
+                                return (false, null, null, null); 
 
                             if (rsiNext.Rsi > 60) continue;//Entry chỉ khi RSI <= 70(CK: 70, coin: 60)
 
@@ -809,8 +812,10 @@ namespace CoinUtilsPr
                             var num = lData.Count(x => x.Date < itemNext.Date && x.Date >= itemSOS.Date);
                             var angle = itemNext.GetAngle(maxClose, num);
 
+                            if (lenSOS > maxmin20Prev && angle > 30) break;//Loại Nếu độ dài SOS quá lớn và phân phối quá gắt 
+
                             //Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
-                            return (true, itemNext, angle);
+                            return (true, itemNext, itemSOS, angle);
                         }
                     }
                     catch (Exception ex)
@@ -824,7 +829,7 @@ namespace CoinUtilsPr
                 Console.WriteLine(ex.Message);
             }
 
-            return (false, null, null);
+            return (false, null, null, null);
         }
     
         public static (bool, Quote) IsWyckoffOut(this Quote val, IEnumerable<Quote> lData)

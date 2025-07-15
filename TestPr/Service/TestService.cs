@@ -1824,7 +1824,8 @@ namespace TestPr.Service
                                     {
                                         var rate = Math.Round(100 * (-1 + sell.Item2.Close / rs.Item2.Close));
                                         var winlose = rate > 0 ? "W" : "L";
-                                        Console.WriteLine($"{item}|{winlose}|ENTRY: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}|TP: {sell.Item2.Date.ToString("dd/MM/yyyy HH")}|ANGLE: {rs.Item3}|Rate: {rate}%");
+
+                                        Console.WriteLine($"{item}|{winlose}|SOS: {rs.Item3.Date.ToString("dd/MM/yyyy HH")}|ENTRY: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}|TP: {sell.Item2.Date.ToString("dd/MM/yyyy HH")}|ANGLE: {rs.Item4}|Rate: {rate}%");
                                         break;
                                     }
                                 }
