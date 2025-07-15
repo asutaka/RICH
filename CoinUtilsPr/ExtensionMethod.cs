@@ -809,7 +809,7 @@ namespace CoinUtilsPr
                             if (divNext < divSOS) break;//Số nến phân phối phải lớn hơn số nến SOS
 
                             var num = lData.Count(x => x.Date < itemNext.Date && x.Date >= itemSOS.Date);
-                            var angle = itemNext.GetAngle(itemSOS, num);
+                            var angle = itemNext.GetAngle(maxClose, num);
 
                             //Console.WriteLine($"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| Entry: {itemNext.Date.ToString("dd/MM/yyyy HH")}");
                             return (true, itemNext, angle);
