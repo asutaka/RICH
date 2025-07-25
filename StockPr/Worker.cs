@@ -171,6 +171,12 @@ namespace StockPr
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
                                 await _teleService.SendMessage(_idChannel, mes, true);
+                                //chart
+                                var stream = await _chartService.Chart_ThongKeKhopLenh();
+                                if (stream != null)
+                                {
+                                    await _teleService.SendPhoto(_idChannel, stream);
+                                }
                             }
 
                             var res = await _analyzeService.ChiBaoKyThuat(dt, true);
@@ -185,13 +191,6 @@ namespace StockPr
                             if (!string.IsNullOrWhiteSpace(res.Item4))
                             {
                                 await _teleService.SendMessage(_idUser, res.Item4);
-                            }
-
-                            //chart
-                            var stream = await _chartService.Chart_ThongKeKhopLenh();
-                            if(stream != null)
-                            {
-                                await _teleService.SendPhoto(_idChannel, stream);
                             }
                         }
 
