@@ -20,6 +20,7 @@ namespace StockPr
         private readonly IEPSRankService _epsService;
         private readonly IF319Service _f319Service;
         private readonly ITestService _testService;
+        private readonly IChartService _chartService;
         private readonly INewsService _newsService;
         private readonly ICommonService _commonService;
 
@@ -33,7 +34,7 @@ namespace StockPr
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, 
                     IAnalyzeService analyzeService, ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, 
                     IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService, IF319Service f319Service, 
-                    ICommonService commonService, INewsService newsService)
+                    ICommonService commonService, INewsService newsService, IChartService chartService)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -51,6 +52,7 @@ namespace StockPr
             _f319Service = f319Service;
             _commonService = commonService;
             _newsService = newsService;
+            _chartService = chartService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -183,6 +185,13 @@ namespace StockPr
                             if (!string.IsNullOrWhiteSpace(res.Item4))
                             {
                                 await _teleService.SendMessage(_idUser, res.Item4);
+                            }
+
+                            //chart
+                            var stream = await _chartService.Chart_ThongKeKhopLenh();
+                            if(stream != null)
+                            {
+                                await _teleService.SendPhoto(_idChannel, stream);
                             }
                         }
 

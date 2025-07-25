@@ -56,6 +56,7 @@ namespace StockPr.Service
         Task<List<Money24h_ForeignResponse>> Money24h_GetForeign(EExchange mode, EMoney24hTimeType type);
         Task<List<Money24h_TuDoanhResponse>> Money24h_GetTuDoanh(EExchange mode, EMoney24hTimeType type);
         Task<Money24h_NhomNganhResponse> Money24h_GetNhomNganh(EMoney24hTimeType type);
+        Task<Money24h_StatisticResponse> Money24h_GetThongke();
 
         Task<ReportDataIDResponse> VietStock_CDKT_GetListReportData(string code);
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_CDKT_ByReportDataIds(string body);
@@ -1288,6 +1289,29 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.Money24h_GetNhomNganh|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<Money24h_StatisticResponse> Money24h_GetThongke()
+        {
+            try
+            {
+                var url = "https://api-finance-t19.24hmoney.vn/v1/ios/stock/statistic-investor-history?symbol=10";
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var result = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<Money24h_StatisticResponse>(result);
+                if (responseModel.status == 200)
+                {
+                    return responseModel;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Money24h_GetThongke|EXCEPTION| {ex.Message}");
             }
             return null;
         }

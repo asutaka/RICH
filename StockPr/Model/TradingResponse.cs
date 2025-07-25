@@ -119,6 +119,45 @@ namespace StockPr.Model
         public decimal prop_net { get; set; }
     }
 
+    public class Money24h_StatisticResponse
+    {
+        public List<Money24h_StatisticDetailResponse> data { get; set; }
+        public int status { get; set; }
+    }
+
+    public class Money24h_StatisticDetailResponse
+    {
+        public int code { get; set; }
+        public int trading_date { get; set; }
+        public decimal index { get; set; }
+        public decimal close_value { get; set; }
+        public decimal foreign_buy_matched { get; set; }
+        public decimal foreign_sell_matched { get; set; }
+        public decimal foreign_buy { get; set; }
+        public decimal foreign_sell { get; set; }
+        public decimal proprietary_buy_matched { get; set; }
+        public decimal proprietary_sell_matched { get; set; }
+        public decimal proprietary_buy { get; set; }
+        public decimal proprietary_sell { get; set; }
+        public decimal local_individual_buy_matched { get; set; }
+        public decimal local_individual_sell_matched { get; set; }
+        public decimal local_individual_buy { get; set; }
+        public decimal local_individual_sell { get; set; }
+        public decimal local_institutional_buy_matched { get; set; }
+        public decimal local_institutional_sell_matched { get; set; }
+        public decimal local_institutional_buy { get; set; }
+        public decimal local_institutional_sell { get; set; }
+        public decimal foreign_individual_buy_matched { get; set; }
+        public decimal foreign_individual_sell_matched { get; set; }
+        public decimal foreign_individual_buy { get; set; }
+        public decimal foreign_individual_sell { get; set; }
+        public decimal foreign_institutional_buy_matched { get; set; }
+        public decimal foreign_institutional_sell_matched { get; set; }
+        public decimal foreign_institutional_buy { get; set; }
+        public decimal foreign_institutional_sell { get; set; }
+
+    }
+
     public class MaTheoPTKT24H_MA20
     {
         public string s { get; set; }

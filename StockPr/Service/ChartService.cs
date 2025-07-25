@@ -12,6 +12,7 @@ namespace StockPr.Service
     {
         Task<List<InputFileStream>> Chart_MaCK(string input);
         Task<List<InputFileStream>> Chart_CungCau(string input, DateTime from, DateTime to);
+        Task<Stream> Chart_ThongKeKhopLenh();
     }
     public class ChartService : IChartService
     {
@@ -1023,5 +1024,32 @@ namespace StockPr.Service
             return null;
         }
         #endregion
+
+        public async Task<Stream> Chart_ThongKeKhopLenh()
+        {
+            try
+            {
+                var basicColumn = new HighchartStack("zzz", new List<string> { "1", "2", "3" }, new List<HighChartSeries_BasicColumn>
+                {
+                    new HighChartSeries_BasicColumn { data =  new List<double>{1,2,3 } },
+                    new HighChartSeries_BasicColumn { data =  new List<double>{4,5,6 } },
+                    new HighChartSeries_BasicColumn { data =  new List<double>{7,8,9 } },
+                });
+                //var strX = string.IsNullOrWhiteSpace(titleX) ? "(Đơn vị: tỷ)" : titleX;
+                //var strY = string.IsNullOrWhiteSpace(titleY) ? "(Tỉ lệ: %)" : titleY;
+
+                //basicColumn.yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = strX }, labels = new HighChartLabel{ format = "{value}" } },
+                //                                                 new HighChartYAxis { title = new HighChartTitle { text = strY }, labels = new HighChartLabel{ format = "{value}" }, opposite = true }};
+
+                var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
+                var body = JsonConvert.SerializeObject(chart);
+                return await _apiService.GetChartImage(body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ChartService.Chart_BasicBase|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
     }
 }
