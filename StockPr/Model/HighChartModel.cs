@@ -62,6 +62,7 @@
     {
         public HighchartStack(string titl, List<string> lCat, List<HighChartSeries_BasicColumn> lSeries)
         {
+            chart = new HighChartType { type = "column" };
             title = new HighChartTitle { text = titl };
             xAxis = new HighChartXAxis { categories = lCat };
             series = lSeries;
@@ -72,6 +73,7 @@
                 line = new HighChartPlotOptionsLine { dataLabels = new HighChartDataLabel { enabled = true } }
             };
         }
+        public HighChartType chart { get; set; }
         public HighChartTitle title { get; set; }
         public HighChartXAxis xAxis { get; set; }
         public List<HighChartYAxis> yAxis { get; set; }

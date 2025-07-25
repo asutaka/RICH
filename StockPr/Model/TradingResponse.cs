@@ -128,33 +128,33 @@ namespace StockPr.Model
     public class Money24h_StatisticDetailResponse
     {
         public int code { get; set; }
-        public int trading_date { get; set; }
-        public decimal index { get; set; }
-        public decimal close_value { get; set; }
-        public decimal foreign_buy_matched { get; set; }
-        public decimal foreign_sell_matched { get; set; }
-        public decimal foreign_buy { get; set; }
-        public decimal foreign_sell { get; set; }
-        public decimal proprietary_buy_matched { get; set; }
-        public decimal proprietary_sell_matched { get; set; }
-        public decimal proprietary_buy { get; set; }
-        public decimal proprietary_sell { get; set; }
-        public decimal local_individual_buy_matched { get; set; }
-        public decimal local_individual_sell_matched { get; set; }
-        public decimal local_individual_buy { get; set; }
-        public decimal local_individual_sell { get; set; }
-        public decimal local_institutional_buy_matched { get; set; }
-        public decimal local_institutional_sell_matched { get; set; }
-        public decimal local_institutional_buy { get; set; }
-        public decimal local_institutional_sell { get; set; }
-        public decimal foreign_individual_buy_matched { get; set; }
-        public decimal foreign_individual_sell_matched { get; set; }
-        public decimal foreign_individual_buy { get; set; }
-        public decimal foreign_individual_sell { get; set; }
-        public decimal foreign_institutional_buy_matched { get; set; }
-        public decimal foreign_institutional_sell_matched { get; set; }
-        public decimal foreign_institutional_buy { get; set; }
-        public decimal foreign_institutional_sell { get; set; }
+        public decimal trading_date { get; set; }
+        public double index { get; set; }
+        public double close_value { get; set; }
+        public double foreign_buy_matched { get; set; }
+        public double foreign_sell_matched { get; set; }
+        public double foreign_buy { get; set; }
+        public double foreign_sell { get; set; }
+        public double proprietary_buy_matched { get; set; }
+        public double proprietary_sell_matched { get; set; }
+        public double proprietary_buy { get; set; }
+        public double proprietary_sell { get; set; }
+        public double local_individual_buy_matched { get; set; }
+        public double local_individual_sell_matched { get; set; }
+        public double local_individual_buy { get; set; }
+        public double local_individual_sell { get; set; }
+        public double local_institutional_buy_matched { get; set; }
+        public double local_institutional_sell_matched { get; set; }
+        public double local_institutional_buy { get; set; }
+        public double local_institutional_sell { get; set; }
+        public double foreign_individual_buy_matched { get; set; }
+        public double foreign_individual_sell_matched { get; set; }
+        public double foreign_individual_buy { get; set; }
+        public double foreign_individual_sell { get; set; }
+        public double foreign_institutional_buy_matched { get; set; }
+        public double foreign_institutional_sell_matched { get; set; }
+        public double foreign_institutional_buy { get; set; }
+        public double foreign_institutional_sell { get; set; }
 
     }
 

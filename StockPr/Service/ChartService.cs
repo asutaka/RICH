@@ -1029,17 +1029,36 @@ namespace StockPr.Service
         {
             try
             {
-                var basicColumn = new HighchartStack("zzz", new List<string> { "1", "2", "3" }, new List<HighChartSeries_BasicColumn>
-                {
-                    new HighChartSeries_BasicColumn { data =  new List<double>{1,2,3 } },
-                    new HighChartSeries_BasicColumn { data =  new List<double>{4,5,6 } },
-                    new HighChartSeries_BasicColumn { data =  new List<double>{7,8,9 } },
-                });
-                //var strX = string.IsNullOrWhiteSpace(titleX) ? "(Đơn vị: tỷ)" : titleX;
-                //var strY = string.IsNullOrWhiteSpace(titleY) ? "(Tỉ lệ: %)" : titleY;
+                var dat = await _apiService.Money24h_GetThongke();
+                if (dat is null
+                    || !dat.data.Any())
+                    return null;
+                var TY = 1000000000;
 
-                //basicColumn.yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = strX }, labels = new HighChartLabel{ format = "{value}" } },
-                //                                                 new HighChartYAxis { title = new HighChartTitle { text = strY }, labels = new HighChartLabel{ format = "{value}" }, opposite = true }};
+                dat.data = dat.data.Take(15).ToList();
+                dat.data.Reverse();
+
+                var lCat = dat.data.Select(x => x.trading_date.UnixTimeStampToDateTime().ToString("dd/MM/yyyy")).ToList();
+                var lForeign = dat.data.Select(x => (x.foreign_buy_matched - x.foreign_sell_matched) / TY);
+                var lTudoanh = dat.data.Select(x => (x.proprietary_buy_matched - x.proprietary_sell_matched) / TY);
+                var lIndividual = dat.data.Select(x => (x.local_individual_buy_matched - x.local_individual_sell_matched) / TY);
+                var lGroup = dat.data.Select(x => (x.local_institutional_buy_matched - x.local_institutional_sell_matched) / TY);
+
+                var basicColumn = new HighchartStack("Giá trị khớp lệnh", lCat, new List<HighChartSeries_BasicColumn>
+                {
+                    new HighChartSeries_BasicColumn { name = "Cá nhân", data =  lIndividual },//Cá nhân
+                    new HighChartSeries_BasicColumn { name = "Tự doanh", data =  lTudoanh },//Tự doanh
+                    new HighChartSeries_BasicColumn { name = "Tổ chức trong nước", data =  lGroup },//Tổ chức
+                    new HighChartSeries_BasicColumn { name = "Tổ chức nước ngoài", data =  lForeign },//Nước ngoài
+                });
+                basicColumn.plotOptions = new HighChartPlotOptions
+                {
+                    column = new HighChartPlotOptionsColumn
+                    {
+                        stacking = "normal"
+                    }
+                };
+                basicColumn.yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = "(Đơn vị: tỷ)" }, labels = new HighChartLabel{ format = null } }};
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
                 var body = JsonConvert.SerializeObject(chart);
