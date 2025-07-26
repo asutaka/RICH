@@ -1800,8 +1800,8 @@ namespace TestPr.Service
                 {
                     try
                     {
-                        var l1H = await _apiService.GetData_Bybit_1H(item);
-                        //var l1H = await GetData(item, 20, 0); 
+                        //var l1H = await _apiService.GetData_Bybit_1H(item);
+                        var l1H = await GetData(item, 20, 0);
                         var count = l1H.Count();
                         var timeFlag = DateTime.MinValue;
                         for (int i = 100; i < count; i++)
@@ -1825,7 +1825,7 @@ namespace TestPr.Service
                                     if (res.Item1)
                                     {
                                         var rate = Math.Round(100 * (-1 + res.Item2.Open / rs.Item3.Close), 2);
-                                        Console.WriteLine($"{item}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
+                                        Console.WriteLine($"{item}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
                                         break;
                                     }
 
