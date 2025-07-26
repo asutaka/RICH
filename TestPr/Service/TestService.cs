@@ -1818,6 +1818,18 @@ namespace TestPr.Service
                                     continue;
                                 Console.WriteLine($"{item}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH")}");
                                 timeFlag = rs.Item3.Date;
+
+                                for (int j = 1; j < 100; j++)
+                                {
+                                    var res = rs.Item3.IsWyckoffOut(l1H.Take(i + j));
+                                    if (res.Item1)
+                                    {
+                                        var rate = Math.Round(100 * (-1 + res.Item2.Open / rs.Item2.Close), 2);
+                                        Console.WriteLine($"{item}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
+                                        break;
+                                    }
+
+                                }
                             }
                             //if(rs.Item1 && rs.Item2.Date > timeFlag)
                             //{

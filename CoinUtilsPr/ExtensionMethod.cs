@@ -921,8 +921,8 @@ namespace CoinUtilsPr
                             }
                         }
 
-                        var mes = $"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| {Math.Round(bbPrev1_Val.Value / avgBB.Value, 2)}";
-                        Console.WriteLine(mes);
+                        //var mes = $"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| {Math.Round(bbPrev1_Val.Value / avgBB.Value, 2)}";
+                        //Console.WriteLine(mes);
                         return (false, null, null, null);
                     }
                     catch (Exception ex)
@@ -948,29 +948,59 @@ namespace CoinUtilsPr
 
                 var lRsi = lData.GetRsi();
                 var lBB = lData.GetBollingerBands();
-                var rsi_Last = lRsi.First(x => x.Date == last.Date);
-                if (rsi_Last.Rsi >= 75)
-                    return (true, last);
-
-                var rsi_Cur = lRsi.First(x => x.Date == cur.Date);
-                if(rsi_Cur.Rsi > 70)
-                    return (true, cur);
-
-                var bb_Prev = lBB.First(x => x.Date == prev.Date);
-                if (prev.Close > (decimal)bb_Prev.UpperBand.Value
-                    && prev.Volume >= 1.5m * cur.Volume)
-                    return (true, cur);
+                var lMaVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Close = x.Volume
+                }).GetSma(20);
 
                 var count = lData.Count(x => x.Date > val.Date);
-                if(count >= 48)
+                if (count > 90)//giữ tối đa 90 nến
                     return (true, last);
 
-                //STOPLOSS
-                var rate = Math.Round(100 * (-1 + last.Close / val.Close));
-                if(rate < -3)
+                ////STOPLOSS
+                var rate = Math.Round(100 * (-1 + last.Close / val.Close), 2);
+                if (rate < -3)
                     return (true, last);
+
+                //CUT khi low < bb
+                var bbLast = lBB.First(x => x.Date == last.Date);
+                if (last.Low < (decimal)bbLast.LowerBand
+                    && last.Close > val.Close)
+                    return (true, last);
+
+                var bbCur = lBB.First(x => x.Date == cur.Date);
+                var bbPrev = lBB.First(x => x.Date == prev.Date);
+                if (cur.Close < (decimal)bbCur.LowerBand
+                    && prev.Close < (decimal)bbPrev.LowerBand
+                    && rate > 5)
+                    return (true, last);
+
+                //Best
+                var lDataCheck = lData.Where(x => x.Date > val.Date).Select(x => new QuoteWyckoff
+                {
+                    Close = x.Close,
+                    Ma20Vol = (decimal)lMaVol.First(y => y.Date == x.Date).Sma,
+                    Ma20 = (decimal)lBB.First(y => y.Date == x.Date).Sma,
+                    PrevVol = lData.LastOrDefault(y => y.Date < x.Date)?.Volume ?? 0,
+                    Rsi = (decimal)lRsi.First(y => y.Date == x.Date).Rsi,
+                });
+
+                var lFilter = lDataCheck.Where(x => x.Volume > 2 * x.Ma20Vol && x.Volume > 1.5m * x.PrevVol);
+                if(lFilter.Count() >= 2)
+                {
+                    var filterLast = lFilter.Last();
+                    var filterMax = lFilter.MaxBy(x => x.Rsi);
+                    if(filterMax.Rsi > filterLast.Rsi
+                        && filterLast.Close > filterMax.Close
+                        && filterMax.Rsi > 70
+                        && filterLast.Rsi > 60)
+                    {
+                        return (true, last);
+                    }
+                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
