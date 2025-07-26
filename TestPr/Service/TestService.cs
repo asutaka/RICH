@@ -1816,7 +1816,7 @@ namespace TestPr.Service
                             {
                                 if (rs.Item2.Date < timeFlag)
                                     continue;
-                                Console.WriteLine($"{item}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH")}");
+                                Console.WriteLine($"{item}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 timeFlag = rs.Item3.Date;
 
                                 for (int j = 1; j < 100; j++)
