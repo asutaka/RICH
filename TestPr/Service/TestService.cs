@@ -1824,7 +1824,7 @@ namespace TestPr.Service
                                     var res = rs.Item3.IsWyckoffOut(l1H.Take(i + j));
                                     if (res.Item1)
                                     {
-                                        var rate = Math.Round(100 * (-1 + res.Item2.Open / rs.Item2.Close), 2);
+                                        var rate = Math.Round(100 * (-1 + res.Item2.Open / rs.Item3.Close), 2);
                                         Console.WriteLine($"{item}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
                                         break;
                                     }

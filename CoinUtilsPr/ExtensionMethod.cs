@@ -963,6 +963,8 @@ namespace CoinUtilsPr
                 if (rate < -3)
                     return (true, last);
 
+                var rateMax = Math.Round(100 * (-1 + lData.Max(x => x.Close) / val.Close), 2);
+
                 //CUT khi low < bb
                 var bbLast = lBB.First(x => x.Date == last.Date);
                 if (last.Low < (decimal)bbLast.LowerBand
@@ -971,15 +973,17 @@ namespace CoinUtilsPr
 
                 var bbCur = lBB.First(x => x.Date == cur.Date);
                 var bbPrev = lBB.First(x => x.Date == prev.Date);
-                if (cur.Close < (decimal)bbCur.LowerBand
-                    && prev.Close < (decimal)bbPrev.LowerBand
-                    && rate > 5)
+                if (cur.Close < (decimal)bbCur.Sma
+                    && prev.Close < (decimal)bbPrev.Sma
+                    && rateMax > 5)
                     return (true, last);
 
                 //Best
                 var lDataCheck = lData.Where(x => x.Date > val.Date).Select(x => new QuoteWyckoff
                 {
+                    Date = x.Date,
                     Close = x.Close,
+                    Volume = x.Volume,
                     Ma20Vol = (decimal)lMaVol.First(y => y.Date == x.Date).Sma,
                     Ma20 = (decimal)lBB.First(y => y.Date == x.Date).Sma,
                     PrevVol = lData.LastOrDefault(y => y.Date < x.Date)?.Volume ?? 0,
@@ -990,11 +994,12 @@ namespace CoinUtilsPr
                 if(lFilter.Count() >= 2)
                 {
                     var filterLast = lFilter.Last();
+                    
                     var filterMax = lFilter.MaxBy(x => x.Rsi);
                     if(filterMax.Rsi > filterLast.Rsi
                         && filterLast.Close > filterMax.Close
                         && filterMax.Rsi > 70
-                        && filterLast.Rsi > 60)
+                        && filterLast.Rsi > 70)
                     {
                         return (true, last);
                     }
