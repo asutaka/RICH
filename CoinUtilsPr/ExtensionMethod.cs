@@ -980,12 +980,14 @@ namespace CoinUtilsPr
                     return (true, last);
                 }    
 
-                var rateMax = Math.Round(100 * (-1 + lData.Max(x => x.Close) / val.Close), 2);
+                var rateMax = Math.Round(100 * (-1 + lData.Where(x => x.Date > val.Date).Max(x => x.Close) / val.Close), 2);
 
                 //CUT khi low < bb
                 var bbLast = lBB.First(x => x.Date == last.Date);
                 if (last.Low < (decimal)bbLast.LowerBand
-                    && last.Close > val.Close)
+                    //&& last.Close > val.Close
+                    //&& rate >= 5
+                    )
                     return (true, last);
 
                 var bbCur = lBB.First(x => x.Date == cur.Date);
