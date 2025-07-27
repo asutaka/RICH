@@ -1788,7 +1788,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(0).Take(50);
+                var lTake = lUsdt.Skip(0).Take(5000);
                 //var lTake = new List<string>
                 //{
                 //    "1INCHUSDT"
@@ -1816,7 +1816,7 @@ namespace TestPr.Service
                             {
                                 if (rs.Item2.Date < timeFlag)
                                     continue;
-                                Console.WriteLine($"{item}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
+                                //Console.WriteLine($"{item}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 timeFlag = rs.Item3.Date;
 
                                 for (int j = 1; j < 100; j++)
@@ -1826,7 +1826,8 @@ namespace TestPr.Service
                                     {
                                         timeFlag = res.Item2.Date;
                                         var rate = Math.Round(100 * (-1 + res.Item2.Open / rs.Item3.Close), 2);
-                                        Console.WriteLine($"{item}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                        var winloss = rate > 0 ? "W" : "L";
+                                        Console.WriteLine($"{item}|{winloss}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
                                         break;
                                     }
 
