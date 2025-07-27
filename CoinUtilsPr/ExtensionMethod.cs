@@ -879,8 +879,13 @@ namespace CoinUtilsPr
                         var bbPrev10 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(9).Last();
                         var bbPrev10_Val = bbPrev10.UpperBand - bbPrev10.LowerBand;
                         var ratePrev10 = Math.Round(bbPrev10_Val.Value / avgBB.Value, 2);
+
+                        var bbPrev30 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(29).Last();
+                        var bbPrev30_Val = bbPrev30.UpperBand - bbPrev30.LowerBand;
+                        var ratePrev30 = Math.Round(bbPrev30_Val.Value / avgBB.Value, 2);
                         if (ratePrev1 > 0.9 
-                            || ratePrev10 > 0.9)
+                            || ratePrev10 > 0.9
+                            || ratePrev30 > 0.9)
                             continue;
 
                         var count = lData.Count(x => x.Date > itemSOS.Date);
@@ -890,6 +895,15 @@ namespace CoinUtilsPr
                         }
                             
                         var lCheck = lData.Where(x => x.Date > itemSOS.Date).Take(25);
+                        var countBelowMa20 = 0;
+                        foreach (var item in lCheck.TakeLast(10))
+                        {
+                            var bbBelow = lbb.First(x => x.Date == item.Date);
+                            if(item.Close < (decimal)bbBelow.Sma)
+                                countBelowMa20++;
+                        }
+                        if(countBelowMa20 < 5) return (false, null, null, null);//5/10 nến gần nhất phải < Ma20
+
                         var closeMax25 = lCheck.Max(x => x.High);
                         //if (closeMax25 > (itemSOS.High + (decimal)bbPrev1_Val.Value))//Sau SOS giá tăng quá một mức cụ thể -> loại
                         //    continue;
@@ -961,7 +975,10 @@ namespace CoinUtilsPr
                 ////STOPLOSS
                 var rate = Math.Round(100 * (-1 + last.Close / val.Close), 2);
                 if (rate < -3)
+                {
+                    last.Open = val.Close * (1 - 0.97m);
                     return (true, last);
+                }    
 
                 var rateMax = Math.Round(100 * (-1 + lData.Max(x => x.Close) / val.Close), 2);
 
