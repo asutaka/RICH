@@ -974,9 +974,9 @@ namespace CoinUtilsPr
 
                 ////STOPLOSS
                 var rate = Math.Round(100 * (-1 + last.Close / val.Close), 2);
-                if (rate < -3)
+                if (rate < -5)
                 {
-                    last.Open = val.Close * (1 - 0.97m);
+                    last.Open = val.Close * (1 - 0.05m);
                     return (true, last);
                 }    
 
