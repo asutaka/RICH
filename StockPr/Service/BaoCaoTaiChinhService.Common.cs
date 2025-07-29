@@ -167,7 +167,41 @@ namespace StockPr.Service
                 Thread.Sleep(1000);
                 if (!lReportID.data.Any())
                     return;
-                var last = lReportID.data.Last();
+                lReportID.data.Reverse();
+                ReportDataIDDetailResponse last = null;
+                var d = 0;
+                foreach (var item in lReportID.data)
+                {
+                    var year = item.BasePeriodBegin / 100;
+                    var month = item.BasePeriodBegin - year * 100;
+                    var quarter = 1;
+                    if (month >= 10)
+                    {
+                        quarter = 4;
+                    }
+                    else if (month >= 7)
+                    {
+                        quarter = 3;
+                    }
+                    else if (month >= 4)
+                    {
+                        quarter = 2;
+                    }
+
+                    //check day
+                    d = int.Parse($"{year}{quarter}");
+                    if (d != (int)StaticVal._currentTime.Item1)
+                    {
+                        d = 0;
+                        continue;
+                    }
+                    last = item;
+                    break;
+                }
+
+                if (d <= 0)
+                    return;
+
                 var strBuilder = new StringBuilder();
                 strBuilder.Append($"StockCode={code}&");
                 strBuilder.Append($"Unit=1000000000&");

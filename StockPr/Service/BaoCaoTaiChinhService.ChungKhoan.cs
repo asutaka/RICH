@@ -1,6 +1,8 @@
 ﻿using MongoDB.Driver;
 using StockPr.DAL.Entity;
+using StockPr.Model;
 using StockPr.Utils;
+using System.Collections.Generic;
 using System.Text;
 
 namespace StockPr.Service
@@ -50,30 +52,41 @@ namespace StockPr.Service
                 var time = GetCurrentTime();
                 var lReportID = await _apiService.VietStock_KQKD_GetListReportData(code);
                 Thread.Sleep(1000);
-                var last = lReportID.data.LastOrDefault();
-                if (last is null)
-                    return;
+                lReportID.data.Reverse();
+                var d = 0;
+                ReportDataIDDetailResponse last = null;
+                foreach ( var item in lReportID.data)
+                {
+                    var year = item.BasePeriodBegin / 100;
+                    var month = item.BasePeriodBegin - year * 100;
+                    var quarter = 1;
+                    if (month >= 10)
+                    {
+                        quarter = 4;
+                    }
+                    else if (month >= 7)
+                    {
+                        quarter = 3;
+                    }
+                    else if (month >= 4)
+                    {
+                        quarter = 2;
+                    }
 
-                var year = last.BasePeriodBegin / 100;
-                var month = last.BasePeriodBegin - year * 100;
-                var quarter = 1;
-                if (month >= 10)
-                {
-                    quarter = 4;
-                }
-                else if (month >= 7)
-                {
-                    quarter = 3;
-                }
-                else if (month >= 4)
-                {
-                    quarter = 2;
+                    //check day
+                    d = int.Parse($"{year}{quarter}");
+                    if (d != (int)StaticVal._currentTime.Item1)
+                    {
+                        d = 0;
+                        continue;
+                    }
+                    last = item;
+                    break;
                 }
 
-                //check day
-                var d = int.Parse($"{year}{quarter}");
-                if (d < (int)StaticVal._currentTime.Item1)
+                if (d <= 0)
                     return;
+               
 
                 var strBuilder = new StringBuilder();
                 strBuilder.Append($"StockCode={code}&");
