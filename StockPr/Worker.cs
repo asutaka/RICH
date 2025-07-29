@@ -171,12 +171,6 @@ namespace StockPr
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
                                 await _teleService.SendMessage(_idChannel, mes, true);
-                                //chart
-                                var stream = await _chartService.Chart_ThongKeKhopLenh();
-                                if (stream != null)
-                                {
-                                    await _teleService.SendPhoto(_idChannel, stream);
-                                }
                             }
 
                             var res = await _analyzeService.ChiBaoKyThuat(dt, true);
@@ -194,12 +188,18 @@ namespace StockPr
                             }
                         }
 
-                        if(dt.Hour == 19)
+                        if(dt.Hour == 20)
                         {
                             var mes = await _analyzeService.ThongKeTuDoanh();
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
                                 await _teleService.SendMessage(_idChannel, mes, true);
+                                //chart
+                                var stream = await _chartService.Chart_ThongKeKhopLenh();
+                                if (stream != null)
+                                {
+                                    await _teleService.SendPhoto(_idChannel, stream);
+                                }
                             }
                         }
                     }
