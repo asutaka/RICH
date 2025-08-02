@@ -222,6 +222,7 @@ namespace StockPr
                 }
 
                 if (dt.Hour == 23
+                    && dt.Minute <= 15
                     && ((dt.Month % 3 == 1 && dt.Day >= 20) || dt.Month % 3 == 2 && dt.Day <= 2))
                 {
                     //await _bctcService.SyncBCTC();
