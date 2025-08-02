@@ -81,10 +81,10 @@ namespace StockPr.Service
         {
             try
             {
-                await SyncBCTC_NganHang(true);
-                await SyncBCTC_ChungKhoan(true);
-                await SyncBCTC_BatDongSan(true);
-                await SyncBCTC(true);
+                await SyncBCTC_NganHang(isOverride);
+                await SyncBCTC_ChungKhoan(isOverride);
+                await SyncBCTC_BatDongSan(isOverride);
+                await SyncBCTC(isOverride);
             }
             catch (Exception ex)
             {

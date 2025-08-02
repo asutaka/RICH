@@ -60,6 +60,7 @@ namespace StockPr
             StockInstance();
             //////for Test
             //await _testService.CheckWycKoff();
+            //await _bctcService.SyncBCTCAll(false);
             //return;
             while (!stoppingToken.IsCancellationRequested)
             {
