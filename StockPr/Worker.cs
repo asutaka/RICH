@@ -225,7 +225,7 @@ namespace StockPr
                     && dt.Minute <= 15
                     && ((dt.Month % 3 == 1 && dt.Day >= 20) || dt.Month % 3 == 2 && dt.Day <= 2))
                 {
-                    //await _bctcService.SyncBCTC();
+                    await _bctcService.SyncBCTCAll(false);
                 }
                 await Task.Delay(1000 * 60 * 15, stoppingToken);
             }

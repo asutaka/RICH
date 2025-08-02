@@ -8,7 +8,7 @@ namespace StockPr.Service
     public interface IBaoCaoTaiChinhService
     {
         Task<bool> CheckVietStockToken();
-        Task SyncBCTC();
+        Task SyncBCTCAll(bool isOverride = true);
     }
     public partial class BaoCaoTaiChinhService : IBaoCaoTaiChinhService
     {
@@ -77,7 +77,7 @@ namespace StockPr.Service
             return false;
         }
 
-        public async Task SyncBCTC()
+        public async Task SyncBCTCAll(bool isOverride = true)
         {
             try
             {
