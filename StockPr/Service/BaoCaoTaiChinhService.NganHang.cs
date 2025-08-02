@@ -86,29 +86,41 @@ namespace StockPr.Service
                 var time = GetCurrentTime();
                 var lReportID = await _apiService.VietStock_KQKD_GetListReportData(code);
                 Thread.Sleep(1000);
-                var last = lReportID.data.LastOrDefault();
-                if (last is null)
+                if (!lReportID.data.Any())
                     return;
+                lReportID.data.Reverse();
+                ReportDataIDDetailResponse last = null;
+                var d = 0;
+                foreach (var item in lReportID.data)
+                {
+                    var year = item.BasePeriodBegin / 100;
+                    var month = item.BasePeriodBegin - year * 100;
+                    var quarter = 1;
+                    if (month >= 10)
+                    {
+                        quarter = 4;
+                    }
+                    else if (month >= 7)
+                    {
+                        quarter = 3;
+                    }
+                    else if (month >= 4)
+                    {
+                        quarter = 2;
+                    }
 
-                var year = last.BasePeriodBegin / 100;
-                var month = last.BasePeriodBegin - year * 100;
-                var quarter = 1;
-                if (month >= 10)
-                {
-                    quarter = 4;
-                }
-                else if (month >= 7)
-                {
-                    quarter = 3;
-                }
-                else if (month >= 4)
-                {
-                    quarter = 2;
+                    //check day
+                    d = int.Parse($"{year}{quarter}");
+                    if (d != (int)StaticVal._currentTime.Item1)
+                    {
+                        d = 0;
+                        continue;
+                    }
+                    last = item;
+                    break;
                 }
 
-                //check day
-                var d = int.Parse($"{year}{quarter}");
-                if (d < (int)StaticVal._currentTime.Item1)
+                if (d <= 0)
                     return;
 
                 var strBuilder = new StringBuilder();
@@ -156,8 +168,28 @@ namespace StockPr.Service
                 var batchCount = 8;
                 var lReportID = await _apiService.VietStock_CSTC_GetListTempID(code);
                 Thread.Sleep(1000);
-                var last = lReportID.data.LastOrDefault();
-                if (last is null)
+                if (!lReportID.data.Any())
+                    return;
+                lReportID.data.Reverse();
+                ReportTempIDDetailResponse last = null;
+                var d = 0;
+                foreach (var item in lReportID.data)
+                {
+                    var year = item.YearPeriod;
+                    var quarter = item.ReportTermID - 1;
+
+                    //check day
+                    d = int.Parse($"{year}{quarter}");
+                    if (d != (int)StaticVal._currentTime.Item1)
+                    {
+                        d = 0;
+                        continue;
+                    }
+                    last = item;
+                    break;
+                }
+
+                if (d <= 0)
                     return;
 
                 var strBuilder = new StringBuilder();
@@ -169,13 +201,10 @@ namespace StockPr.Service
                 var lData = await _apiService.VietStock_GetFinanceIndexDataValue_CSTC_ByListTerms(txt);
                 Thread.Sleep(1000);
 
-                var year = last.YearPeriod;
-                var quarter = last.ReportTermID - 1;
-
                 var builder = Builders<Financial>.Filter;
                 var filter = builder.And(
                      builder.Eq(x => x.s, code),
-                            builder.Eq(x => x.d, int.Parse($"{year}{quarter}"))
+                            builder.Eq(x => x.d, d)
                 );
                 var lUpdate = _financialRepo.GetByFilter(filter);
                 var entity = lUpdate.FirstOrDefault();
@@ -208,8 +237,28 @@ namespace StockPr.Service
             {
                 var lReportID = await _apiService.VietStock_TM_GetListReportData(code);
                 Thread.Sleep(1000);
-                var last = lReportID.data.LastOrDefault();
-                if (last is null)
+                if (!lReportID.data.Any())
+                    return;
+                lReportID.data.Reverse();
+                ReportDataIDDetailResponse last = null;
+                var d = 0;
+                foreach (var item in lReportID.data)
+                {
+                    var year = item.YearPeriod;
+                    var quarter = item.ReportTermID - 1;
+
+                    //check day
+                    d = int.Parse($"{year}{quarter}");
+                    if (d != (int)StaticVal._currentTime.Item1)
+                    {
+                        d = 0;
+                        continue;
+                    }
+                    last = item;
+                    break;
+                }
+
+                if (d <= 0)
                     return;
 
                 var strBuilder = new StringBuilder();
@@ -222,13 +271,10 @@ namespace StockPr.Service
                 var lData = await _apiService.VietStock_GetReportDataDetailValue_TM_ByReportDataIds(txt);
                 Thread.Sleep(1000);
 
-                var year = last.YearPeriod;
-                var quarter = last.ReportTermID - 1;
-
                 var builder = Builders<Financial>.Filter;
                 var filter = builder.And(
                      builder.Eq(x => x.s, code),
-                            builder.Eq(x => x.d, int.Parse($"{year}{quarter}"))
+                            builder.Eq(x => x.d, d)
                 );
 
                 var lUpdate = _financialRepo.GetByFilter(filter);
