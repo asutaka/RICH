@@ -115,7 +115,7 @@ namespace StockPr.Service
                     var fix = StaticVal._dicMa.FirstOrDefault(x => x.Key == code);
                     if (fix.Key != null)
                     {
-                        d = int.Parse($"{year}{last.ReportTermID - 1}").AddQuarter(-fix.Value);
+                        d = int.Parse($"{year}{item.ReportTermID - 1}").AddQuarter(-fix.Value);
                     }
                     if (d != (int)StaticVal._currentTime.Item1)
                     {
