@@ -34,34 +34,34 @@ namespace StockPr.Service
         {
             try
             {
-                var dt = DateTime.Now;
-                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
-                var mode = EConfigDataType.CheckVietStockToken;
-                var builder = Builders<ConfigData>.Filter;
-                var filter = builder.Eq(x => x.ty, (int)mode);
-                var lConfig = _configRepo.GetByFilter(filter);
-                if (lConfig.Any())
-                {
-                    if (lConfig.Any(x => x.t == t))
-                        return true;
-                }
+                //var dt = DateTime.Now;
+                //var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                //var mode = EConfigDataType.CheckVietStockToken;
+                //var builder = Builders<ConfigData>.Filter;
+                //var filter = builder.Eq(x => x.ty, (int)mode);
+                //var lConfig = _configRepo.GetByFilter(filter);
+                //if (lConfig.Any())
+                //{
+                //    if (lConfig.Any(x => x.t == t))
+                //        return true;
+                //}
 
                 var lReportID = await _apiService.VietStock_KQKD_GetListReportData("ACB");
 
-                var last = lConfig.LastOrDefault();
-                if (last is null)
-                {
-                    _configRepo.InsertOne(new ConfigData
-                    {
-                        ty = (int)mode,
-                        t = t
-                    });
-                }
-                else
-                {
-                    last.t = t;
-                    _configRepo.Update(last);
-                }
+                //var last = lConfig.LastOrDefault();
+                //if (last is null)
+                //{
+                //    _configRepo.InsertOne(new ConfigData
+                //    {
+                //        ty = (int)mode,
+                //        t = t
+                //    });
+                //}
+                //else
+                //{
+                //    last.t = t;
+                //    _configRepo.Update(last);
+                //}
 
                 if (lReportID is null)
                 {
