@@ -221,19 +221,11 @@ namespace StockPr
                     }
                 }
 
-                //if (dt.Hour == 23
-                //    && ((dt.Month % 3 == 1 && dt.Day >= 15) || dt.Month % 3 == 2 && dt.Day == 10))  
-                //{
-                //    var isValid = await _bctcService.CheckVietStockToken();
-                //    if (isValid)
-                //    {
-                //        await _bctcService.SyncBCTC();
-                //    }
-                //    else
-                //    {
-                //        await _teleService.SendMessage(_idUser, $"[VietStock] Token is Expired");
-                //    }
-                //}
+                if (dt.Hour == 23
+                    && ((dt.Month % 3 == 1 && dt.Day >= 20) || dt.Month % 3 == 2 && dt.Day <= 2))
+                {
+                    //await _bctcService.SyncBCTC();
+                }
                 await Task.Delay(1000 * 60 * 15, stoppingToken);
             }
         }
