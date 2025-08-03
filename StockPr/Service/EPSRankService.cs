@@ -9,7 +9,7 @@ namespace StockPr.Service
     public interface IEPSRankService
     {
         Task<(int, string)> RankEPS(DateTime dt);
-        Task<(decimal, decimal, decimal, decimal)> FreeFloat(string s);
+        Task<(decimal, decimal, decimal, decimal, decimal)> FreeFloat(string s);
     }
     public class EPSRankService : IEPSRankService
     {
@@ -29,28 +29,30 @@ namespace StockPr.Service
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public async Task<(decimal, decimal, decimal, decimal)> FreeFloat(string s)
+        public async Task<(decimal, decimal, decimal, decimal, decimal)> FreeFloat(string s)
         {
             try
             {
                 var finance = await _apiService.SSI_GetFinanceStock(s);
                 if (finance is null)
-                    return (0, 0, 0, 0);
+                    return (0, 0, 0, 0, 0);
                 if (finance.eps is null)
                     finance.eps = 0;
                 if(finance.pe is null)
                     finance.pe = 0;
-                if(finance.debtEquity is null)
+                if (finance.pb is null)
+                    finance.pb = 0;
+                if (finance.debtEquity is null)
                     finance.debtEquity = 0; 
 
                 var freefloat = await _apiService.SSI_GetFreefloatStock(s);
-                return (freefloat, finance.eps.Value, finance.pe.Value, finance.debtEquity.Value);
+                return (freefloat, finance.eps.Value, finance.pe.Value, finance.pb.Value, finance.debtEquity.Value);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"EPSRankService.FreeFloat|EXCEPTION| {ex.Message}");
             }
-            return (0, 0, 0, 0);
+            return (0, 0, 0, 0, 0);
         }
         public async Task<(int, string)> RankEPS(DateTime dt)
         {
