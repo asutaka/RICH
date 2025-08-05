@@ -867,6 +867,8 @@ namespace CoinUtilsPr
                         var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
                         if (itemSOS.Close < maxClosePrevSOS) continue; //Close phải lớn hơn 35 nến liền trước
 
+                        if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;//Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
+
                         var lBB_Prev100 = lbb.Where(x => x.Date < itemSOS.Date).TakeLast(100);
                         var maxBB = lBB_Prev100.Max(x => x.UpperBand - x.LowerBand);
                         var minBB = lBB_Prev100.Min(x => x.UpperBand - x.LowerBand);
@@ -905,6 +907,9 @@ namespace CoinUtilsPr
                         if(countBelowMa20 < 5) return (false, null, null, null);//5/10 nến gần nhất phải < Ma20
 
                         var closeMax25 = lCheck.Max(x => x.High);
+                        var closeMaxC25 = lCheck.Max(x => x.Close);
+
+                        if ((closeMaxC25 - itemSOS.Close) > 5 * (itemSOS.Close - itemSOS.Open)) return (false, null, null, null);//khoảng cách từ điểm Close cao nhất không được quá lớn so với độ dài SOS
                         //if (closeMax25 > (itemSOS.High + (decimal)bbPrev1_Val.Value))//Sau SOS giá tăng quá một mức cụ thể -> loại
                         //    continue;
                         var next25 = lCheck.Last();
