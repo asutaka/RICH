@@ -1791,7 +1791,7 @@ namespace TestPr.Service
                 var lTake = lUsdt.Skip(0).Take(50);
                 //var lTake = new List<string>
                 //{
-                //    "ZKUSDT"
+                //    "AAVEUSDT"
                 //};
                 /*
                  
@@ -1801,6 +1801,7 @@ namespace TestPr.Service
                     try
                     {
                         var l1H = await _apiService.GetData_Bybit_1H(item);
+                        var lbb = l1H.GetBollingerBands();
                         //var l1H = await GetData(item, 20, 0);
                         var count = l1H.Count();
                         var timeFlag = DateTime.MinValue;
@@ -1811,66 +1812,57 @@ namespace TestPr.Service
                             if (last.Date < timeFlag)
                                 continue;
 
-                            var rs = lDat.IsWyckoff_20250726();
+                            var rs = lDat.IsWyckoff_20250808();
                             if (rs.Item1)
                             {
                                 if (rs.Item2.Date < timeFlag)
                                     continue;
-                                //Console.WriteLine($"{item}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 timeFlag = rs.Item3.Date;
-
-                                for (int j = 1; j < 100; j++)
+                                Quote itemType1 = null;
+                                if (rs.Item4 == 1)
                                 {
-                                    var res = rs.Item3.IsWyckoffOut(l1H.Take(i + j));
-                                    if (res.Item1)
+                                    var flag = false;
+                                    var lCheck = l1H.Where(x => x.Date > rs.Item3.Date).Take(12);
+                                    foreach (var itemCheck in lCheck)
                                     {
-                                        timeFlag = res.Item2.Date;
-                                        var rate = Math.Round(100 * (-1 + res.Item2.Open / rs.Item3.Close), 2);
-                                        var winloss = rate > 0 ? "W" : "L";
-                                        Console.WriteLine($"{item}|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
-                                        break;
+                                        var bb = lbb.First(x => x.Date == itemCheck.Date);
+                                        if(flag 
+                                            && itemCheck.Close > (decimal)bb.Sma.Value
+                                            && itemCheck.Close < rs.Item3.Open)
+                                        {
+                                            itemType1 = itemCheck;
+                                            break;
+                                            //Console.WriteLine($"{item}|{rs.Item4}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemCheck.Date.ToString("dd/MM/yyyy HH:mm")}");
+                                        }    
+                                        if(itemCheck.Low < (decimal)bb.Sma.Value)
+                                        {
+                                            flag = true;
+                                        }    
                                     }
-
+                                    //TP
+                                    if(itemType1 != null)
+                                    {
+                                        for (int j = 1; j < 100; j++)
+                                        {
+                                            var res = itemType1.IsWyckoffOut(l1H.Take(i + j));
+                                            if (res.Item1)
+                                            {
+                                                timeFlag = res.Item2.Date;
+                                                var rate = Math.Round(100 * (-1 + res.Item2.Open / itemType1.Close), 2);
+                                                var winloss = rate > 0 ? "W" : "L";
+                                                Console.WriteLine($"{item}|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemType1.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                                break;
+                                            }
+                                        }
+                                    }    
+                                }
+                                else
+                                {
+                                    timeFlag = rs.Item3.Date;
+                                    Console.WriteLine($"{item}|{rs.Item4}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 }
                             }
-                            //if(rs.Item1 && rs.Item2.Date > timeFlag)
-                            //{
-                            //    timeFlag = rs.Item2.Date;
-
-                            //    for (int i2 = 0; i2 < count; i2++)
-                            //    {
-                            //        var check = l1H.Where(x => x.Date > timeFlag).Skip(i2).FirstOrDefault();
-                            //        if(check is null)
-                            //            continue;
-
-                            //        var lCheck = l1H.Where(x => x.Date <= check.Date);
-                            //        var sell = rs.Item2.IsWyckoffOut(lCheck);
-                            //        if(sell.Item1)
-                            //        {
-                            //            var rate = Math.Round(100 * (-1 + sell.Item2.Close / rs.Item2.Close));
-                            //            var winlose = rate > 0 ? "W" : "L";
-
-                            //            Console.WriteLine($"{item}|{winlose}|SOS: {rs.Item3.Date.ToString("dd/MM/yyyy HH")}|ENTRY: {rs.Item2.Date.ToString("dd/MM/yyyy HH")}|TP: {sell.Item2.Date.ToString("dd/MM/yyyy HH")}|ANGLE: {rs.Item4}|Rate: {rate}%");
-                            //            break;
-                            //        }
-                            //    }
-                                
-                            //    //Console.WriteLine($"{item}: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
-                            //}
                         }
-
-                        //var res1H = l1H.IsWyckoff(20, 1);
-
-                        //var lMes = new List<string>();
-                        //var lData15m = await GetData(item, 20, 0);
-                        //var res = lData15m.IsWyckoff();
-                        //if (res.Item1)
-                        //{
-                        //    foreach (var itemWyc in res.Item2)
-                        //    {
-                        //        Console.WriteLine($"{item}: {itemWyc.Date.ToString("dd/MM/yyyy")}");
-                        //    }
-                        //}
                     }
                     catch (Exception ex)
                     {
