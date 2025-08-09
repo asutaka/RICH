@@ -1175,15 +1175,19 @@ namespace CoinUtilsPr
                 if (count > 90)//giữ tối đa 90 nến
                     return (true, last);
 
+                if (last.Date <= val.Date)
+                    return (false, null);
+
                 ////STOPLOSS
                 var rate = Math.Round(100 * (-1 + last.Close / val.Close), 2);
                 if (rate < -5)
                 {
                     last.Open = val.Close * (1 - 0.05m);
                     return (true, last);
-                }    
+                }
 
-                var rateMax = Math.Round(100 * (-1 + lData.Where(x => x.Date > val.Date).Max(x => x.Close) / val.Close), 2);
+                var rateMax = Math.Round(100 * (-1 + (lData.Where(x => x.Date > val.Date).Max(x => x.Close)) / val.Close), 2);
+                
 
                 //CUT khi low < bb
                 var bbLast = lBB.First(x => x.Date == last.Date);
