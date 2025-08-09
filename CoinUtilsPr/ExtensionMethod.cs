@@ -1066,7 +1066,12 @@ namespace CoinUtilsPr
                                 //if(minClose < itemSOS.Open)//Min Close không được nhỏ hơn Open của SOS
                                 //{
                                 //    flagType2 = 0;
-                                //}    
+                                //}
+                                //
+                                if(item.High > (decimal)bb.UpperBand)//Entry ko được vượt quá biên trên đường BB
+                                {
+                                    flagType2 = 0;
+                                }    
 
                                 itemType2 = item;
                                 break;
