@@ -1871,7 +1871,7 @@ namespace TestPr.Service
                                     //        break;
                                     //    }
                                     //}
-                                    Console.WriteLine($"{item}|{rs.Item4}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
+                                    Console.WriteLine($"{item}|zzz|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 }
                             }
                         }

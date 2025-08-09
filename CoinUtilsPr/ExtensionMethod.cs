@@ -986,7 +986,7 @@ namespace CoinUtilsPr
                     try
                     {
                         var rateSOS = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open), 1);
-                        if (rateSOS > 7) continue;//Nến SOS không được vượt quá 7%
+                        if (rateSOS > 5) continue;//Nến SOS không được vượt quá 7%
 
                         var rsi = lrsi.First(x => x.Date == itemSOS.Date);
                         if (rsi.Rsi <= 50) continue;//RSI phải lớn hơn 50
@@ -1035,10 +1035,24 @@ namespace CoinUtilsPr
                                 continue;
                             }
                             //Fourth check
-                            if(flagType2 == 3
+                            if (flagType2 == 3)
+                            {
+                                if(Math.Max(item.Open, item.Close) < (decimal)bb.Sma.Value)
+                                {
+                                    flagType2 = 4;
+                                    continue;
+                                }
+                                else
+                                {
+                                    flagType2 = 0;
+                                    break;
+                                }
+                            }
+                            //Fifth check
+                            if (flagType2 == 4
                                 && item.Close > (decimal)bb.Sma.Value)
                             {
-                                flagType2 = 4;
+                                flagType2 = 5;
                                 if(item.Close > itemSOS.Close) //Nếu điểm vào > SOS thì bỏ qua
                                 {
                                     flagType2 = 0;
@@ -1049,20 +1063,17 @@ namespace CoinUtilsPr
                                 {
                                     flagType2 = 0;
                                 }
-                                //var nextVol = lData.First(x => x.Date > itemSOS.Date);
-                                //var prevVol = lData.Last(x => x.Date < itemSOS.Date);
-                                //if (itemSOS.Volume < 1m * nextVol.Volume
-                                //    || itemSOS.Volume < 1m * prevVol.Volume)
+                                //if(minClose < itemSOS.Open)//Min Close không được nhỏ hơn Open của SOS
                                 //{
                                 //    flagType2 = 0;
-                                //}
+                                //}    
 
                                 itemType2 = item;
                                 break;
                             }    
                         }
 
-                        if (flagType2 == 4
+                        if (flagType2 == 5
                             && itemType2 != lData.Last())
                         {
                             var entry = lData.First(x => x.Date > itemType2.Date);
