@@ -985,6 +985,9 @@ namespace CoinUtilsPr
                 {
                     try
                     {
+                        var rateSOS = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open), 1);
+                        if (rateSOS > 7) continue;//Nến SOS không được vượt quá 7%
+
                         var rsi = lrsi.First(x => x.Date == itemSOS.Date);
                         if (rsi.Rsi <= 50) continue;//RSI phải lớn hơn 50
                         var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
@@ -995,6 +998,12 @@ namespace CoinUtilsPr
 
                         var countMaxVolPrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(10).Count(x => x.Volume > itemSOS.Volume);
                         if (countMaxVolPrevSOS >= 1) continue; //Vol phải lớn hơn 10 nến liền trước
+
+                        var maxClosePrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Max(x => x.Close);
+                        var minClosePrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Min(x => x.Close);
+                        var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
+                        
+                        if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;//Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
 
                         //Check Type 2
                         var lCheckType2 = lData.Where(x => x.Date > itemSOS.Date).Skip(3).Take(12);
@@ -1059,14 +1068,8 @@ namespace CoinUtilsPr
                             return (false, null, null, null);
                         }
 
-                        var maxClosePrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Max(x => x.Close);
-                        var minClosePrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Min(x => x.Close);
-                        var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
                         if (itemSOS.Close < maxClosePrevSOS) continue; //Close phải lớn hơn 35 nến liền trước
 
-                        if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;//Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
-
-                        
                         var lBB_Prev100 = lbb.Where(x => x.Date < itemSOS.Date).TakeLast(100);
                         var maxBB = lBB_Prev100.Max(x => x.UpperBand - x.LowerBand);
                         var minBB = lBB_Prev100.Min(x => x.UpperBand - x.LowerBand);

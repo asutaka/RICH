@@ -1859,6 +1859,18 @@ namespace TestPr.Service
                                 else
                                 {
                                     timeFlag = rs.Item3.Date;
+                                    //for (int j = 1; j < 100; j++)
+                                    //{
+                                    //    var res = rs.Item3.IsWyckoffOut(l1H.Take(i + j));
+                                    //    if (res.Item1)
+                                    //    {
+                                    //        timeFlag = res.Item2.Date;
+                                    //        var rate = Math.Round(100 * (-1 + res.Item2.Open / itemType1.Close), 2);
+                                    //        var winloss = rate > 0 ? "W" : "L";
+                                    //        Console.WriteLine($"{item}|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemType1.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                    //        break;
+                                    //    }
+                                    //}
                                     Console.WriteLine($"{item}|{rs.Item4}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 }
                             }
