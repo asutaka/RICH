@@ -1259,5 +1259,52 @@ namespace CoinUtilsPr
 
             return (false, null);
         }
+
+        public static (bool, Quote) IsWyckoffOut2(this Quote val, IEnumerable<Quote> lData)
+        {
+            try
+            {
+                var last = lData.Last();
+                var cur = lData.SkipLast(1).Last();
+                var prev = lData.SkipLast(2).Last();
+
+                var lRsi = lData.GetRsi();
+                var lBB = lData.GetBollingerBands();
+                var lMaVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Close = x.Volume
+                }).GetSma(20);
+
+                var count = lData.Count(x => x.Date > val.Date);
+                if (count > 30)//giữ tối đa 90 nến
+                    return (true, last);
+
+                if (last.Date <= val.Date)
+                    return (false, null);
+
+                ////STOPLOSS
+                var rate = Math.Round(100 * (-1 + last.Close / val.Close), 2);
+                if (rate < -5)
+                {
+                    last.Open = val.Close * (1 - 0.05m);
+                    return (true, last);
+                }
+
+                var bbCur = lBB.First(x => x.Date == cur.Date);
+                var rsiCur = lRsi.First(x => x.Date == cur.Date);
+                if (rsiCur.Rsi > 70)
+                    return (true, last);
+
+                if (cur.Close < (decimal)bbCur.Sma)
+                    return (true, last);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return (false, null);
+        }
     }
 }
