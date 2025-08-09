@@ -1791,7 +1791,7 @@ namespace TestPr.Service
                 var lTake = lUsdt.Skip(0).Take(50);
                 //var lTake = new List<string>
                 //{
-                //    "1INCHUSDT"
+                //    "AAVEUSDT"
                 //};
                 /*
                  

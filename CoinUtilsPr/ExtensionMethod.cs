@@ -1049,6 +1049,13 @@ namespace CoinUtilsPr
                                 {
                                     flagType2 = 0;
                                 }
+                                //var nextVol = lData.First(x => x.Date > itemSOS.Date);
+                                //var prevVol = lData.Last(x => x.Date < itemSOS.Date);
+                                //if (itemSOS.Volume < 1m * nextVol.Volume
+                                //    || itemSOS.Volume < 1m * prevVol.Volume)
+                                //{
+                                //    flagType2 = 0;
+                                //}
 
                                 itemType2 = item;
                                 break;
