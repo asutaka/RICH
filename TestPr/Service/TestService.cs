@@ -1790,7 +1790,7 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                var lTake = lUsdt.Skip(0).Take(600);
+                var lTake = lUsdt.Skip(0).Take(1000);
                 //var lTake = new List<string>
                 //{
                 //    "AAVEUSDT"
@@ -1815,20 +1815,20 @@ namespace TestPr.Service
                                 continue;
 
                             var rs = lDat.IsWyckoff();
-                            if (rs.Item1)
+                            if (rs != null)
                             {
-                                if (rs.Item2.Date < timeFlag)
+                                if (rs.sos.Date < timeFlag)
                                     continue;
-                                timeFlag = rs.Item3.Date;
+                                timeFlag = rs.signal.Date;
                                 Quote itemType1 = null;
                                 var flag = false;
-                                var lCheck = l1H.Where(x => x.Date > rs.Item3.Date).Take(12);
+                                var lCheck = l1H.Where(x => x.Date > rs.signal.Date).Take(12);
                                 foreach (var itemCheck in lCheck)
                                 {
                                     var bb = lbb.First(x => x.Date == itemCheck.Date);
                                     if (flag
                                         && itemCheck.Close > (decimal)bb.Sma.Value
-                                        && itemCheck.Close < rs.Item3.Open)
+                                        && itemCheck.Close < rs.signal.Close)
                                     {
                                         itemType1 = itemCheck;
                                         break;
@@ -1853,7 +1853,7 @@ namespace TestPr.Service
                                             timeFlag = res.Item2.Date;
                                             var rate = Math.Round(100 * (-1 + res.Item2.Open / itemType1.Close), 2);
                                             var winloss = rate > 0 ? "WW" : "LL";
-                                            Console.WriteLine($"{item}|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemType1.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                            Console.WriteLine($"{item}|{winloss}|SOS: {rs.sos.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemType1.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
                                             break;
                                         }
                                     }

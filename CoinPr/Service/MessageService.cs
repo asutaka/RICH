@@ -1,7 +1,7 @@
 ﻿using CoinPr.DAL;
 using CoinPr.DAL.Entity;
 using CoinPr.Model;
-using CoinPr.Utils;
+using CoinUtilsPr;
 using Telegram.Bot.Types;
 
 namespace CoinPr.Service

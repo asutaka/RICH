@@ -5,19 +5,24 @@ namespace CoinPr
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly IWebSocketService _socketService;
+        private readonly IPrepareService _prepareService;
 
-        public Worker(ILogger<Worker> logger, IWebSocketService socketService)
+        public Worker(ILogger<Worker> logger, IPrepareService prepareService)
         {
             _logger = logger;
-            _socketService = socketService;
+            _prepareService = prepareService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             try
             {
-                _socketService.BinanceLiquid();
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    _prepareService.CheckWycKoffPrepare();
+                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    await Task.Delay(1000 * 60 * 60 * 6, stoppingToken);
+                }
             }
             catch (Exception ex)
             {

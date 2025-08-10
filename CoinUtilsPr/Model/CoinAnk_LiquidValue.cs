@@ -1,4 +1,4 @@
-﻿namespace CoinPr.Model
+﻿namespace CoinUtilsPr.Model
 {
     public class CoinAnk_LiquidValue
     {

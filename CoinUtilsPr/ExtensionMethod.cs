@@ -9,6 +9,11 @@ namespace CoinUtilsPr
 {
     public static class ExtensionMethod
     {
+        public static string Base64Encode(this string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return Convert.ToBase64String(plainTextBytes);
+        }
         public static DateTime UnixTimeStampMinisecondToDateTime(this long unixTimeStamp)
         {
             DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -747,12 +752,12 @@ namespace CoinUtilsPr
         /// </summary>
         /// <param name="lData"></param>
         /// <returns></returns>
-        public static (bool, Quote, Quote) IsWyckoff(this IEnumerable<Quote> lData)
+        public static SOSDTO IsWyckoff(this IEnumerable<Quote> lData)
         {
             try
             {
                 if ((lData?.Count() ?? 0) < 150)
-                    return (false, null, null);
+                    return null;
 
                 var lbb = lData.GetBollingerBands();
                 var lrsi = lData.GetRsi();
@@ -790,7 +795,7 @@ namespace CoinUtilsPr
                         var count = lData.Count(x => x.Date > itemSOS.Date);
                         if (count < 25)//Sau SOS ít nhất 25 nến thì mới kiểm tra các điều kiện
                         {
-                            return (false, null, null);
+                            return null;
                         }
 
                         if (itemSOS.Close < maxClosePrevSOS) continue; //Close phải lớn hơn 35 nến liền trước
@@ -824,12 +829,12 @@ namespace CoinUtilsPr
                             if (item.Close < (decimal)bbBelow.Sma)
                                 countBelowMa20++;
                         }
-                        if (countBelowMa20 < 5) return (false, null, null);//5/10 nến gần nhất phải < Ma20
+                        if (countBelowMa20 < 5) return null;//5/10 nến gần nhất phải < Ma20
 
                         var closeMax25 = lCheck.Max(x => x.High);
                         var closeMaxC25 = lCheck.Max(x => x.Close);
 
-                        if ((closeMaxC25 - itemSOS.Close) > 5 * (itemSOS.Close - itemSOS.Open)) return (false, null, null);//khoảng cách từ điểm Close cao nhất không được quá lớn so với độ dài SOS
+                        if ((closeMaxC25 - itemSOS.Close) > 5 * (itemSOS.Close - itemSOS.Open)) return null;//khoảng cách từ điểm Close cao nhất không được quá lớn so với độ dài SOS
                         //if (closeMax25 > (itemSOS.High + (decimal)bbPrev1_Val.Value))//Sau SOS giá tăng quá một mức cụ thể -> loại
                         //    continue;
 
@@ -857,17 +862,21 @@ namespace CoinUtilsPr
                                 if (item.High < closeMax25
                                     && item != lData.Last())
                                 {
-                                    var entry = lData.First(x => x.Date > item.Date);
-                                    return (true, itemSOS, entry);
+                                    var sig = new SOSDTO
+                                    {
+                                        sos = itemSOS,
+                                        signal = item
+                                    };
+                                    return sig;
                                 }
 
-                                return (false, null, null);
+                                return null;
                             }
                         }
 
                         //var mes = $"SOS: {itemSOS.Date.ToString("dd/MM/yyyy HH")}| {Math.Round(bbPrev1_Val.Value / avgBB.Value, 2)}";
                         //Console.WriteLine(mes);
-                        return (false, null, null);
+                        return null;
                     }
                     catch (Exception ex)
                     {
@@ -880,7 +889,7 @@ namespace CoinUtilsPr
                 Console.WriteLine(ex.Message);
             }
 
-            return (false, null, null);
+            return null;
         }
 
         public static (bool, Quote) IsWyckoffOut(this Quote val, IEnumerable<Quote> lData)
@@ -967,106 +976,6 @@ namespace CoinUtilsPr
             return (false, null);
         }
 
-
-        public static SOSDTO SOS_Type1_Follow(this IEnumerable<Quote> lData)
-        {
-            try
-            {
-                if ((lData?.Count() ?? 0) < 80)
-                    return null;
-
-                var lbb = lData.GetBollingerBands();
-                var lrsi = lData.GetRsi();
-                var lMaVol = lData.Select(x => new Quote
-                {
-                    Date = x.Date,
-                    Close = x.Volume
-                }).GetSma(20);
-                var lSOS = lData.TakeLast(72);
-                //var lWyc = new List<Quote>();
-                foreach (var itemSOS in lSOS.Where(x => x.Close > x.Open && (x.Close - x.Open) >= 0.4m * (x.High - x.Low)).OrderByDescending(x => x.Date))
-                {
-                    try
-                    {
-                        var rateSOS = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open), 1);
-                        if (rateSOS > 5) continue;//Nến SOS không được vượt quá 5%
-
-                        var rsi = lrsi.First(x => x.Date == itemSOS.Date);
-                        if (rsi.Rsi <= 50) continue;//RSI phải lớn hơn 50
-                        var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
-                        if (ma20Vol.Sma is null
-                            || itemSOS.Volume <= 2m * (decimal)ma20Vol.Sma.Value) continue; //Vol phải lớn hơn 2 lần MA20
-
-                        var countMaxVolPrevGreenSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Count(x => x.Volume > itemSOS.Volume && x.Close > x.Open);
-                        if (countMaxVolPrevGreenSOS >= 1) continue; //Vol phải lớn hơn 35 nến xanh liền trước
-
-                        var countMaxVolPrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(10).Count(x => x.Volume > itemSOS.Volume);
-                        if (countMaxVolPrevSOS >= 1) continue; //Vol phải lớn hơn 10 nến liền trước
-
-                        var maxClosePrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Max(x => x.Close);
-                        var minClosePrevSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Min(x => x.Close);
-                        var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
-
-                        if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;//Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
-
-                        var count = lData.Count(x => x.Date > itemSOS.Date);
-                        if (count < 25)//Sau SOS ít nhất 25 nến thì mới kiểm tra các điều kiện
-                            return null;
-
-                        if (itemSOS.Close < maxClosePrevSOS) continue; //Close phải lớn hơn 35 nến liền trước
-
-                        var lBB_Prev100 = lbb.Where(x => x.Date < itemSOS.Date).TakeLast(100);
-                        var maxBB = lBB_Prev100.Max(x => x.UpperBand - x.LowerBand);
-                        var minBB = lBB_Prev100.Min(x => x.UpperBand - x.LowerBand);
-                        var avgBB = 0.5 * (maxBB + minBB);
-
-                        var bbPrev1 = lbb.Last(x => x.Date < itemSOS.Date);
-                        var bbPrev1_Val = bbPrev1.UpperBand - bbPrev1.LowerBand;
-                        var ratePrev1 = Math.Round(bbPrev1_Val.Value / avgBB.Value, 2);
-
-                        var bbPrev10 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(9).Last();
-                        var bbPrev10_Val = bbPrev10.UpperBand - bbPrev10.LowerBand;
-                        var ratePrev10 = Math.Round(bbPrev10_Val.Value / avgBB.Value, 2);
-
-                        var bbPrev30 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(29).Last();
-                        var bbPrev30_Val = bbPrev30.UpperBand - bbPrev30.LowerBand;
-                        var ratePrev30 = Math.Round(bbPrev30_Val.Value / avgBB.Value, 2);
-                        if (ratePrev1 > 0.9
-                            || ratePrev10 > 0.9
-                            || ratePrev30 > 0.9)
-                            continue;
-
-                        var lCheck = lData.Where(x => x.Date > itemSOS.Date).Take(25);
-                        var countBelowMa20 = 0;
-                        foreach (var item in lCheck.TakeLast(10))
-                        {
-                            var bbBelow = lbb.First(x => x.Date == item.Date);
-                            if (item.Close < (decimal)bbBelow.Sma)
-                                countBelowMa20++;
-                        }
-                        if (countBelowMa20 < 5) return null;//5/10 nến gần nhất phải < Ma20
-
-                        var closeMax25 = lCheck.Max(x => x.High);
-                        var closeMaxC25 = lCheck.Max(x => x.Close);
-
-                        if ((closeMaxC25 - itemSOS.Close) > 5 * (itemSOS.Close - itemSOS.Open)) return null;//khoảng cách từ điểm Close cao nhất không được quá lớn so với độ dài SOS
-                        //if (closeMax25 > (itemSOS.High + (decimal)bbPrev1_Val.Value))//Sau SOS giá tăng quá một mức cụ thể -> loại
-                        //    continue;
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return null;
-        }
 
         /// <summary>
         /// 0: không thỏa mãn

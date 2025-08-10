@@ -92,4 +92,16 @@ namespace CoinUtilsPr
         Buy = 1,
         Remove = 2
     }
+
+    public enum EUserMessageType
+    {
+        StockPr = 0,
+        CoinPr = 1
+    }
+
+    public enum EStatus
+    {
+        Active = 1,
+        Disable = 2
+    }
 }

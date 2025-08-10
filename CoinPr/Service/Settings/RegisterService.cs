@@ -1,4 +1,6 @@
-﻿namespace CoinPr.Service.Settings
+﻿using CoinUtilsPr;
+
+namespace CoinPr.Service.Settings
 {
     public static class RegisterService
     {
@@ -8,6 +10,7 @@
             services.AddSingleton<ITeleService, TeleService>();
             services.AddSingleton<IAPIService, APIService>();
             services.AddSingleton<IWebSocketService, WebSocketService>();
+            services.AddSingleton<IPrepareService, PrepareService>();
         }
     }
 }

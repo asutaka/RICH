@@ -1,7 +1,7 @@
 ﻿using Binance.Net.Objects.Models.Futures.Socket;
 using CoinPr.DAL;
 using CoinPr.DAL.Entity;
-using CoinPr.Utils;
+using CoinUtilsPr;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
 
@@ -85,7 +85,7 @@ namespace CoinPr.Service
         {
             try
             {
-                var lData15M = await _apiService.GetData(msg.Symbol, EExchange.Binance, EInterval.M15);
+                var lData15M = await _apiService.GetData_Binance(msg.Symbol, EInterval.M15);
                 Thread.Sleep(200);
                 if (lData15M == null)
                     return null;

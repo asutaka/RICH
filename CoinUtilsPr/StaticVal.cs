@@ -52,5 +52,58 @@ namespace CoinUtilsPr
             }
             return _bybitSocket;
         }
+
+        public static List<string> _lCoinAnk = new List<string>
+        {
+            "BTCUSDT",
+            "ETHUSDT",
+            "XRPUSDT",
+            "BNBUSDT",
+            "SOLUSDT",
+            "DOGEUSDT",
+            "LTCUSDT",
+            "BCHUSDT",
+            "DOTUSDT",
+            "LINKUSDT",
+            "ARBUSDT",
+            "WLDUSDT",
+            "ADAUSDT",
+            "OPUSDT",
+            "MKRUSDT",
+            "PERPUSDT",
+            "APTUSDT",
+            "EOSUSDT",
+            "SUIUSDT",
+            "FILUSDT",
+            "ETCUSDT",
+            "AVAXUSDT",
+            "CYBERUSDT",
+            "ATOMUSDT",
+            "APEUSDT",
+            "DYDXUSDT",
+            "TRBUSDT",
+            "RUNEUSDT",
+            "AGLDUSDT",
+            "SUSHIUSDT",
+            "GRTUSDT",
+            "1INCHUSDT",
+            "JOEUSDT",
+            "LINAUSDT",
+            "GTCUSDT",
+            "XTZUSDT",
+            "NEOUSDT",
+            "BELUSDT",
+            "MAGICUSDT",
+            "EGLDUSDT",
+            "GMXUSDT",
+            "IDUSDT",
+            "THETAUSDT",
+            "KNCUSDT",
+            "STGUSDT",
+            "C98USDT",
+            "ZILUSDT",
+            "MINAUSDT",
+            "HIGHUSDT"
+        };
     }
 }

@@ -1,6 +1,5 @@
 ﻿using CoinPr.DAL;
 using CoinPr.DAL.Entity;
-using CoinPr.Utils;
 using MongoDB.Driver;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;

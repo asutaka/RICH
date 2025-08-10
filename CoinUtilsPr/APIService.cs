@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using System.Net.Http.Headers;
 using System.Text;
+using CoinUtilsPr.Model;
 
 namespace CoinUtilsPr
 {
@@ -12,6 +13,7 @@ namespace CoinUtilsPr
         Task<List<Quote>> GetData_Bybit(string symbol, int DAY = 10, int SKIP_DAY = 0);
         Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, long fromTime = 0);
         Task<List<Quote>> GetData_Bybit_1H(string symbol);
+        Task<CoinAnk_LiquidValue> CoinAnk_GetLiquidValue(string coin);
     }
     public class APIService : IAPIService
     {
@@ -194,6 +196,45 @@ namespace CoinUtilsPr
                 _logger.LogError(ex, $"APIService.GetData_Binance|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
             }
             return new List<Quote>();
+        }
+
+        private string CoinAnk_GetKey()
+        {
+            var str = "-b31e-c547-d299-b6d07b7631aba2c903cc|";
+            var time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            time += 1111111111111;
+            var text = $"{str}{time}347".Base64Encode();
+            return text;
+        }
+
+        public async Task<CoinAnk_LiquidValue> CoinAnk_GetLiquidValue(string coin)
+        {
+            var url = $"https://api.coinank.com/api/liqMap/getLiqHeatMap?exchangeName=Binance&symbol={coin}&interval=1d";
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Headers.Add("coinank-apikey", CoinAnk_GetKey());
+                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                requestMessage.Method = HttpMethod.Get;
+                var responseMessage = await client.SendAsync(requestMessage);
+                Thread.Sleep(100);
+
+                var contents = await responseMessage.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return new CoinAnk_LiquidValue();
+                var res = JsonConvert.DeserializeObject<CoinAnk_LiquidValue>(contents);
+                return res;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetLiquidValue|EXCEPTION| {ex.Message}");
+            }
+            return new CoinAnk_LiquidValue();
         }
     }
 
