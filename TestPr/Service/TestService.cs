@@ -29,7 +29,7 @@ namespace TestPr.Service
         Task<List<clsResult>> Bybit_SHORT_DOJI(string s = "", int DAY = 20, int SKIP_DAY = 0);
 
         Task CheckWycKoff();
-        Task CheckWycKoff2();
+        Task CheckWycKoff_Type2();
     }
     public class TestService : ITestService
     {
@@ -1821,65 +1821,42 @@ namespace TestPr.Service
                                     continue;
                                 timeFlag = rs.Item3.Date;
                                 Quote itemType1 = null;
-                                if (rs.Item4 == 1)
+                                var flag = false;
+                                var lCheck = l1H.Where(x => x.Date > rs.Item3.Date).Take(12);
+                                foreach (var itemCheck in lCheck)
                                 {
-                                    var flag = false;
-                                    var lCheck = l1H.Where(x => x.Date > rs.Item3.Date).Take(12);
-                                    foreach (var itemCheck in lCheck)
+                                    var bb = lbb.First(x => x.Date == itemCheck.Date);
+                                    if (flag
+                                        && itemCheck.Close > (decimal)bb.Sma.Value
+                                        && itemCheck.Close < rs.Item3.Open)
                                     {
-                                        var bb = lbb.First(x => x.Date == itemCheck.Date);
-                                        if(flag 
-                                            && itemCheck.Close > (decimal)bb.Sma.Value
-                                            && itemCheck.Close < rs.Item3.Open)
-                                        {
-                                            itemType1 = itemCheck;
-                                            break;
-                                            //Console.WriteLine($"{item}|{rs.Item4}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemCheck.Date.ToString("dd/MM/yyyy HH:mm")}");
-                                        }    
-                                        if(itemCheck.Low < (decimal)bb.Sma.Value)
-                                        {
-                                            flag = true;
-                                        }    
+                                        itemType1 = itemCheck;
+                                        break;
+                                        //Console.WriteLine($"{item}|{rs.Item4}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemCheck.Date.ToString("dd/MM/yyyy HH:mm")}");
                                     }
-                                    //TP
-                                    if(itemType1 != null)
+                                    if (itemCheck.Low < (decimal)bb.Sma.Value)
                                     {
-                                        var lOrigin = l1H.Where(x => x.Date <= itemType1.Date).ToList();
-                                        var l90 = l1H.Where(x => x.Date > itemType1.Date).Take(90);
-                                        foreach (var item90 in l90)
-                                        {
-                                            lOrigin.Add(item90);
-                                            var res = itemType1.IsWyckoffOut(lOrigin);
-                                            if (res.Item1)
-                                            {
-                                                timeFlag = res.Item2.Date;
-                                                var rate = Math.Round(100 * (-1 + res.Item2.Open / itemType1.Close), 2);
-                                                var winloss = rate > 0 ? "W" : "L";
-                                                Console.WriteLine($"{item}|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemType1.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
-                                                break;
-                                            }
-                                        }
-                                    }    
+                                        flag = true;
+                                    }
                                 }
-                                else
+                                //TP
+                                if (itemType1 != null)
                                 {
-                                    timeFlag = rs.Item3.Date;
-                                    var lOrigin = l1H.Where(x => x.Date <= timeFlag).ToList();
-                                    var l30 = l1H.Where(x => x.Date > timeFlag).Take(30);
-                                    foreach (var item30 in l30)
+                                    var lOrigin = l1H.Where(x => x.Date <= itemType1.Date).ToList();
+                                    var l90 = l1H.Where(x => x.Date > itemType1.Date).Take(90);
+                                    foreach (var item90 in l90)
                                     {
-                                        lOrigin.Add(item30);
-                                        var res = rs.Item3.IsWyckoffOut_Type2(lOrigin);
-                                        if (res)
+                                        lOrigin.Add(item90);
+                                        var res = itemType1.IsWyckoffOut(lOrigin);
+                                        if (res.Item1)
                                         {
-                                            timeFlag = last.Date;
-                                            var rate = Math.Round(100 * (-1 + last.Open / rs.Item3.Open), 2);
-                                            var winloss = rate > 0 ? "W" : "L";
-                                            Console.WriteLine($"{item}|zzz|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {last.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                            timeFlag = res.Item2.Date;
+                                            var rate = Math.Round(100 * (-1 + res.Item2.Open / itemType1.Close), 2);
+                                            var winloss = rate > 0 ? "WW" : "LL";
+                                            Console.WriteLine($"{item}|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemType1.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
                                             break;
                                         }
                                     }
-                                    //Console.WriteLine($"{item}|zzz|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 }
                             }
                         }
@@ -1898,7 +1875,7 @@ namespace TestPr.Service
             }
         }
 
-        public async Task CheckWycKoff2()
+        public async Task CheckWycKoff_Type2()
         {
             try
             {
@@ -1922,8 +1899,6 @@ namespace TestPr.Service
                         var count = l1H.Count();
                         SOSDTO follow = null;
                         Quote buy = null;
-                        //var lbb = l1H.GetBollingerBands();
-                        //var timeFlag = DateTime.MinValue;
                         var lFollow = new List<SOSDTO>();
                         for (int i = 80; i < count; i++)
                         {
