@@ -1905,14 +1905,15 @@ namespace TestPr.Service
                 var dt = DateTime.UtcNow;
                 var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
                 var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
-                //var lTake = lUsdt.Skip(0).Take(600);
-                var lTake = new List<string>
-                {
-                    "AAVEUSDT"
-                };
+                var lTake = lUsdt.Skip(0).Take(600);
+                //var lTake = new List<string>
+                //{
+                //    "AAVEUSDT"
+                //};
                 /*
                  
                  */
+                var lTotal = new List<decimal>();
                 foreach (var item in lTake)
                 {
                     try
@@ -1961,7 +1962,8 @@ namespace TestPr.Service
                                 if(sell)
                                 {
                                     var rate = Math.Round(100 * (-1 + last.Open / buy.Open), 2);
-                                    var winloss = rate > 0 ? "W" : "L";
+                                    lTotal.Add(rate);
+                                    var winloss = rate > 0 ? "WW" : "LL";
                                     Console.WriteLine($"{item}|zzz|{winloss}|SOS: {follow.sos.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {buy.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {last.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
                                     follow = null;
                                     buy = null;
@@ -1975,7 +1977,8 @@ namespace TestPr.Service
                     }
                 }
 
-                Console.WriteLine("END");
+            
+                Console.WriteLine($"END| {lTotal.Sum()}%");
             }
             catch (Exception ex)
             {
