@@ -1060,7 +1060,7 @@ namespace CoinUtilsPr
         {
             try
             {
-                if ((lData?.Count() ?? 0) < 150)
+                if ((lData?.Count() ?? 0) < 50)
                     return ESOS_Type2_Action.None;
 
                 var count = lData.Count(x => x.Date > val.sos.Date);
@@ -1102,7 +1102,7 @@ namespace CoinUtilsPr
         {
             try
             {
-                if ((lData?.Count() ?? 0) < 100)
+                if ((lData?.Count() ?? 0) < 80)
                     return null;
 
                 var lbb = lData.GetBollingerBands();
@@ -1124,7 +1124,8 @@ namespace CoinUtilsPr
                         var rsi = lrsi.First(x => x.Date == itemSOS.Date);
                         if (rsi.Rsi <= 50) continue;//RSI phải lớn hơn 50
                         var ma20Vol = lMaVol.First(x => x.Date == itemSOS.Date);
-                        if (itemSOS.Volume <= 2m * (decimal)ma20Vol.Sma.Value) continue; //Vol phải lớn hơn 2 lần MA20
+                        if (ma20Vol.Sma is null
+                            || itemSOS.Volume <= 2m * (decimal)ma20Vol.Sma.Value) continue; //Vol phải lớn hơn 2 lần MA20
 
                         var countMaxVolPrevGreenSOS = lData.Where(x => x.Date < itemSOS.Date).TakeLast(35).Count(x => x.Volume > itemSOS.Volume && x.Close > x.Open);
                         if (countMaxVolPrevGreenSOS >= 1) continue; //Vol phải lớn hơn 35 nến xanh liền trước

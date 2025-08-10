@@ -1924,14 +1924,17 @@ namespace TestPr.Service
                         //var lbb = l1H.GetBollingerBands();
                         //var timeFlag = DateTime.MinValue;
                         var lFollow = new List<SOSDTO>();
-                        for (int i = 100; i < count; i++)
+                        for (int i = 80; i < count; i++)
                         {
                             var lDat = l1H.Take(i);
                             var last = lDat.Last();
                             var save = lDat.SOS_Type2_Follow();
                             if (save != null)
                             {
-                                lFollow.Add(save);
+                                if(!lFollow.Any(x => x.sos.Date == save.sos.Date))
+                                {
+                                    lFollow.Add(save);
+                                }
                             }
 
                             if (buy == null)
@@ -1957,11 +1960,11 @@ namespace TestPr.Service
                                 var sell = buy.IsWyckoffOut_Type2(lDat);
                                 if(sell)
                                 {
-                                    follow = null;
-                                    buy = null;
                                     var rate = Math.Round(100 * (-1 + last.Open / buy.Open), 2);
                                     var winloss = rate > 0 ? "W" : "L";
                                     Console.WriteLine($"{item}|zzz|{winloss}|SOS: {follow.sos.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {buy.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {last.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                    follow = null;
+                                    buy = null;
                                 }    
                             }    
                         }
