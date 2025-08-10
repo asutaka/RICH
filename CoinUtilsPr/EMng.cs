@@ -85,4 +85,11 @@ namespace CoinUtilsPr
         Doji = 1,
         Normal_Doji = 2
     }
+
+    public enum ESOS_Type2_Action
+    {
+        None = 0,
+        Buy = 1,
+        Remove = 2
+    }
 }

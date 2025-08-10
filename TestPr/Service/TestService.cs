@@ -5,6 +5,7 @@ using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 
 namespace TestPr.Service
@@ -28,6 +29,7 @@ namespace TestPr.Service
         Task<List<clsResult>> Bybit_SHORT_DOJI(string s = "", int DAY = 20, int SKIP_DAY = 0);
 
         Task CheckWycKoff();
+        Task CheckWycKoff2();
     }
     public class TestService : ITestService
     {
@@ -1867,19 +1869,101 @@ namespace TestPr.Service
                                     foreach (var item30 in l30)
                                     {
                                         lOrigin.Add(item30);
-                                        var res = rs.Item3.IsWyckoffOut2(lOrigin);
-                                        if (res.Item1)
+                                        var res = rs.Item3.IsWyckoffOut_Type2(lOrigin);
+                                        if (res)
                                         {
-                                            timeFlag = res.Item2.Date;
-                                            var rate = Math.Round(100 * (-1 + res.Item2.Open / rs.Item3.Open), 2);
+                                            timeFlag = last.Date;
+                                            var rate = Math.Round(100 * (-1 + last.Open / rs.Item3.Open), 2);
                                             var winloss = rate > 0 ? "W" : "L";
-                                            Console.WriteLine($"{item}|zzz|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                            Console.WriteLine($"{item}|zzz|{winloss}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {last.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
                                             break;
                                         }
                                     }
                                     //Console.WriteLine($"{item}|zzz|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {rs.Item3.Date.ToString("dd/MM/yyyy HH:mm")}");
                                 }
                             }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine("END");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task CheckWycKoff2()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                //var lTake = lUsdt.Skip(0).Take(600);
+                var lTake = new List<string>
+                {
+                    "AAVEUSDT"
+                };
+                /*
+                 
+                 */
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        var l1H = await _apiService.GetData_Bybit_1H(item);
+                        var count = l1H.Count();
+                        SOSDTO follow = null;
+                        Quote buy = null;
+                        //var lbb = l1H.GetBollingerBands();
+                        //var timeFlag = DateTime.MinValue;
+                        var lFollow = new List<SOSDTO>();
+                        for (int i = 100; i < count; i++)
+                        {
+                            var lDat = l1H.Take(i);
+                            var last = lDat.Last();
+                            var save = lDat.SOS_Type2_Follow();
+                            if (save != null)
+                            {
+                                lFollow.Add(save);
+                            }
+
+                            if (buy == null)
+                            {
+                                var lCheck = lFollow.Select(x => x).ToList();
+                                foreach (var itemFollow in lCheck)
+                                {
+                                    var action = itemFollow.SOS_Type2_Entry(lDat);
+                                    if (action == ESOS_Type2_Action.Remove)
+                                    {
+                                        lFollow.Remove(itemFollow);
+                                    }
+                                    else if (action == ESOS_Type2_Action.Buy)
+                                    {
+                                        follow = itemFollow;
+                                        buy = lDat.Last();
+                                    }
+                                }
+                            }   
+                            
+                            if(buy != null)
+                            {
+                                var sell = buy.IsWyckoffOut_Type2(lDat);
+                                if(sell)
+                                {
+                                    follow = null;
+                                    buy = null;
+                                    var rate = Math.Round(100 * (-1 + last.Open / buy.Open), 2);
+                                    var winloss = rate > 0 ? "W" : "L";
+                                    Console.WriteLine($"{item}|zzz|{winloss}|SOS: {follow.sos.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {buy.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {last.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                                }    
+                            }    
                         }
                     }
                     catch (Exception ex)
