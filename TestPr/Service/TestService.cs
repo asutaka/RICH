@@ -1812,7 +1812,7 @@ namespace TestPr.Service
                             if (last.Date < timeFlag)
                                 continue;
 
-                            var rs = lDat.IsWyckoff_20250808();
+                            var rs = lDat.IsWyckoff();
                             if (rs.Item1)
                             {
                                 if (rs.Item2.Date < timeFlag)
