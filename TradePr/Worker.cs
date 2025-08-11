@@ -4,11 +4,11 @@ namespace TradePr
 {
     public class Worker : BackgroundService
     {
-        private readonly IBybitService _bybitService;
+        private readonly IBybitWyckoffService _bybitWyckoffService;
 
-        public Worker(IBybitService bybitService)
+        public Worker(IBybitWyckoffService bybitWyckoffService)
         {
-            _bybitService = bybitService;
+            _bybitWyckoffService = bybitWyckoffService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -17,7 +17,7 @@ namespace TradePr
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                await _bybitService.Bybit_Trade();
+                await _bybitWyckoffService.Bybit_Trade();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }

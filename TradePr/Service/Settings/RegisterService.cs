@@ -12,6 +12,7 @@ namespace TradePr.Service.Settings
             services.AddSingleton<ITeleService, TeleService>();
             services.AddSingleton<IWebSocketService, WebSocketService>();
             services.AddSingleton<IBybitSocketService, BybitSocketService>();
+            services.AddSingleton<IBybitWyckoffService, BybitWyckoffService>();
         }
     }
 }
