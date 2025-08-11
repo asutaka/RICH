@@ -859,8 +859,11 @@ namespace CoinUtilsPr
                             var bb_item = lbb.First(x => x.Date == item.Date);
                             if (item.Close > (decimal)bb_item.Sma.Value)
                             {
+                                var prev = lData.Last(x => x.Date < item.Date);
+                                var bb_prev = lbb.First(x => x.Date == prev.Date);
                                 if (item.High < closeMax25
-                                    && item != lData.Last())
+                                    && item != lData.Last()
+                                    && prev.Close < (decimal)bb_prev.Sma.Value)
                                 {
                                     var sig = new SOSDTO
                                     {
