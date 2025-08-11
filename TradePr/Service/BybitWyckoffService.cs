@@ -4,6 +4,8 @@ using CoinUtilsPr;
 using CoinUtilsPr.DAL;
 using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
+using Newtonsoft.Json;
+using Skender.Stock.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,12 +28,15 @@ namespace TradePr.Service
         private readonly ISymbolRepo _symRepo;
         private readonly IConfigDataRepo _configRepo;
         private readonly ITradingRepo _tradeRepo;
+        private readonly IPrepareRepo _preRepo;
         private readonly int _exchange = (int)EExchange.Bybit;
         private const long _idUser = 1066022551;
         private readonly int _HOUR = 90;
+        private readonly decimal _SL_RATE = 0.05m;
+        private const decimal _margin = 10;
         public BybitWyckoffService(ILogger<BybitWyckoffService> logger,
                             IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo,
-                            IConfigDataRepo configRepo, ITradingRepo tradeRepo)
+                            IConfigDataRepo configRepo, ITradingRepo tradeRepo, IPrepareRepo preRepo)
         {
             _logger = logger;
             _apiService = apiService;
@@ -39,6 +44,7 @@ namespace TradePr.Service
             _symRepo = symRepo;
             _configRepo = configRepo;
             _tradeRepo = tradeRepo;
+            _preRepo = preRepo;
         }
 
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
@@ -55,9 +61,17 @@ namespace TradePr.Service
             return null;
         }
 
-        public Task Bybit_Trade()
+        public async Task Bybit_Trade()
         {
-            throw new NotImplementedException();
+            try
+            {
+                await Bybit_TakeProfit();
+                await Bybit_Entry();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Entry|EXCEPTION| {ex.Message}");
+            }
         }
 
         private async Task Bybit_TakeProfit()
@@ -71,7 +85,6 @@ namespace TradePr.Service
                 var dt = DateTime.UtcNow;
 
                 #region TP
-                var dic = new Dictionary<BybitPosition, decimal>();
                 foreach (var item in pos.Data.List)
                 {
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
@@ -83,8 +96,6 @@ namespace TradePr.Service
                         builder.Eq(x => x.ex, _exchange),
                         builder.Eq(x => x.s, item.Symbol),
                         builder.Eq(x => x.Status, 0)
-                    //builder.Gte(x => x.Date, DateTime.Now.AddHours(-8)),
-                    //builder.Lte(x => x.Date, DateTime.Now.AddHours(-7))
                     ));
                     //Lỗi gì đó ko lưu lại đc log
                     if (place is null)
@@ -101,92 +112,18 @@ namespace TradePr.Service
                         await PlaceOrderClose(item);
                         continue;
                     }
-                    //Đạt Target
-                    var rate = Math.Round((-1 + item.MarkPrice.Value / item.AveragePrice.Value), 1);
-                    if ((place.Side == (int)OrderSide.Buy && rate >= (decimal)place.RateTP)
-                        || (place.Side == (int)OrderSide.Sell && rate <= -(decimal)place.RateTP))
+
+                    var l1H = await _apiService.GetData_Bybit_1H(item.Symbol);
+                    var entry = new Quote
                     {
-                        Console.WriteLine($"Dat Target: rate: {rate}, RateTP:{place.RateTP}");
+                        Date = place.Date,
+                        Close = (decimal)place.Entry
+                    };
+                    var res = entry.IsWyckoffOut(l1H);
+                    if (res.Item1)
+                    {
                         await PlaceOrderClose(item);
                         continue;
-                    }
-
-                    var l15m = await GetData(item.Symbol);
-                    if (l15m is null || !l15m.Any())
-                        continue;
-
-                    var lbb = l15m.GetBollingerBands();
-                    var last = l15m.Last();
-
-                    var cur = l15m.SkipLast(1).Last();
-                    var bb_Cur = lbb.First(x => x.Date == cur.Date);
-
-                    var lChotNon = l15m.Where(x => x.Date > item.UpdateTime.Value && x.Date < cur.Date);
-                    var flag = false;
-                    var isChotNon = false;
-                    if (side == OrderSide.Buy)
-                    {
-                        foreach (var chot in lChotNon)
-                        {
-                            var bbCheck = lbb.First(x => x.Date == chot.Date);
-                            if (chot.High >= (decimal)bbCheck.Sma.Value)
-                            {
-                                isChotNon = true;
-                            }
-                        }
-
-                        if (last.High > (decimal)bb_Cur.UpperBand.Value
-                            || cur.High > (decimal)bb_Cur.UpperBand.Value)
-                        {
-                            flag = true;
-                        }
-                        else if (isChotNon
-                                && cur.Close < (decimal)bb_Cur.Sma.Value
-                                && cur.Close <= cur.Open
-                                && last.Close >= item.AveragePrice.Value)
-                        {
-                            flag = true;
-                        }
-                    }
-                    else
-                    {
-                        foreach (var chot in lChotNon)
-                        {
-                            var bbCheck = lbb.First(x => x.Date == chot.Date);
-                            if (chot.Low <= (decimal)bbCheck.Sma.Value)
-                            {
-                                isChotNon = true;
-                            }
-                        }
-
-                        if (last.Low < (decimal)bb_Cur.LowerBand.Value
-                            || cur.Low < (decimal)bb_Cur.LowerBand.Value)
-                        {
-                            flag = true;
-                        }
-                        else if (isChotNon
-                            && cur.Close > (decimal)bb_Cur.Sma.Value
-                            && cur.Close >= cur.Open
-                            && last.Close <= item.AveragePrice.Value)
-                        {
-                            flag = true;
-                        }
-                    }
-                    if (flag)
-                    {
-                        Console.WriteLine($"Flag");
-                        await PlaceOrderClose(item);
-                        continue;
-                    }
-
-                    if ((cur.Close >= item.AveragePrice.Value && side == OrderSide.Buy)
-                            || (cur.Close <= item.AveragePrice.Value && side == OrderSide.Sell))
-                    {
-                        dic.Add(item, rate);
-                    }
-                    else
-                    {
-                        dic.Add(item, -rate);
                     }
                 }
                 #endregion
@@ -208,6 +145,246 @@ namespace TradePr.Service
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TakeProfit|EXCEPTION| {ex.Message}");
             }
+        }
+
+        private async Task Bybit_Entry()
+        {
+            try
+            {
+                var builder = Builders<Prepare>.Filter;
+                var lPrepare = _preRepo.GetByFilter(builder.And(
+                    builder.Eq(x => x.ex, _exchange),
+                    builder.Eq(x => x.side, (int)OrderSide.Buy),
+                    builder.Eq(x => x.status, (int)EStatus.Active)
+                ));
+
+                foreach (var item in lPrepare)
+                {
+                    try
+                    {
+                        var l1H = await _apiService.GetData_Bybit_1H(item.s);
+                        var lCheck = l1H.Where(x => x.Date > item.signal.Date);
+                        var count = lCheck.Count();
+                        if(count <= 2)
+                        {
+                            continue;
+                        }
+                        if(count > 12)
+                        {
+                            //update prepare
+                            item.status = (int)EStatus.Disable;
+                            _preRepo.Update(item);
+                            continue;
+                        }
+
+                        var flag = false;
+                        var lbb = l1H.GetBollingerBands();
+                        foreach (var itemCheck in lCheck.Skip(2))
+                        {
+                            var bb = lbb.First(x => x.Date == itemCheck.Date);
+                            if (flag
+                                && itemCheck.Close > (decimal)bb.Sma.Value
+                                && itemCheck.Close < item.signal.Close)
+                            {
+                                //buy
+                                var last = l1H.Last();
+                                var res = await PlaceOrder(new Trading
+                                {
+                                    ex = _exchange,
+                                    s = item.s,
+                                    d = (int)DateTimeOffset.Now.AddHours(-1).ToUnixTimeSeconds(),
+                                    Date = last.Date,
+                                    Side = (int)OrderSide.Buy,
+                                    Entry = (double)last.Close,
+                                });
+                                //update prepare
+                                item.status = (int)EStatus.Disable;
+                                _preRepo.Update(item);
+                                break;
+                            }
+                            if (itemCheck.Low < (decimal)bb.Sma.Value)
+                            {
+                                flag = true;
+                            }
+                        }
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Entry|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_TradeRSI_LONG|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private async Task<EError> PlaceOrder(Trading entity)
+        {
+            try
+            {
+                Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}|BYBIT PlaceOrder: {JsonConvert.SerializeObject(entity)}");
+                var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                var account = await Bybit_GetAccountInfo();
+                if (account == null)
+                {
+                    await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được thông tin tài khoản");
+                    return EError.Error;
+                }
+                //Lay Unit tu database
+                var lConfig = _configRepo.GetAll();
+                var max = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Max);
+                var thread = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Thread);
+
+                if ((account.WalletBalance.Value - account.TotalPositionInitialMargin.Value) * _margin <= (decimal)max.value)
+                    return EError.Error;
+
+                //Nếu trong 4 tiếng gần nhất giảm quá 10% thì không mua mới
+                var lIncome = await StaticTrade.ByBitInstance().V5Api.Account.GetTransactionHistoryAsync(limit: 200);
+                if (lIncome == null || !lIncome.Success)
+                {
+                    await _teleService.SendMessage(_idUser, "[ERROR_bybit] Không lấy được lịch sử thay đổi số dư");
+                    return EError.Error;
+                }
+                var lIncomeCheck = lIncome.Data.List.Where(x => x.TransactionTime >= DateTime.UtcNow.AddHours(-4));
+                if (lIncomeCheck.Count() >= 2)
+                {
+                    var first = lIncomeCheck.First();//giá trị mới nhất
+                    var last = lIncomeCheck.Last();//giá trị cũ nhất
+                    if (first.CashBalance > 0)
+                    {
+                        var rate = 1 - last.CashBalance.Value / first.CashBalance.Value;
+                        var div = last.CashBalance.Value - first.CashBalance.Value;
+
+                        if ((double)div * 10 > 0.6 * max.value)
+                            return EError.Error;
+
+                        if (rate <= -0.13m)
+                            return EError.Error;
+                    }
+                }
+
+                var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                if (pos.Data.List.Count() >= thread.value)
+                    return EError.MaxThread;
+
+                if (pos.Data.List.Any(x => x.Symbol == entity.s))
+                    return EError.Error;
+
+                var lInfo = await StaticTrade.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, entity.s);
+                var info = lInfo.Data.List.FirstOrDefault();
+                if (info == null) return EError.Error;
+                var tronGia = (int)info.PriceScale;
+                var tronSL = info.LotSizeFilter.QuantityStep;
+
+                var side = (OrderSide)entity.Side;
+                var SL_side = side == OrderSide.Buy ? OrderSide.Sell : OrderSide.Buy;
+                var direction = side == OrderSide.Buy ? TriggerDirection.Fall : TriggerDirection.Rise;
+
+                var soluong = (decimal)(max.value / entity.Entry);
+                if (tronSL == 1)
+                {
+                    soluong = Math.Round(soluong);
+                }
+                else if (tronSL == 10)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 10;
+                    soluong -= odd;
+                }
+                else if (tronSL == 100)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 100;
+                    soluong -= odd;
+                }
+                else if (tronSL == 1000)
+                {
+                    soluong = Math.Round(soluong);
+                    var odd = soluong % 1000;
+                    soluong -= odd;
+                }
+                else
+                {
+                    var lamtronSL = tronSL.ToString("#.##########").Split('.').Last().Length;
+                    soluong = Math.Round(soluong, lamtronSL);
+                }
+
+                var res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
+                                                                                        entity.s,
+                                                                                        side: side,
+                                                                                        type: NewOrderType.Market,
+                                                                                        reduceOnly: false,
+                                                                                        quantity: soluong);
+                Thread.Sleep(500);
+                //nếu lỗi return
+                if (!res.Success)
+                {
+                    if (!_lIgnoreCode.Any(x => x == res.Error.Code))
+                    {
+                        await _teleService.SendMessage(_idUser, $"[ERROR_Bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    }
+                    return EError.Error;
+                }
+
+                var resPosition = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, entity.s);
+                Thread.Sleep(500);
+                if (!resPosition.Success)
+                {
+                    await _teleService.SendMessage(_idUser, $"[ERROR_Bybit] |{entity.s}|{res.Error.Code}:{res.Error.Message}");
+                    return EError.Error;
+                }
+
+                if (resPosition.Data.List.Any())
+                {
+                    var first = resPosition.Data.List.First();
+                    decimal sl = 0;
+                    if (side == OrderSide.Buy)
+                    {
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 - _SL_RATE), tronGia);
+                    }
+                    else
+                    {
+                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE), tronGia);
+                    }
+                    res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
+                                                                                            first.Symbol,
+                                                                                            side: SL_side,
+                                                                                            type: NewOrderType.Market,
+                                                                                            triggerPrice: sl,
+                                                                                            triggerDirection: direction,
+                                                                                            triggerBy: TriggerType.LastPrice,
+                                                                                            quantity: soluong,
+                                                                                            timeInForce: TimeInForce.GoodTillCanceled,
+                                                                                            reduceOnly: true,
+                                                                                            stopLossOrderType: OrderType.Limit,
+                                                                                            stopLossTakeProfitMode: StopLossTakeProfitMode.Partial,
+                                                                                            stopLossTriggerBy: TriggerType.LastPrice,
+                                                                                            stopLossLimitPrice: sl);
+                    Thread.Sleep(500);
+                    if (!res.Success)
+                    {
+                        await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{first.Symbol}|{res.Error.Code}:{res.Error.Message}");
+                    }
+
+                    //Save + Print
+                    var entry = Math.Round(first.AveragePrice.Value, tronGia);
+                    entity.Entry = (double)entry;
+                    entity.SL = (double)Math.Round(sl, tronGia);
+                    _tradeRepo.InsertOne(entity);
+
+                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}";
+                    await _teleService.SendMessage(_idUser, mes);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.PlaceOrder|EXCEPTION| {ex.Message}");
+                return EError.Error;
+            }
+            return EError.Success;
         }
 
         private async Task<bool> PlaceOrderClose(BybitPosition pos)
