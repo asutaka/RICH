@@ -1822,7 +1822,7 @@ namespace TestPr.Service
                                 timeFlag = rs.signal.Date;
                                 Quote itemType1 = null;
                                 var flag = false;
-                                var lCheck = l1H.Where(x => x.Date > rs.signal.Date).Take(12);
+                                var lCheck = l1H.Where(x => x.Date > rs.signal.Date).Skip(2).Take(10);
                                 foreach (var itemCheck in lCheck)
                                 {
                                     var bb = lbb.First(x => x.Date == itemCheck.Date);
