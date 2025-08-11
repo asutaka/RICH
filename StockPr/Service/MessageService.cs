@@ -89,11 +89,11 @@ namespace StockPr.Service
                     {
                         lRes.AddRange(lMa);
                     }
-                    var lCungCau = await ChartCungCau(input, now.AddDays(-28), now);
-                    if (lCungCau?.Any() ?? false)
-                    {
-                        lRes.AddRange(lCungCau);
-                    }
+                    //var lCungCau = await ChartCungCau(input, now.AddDays(-28), now);
+                    //if (lCungCau?.Any() ?? false)
+                    //{
+                    //    lRes.AddRange(lCungCau);
+                    //}
                     var rank = await _rankService.FreeFloat(input.ToUpper());
                     if (rank.Item1 > 0)
                     {
