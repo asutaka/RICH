@@ -12,7 +12,7 @@ namespace StockPr.Service
     {
         Task<List<InputFileStream>> Chart_MaCK(string input);
         Task<List<InputFileStream>> Chart_CungCau(string input, DateTime from, DateTime to);
-        Task<Stream> Chart_ThongKeKhopLenh();
+        Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
     }
     public class ChartService : IChartService
     {
@@ -1025,11 +1025,11 @@ namespace StockPr.Service
         }
         #endregion
 
-        public async Task<Stream> Chart_ThongKeKhopLenh()
+        public async Task<Stream> Chart_ThongKeKhopLenh(string sym = "10")
         {
             try
             {
-                var dat = await _apiService.Money24h_GetThongke();
+                var dat = await _apiService.Money24h_GetThongke(sym);
                 if (dat is null
                     || !dat.data.Any())
                     return null;

@@ -149,6 +149,15 @@ namespace StockPr.Service
                             {
                                 lRes.AddRange(lCungCau);
                             }
+                            //chart Thành phần
+                            var stream = await _chartService.Chart_ThongKeKhopLenh(maStr);
+                            if(stream != null)
+                            {
+                                lRes.Add(new HandleMessageModel
+                                {
+                                    Stream = stream,
+                                });
+                            }
                             return lRes;
                         }
                     }

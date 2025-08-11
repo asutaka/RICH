@@ -56,7 +56,7 @@ namespace StockPr.Service
         Task<List<Money24h_ForeignResponse>> Money24h_GetForeign(EExchange mode, EMoney24hTimeType type);
         Task<List<Money24h_TuDoanhResponse>> Money24h_GetTuDoanh(EExchange mode, EMoney24hTimeType type);
         Task<Money24h_NhomNganhResponse> Money24h_GetNhomNganh(EMoney24hTimeType type);
-        Task<Money24h_StatisticResponse> Money24h_GetThongke();
+        Task<Money24h_StatisticResponse> Money24h_GetThongke(string sym = "10");
 
         Task<ReportDataIDResponse> VietStock_CDKT_GetListReportData(string code);
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_CDKT_ByReportDataIds(string body);
@@ -1293,11 +1293,11 @@ namespace StockPr.Service
             return null;
         }
 
-        public async Task<Money24h_StatisticResponse> Money24h_GetThongke()
+        public async Task<Money24h_StatisticResponse> Money24h_GetThongke(string sym = "10")
         {
             try
             {
-                var url = "https://api-finance-t19.24hmoney.vn/v1/ios/stock/statistic-investor-history?symbol=10";
+                var url = $"https://api-finance-t19.24hmoney.vn/v1/ios/stock/statistic-investor-history?symbol={sym}";
                 var client = _client.CreateClient();
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
