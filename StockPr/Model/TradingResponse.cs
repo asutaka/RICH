@@ -127,7 +127,7 @@ namespace StockPr.Model
 
     public class Money24h_StatisticDetailResponse
     {
-        public int code { get; set; }
+        public string code { get; set; }
         public decimal trading_date { get; set; }
         public double index { get; set; }
         public double close_value { get; set; }
