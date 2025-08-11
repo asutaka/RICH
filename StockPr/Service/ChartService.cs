@@ -1043,8 +1043,13 @@ namespace StockPr.Service
                 var lTudoanh = dat.data.Select(x => (x.proprietary_buy_matched - x.proprietary_sell_matched) / TY);
                 var lIndividual = dat.data.Select(x => (x.local_individual_buy_matched - x.local_individual_sell_matched) / TY);
                 var lGroup = dat.data.Select(x => (x.local_institutional_buy_matched - x.local_institutional_sell_matched) / TY);
+                var title = "Giá trị khớp lệnh";
+                if(sym != "10")
+                {
+                    title += $"({sym})";
+                }
 
-                var basicColumn = new HighchartStack("Giá trị khớp lệnh", lCat, new List<HighChartSeries_BasicColumn>
+                var basicColumn = new HighchartStack(title, lCat, new List<HighChartSeries_BasicColumn>
                 {
                     new HighChartSeries_BasicColumn { name = "Cá nhân", data =  lIndividual },//Cá nhân
                     new HighChartSeries_BasicColumn { name = "Tự doanh", data =  lTudoanh },//Tự doanh
