@@ -64,6 +64,7 @@ namespace StockPr.Service
                     _accountRepo.InsertOne(new Account
                     {
                         u = msg.Chat.Id,
+                        name = msg.Chat.Username,
                         status = 0
                     });
 
