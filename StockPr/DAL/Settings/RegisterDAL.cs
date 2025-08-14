@@ -17,6 +17,7 @@
             services.AddSingleton<ISymbolRepo, SymbolRepo>();
             services.AddSingleton<IF319AccountRepo, F319AccountRepo>();
             services.AddSingleton<IConfigNewsRepo, ConfigNewsRepo>();
+            services.AddSingleton<IAccountRepo, AccountRepo>();
         }
     }
 }

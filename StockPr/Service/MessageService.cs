@@ -15,16 +15,18 @@ namespace StockPr.Service
         private readonly ILogger<MessageService> _logger;
         private static List<UserMessage> _lUserMes = new List<UserMessage>();
         private readonly IUserMessageRepo _userMessageRepo;
+        private readonly IAccountRepo _accountRepo;
         private readonly IChartService _chartService;
         private readonly IEPSRankService _rankService;
 
         private readonly int _ty = (int)EUserMessageType.StockPr;
-        public MessageService(ILogger<MessageService> logger, IChartService chartService, IUserMessageRepo userMessageRepo, IEPSRankService rankService)
+        public MessageService(ILogger<MessageService> logger, IChartService chartService, IUserMessageRepo userMessageRepo, IEPSRankService rankService, IAccountRepo accountRepo)
         {
             _logger = logger;
             _chartService = chartService;
             _userMessageRepo = userMessageRepo;
             _rankService = rankService;
+            _accountRepo = accountRepo;
         }
         public async Task<List<HandleMessageModel>> ReceivedMessage(Message msg)
         {
@@ -54,6 +56,22 @@ namespace StockPr.Service
                     _userMessageRepo.InsertOne(entityMes);
                 }
                 #endregion
+
+                var lAccount = _accountRepo.GetAll();
+                var exists = lAccount.FirstOrDefault(x => x.u == msg.Chat.Id);
+                if (exists is null)
+                {
+                    _accountRepo.InsertOne(new Account
+                    {
+                        u = msg.Chat.Id,
+                        status = 0
+                    });
+
+                    return null;
+                }
+
+                if (exists.status <= 0)
+                    return null;
 
                 lRes.AddRange(await HandleMessage(msg));
             }
