@@ -1035,7 +1035,7 @@ namespace StockPr.Service
                     return null;
                 var TY = 1000000000;
 
-                dat.data = dat.data.Take(15).ToList();
+                dat.data = dat.data.Take(20).ToList();
                 dat.data.Reverse();
 
                 var lCat = dat.data.Select(x => x.trading_date.UnixTimeStampToDateTime().ToString("dd/MM/yyyy")).ToList();
