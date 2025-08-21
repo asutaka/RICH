@@ -1,16 +1,12 @@
-﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
 using StockPr.Model;
 using StockPr.Model.BCPT;
 using StockPr.Utils;
-using System;
 using System.Net;
-using System.Net.WebSockets;
 using System.Text;
 using System.Web;
-using System.Xml.Linq;
 
 namespace StockPr.Service
 {

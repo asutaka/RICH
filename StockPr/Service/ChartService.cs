@@ -296,15 +296,15 @@ namespace StockPr.Service
                     Down = x.netBuySellVol.Value >= 0 ? 0 : x.netBuySellVol.Value,
                 }).ToList(), mesNN);
                 lStream.Add(streamNN);
-                //Cung cầu
-                var mesCungCau = $"{input} - Mua bán chủ động";
-                var streamCungCau = await Chart_CungCau(info.data.Select(x => new CungCauModel
-                {
-                    Date = x.tradingDate,
-                    Up = x.netTotalTradeVol >= 0 ? x.netTotalTradeVol : 0,
-                    Down = x.netTotalTradeVol >= 0 ? 0 : x.netTotalTradeVol,
-                }).ToList(), mesCungCau);
-                lStream.Add(streamCungCau);
+                ////Cung cầu
+                //var mesCungCau = $"{input} - Mua bán chủ động";
+                //var streamCungCau = await Chart_CungCau(info.data.Select(x => new CungCauModel
+                //{
+                //    Date = x.tradingDate,
+                //    Up = x.netTotalTradeVol >= 0 ? x.netTotalTradeVol : 0,
+                //    Down = x.netTotalTradeVol >= 0 ? 0 : x.netTotalTradeVol,
+                //}).ToList(), mesCungCau);
+                //lStream.Add(streamCungCau);
 
                 lRes = lStream.Select(x => InputFile.FromStream(x)).ToList();
             }

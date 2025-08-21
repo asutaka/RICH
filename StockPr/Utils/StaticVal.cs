@@ -39,5 +39,47 @@ namespace StockPr.Utils
             {"FIR",1 },//
             {"SJ1",4 },
         };
+
+        public static List<string> _lBankTP = new List<string>
+        {
+            "ACB",
+            "STB",
+            "BID",
+            "HDB",
+            "MBB",
+            "VCB",
+            "TPB",
+            "OCB",
+            "NAB",
+            "MSB",
+            "EIB",
+            "TCB",
+            "LPB",
+            "VIB",
+            "CTG",
+            "SHB",
+            "VPB"
+        };
+
+        public static List<string> _lChungKhoanTP = new List<string>
+        {
+            "AGR",
+            "BSI",
+            "CTS",
+            "DSC",
+            "DSE",
+            "EVF",
+            "FTS",
+            "HCM",
+            "MBS",
+            "ORS",
+            "SSI",
+            "TVB",
+            "TVS",
+            "VCI",
+            "VDS",
+            "VIX",
+            "VND"
+        };
     }
 }

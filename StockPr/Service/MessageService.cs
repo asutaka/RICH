@@ -179,6 +179,40 @@ namespace StockPr.Service
                             }
                             return lRes;
                         }
+                        else if (maStr.Equals("bank", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //chart Thành phần
+                            foreach (var item in StaticVal._lBankTP)
+                            {
+                                var stream = await _chartService.Chart_ThongKeKhopLenh(item);
+                                if (stream != null)
+                                {
+                                    lRes.Add(new HandleMessageModel
+                                    {
+                                        Stream = stream,
+                                    });
+                                }
+                            }
+
+                            return lRes;
+                        }
+                        else if (maStr.Equals("ck", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //chart Thành phần
+                            foreach (var item in StaticVal._lChungKhoanTP)
+                            {
+                                var stream = await _chartService.Chart_ThongKeKhopLenh(item);
+                                if (stream != null)
+                                {
+                                    lRes.Add(new HandleMessageModel
+                                    {
+                                        Stream = stream,
+                                    });
+                                }
+                            }
+
+                            return lRes;
+                        }
                     }
                 }
             }
