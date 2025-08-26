@@ -421,7 +421,7 @@ namespace StockPr.Utils
                         var maxPrev = lPrev15.Max(x => Math.Max(x.Open, x.Close));
                         var minPrev = lPrev15.Min(x => Math.Min(x.Open, x.Close));
                         var rateMaxMin = Math.Round(100 * (-1 + maxPrev / minPrev));
-                        if (rateMaxMin > 10
+                        if (rateMaxMin > 50
                             || itemSOS.Close < maxPrev) continue;
 
                         //Nến liền trước
