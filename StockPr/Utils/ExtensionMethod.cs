@@ -461,7 +461,7 @@ namespace StockPr.Utils
 
                         //rate Hiện tại
                         var rateCur = Math.Round(100 * (-1 + cur.Close / itemSOS.Close));
-                        if(rateCur >= 5) continue;
+                        if(rateCur >= 10) continue;
 
                         if (lWyc.Any(x => x.Date == itemSOS.Date))
                             continue;
