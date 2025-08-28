@@ -81,5 +81,145 @@ namespace StockPr.Utils
             "VIX",
             "VND"
         };
+
+        public static List<string> _lThepTP = new List<string>
+        {
+            "HPG",
+            "NKG",
+            "HSG",
+            "SMC",
+            "TLH"
+        };
+
+        public static List<string> _lDTC_TP = new List<string>
+        {
+            "VCG",
+            "HHV",
+            "CTI",
+            "HT1",
+            "DHA",
+            "CTD",
+            "FCN",
+            "CTR",
+        };
+
+        public static List<string> _lBDS_TP = new List<string>
+        {
+            "HDC",
+            "HDG",
+            "DPG",
+            "DXG",
+            "DXS",
+            "TCH",
+            "HHS",
+            "NHA",
+            "TAL",
+            "AGG",
+            "NLG",
+            "KDH",
+            "PDR",
+            "DIG",
+            "DC4",
+            "CII",
+            "EVG",
+            "NVL"
+        };
+
+        public static List<string> _lKCNTP = new List<string>
+        {
+            "KBC",
+            "BCM",
+            "IDC",
+            "VGC",
+            "SZC",
+            "SIP",
+            "PHR",
+            "DPR"
+        };
+
+
+        public static List<string> _lThuysanTP = new List<string>
+        {
+            "VHC",
+            "ANV",
+            "PAN",
+            "DBC",
+            "BAF",
+            "HAG",
+            "ASM",
+            "FMC"
+        };
+
+        public static List<string> _lDaukhiTP = new List<string>
+        {
+            "PVS",
+            "PVB",
+            "PVT",
+            "PVD",
+            "PVP",
+            "BSR",
+            "GAS",
+            "PLX"
+        };
+
+        public static List<string> _lDetmayTP = new List<string>
+        {
+            "GIL",
+            "TCM",
+            "MSH",
+            "STK",
+            "HTG",
+            "PPH"
+        };
+
+        public static List<string> _lPhanbonTP = new List<string>
+        {
+            "DCM",
+            "DPM",
+            "BFC",
+            "DGC",
+            "LIX"
+        };
+
+        public static List<string> _lBanleTP = new List<string>
+        {
+            "MWG",
+            "FRT",
+            "DGW",
+            "PET",
+            "VNM",
+            "VRE",
+            "MSN",
+        };
+
+        public static List<string> _lKhoangsanTP = new List<string>
+        {
+        };
+
+        public static List<string> _lDienTP = new List<string>
+        {
+            "REE",
+            "GEX",
+            "GEE",
+            "NT2",
+            "TV2",
+            "POW",
+            "PC1"
+        };
+
+        public static List<string> _lKhacTP = new List<string>
+        {
+            "GMD",
+            "VOS",
+            "TRC",
+            "CSM",
+            "DRC",
+            "FPT",
+            "VTP",
+            "VTP",
+            "CMG",
+            "BVH",
+            "MIG",
+        };
     }
 }

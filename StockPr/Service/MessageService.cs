@@ -185,40 +185,88 @@ namespace StockPr.Service
                     else if (lmes[0].Equals("RANK", StringComparison.OrdinalIgnoreCase))
                     {
                         var maStr = lmes[1].ToUpper();
-                        if (maStr.Equals("bank", StringComparison.OrdinalIgnoreCase))
+                        var dic = new Dictionary<string, Money24h_StatisticResponse>();
+                        if (maStr.Equals("bank", StringComparison.OrdinalIgnoreCase)
+                            || maStr.Equals("nh", StringComparison.OrdinalIgnoreCase)
+                            || maStr.Equals("nganhang", StringComparison.OrdinalIgnoreCase))
                         {
-                            //chart Thành phần
-                            foreach (var item in StaticVal._lBankTP)
-                            {
-                                var stream = await _chartService.Chart_ThongKeKhopLenh(item);
-                                if (stream != null)
-                                {
-                                    lRes.Add(new HandleMessageModel
-                                    {
-                                        Stream = stream,
-                                    });
-                                }
-                            }
-
-                            return lRes;
+                            dic = await _rankService.RankMaCK(StaticVal._lBankTP);
                         }
-                        else if (maStr.Equals("ck", StringComparison.OrdinalIgnoreCase))
+                        else if (maStr.Equals("ck", StringComparison.OrdinalIgnoreCase)
+                                || maStr.Equals("chungkhoan", StringComparison.OrdinalIgnoreCase))
                         {
-                            //chart Thành phần
-                            foreach (var item in StaticVal._lChungKhoanTP)
-                            {
-                                var stream = await _chartService.Chart_ThongKeKhopLenh(item);
-                                if (stream != null)
-                                {
-                                    lRes.Add(new HandleMessageModel
-                                    {
-                                        Stream = stream,
-                                    });
-                                }
-                            }
-
-                            return lRes;
+                            dic = await _rankService.RankMaCK(StaticVal._lChungKhoanTP);
                         }
+                        else if (maStr.Equals("thep", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lThepTP);
+                        }
+                        else if (maStr.Equals("kcn", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lKCNTP);
+                        }
+                        else if (maStr.Equals("dtc", StringComparison.OrdinalIgnoreCase)
+                                || maStr.Equals("dautucong", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lDTC_TP);
+                        }
+                        else if (maStr.Equals("bds", StringComparison.OrdinalIgnoreCase)
+                              || maStr.Equals("batdongsan", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lBDS_TP);
+                        }
+                        else if (maStr.Equals("thuysan", StringComparison.OrdinalIgnoreCase) 
+                                || maStr.Equals("ts", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lThuysanTP);
+                        }
+                        else if (maStr.Equals("daukhi", StringComparison.OrdinalIgnoreCase) 
+                                || maStr.Equals("dk", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lDaukhiTP);
+                        }
+                        else if (maStr.Equals("detmay", StringComparison.OrdinalIgnoreCase)
+                                || maStr.Equals("dm", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lDetmayTP);
+                        }
+                        else if (maStr.Equals("phanbon", StringComparison.OrdinalIgnoreCase)
+                                || maStr.Equals("pb", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lPhanbonTP);
+                        }
+                        else if (maStr.Equals("banle", StringComparison.OrdinalIgnoreCase)
+                                || maStr.Equals("bl", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lBanleTP);
+                        }
+                        else if (maStr.Equals("dien", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lDienTP);
+                        }
+                        else if (maStr.Equals("khoangsan", StringComparison.OrdinalIgnoreCase)
+                                || maStr.Equals("ks", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lKhoangsanTP);
+                        }
+                        else if (maStr.Equals("khac", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dic = await _rankService.RankMaCK(StaticVal._lKhacTP);
+                        }
+
+                        foreach (var item in dic)
+                        {
+                            var stream = await _chartService.Chart_ThongKeKhopLenh(item.Key, item.Value);
+                            if (stream != null)
+                            {
+                                lRes.Add(new HandleMessageModel
+                                {
+                                    Stream = stream,
+                                });
+                            }
+                        }
+
+                        return lRes;
                     }
                 }
             }
