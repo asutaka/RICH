@@ -126,8 +126,10 @@ namespace StockPr.Service
                 {
                     var mes = msg.Text.Trim();
                     var lmes = mes.Split(" ");
-                    if(lmes.Length > 1
-                        && lmes[0].Equals("NN", StringComparison.OrdinalIgnoreCase))
+                    if (lmes.Length <= 0)
+                        return lRes;
+
+                    if(lmes[0].Equals("NN", StringComparison.OrdinalIgnoreCase))
                     {
                         var maStr = lmes[1].ToUpper();
                         if(maStr.Length == 3)//MaCK
@@ -179,7 +181,11 @@ namespace StockPr.Service
                             }
                             return lRes;
                         }
-                        else if (maStr.Equals("bank", StringComparison.OrdinalIgnoreCase))
+                    }
+                    else if (lmes[0].Equals("RANK", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var maStr = lmes[1].ToUpper();
+                        if (maStr.Equals("bank", StringComparison.OrdinalIgnoreCase))
                         {
                             //chart Thành phần
                             foreach (var item in StaticVal._lBankTP)
