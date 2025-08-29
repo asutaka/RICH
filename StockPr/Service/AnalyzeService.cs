@@ -930,14 +930,14 @@ namespace StockPr.Service
                 {
                     lSig.Add("foreign MUA");
                 }
-                //if(item.isForeignSell)
-                //{
-                //    lSig.Add("foreign BÁN");
-                //}
-                //if(item.isSignalSell)
-                //{
-                //    lSig.Add("signal BÁN");
-                //}
+                if (item.isForeignSell)
+                {
+                    lSig.Add("foreign BÁN");
+                }
+                if (item.isSignalSell)
+                {
+                    lSig.Add("signal BÁN");
+                }
                 mes += string.Join("+", lSig.ToArray());
                 sBuilder.AppendLine(mes);
             }

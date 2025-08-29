@@ -179,10 +179,10 @@ namespace StockPr
                             {
                                 await _teleService.SendMessage(_idChannel, res.Item2, true);
                             }
-                            if (!string.IsNullOrWhiteSpace(res.Item3))
-                            {
-                                await _teleService.SendMessage(_idUser, res.Item3);
-                            }
+                            //if (!string.IsNullOrWhiteSpace(res.Item3))
+                            //{
+                            //    await _teleService.SendMessage(_idUser, res.Item3);
+                            //}
                             if (!string.IsNullOrWhiteSpace(res.Item4))
                             {
                                 await _teleService.SendMessage(_idUser, res.Item4);
@@ -212,14 +212,14 @@ namespace StockPr
                             await _teleService.SendMessage(_idChannel, gdnn.Item2, true);
                         }
                     }  
-                    if(dt.Hour == 14 && dt.Minute >= 0 && dt.Minute < 15)
-                    {
-                        var res = await _analyzeService.ChiBaoKyThuat(dt, false);
-                        if (!string.IsNullOrWhiteSpace(res.Item3))
-                        {
-                            await _teleService.SendMessage(_idUser, res.Item3.Replace("ngày", "cuối phiên ngày"));
-                        }
-                    }
+                    //if(dt.Hour == 14 && dt.Minute >= 0 && dt.Minute < 15)
+                    //{
+                    //    var res = await _analyzeService.ChiBaoKyThuat(dt, false);
+                    //    if (!string.IsNullOrWhiteSpace(res.Item3))
+                    //    {
+                    //        await _teleService.SendMessage(_idUser, res.Item3.Replace("ngày", "cuối phiên ngày"));
+                    //    }
+                    //}
                 }
 
                 if (dt.Hour == 23
