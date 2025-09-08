@@ -2011,7 +2011,6 @@ namespace TestPr.Service
                             Volume = x.Volume,
                             Close = x.Volume,
                         }).GetSma(20);
-                        var lrsi = l1H.GetRsi();
                         var lema8 = l1H.GetEma(8);
                         var lema21 = l1H.GetEma(21);
                         var lbb = l1H.GetBollingerBands();
@@ -2034,27 +2033,15 @@ namespace TestPr.Service
                             if (ema8.Ema < ema21.Ema)
                                 continue;
 
-                            var rsi = lrsi.First(x => x.Date == itemData.Date);
-
                             var prev_1 = l1H.Last(x => x.Date < itemData.Date);
-                            //var prev_2 = l1H.Last(x => x.Date < prev_1.Date);
-                            //var prev_3 = l1H.Last(x => x.Date < prev_2.Date);
-
                             var ema8_prev1 = lema8.First(x => x.Date == prev_1.Date);
-                            //var ema8_prev2 = lema8.First(x => x.Date == prev_2.Date);
-                            //var ema8_prev3 = lema8.First(x => x.Date == prev_3.Date);
-
                             var ema21_prev1 = lema21.First(x => x.Date == prev_1.Date);
-                            //var ema21_prev2 = lema21.First(x => x.Date == prev_2.Date);
-                            //var ema21_prev3 = lema21.First(x => x.Date == prev_3.Date);
 
                             if (ema8_prev1.Ema >= ema21_prev1.Ema)
                                 continue;
 
                             if (
                                 prev_1.Close < (decimal)ema8_prev1.Ema
-                                //&& prev_2.Close < (decimal)ema8_prev2.Ema
-                                //&& prev_3.Close < (decimal)ema8_prev3.Ema
                                 && itemData.Close > (decimal)ema8.Ema
                                 )
                             {
@@ -2062,6 +2049,7 @@ namespace TestPr.Service
                             }
                         }
                         var z = 1;
+                        //Giữ max 72 thanh, lãi tối thiểu 3%, SL: 3%, nâng dần SL lên nếu đúng plan
 
                         //var l1H = await GetData(item, 20, 0);
                         //var lbb = l1H.GetBollingerBands();
