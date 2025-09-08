@@ -30,6 +30,7 @@ namespace TestPr.Service
 
         Task CheckWycKoff();
         Task CheckWycKoff_Type2();
+        Task CheckWycKoff_Type3();
     }
     public class TestService : ITestService
     {
@@ -1954,6 +1955,180 @@ namespace TestPr.Service
 
             
                 Console.WriteLine($"END| {lTotal.Sum()}%");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task CheckWycKoff_Type3()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                //var lTake = lUsdt.Skip(0).Take(1000);
+                var lTake = new List<string>
+                {
+                    "BTCUSDT",
+                    "ETHUSDT",
+                    "XRPUSDT",
+                    "BNBUSDT",
+                    "SOLUSDT",
+                    "TRXUSDT",
+                    "ADAUSDT",
+                    "LINKUSDT",
+                    "XLMUSDT",
+                    "BCHUSDT",
+                    "AVAXUSDT",
+                    "CROUSDT",
+                    "HBARUSDT",
+                    "LTCUSDT",
+                    "TONUSDT",
+                    "DOTUSDT",
+                    "UNIUSDT",
+                    "SUIUSDT",
+                    "XMRUSDT",
+                    "ETCUSDT",
+                    "DOGEUSDT",
+                    "SHIBUSDT",
+                    "HYPEUSDT",
+                    "QUICKUSDT"
+                };
+                /*
+                 
+                 */
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
+                        var lVol = l1H.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Volume = x.Volume,
+                            Close = x.Volume,
+                        }).GetSma(20);
+                        var lrsi = l1H.GetRsi();
+                        var lema8 = l1H.GetEma(8);
+                        var lema21 = l1H.GetEma(21);
+                        var lbb = l1H.GetBollingerBands();
+
+
+                        foreach (var itemData in l1H.Skip(50))
+                        {
+                            var bb = lbb.First(x => x.Date == itemData.Date);
+                            if (itemData.Close > (decimal)bb.UpperBand)
+                                continue;
+
+                            if (itemData.Close - (decimal)bb.Sma > 3 * ((decimal)bb.UpperBand - itemData.Close))
+                                continue;
+
+                            if ((decimal)(bb.UpperBand - bb.LowerBand) < 2 * (itemData.Close - itemData.Open))
+                                continue;
+
+                            var ema8 = lema8.First(x => x.Date == itemData.Date);
+                            var ema21 = lema21.First(x => x.Date == itemData.Date);
+                            if (ema8.Ema < ema21.Ema)
+                                continue;
+
+                            var rsi = lrsi.First(x => x.Date == itemData.Date);
+
+                            var prev_1 = l1H.Last(x => x.Date < itemData.Date);
+                            //var prev_2 = l1H.Last(x => x.Date < prev_1.Date);
+                            //var prev_3 = l1H.Last(x => x.Date < prev_2.Date);
+
+                            var ema8_prev1 = lema8.First(x => x.Date == prev_1.Date);
+                            //var ema8_prev2 = lema8.First(x => x.Date == prev_2.Date);
+                            //var ema8_prev3 = lema8.First(x => x.Date == prev_3.Date);
+
+                            var ema21_prev1 = lema21.First(x => x.Date == prev_1.Date);
+                            //var ema21_prev2 = lema21.First(x => x.Date == prev_2.Date);
+                            //var ema21_prev3 = lema21.First(x => x.Date == prev_3.Date);
+
+                            if (ema8_prev1.Ema >= ema21_prev1.Ema)
+                                continue;
+
+                            if (
+                                prev_1.Close < (decimal)ema8_prev1.Ema
+                                //&& prev_2.Close < (decimal)ema8_prev2.Ema
+                                //&& prev_3.Close < (decimal)ema8_prev3.Ema
+                                && itemData.Close > (decimal)ema8.Ema
+                                )
+                            {
+                                Console.WriteLine($"{item}|{itemData.Date.ToString("dd/MM/yyyy HH")}");
+                            }
+                        }
+                        var z = 1;
+
+                        //var l1H = await GetData(item, 20, 0);
+                        //var lbb = l1H.GetBollingerBands();
+                        
+                        //var count = l1H.Count();
+                        //var timeFlag = DateTime.MinValue;
+                        //for (int i = 100; i < count; i++)
+                        //{
+                        //    var lDat = l1H.Take(i).ToList();
+                        //    var last = lDat.Last();
+                        //    if (last.Date < timeFlag)
+                        //        continue;
+
+                        //    var rs = lDat.IsWyckoff();
+                        //    if (rs != null)
+                        //    {
+                        //        if (rs.sos.Date < timeFlag)
+                        //            continue;
+                        //        timeFlag = rs.signal.Date;
+                        //        Quote itemType1 = null;
+                        //        var flag = false;
+                        //        var lCheck = l1H.Where(x => x.Date > rs.signal.Date).Skip(2).Take(10);
+                        //        foreach (var itemCheck in lCheck)
+                        //        {
+                        //            var bb = lbb.First(x => x.Date == itemCheck.Date);
+                        //            if (flag
+                        //                && itemCheck.Close > (decimal)bb.Sma.Value
+                        //                && itemCheck.Close < rs.signal.Close)
+                        //            {
+                        //                itemType1 = itemCheck;
+                        //                break;
+                        //                //Console.WriteLine($"{item}|{rs.Item4}|SOS: {rs.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemCheck.Date.ToString("dd/MM/yyyy HH:mm")}");
+                        //            }
+                        //            if (itemCheck.Low < (decimal)bb.Sma.Value)
+                        //            {
+                        //                flag = true;
+                        //            }
+                        //        }
+                        //        //TP
+                        //        if (itemType1 != null)
+                        //        {
+                        //            var lOrigin = l1H.Where(x => x.Date <= itemType1.Date).ToList();
+                        //            var l90 = l1H.Where(x => x.Date > itemType1.Date).Take(90);
+                        //            foreach (var item90 in l90)
+                        //            {
+                        //                lOrigin.Add(item90);
+                        //                var res = itemType1.IsWyckoffOut(lOrigin);
+                        //                if (res.Item1)
+                        //                {
+                        //                    timeFlag = res.Item2.Date;
+                        //                    var rate = Math.Round(100 * (-1 + res.Item2.Open / itemType1.Close), 2);
+                        //                    var winloss = rate > 0 ? "WW" : "LL";
+                        //                    Console.WriteLine($"{item}|{winloss}|SOS: {rs.sos.Date.ToString("dd/MM/yyyy HH:mm")}|ENTRY: {itemType1.Date.ToString("dd/MM/yyyy HH:mm")}|TP: {res.Item2.Date.ToString("dd/MM/yyyy HH:mm")}|Rate: {rate}%");
+                        //                    break;
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine("END");
             }
             catch (Exception ex)
             {
