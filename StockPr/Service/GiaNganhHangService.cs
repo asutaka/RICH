@@ -579,7 +579,7 @@ namespace StockPr.Service
                 var lMes = new List<string>();
                 foreach (var item in strSplit)
                 {
-                    var mes = $"[{item}](https://finance.vietstock.vn/{item}/phan-tich-ky-thuat.htm)";
+                    var mes = $"[{item}](https://fireant.vn/ma-chung-khoan/{item})";
                     lMes.Add(mes);
                 }
                 res += $"\n       => Giá hiện tại: {model.price}| {string.Join(", ", lMes)}\n";
