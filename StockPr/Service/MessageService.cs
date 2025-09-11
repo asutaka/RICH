@@ -182,6 +182,24 @@ namespace StockPr.Service
                             return lRes;
                         }
                     }
+                    else if (lmes[0].Equals("long", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var maStr = lmes[1].ToUpper();
+                        if (maStr.Length == 3
+                            || maStr.Equals("VNINDEX"))//MaCK
+                        {
+                            //chart Thành phần
+                            var stream = await _chartService.Chart_ThongKeKhopLenh(maStr);
+                            if (stream != null)
+                            {
+                                lRes.Add(new HandleMessageModel
+                                {
+                                    Stream = stream,
+                                });
+                            }
+                            return lRes;
+                        }
+                    }
                     else if (lmes[0].Equals("RANK", StringComparison.OrdinalIgnoreCase))
                     {
                         var maStr = lmes[1].ToUpper();

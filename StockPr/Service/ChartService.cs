@@ -14,6 +14,7 @@ namespace StockPr.Service
         Task<List<InputFileStream>> Chart_CungCau(string input, DateTime from, DateTime to);
         Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
         Task<Stream> Chart_ThongKeKhopLenh(string sym, Money24h_StatisticResponse dat);
+        Task<Stream> Chart_ThongKeKhopLenh_Long(string sym);
     }
     public class ChartService : IChartService
     {
@@ -22,15 +23,17 @@ namespace StockPr.Service
         private readonly ICommonService _commonService;
         private readonly IAPIService _apiService;
         private readonly IThongKeRepo _thongkeRepo;
+        private readonly IPhanLoaiNDTRepo _phanloaiRepo;
         public ChartService(ILogger<ChartService> logger, 
             ICommonService commonService, IAPIService apiService,  
-            IFinancialRepo financialRepo, IThongKeRepo thongKeRepo) 
+            IFinancialRepo financialRepo, IThongKeRepo thongKeRepo, IPhanLoaiNDTRepo phanloaiRepo) 
         {
             _logger = logger;
             _commonService = commonService;
             _apiService = apiService;
             _financialRepo = financialRepo;
             _thongkeRepo = thongKeRepo;
+            _phanloaiRepo = phanloaiRepo;
         }
 
         public async Task<List<InputFileStream>> Chart_MaCK(string input)
@@ -1073,6 +1076,52 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"ChartService.Chart_BasicBase|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<Stream> Chart_ThongKeKhopLenh_Long(string sym)
+        {
+            try
+            {
+                var dat = _phanloaiRepo.GetEntityByFilter(Builders<PhanLoaiNDT>.Filter.Eq(x => x.s, sym));
+                if (dat is null)
+                    return null;
+
+                var lCat = dat.Date.Select(x => ((decimal)x).UnixTimeStampToDateTime().ToString("dd/MM/yyyy")).ToList();
+                var lForeign = dat.Foreign;
+                var lTudoanh = dat.TuDoanh;
+                var lIndividual = dat.Individual;
+                var lGroup = dat.Group;
+                var title = "Giá trị khớp lệnh";
+                if (sym != "10")
+                {
+                    title += $"({sym})";
+                }
+
+                var basicColumn = new HighchartStack(title, lCat, new List<HighChartSeries_BasicColumn>
+                {
+                    new HighChartSeries_BasicColumn { name = "Cá nhân", data =  lIndividual },//Cá nhân
+                    new HighChartSeries_BasicColumn { name = "Tự doanh", data =  lTudoanh },//Tự doanh
+                    new HighChartSeries_BasicColumn { name = "Tổ chức trong nước", data =  lGroup },//Tổ chức
+                    new HighChartSeries_BasicColumn { name = "Tổ chức nước ngoài", data =  lForeign },//Nước ngoài
+                });
+                basicColumn.plotOptions = new HighChartPlotOptions
+                {
+                    column = new HighChartPlotOptionsColumn
+                    {
+                        stacking = "normal"
+                    }
+                };
+                basicColumn.yAxis = new List<HighChartYAxis> { new HighChartYAxis { title = new HighChartTitle { text = "(Đơn vị: tỷ)" }, labels = new HighChartLabel { format = null } } };
+
+                var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
+                var body = JsonConvert.SerializeObject(chart);
+                return await _apiService.GetChartImage(body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ChartService.Chart_ThongKeKhopLenh_Long|EXCEPTION| {ex.Message}");
             }
             return null;
         }
