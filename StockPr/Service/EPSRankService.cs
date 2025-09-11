@@ -301,9 +301,9 @@ namespace StockPr.Service
             {
                 try
                 {
-                    var vnindex = await GetThongKe(item.s);
+                    var dat = await GetThongKe(item.s);
                     Thread.Sleep(100);
-                    if (vnindex.Item1 != null)
+                    if (dat.Item1 != null)
                     {
                         var entityVNINDEX = _phanloaiRepo.GetEntityByFilter(Builders<PhanLoaiNDT>.Filter.Eq(x => x.s, item.s));
                         if (entityVNINDEX is null)
@@ -311,23 +311,23 @@ namespace StockPr.Service
                             _phanloaiRepo.InsertOne(new PhanLoaiNDT
                             {
                                 s = item.s,
-                                Date = vnindex.Item1,
-                                Foreign = vnindex.Item2,
-                                TuDoanh = vnindex.Item3,
-                                Individual = vnindex.Item4,
-                                Group = vnindex.Item5,
+                                Date = dat.Item1,
+                                Foreign = dat.Item2,
+                                TuDoanh = dat.Item3,
+                                Individual = dat.Item4,
+                                Group = dat.Item5,
                             });
                         }
                         else
                         {
-                            var take = vnindex.Item1.Count(x => x > entityVNINDEX.Date.Last());
+                            var take = dat.Item1.Count(x => x > entityVNINDEX.Date.Last());
                             if (take > 0)
                             {
-                                entityVNINDEX.Date.AddRange(vnindex.Item1.TakeLast(take));
-                                entityVNINDEX.Foreign.AddRange(vnindex.Item2.TakeLast(take));
-                                entityVNINDEX.TuDoanh.AddRange(vnindex.Item3.TakeLast(take));
-                                entityVNINDEX.Individual.AddRange(vnindex.Item4.TakeLast(take));
-                                entityVNINDEX.Group.AddRange(vnindex.Item5.TakeLast(take));
+                                entityVNINDEX.Date.AddRange(dat.Item1.TakeLast(take));
+                                entityVNINDEX.Foreign.AddRange(dat.Item2.TakeLast(take));
+                                entityVNINDEX.TuDoanh.AddRange(dat.Item3.TakeLast(take));
+                                entityVNINDEX.Individual.AddRange(dat.Item4.TakeLast(take));
+                                entityVNINDEX.Group.AddRange(dat.Item5.TakeLast(take));
                                 _phanloaiRepo.Update(entityVNINDEX);
                             }
                         }
