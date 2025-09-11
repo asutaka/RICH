@@ -12,19 +12,23 @@ namespace StockPr.Service
         Task<(int, string)> RankEPS(DateTime dt);
         Task<(decimal, decimal, decimal, decimal, decimal)> FreeFloat(string s);
         Task<Dictionary<string, Money24h_StatisticResponse>> RankMaCK(List<string> lInput);
+        Task RankMaCKSync();
     }
     public class EPSRankService : IEPSRankService
     {
         private readonly ILogger<EPSRankService> _logger;
         private readonly IAPIService _apiService;
         private readonly IConfigDataRepo _configRepo;
+        private readonly IPhanLoaiNDTRepo _phanloaiRepo;
         public EPSRankService(ILogger<EPSRankService> logger,
                                     IAPIService apiService,
-                                    IConfigDataRepo configRepo)
+                                    IConfigDataRepo configRepo,
+                                    IPhanLoaiNDTRepo phanloaiRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _configRepo = configRepo;
+            _phanloaiRepo = phanloaiRepo;
         }
         /// <summary>
         /// FreeFloat + EPS  + PE + Nợ/Vốn chủ
@@ -250,6 +254,119 @@ namespace StockPr.Service
             }
 
             return dicOutput;
+        }
+
+        public async Task RankMaCKSync()
+        {
+            try
+            {
+                var vnindex = await GetThongKe("10");
+                Thread.Sleep(100);
+                if (vnindex.Item1 != null)
+                {
+                    var entityVNINDEX = _phanloaiRepo.GetEntityByFilter(Builders<PhanLoaiNDT>.Filter.Eq(x => x.s, "VNINDEX"));
+                    if (entityVNINDEX is null)
+                    {
+                        _phanloaiRepo.InsertOne(new PhanLoaiNDT
+                        {
+                            s = "VNINDEX",
+                            Date = vnindex.Item1,
+                            Foreign = vnindex.Item2,
+                            TuDoanh = vnindex.Item3,
+                            Individual = vnindex.Item4,
+                            Group = vnindex.Item5,
+                        });
+                    }
+                    else
+                    {
+                        var take = vnindex.Item1.Count(x => x > entityVNINDEX.Date.Last());
+                        if (take > 0)
+                        {
+                            entityVNINDEX.Date.AddRange(vnindex.Item1.TakeLast(take));
+                            entityVNINDEX.Foreign.AddRange(vnindex.Item2.TakeLast(take));
+                            entityVNINDEX.TuDoanh.AddRange(vnindex.Item3.TakeLast(take));
+                            entityVNINDEX.Individual.AddRange(vnindex.Item4.TakeLast(take));
+                            entityVNINDEX.Group.AddRange(vnindex.Item5.TakeLast(take));
+                            _phanloaiRepo.Update(entityVNINDEX);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"EPSRankService.RankMaCKSync|EXCEPTION| {ex.Message}");
+            }
+
+            foreach (var item in StaticVal._lStock)
+            {
+                try
+                {
+                    var vnindex = await GetThongKe(item.s);
+                    Thread.Sleep(100);
+                    if (vnindex.Item1 != null)
+                    {
+                        var entityVNINDEX = _phanloaiRepo.GetEntityByFilter(Builders<PhanLoaiNDT>.Filter.Eq(x => x.s, item.s));
+                        if (entityVNINDEX is null)
+                        {
+                            _phanloaiRepo.InsertOne(new PhanLoaiNDT
+                            {
+                                s = item.s,
+                                Date = vnindex.Item1,
+                                Foreign = vnindex.Item2,
+                                TuDoanh = vnindex.Item3,
+                                Individual = vnindex.Item4,
+                                Group = vnindex.Item5,
+                            });
+                        }
+                        else
+                        {
+                            var take = vnindex.Item1.Count(x => x > entityVNINDEX.Date.Last());
+                            if (take > 0)
+                            {
+                                entityVNINDEX.Date.AddRange(vnindex.Item1.TakeLast(take));
+                                entityVNINDEX.Foreign.AddRange(vnindex.Item2.TakeLast(take));
+                                entityVNINDEX.TuDoanh.AddRange(vnindex.Item3.TakeLast(take));
+                                entityVNINDEX.Individual.AddRange(vnindex.Item4.TakeLast(take));
+                                entityVNINDEX.Group.AddRange(vnindex.Item5.TakeLast(take));
+                                _phanloaiRepo.Update(entityVNINDEX);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"EPSRankService.RankMaCKSync|EXCEPTION| {ex.Message}");
+                }
+            }
+        }
+
+        private async Task<(List<double>, List<double>, List<double>, List<double>, List<double>)> GetThongKe(string sym)
+        {
+            try
+            {
+                var dat = await _apiService.Money24h_GetThongke(sym);
+                if (dat is null
+                    || !dat.data.Any())
+                    return (null, null, null, null, null);
+                var TY = 1000000000;
+
+                dat.data = dat.data.Take(20).ToList();
+                dat.data.Reverse();
+
+                var lCat = dat.data.Select(x => (double)x.trading_date).ToList();
+                var lForeign = dat.data.Select(x => (x.foreign_buy_matched - x.foreign_sell_matched) / TY).ToList();
+                var lTudoanh = dat.data.Select(x => (x.proprietary_buy_matched - x.proprietary_sell_matched) / TY).ToList();
+                var lIndividual = dat.data.Select(x => (x.local_individual_buy_matched - x.local_individual_sell_matched) / TY).ToList();
+                var lGroup = dat.data.Select(x => (x.local_institutional_buy_matched - x.local_institutional_sell_matched) / TY).ToList();
+
+                return (lCat, lForeign, lTudoanh, lIndividual, lGroup);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"EPSRankService.GetThongKe|EXCEPTION| {ex.Message}");
+            }
+
+            return (null, null, null, null, null);
         }
     }
 }
