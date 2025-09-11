@@ -154,7 +154,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lOut.OrderBy(x => x.rank).Take(10).ToList())
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s})";
                     var extend = string.Empty;
                     if (item.isIchi)
                     {
@@ -210,7 +210,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lStockClean.OrderBy(x => x.rank).Take(10).ToList())
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s})";
                     var extend = string.Empty;
                     if (!string.IsNullOrWhiteSpace(extend))
                     {
@@ -312,7 +312,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -322,7 +322,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -377,7 +377,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -387,7 +387,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.#")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -430,7 +430,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Mua ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -440,7 +440,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Bán ròng {Math.Abs(item.net_val).ToString("#,##0.00")} tỷ)";
                     strOutput.AppendLine(content);
                     index++;
                 }
@@ -489,7 +489,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if (item.prop_net_pt > 0)
                     {
                         content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_pt).ToString("#,##0.#")} tỷ";
@@ -507,7 +507,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if (item.prop_net_pt > 0)
                     {
                         content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_pt).ToString("#,##0.#")} tỷ";
@@ -570,7 +570,7 @@ namespace StockPr.Service
                 var index = 1;
                 foreach (var item in lTopBuy)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Mua ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if(item.prop_net_pt > 0)
                     {
                         content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_pt).ToString("#,##0.#")} tỷ";
@@ -588,7 +588,7 @@ namespace StockPr.Service
                 index = 1;
                 foreach (var item in lTopSell)
                 {
-                    var content = $"{index}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
+                    var content = $"{index}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s}) (Bán ròng {Math.Abs(item.prop_net).ToString("#,##0.#")} tỷ)";
                     if (item.prop_net_pt > 0)
                     {
                         content += $" - Thỏa thuận mua: {Math.Abs(item.prop_net_pt).ToString("#,##0.#")} tỷ";
@@ -777,7 +777,7 @@ namespace StockPr.Service
                     var index = 1;
                     foreach (var item in lTrenMa20)
                     {
-                        var content = $"{index++}. [{item.s}](https://finance.vietstock.vn/{item.s}/phan-tich-ky-thuat.htm)";
+                        var content = $"{index++}. [{item.s}](https://fireant.vn/ma-chung-khoan/{item.s})";
                         if (item.isIchi)
                         {
                             content += " - Ichimoku";
