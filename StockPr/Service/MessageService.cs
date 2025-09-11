@@ -189,7 +189,7 @@ namespace StockPr.Service
                             || maStr.Equals("VNINDEX"))//MaCK
                         {
                             //chart Thành phần
-                            var stream = await _chartService.Chart_ThongKeKhopLenh(maStr);
+                            var stream = await _chartService.Chart_ThongKeKhopLenh_Long(maStr);
                             if (stream != null)
                             {
                                 lRes.Add(new HandleMessageModel
