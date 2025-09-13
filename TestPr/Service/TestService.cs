@@ -6,6 +6,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Skender.Stock.Indicators;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 
 namespace TestPr.Service
@@ -31,6 +32,7 @@ namespace TestPr.Service
         Task CheckWycKoff();
         Task CheckWycKoff_Type2();
         Task CheckWycKoff_Type3();
+        Task CheckWycKoff_Type4();
     }
     public class TestService : ITestService
     {
@@ -2109,6 +2111,103 @@ namespace TestPr.Service
                         //        }
                         //    }
                         //}
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine("END");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task CheckWycKoff_Type4()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                //var lTake = lUsdt.Skip(0).Take(1000);
+                var lTake = new List<string>
+                {
+                    "BTCUSDT",
+                    //"ETHUSDT",
+                    //"XRPUSDT",
+                    //"BNBUSDT",
+                    //"SOLUSDT",
+                    //"TRXUSDT",
+                    //"ADAUSDT",
+                    //"LINKUSDT",
+                    //"XLMUSDT",
+                    //"BCHUSDT",
+                    //"AVAXUSDT",
+                    //"CROUSDT",
+                    //"HBARUSDT",
+                    //"LTCUSDT",
+                    //"TONUSDT",
+                    //"DOTUSDT",
+                    //"UNIUSDT",
+                    //"SUIUSDT",
+                    //"XMRUSDT",
+                    //"ETCUSDT",
+                    //"DOGEUSDT",
+                    //"SHIBUSDT",
+                    //"HYPEUSDT",
+                    //"QUICKUSDT"
+                };
+                /*
+                 
+                 */
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
+
+                        var lVol = l1H.Select(x => new Quote
+                        {
+                            Date = x.Date,
+                            Volume = x.Volume,
+                            Close = x.Volume,
+                        }).GetSma(20);
+                        var lbb = l1H.GetBollingerBands();
+                        var l1hEx = l1H.Select(x => new QuoteEx
+                        {
+                            Open = x.Open,
+                            Close = x.Close,
+                            High = x.High,
+                            Low = x.Low,
+                            Volume = x.Volume,
+                            Date = x.Date,
+                            MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
+                            MA20 = lbb.First(y => y.Date == x.Date).Sma
+                        });
+                        
+                        var lSOS = l1hEx.Where(x => x.MA20Vol != null && x.Volume > 2 * (decimal)x.MA20Vol && x.Close > x.Open && x.Close > (decimal)x.MA20);
+                        foreach (var itemSOS in lSOS)
+                        {
+                            var lcheck = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(50);
+                            if (lcheck.Any(x => x.Close > itemSOS.Close
+                                            || x.Volume > itemSOS.Volume))
+                                continue;
+
+                            var maxCloseNext = l1hEx.Where(x => x.Date > itemSOS.Date).Take(10).Max(x => x.Close);
+                            //Chỉ lấy SOS chuẩn
+                            if (maxCloseNext - itemSOS.Close > 0.5m * (itemSOS.Close - itemSOS.Open))
+                                continue;
+
+                            var prev = l1hEx.Last(x => x.Date < itemSOS.Date);
+                            if (itemSOS.Volume < 2 * prev.Volume)
+                                continue;
+
+                            Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                        }
                     }
                     catch (Exception ex)
                     {
