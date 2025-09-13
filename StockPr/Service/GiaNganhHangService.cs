@@ -675,7 +675,7 @@ namespace StockPr.Service
         {
             try
             {
-                await _apiService.SBV_OMO();
+                //await _apiService.SBV_OMO();
             }
             catch(Exception ex)
             {
