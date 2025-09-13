@@ -2137,29 +2137,29 @@ namespace TestPr.Service
                 var lTake = new List<string>
                 {
                     "BTCUSDT",
-                    //"ETHUSDT",
-                    //"XRPUSDT",
-                    //"BNBUSDT",
-                    //"SOLUSDT",
-                    //"TRXUSDT",
-                    //"ADAUSDT",
-                    //"LINKUSDT",
-                    //"XLMUSDT",
-                    //"BCHUSDT",
-                    //"AVAXUSDT",
-                    //"CROUSDT",
-                    //"HBARUSDT",
-                    //"LTCUSDT",
-                    //"TONUSDT",
-                    //"DOTUSDT",
-                    //"UNIUSDT",
-                    //"SUIUSDT",
-                    //"XMRUSDT",
-                    //"ETCUSDT",
-                    //"DOGEUSDT",
-                    //"SHIBUSDT",
-                    //"HYPEUSDT",
-                    //"QUICKUSDT"
+                    "ETHUSDT",
+                    "XRPUSDT",
+                    "BNBUSDT",
+                    "SOLUSDT",
+                    "TRXUSDT",
+                    "ADAUSDT",
+                    "LINKUSDT",
+                    "XLMUSDT",
+                    "BCHUSDT",
+                    "AVAXUSDT",
+                    "CROUSDT",
+                    "HBARUSDT",
+                    "LTCUSDT",
+                    "TONUSDT",
+                    "DOTUSDT",
+                    "UNIUSDT",
+                    "SUIUSDT",
+                    "XMRUSDT",
+                    "ETCUSDT",
+                    "DOGEUSDT",
+                    "SHIBUSDT",
+                    "HYPEUSDT",
+                    "QUICKUSDT"
                 };
                 /*
                  
@@ -2207,7 +2207,13 @@ namespace TestPr.Service
                             if (maxCloseNext - itemSOS.Close > 0.5m * (itemSOS.Close - itemSOS.Open))
                                 continue;
 
+                            //Nến SOS không được vượt 5%
+                            var rateSOS = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open), 1);
+                            if (rateSOS > 5)
+                                continue;
+
                             var prev = l1hEx.Last(x => x.Date < itemSOS.Date);
+                            //item SOS có vol phải lớn hơn 2 lần vol liền trước
                             if (itemSOS.Volume < 2 * prev.Volume)
                                 continue;
 
@@ -2215,15 +2221,21 @@ namespace TestPr.Service
                             var minClosePrevSOS = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(35).Min(x => x.Close);
                             var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
 
-                            if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;//Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
+                            //Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
+                            if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;
 
                             //Độ dài SOS không được lớn hơn 2 lần độ rộng của BB
                             var bb_Prev = lbb.First(x => x.Date == prev.Date);
                             if ((itemSOS.Close - itemSOS.Open) > 2 * (decimal)(bb_Prev.UpperBand - bb_Prev.LowerBand))
                                 continue;
 
+                            var rateMin = Math.Round(100 * (-1 + itemSOS.Close / minClosePrevSOS));
+                            //item SOS so với đáy 35 nến phía trước không được vượt 10%
+                            if (rateMin > 10)
+                                continue;
+
                             lSOS.Add(itemSOS);
-                            Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                            //Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                         }
 
                         foreach (var itemSOS in lSOS)
@@ -2232,7 +2244,7 @@ namespace TestPr.Service
                             var minNext = lNextCheck.Min(x => x.Close);
                             if(minNext > itemSOS.Open)
                             {
-                                Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                                Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}%");
                             }
                             else
                             {

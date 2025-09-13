@@ -7,5 +7,6 @@ namespace CoinUtilsPr.DAL.Entity
         public decimal Rate_TP { get; set; }
         public double? MA20Vol { get; set; }
         public double? MA20 { get; set; }
+        public decimal Ex { get; set; }
     }
 }
