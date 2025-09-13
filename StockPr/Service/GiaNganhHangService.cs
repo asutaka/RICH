@@ -10,6 +10,7 @@ namespace StockPr.Service
     public interface IGiaNganhHangService
     {
         Task<(int, string)> TraceGia(bool isAll);
+        Task<Stream> TraceOMO();
     }
     public class GiaNganhHangService : IGiaNganhHangService
     {
@@ -668,6 +669,20 @@ namespace StockPr.Service
                 _logger.LogError($"GiaNganhHangService.TraceGia|EXCEPTION| {ex.Message}");
             }
             return (0, string.Empty);
+        }
+
+        public async Task<Stream> TraceOMO()
+        {
+            try
+            {
+                await _apiService.SBV_OMO();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"GiaNganhHangService.TraceOMO|EXCEPTION| {ex.Message}");
+            }
+
+            return null;
         }
     }
 }

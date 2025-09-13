@@ -148,6 +148,12 @@ namespace StockPr
                         {
                             await _teleService.SendMessage(_idGroup, res.Item2, true);
                         }
+
+                        var stream = await _giaService.TraceOMO();
+                        if (stream != null)
+                        {
+                            await _teleService.SendPhoto(_idGroup, stream);
+                        }
                     }
                 }
 

@@ -69,6 +69,7 @@ namespace StockPr.Service
         Task<List<string>> News_NguoiQuanSat();
         Task<News_KinhTeChungKhoan> News_KinhTeChungKhoan();
         Task<List<News_Raw>> News_NguoiDuaTin();
+        Task SBV_OMO();
     }
     public class APIService : IAPIService
     {
@@ -1642,6 +1643,70 @@ namespace StockPr.Service
                 _logger.LogError($"APIService.F319_Scout|EXCEPTION| {ex.Message}");
             }
             return lOutput;
+        }
+
+        public async Task SBV_OMO()
+        {
+            try
+            {
+                // URL của trang cần crawl
+                string url = "https://dttktt.sbv.gov.vn/webcenter/portal/vi/menu/trangchu/hdtttt";
+
+                // Tạo HttpClient để gửi yêu cầu HTTP
+                using (HttpClient client = new HttpClient())
+                {
+                    // Thêm header User-Agent để tránh bị chặn
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+                    // Gửi yêu cầu GET đến URL
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+
+                    // Đọc nội dung HTML
+                    string htmlContent = await response.Content.ReadAsStringAsync();
+
+                    // Tạo đối tượng HtmlDocument để phân tích HTML
+                    HtmlDocument doc = new HtmlDocument();
+                    doc.LoadHtml(htmlContent);
+
+                    // Lấy tất cả các thẻ table
+                    var tables = doc.DocumentNode.SelectNodes("//table");
+                    if (tables != null)
+                    {
+                        int tableIndex = 1;
+                        foreach (var table in tables)
+                        {
+                            Console.WriteLine($"\nBảng {tableIndex}:");
+
+                            // Lấy các hàng (tr) trong bảng
+                            var rows = table.SelectNodes(".//tr");
+                            if (rows != null)
+                            {
+                                foreach (var row in rows)
+                                {
+                                    // Lấy các ô (td hoặc th) trong hàng
+                                    var cells = row.SelectNodes(".//td | .//th");
+                                    if (cells != null)
+                                    {
+                                        // In nội dung các ô, loại bỏ khoảng trắng thừa
+                                        string[] cellContents = cells.Select(cell => cell.InnerText.Trim()).ToArray();
+                                        Console.WriteLine(string.Join(" | ", cellContents));
+                                    }
+                                }
+                            }
+                            tableIndex++;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Không tìm thấy bảng nào trên trang.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Đã xảy ra lỗi: {ex.Message}");
+            }
         }
 
         #region Báo cáo tài chính
