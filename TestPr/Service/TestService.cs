@@ -2188,16 +2188,21 @@ namespace TestPr.Service
                             MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
                             MA20 = lbb.First(y => y.Date == x.Date).Sma
                         });
-                        
-                        var lSOS = l1hEx.Where(x => x.MA20Vol != null && x.Volume > 2 * (decimal)x.MA20Vol && x.Close > x.Open && x.Close > (decimal)x.MA20);
-                        foreach (var itemSOS in lSOS)
+
+                        var lSOS = new List<QuoteEx>();
+                        var lSOSCheck = l1hEx.Where(x => x.MA20Vol != null && x.Volume > 2 * (decimal)x.MA20Vol && x.Close > x.Open && x.Close > (decimal)x.MA20);
+                        foreach (var itemSOS in lSOSCheck)
                         {
                             var lcheck = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(50);
                             if (lcheck.Any(x => x.Close > itemSOS.Close
                                             || x.Volume > itemSOS.Volume))
                                 continue;
 
-                            var maxCloseNext = l1hEx.Where(x => x.Date > itemSOS.Date).Take(10).Max(x => x.Close);
+                            var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
+                            if (lNextCheck.Count() < 15)
+                                continue;
+
+                            var maxCloseNext = lNextCheck.Max(x => x.Close);
                             //Chỉ lấy SOS chuẩn
                             if (maxCloseNext - itemSOS.Close > 0.5m * (itemSOS.Close - itemSOS.Open))
                                 continue;
@@ -2206,7 +2211,33 @@ namespace TestPr.Service
                             if (itemSOS.Volume < 2 * prev.Volume)
                                 continue;
 
+                            var maxClosePrevSOS = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(35).Max(x => x.Close);
+                            var minClosePrevSOS = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(35).Min(x => x.Close);
+                            var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
+
+                            if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;//Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
+
+                            //Độ dài SOS không được lớn hơn 2 lần độ rộng của BB
+                            var bb_Prev = lbb.First(x => x.Date == prev.Date);
+                            if ((itemSOS.Close - itemSOS.Open) > 2 * (decimal)(bb_Prev.UpperBand - bb_Prev.LowerBand))
+                                continue;
+
+                            lSOS.Add(itemSOS);
                             Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                        }
+
+                        foreach (var itemSOS in lSOS)
+                        {
+                            var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
+                            var minNext = lNextCheck.Min(x => x.Close);
+                            if(minNext > itemSOS.Open)
+                            {
+                                Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                            }
+                            else
+                            {
+
+                            }    
                         }
                     }
                     catch (Exception ex)
