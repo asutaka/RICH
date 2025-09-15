@@ -2238,18 +2238,40 @@ namespace TestPr.Service
                             //Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                         }
 
+                        var lWyckoffFast = new List<QuoteEx>();
                         foreach (var itemSOS in lSOS)
                         {
                             var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
                             var minNext = lNextCheck.Min(x => x.Close);
                             if(minNext > itemSOS.Open)
                             {
-                                Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}%");
+                                lWyckoffFast.Add(itemSOS);
+                                //Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }
                             else
                             {
-
+                                Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }    
+                        }
+
+                        foreach (var itemSOS in lWyckoffFast)
+                        {
+                            var lcheck = l1hEx.Where(x => x.Date > itemSOS.Date).Skip(15).Take(15);
+                            var flag = false;
+                            foreach (var itemCheck in lcheck)
+                            {
+                                var bb = lbb.First(x => x.Date == itemCheck.Date);
+                                if(itemCheck.Open < (decimal)bb.Sma)
+                                {
+                                    flag = true;
+                                }
+                                if(flag && itemCheck.Close >  (decimal)bb.Sma)
+                                {
+                                    var count = l1hEx.Count(x => x.Date > itemSOS.Date && x.Date <= itemCheck.Date);
+                                    Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-BUY|{count}");
+                                    break;
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)
