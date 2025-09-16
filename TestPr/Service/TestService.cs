@@ -2136,23 +2136,23 @@ namespace TestPr.Service
                 //var lTake = lUsdt.Skip(0).Take(1000);
                 var lTake = new List<string>
                 {
-                    "BTCUSDT",
-                    "ETHUSDT",
-                    "XRPUSDT",
-                    "BNBUSDT",
-                    "SOLUSDT",
-                    "TRXUSDT",
-                    "ADAUSDT",
-                    "LINKUSDT",
-                    "XLMUSDT",
-                    "BCHUSDT",
-                    "AVAXUSDT",
-                    "CROUSDT",
-                    "HBARUSDT",
-                    "LTCUSDT",
-                    "TONUSDT",
-                    "DOTUSDT",
-                    "UNIUSDT",
+                    //"BTCUSDT",
+                    //"ETHUSDT",
+                    //"XRPUSDT",
+                    //"BNBUSDT",
+                    //"SOLUSDT",
+                    //"TRXUSDT",
+                    //"ADAUSDT",
+                    //"LINKUSDT",
+                    //"XLMUSDT",
+                    //"BCHUSDT",
+                    //"AVAXUSDT",
+                    //"CROUSDT",
+                    //"HBARUSDT",
+                    //"LTCUSDT",
+                    //"TONUSDT",
+                    //"DOTUSDT",
+                    //"UNIUSDT",
                     "SUIUSDT",
                     "XMRUSDT",
                     "ETCUSDT",
@@ -2274,18 +2274,18 @@ namespace TestPr.Service
                             }
                         }
 
-                        foreach (var itemSOS in lWyckoffLow)
+                        foreach (var itemWyckoff in lWyckoffLow)
                         {
-                            var lCheck = l1hEx.Where(x => x.Date > itemSOS.Date);
+                            var lCheck = l1hEx.Where(x => x.Date > itemWyckoff.Date);
                             if (lCheck.Count() < 25)
                                 break;
 
                             var flag = false;
-                            foreach (var itemCheck in lCheck.Skip(5).Take(50))
+                            foreach (var itemCheck in lCheck.Skip(1).Take(50))
                             {
-                                if(itemCheck.Open > itemCheck.Close
-                                    && itemCheck.Close < (decimal)itemCheck.MA20
-                                    && itemCheck.Volume > 2 * (decimal)itemCheck.MA20Vol)
+                                if (itemCheck.Open > itemCheck.Close
+                                    && itemCheck.Close < itemWyckoff.Open
+                                    && itemCheck.Volume > 1.3m * (decimal)itemCheck.MA20Vol)
                                 {
                                     flag = true;
                                     continue;
@@ -2301,8 +2301,25 @@ namespace TestPr.Service
                                     && itemCheck.Close > itemCheck.Open
                                     && itemCheck.Close > (decimal)itemCheck.MA20
                                     && itemCheck.Open < (decimal)itemCheck.MA20
-                                    && itemCheck.Close < itemSOS.Close)
+                                    && itemCheck.Close < itemWyckoff.Close)
                                 {
+                                    ////Entry dài hơn cả SOS
+                                    //if ((itemCheck.Close - itemCheck.Open) > (itemWyckoff.Close - itemWyckoff.Open))
+                                    //    break;
+                                    //Entry dài hơn cả độ rộng BB
+                                    var bb = lbb.First(x => x.Date == itemCheck.Date);
+                                    if ((itemCheck.Close - itemCheck.Open) > (decimal)(bb.UpperBand - bb.LowerBand))
+                                        break;
+
+                                    //Entry tối thiểu 15 nến
+                                    var count = l1hEx.Count(x => x.Date > itemWyckoff.Date && x.Date <= itemCheck.Date);
+                                    if (count < 15)
+                                        continue;
+
+                                    //Check 3 nến gần nhất có vượt trên ma20 không
+                                    var isValid = l1hEx.Where(x => x.Date < itemCheck.Date).TakeLast(5).Any(x => x.Close > (decimal)x.MA20);
+                                    if (isValid) continue;
+
                                     var upper = itemCheck.Close - (decimal)itemCheck.MA20;
                                     var lower = (decimal)itemCheck.MA20 - itemCheck.Open;
                                     if(lower < 5 * upper)
