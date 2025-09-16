@@ -2287,12 +2287,14 @@ namespace TestPr.Service
                                     && itemCheck.Close < (decimal)itemCheck.MA20
                                     && itemCheck.Volume > 2 * (decimal)itemCheck.MA20Vol)
                                 {
-                                    var prevCheck = lCheck.Last(x => x.Date < itemCheck.Date);
-                                    if(itemCheck.Volume > 2 * prevCheck.Volume)
-                                    {
-                                        flag = true;
-                                        continue;
-                                    }
+                                    flag = true;
+                                    continue;
+                                    //var prevCheck = lCheck.Last(x => x.Date < itemCheck.Date);
+                                    //if(itemCheck.Volume > 2 * prevCheck.Volume)
+                                    //{
+                                    //    flag = true;
+                                    //    continue;
+                                    //}
                                 }
 
                                 if(flag
