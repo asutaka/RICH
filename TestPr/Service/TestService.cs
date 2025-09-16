@@ -2307,6 +2307,7 @@ namespace TestPr.Service
                                     var lower = (decimal)itemCheck.MA20 - itemCheck.Open;
                                     if(lower < 5 * upper)
                                     {
+                                        //entry mà dài quá thì canh mua khi pull back
                                         Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-BUY");
                                         break;
                                     }
