@@ -2303,8 +2303,13 @@ namespace TestPr.Service
                                     && itemCheck.Open < (decimal)itemCheck.MA20
                                     && itemCheck.Close < itemSOS.Close)
                                 {
-                                    Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-BUY");
-                                    break;
+                                    var upper = itemCheck.Close - (decimal)itemCheck.MA20;
+                                    var lower = (decimal)itemCheck.MA20 - itemCheck.Open;
+                                    if(lower < 5 * upper)
+                                    {
+                                        Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-BUY");
+                                        break;
+                                    }
                                 }
                             }
 
