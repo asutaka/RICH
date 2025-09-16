@@ -2243,14 +2243,13 @@ namespace TestPr.Service
                             var minNext = lNextCheck.Min(x => x.Close);
                             if(minNext > itemSOS.Open)
                             {
-                                continue;
                                 lWyckoffFast.Add(itemSOS);
                                 //Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }
                             else
                             {
                                 lWyckoffLow.Add(itemSOS);
-                                Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                                //Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }    
                         }
 
@@ -2268,7 +2267,7 @@ namespace TestPr.Service
                                 if(flag && itemCheck.Close >  (decimal)bb.Sma)
                                 {
                                     var count = l1hEx.Count(x => x.Date > itemSOS.Date && x.Date <= itemCheck.Date);
-                                    Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-BUY|{count}");
+                                    Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-FAST|{count}");
                                     break;
                                 }
                             }
@@ -2289,12 +2288,6 @@ namespace TestPr.Service
                                 {
                                     flag = true;
                                     continue;
-                                    //var prevCheck = lCheck.Last(x => x.Date < itemCheck.Date);
-                                    //if(itemCheck.Volume > 2 * prevCheck.Volume)
-                                    //{
-                                    //    flag = true;
-                                    //    continue;
-                                    //}
                                 }
 
                                 if(flag
@@ -2303,9 +2296,6 @@ namespace TestPr.Service
                                     && itemCheck.Open < (decimal)itemCheck.MA20
                                     && itemCheck.Close < itemWyckoff.Close)
                                 {
-                                    ////Entry dài hơn cả SOS
-                                    //if ((itemCheck.Close - itemCheck.Open) > (itemWyckoff.Close - itemWyckoff.Open))
-                                    //    break;
                                     //Entry dài hơn cả độ rộng BB
                                     var bb = lbb.First(x => x.Date == itemCheck.Date);
                                     if ((itemCheck.Close - itemCheck.Open) > (decimal)(bb.UpperBand - bb.LowerBand))
@@ -2325,7 +2315,7 @@ namespace TestPr.Service
                                     if(lower < 5 * upper)
                                     {
                                         //entry mà dài quá(bằng 1/2 độ rộng bb) thì canh mua khi pull back
-                                        Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-BUY");
+                                        Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-LOW");
                                         break;
                                     }
                                 }
