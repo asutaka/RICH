@@ -2236,19 +2236,20 @@ namespace TestPr.Service
                         }
 
                         var lWyckoffFast = new List<QuoteEx>();
+                        var lWyckoffLow = new List<QuoteEx>();
                         foreach (var itemSOS in lSOS)
                         {
-                            Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
-                            continue;
                             var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
                             var minNext = lNextCheck.Min(x => x.Close);
                             if(minNext > itemSOS.Open)
                             {
+                                continue;
                                 lWyckoffFast.Add(itemSOS);
                                 //Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }
                             else
                             {
+                                lWyckoffLow.Add(itemSOS);
                                 Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }    
                         }
@@ -2271,6 +2272,40 @@ namespace TestPr.Service
                                     break;
                                 }
                             }
+                        }
+
+                        foreach (var itemSOS in lWyckoffLow)
+                        {
+                            var lCheck = l1hEx.Where(x => x.Date > itemSOS.Date);
+                            if (lCheck.Count() < 25)
+                                break;
+
+                            var flag = false;
+                            foreach (var itemCheck in lCheck.Skip(5).Take(50))
+                            {
+                                if(itemCheck.Open > itemCheck.Close
+                                    && itemCheck.Close < (decimal)itemCheck.MA20
+                                    && itemCheck.Volume > 2 * (decimal)itemCheck.MA20Vol)
+                                {
+                                    var prevCheck = lCheck.Last(x => x.Date < itemCheck.Date);
+                                    if(itemCheck.Volume > 2 * prevCheck.Volume)
+                                    {
+                                        flag = true;
+                                        continue;
+                                    }
+                                }
+
+                                if(flag
+                                    && itemCheck.Close > itemCheck.Open
+                                    && itemCheck.Close > (decimal)itemCheck.MA20
+                                    && itemCheck.Open < (decimal)itemCheck.MA20
+                                    && itemCheck.Close < itemSOS.Close)
+                                {
+                                    Console.WriteLine($"{item}|{itemCheck.Date.ToString("dd/MM/yyyy HH")}-BUY");
+                                    break;
+                                }
+                            }
+
                         }
                     }
                     catch (Exception ex)
