@@ -2207,11 +2207,6 @@ namespace TestPr.Service
                             if (maxCloseNext - itemSOS.Close > 0.5m * (itemSOS.Close - itemSOS.Open))
                                 continue;
 
-                            //Nến SOS không được vượt 5%
-                            var rateSOS = Math.Round(100 * (-1 + itemSOS.Close / itemSOS.Open), 1);
-                            if (rateSOS > 5)
-                                continue;
-
                             var prev = l1hEx.Last(x => x.Date < itemSOS.Date);
                             //item SOS có vol phải lớn hơn 2 lần vol liền trước
                             if (itemSOS.Volume < 2 * prev.Volume)
@@ -2226,12 +2221,14 @@ namespace TestPr.Service
 
                             //Độ dài SOS không được lớn hơn 2 lần độ rộng của BB
                             var bb_Prev = lbb.First(x => x.Date == prev.Date);
-                            if ((itemSOS.Close - itemSOS.Open) > 2 * (decimal)(bb_Prev.UpperBand - bb_Prev.LowerBand))
+                            if ((itemSOS.Close - itemSOS.Open) > 1.5m * (decimal)(bb_Prev.UpperBand - bb_Prev.LowerBand))
                                 continue;
 
-                            var rateMin = Math.Round(100 * (-1 + itemSOS.Close / minClosePrevSOS));
-                            //item SOS so với đáy 35 nến phía trước không được vượt 10%
-                            if (rateMin > 10)
+                            //độ dài 5 nến trước sos không được gấp 4 lần độ rộng bb
+                            var l5 = l1hEx.Where(x => x.Date <= itemSOS.Date).TakeLast(5);
+                            var prev_6 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(5).Last();
+                            var div5 = l5.Max(x => x.Close) - l5.Min(x => x.Open);
+                            if (div5 > 4 * (decimal)(prev_6.UpperBand - prev_6.LowerBand))
                                 continue;
 
                             lSOS.Add(itemSOS);
@@ -2241,6 +2238,8 @@ namespace TestPr.Service
                         var lWyckoffFast = new List<QuoteEx>();
                         foreach (var itemSOS in lSOS)
                         {
+                            Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                            continue;
                             var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
                             var minNext = lNextCheck.Min(x => x.Close);
                             if(minNext > itemSOS.Open)
