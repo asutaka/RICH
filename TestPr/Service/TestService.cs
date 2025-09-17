@@ -2426,6 +2426,7 @@ namespace TestPr.Service
                             }
                         }
                         //Takeprofit
+
                     }
                     catch (Exception ex)
                     {
