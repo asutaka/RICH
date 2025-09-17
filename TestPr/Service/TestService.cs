@@ -33,6 +33,7 @@ namespace TestPr.Service
         Task CheckWycKoff_Type2();
         Task CheckWycKoff_Type3();
         Task CheckWycKoff_Type4();
+        Task CheckWycKoff_Type5();
     }
     public class TestService : ITestService
     {
@@ -2136,7 +2137,7 @@ namespace TestPr.Service
                 //var lTake = lUsdt.Skip(0).Take(1000);
                 var lTake = new List<string>
                 {
-                    //"BTCUSDT",
+                    "BTCUSDT",
                     //"ETHUSDT",
                     //"XRPUSDT",
                     //"BNBUSDT",
@@ -2153,13 +2154,13 @@ namespace TestPr.Service
                     //"TONUSDT",
                     //"DOTUSDT",
                     //"UNIUSDT",
-                    "SUIUSDT",
-                    "XMRUSDT",
-                    "ETCUSDT",
-                    "DOGEUSDT",
-                    "SHIBUSDT",
-                    "HYPEUSDT",
-                    "QUICKUSDT"
+                    //"SUIUSDT",
+                    //"XMRUSDT",
+                    //"ETCUSDT",
+                    //"DOGEUSDT",
+                    //"SHIBUSDT",
+                    //"HYPEUSDT",
+                    //"QUICKUSDT"
                 };
                 /*
                  
@@ -2244,12 +2245,12 @@ namespace TestPr.Service
                             if(minNext > itemSOS.Open)
                             {
                                 lWyckoffFast.Add(itemSOS);
-                                //Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                                Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }
                             else
                             {
                                 lWyckoffLow.Add(itemSOS);
-                                //Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
+                                Console.WriteLine($"{item}|{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
                             }    
                         }
 
@@ -2321,6 +2322,108 @@ namespace TestPr.Service
                                 }
                             }
 
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine("END");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task CheckWycKoff_Type5()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                //var lTake = lUsdt.Skip(0).Take(1000);
+                var lTake = new List<string>
+                {
+                    "BTCUSDT",
+                    //"ETHUSDT",
+                    //"XRPUSDT",
+                    //"BNBUSDT",
+                    //"SOLUSDT",
+                    //"TRXUSDT",
+                    //"ADAUSDT",
+                    //"LINKUSDT",
+                    //"XLMUSDT",
+                    //"BCHUSDT",
+                    //"AVAXUSDT",
+                    //"CROUSDT",
+                    //"HBARUSDT",
+                    //"LTCUSDT",
+                    //"TONUSDT",
+                    //"DOTUSDT",
+                    //"UNIUSDT",
+                    //"SUIUSDT",
+                    //"XMRUSDT",
+                    //"ETCUSDT",
+                    //"DOGEUSDT",
+                    //"SHIBUSDT",
+                    //"HYPEUSDT",
+                    //"QUICKUSDT"
+                };
+                /*
+                 
+                 */
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
+
+                        var lSOS = new List<SOSDTO>();
+                        var count = l1H.Count();
+                        for (int i = 1; i < count; i++)
+                        {
+                            var lDat = l1H.Take(i);
+                            var itemSOS = lDat.IsWyckoff_Prepare();
+                            if(itemSOS != null)
+                            {
+                                if(!lSOS.Any(x => x.sos.Date == itemSOS.sos.Date))
+                                {
+                                    lSOS.Add(itemSOS);
+                                }
+                            }    
+                        }
+
+                        foreach (var itemSOS in lSOS)
+                        {
+                            for (int i = 1; i < count; i++)
+                            {
+                                var lDat = l1H.Take(i);
+                                if (lDat.Last().Date < itemSOS.sos.Date)
+                                    continue;
+
+                                if (itemSOS.ty == (int)EWyckoffMode.Fast)
+                                {
+                                    var res = lDat.IsWyckoffEntry_Fast(itemSOS.sos);
+                                    if (res != null)
+                                    {
+                                        Console.WriteLine($"{item}|{res.Date.ToString("dd/MM/yyyy HH")}-FAST");
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    var res = lDat.IsWyckoffEntry_Low(itemSOS.sos);
+                                    if (res != null)
+                                    {
+                                        Console.WriteLine($"{item}|{res.Date.ToString("dd/MM/yyyy HH")}-LOW");
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)

@@ -104,4 +104,10 @@ namespace CoinUtilsPr
         Active = 1,
         Disable = 2
     }
+
+    public enum EWyckoffMode
+    {
+        Fast = 1,
+        Low = 2
+    }
 }

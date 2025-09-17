@@ -1179,5 +1179,190 @@ namespace CoinUtilsPr
 
             return false;
         }
+
+        public static SOSDTO IsWyckoff_Prepare(this IEnumerable<Quote> lData)
+        {
+            try
+            {
+                if(lData.Count() < 150)
+                    return null;
+
+                var lVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Volume = x.Volume,
+                    Close = x.Volume,
+                }).GetSma(20);
+                var lbb = lData.GetBollingerBands();
+                var l1hEx = lData.Select(x => new QuoteEx
+                {
+                    Open = x.Open,
+                    Close = x.Close,
+                    High = x.High,
+                    Low = x.Low,
+                    Volume = x.Volume,
+                    Date = x.Date,
+                    MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
+                    MA20 = lbb.First(y => y.Date == x.Date).Sma
+                });
+
+                var lSOS = l1hEx.TakeLast(72);
+                foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 2 * (decimal)x.MA20Vol && x.Close > x.Open && x.Close > (decimal)x.MA20)
+                                    .OrderByDescending(x => x.Date))
+                {
+                    var lcheck = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(50);
+                    if (lcheck.Any(x => x.Close > itemSOS.Close
+                                    || x.Volume > itemSOS.Volume))
+                        continue;
+
+                    var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
+                    if (lNextCheck.Count() < 15)
+                        continue;
+
+                    var maxCloseNext = lNextCheck.Max(x => x.Close);
+                    //Chỉ lấy SOS chuẩn
+                    if (maxCloseNext - itemSOS.Close > 0.5m * (itemSOS.Close - itemSOS.Open))
+                        continue;
+
+                    var prev = l1hEx.Last(x => x.Date < itemSOS.Date);
+                    //item SOS có vol phải lớn hơn 2 lần vol liền trước
+                    if (itemSOS.Volume < 2 * prev.Volume)
+                        continue;
+
+                    var maxClosePrevSOS = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(35).Max(x => x.Close);
+                    var minClosePrevSOS = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(35).Min(x => x.Close);
+                    var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
+
+                    //Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
+                    if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;
+
+                    //Độ dài SOS không được lớn hơn 2 lần độ rộng của BB
+                    var bb_Prev = lbb.First(x => x.Date == prev.Date);
+                    if ((itemSOS.Close - itemSOS.Open) > 1.5m * (decimal)(bb_Prev.UpperBand - bb_Prev.LowerBand))
+                        continue;
+
+                    //độ dài 5 nến trước sos không được gấp 4 lần độ rộng bb
+                    var l5 = l1hEx.Where(x => x.Date <= itemSOS.Date).TakeLast(5);
+                    var prev_6 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(5).Last();
+                    var div5 = l5.Max(x => x.Close) - l5.Min(x => x.Open);
+                    if (div5 > 4 * (decimal)(prev_6.UpperBand - prev_6.LowerBand))
+                        continue;
+
+                    var output = new SOSDTO
+                    {
+                        sos = itemSOS
+                    };
+                    var minNext = lNextCheck.Min(x => x.Close);
+                    if (minNext > itemSOS.Open)
+                    {
+                        output.ty = (int)EWyckoffMode.Fast;
+                    }
+                    else
+                    {
+                        output.ty = (int)EWyckoffMode.Low;
+                    }
+
+                    return output;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        public static Quote IsWyckoffEntry_Fast(this IEnumerable<Quote> lData, Quote sos)
+        {
+            try
+            {
+                var lcheck = lData.Where(x => x.Date > sos.Date).Skip(15).Take(15);
+                var lbb = lData.GetBollingerBands();
+                var flag = false;
+                foreach (var itemCheck in lcheck)
+                {
+                    var bb = lbb.First(x => x.Date == itemCheck.Date);
+                    if (itemCheck.Open < (decimal)bb.Sma)
+                    {
+                        flag = true;
+                    }
+                    if (flag && itemCheck.Close > (decimal)bb.Sma)
+                    {
+                        return itemCheck;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        public static Quote IsWyckoffEntry_Low(this IEnumerable<Quote> lData, Quote sos)
+        {
+            try
+            {
+                var lCheck = lData.Where(x => x.Date > sos.Date);
+                if (lCheck.Count() < 25)
+                    return null;
+
+                var lbb = lData.GetBollingerBands();
+                var lVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Volume = x.Volume,
+                    Close = x.Volume,
+                }).GetSma(20);
+
+                var flag = false;
+                foreach (var itemCheck in lCheck.Skip(1).Take(50))
+                {
+                    if (itemCheck.Open > itemCheck.Close
+                        && itemCheck.Close < sos.Open
+                        && itemCheck.Volume > 1.3m * (decimal)lVol.First(y => y.Date == itemCheck.Date).Sma)
+                    {
+                        flag = true;
+                        continue;
+                    }
+
+                    if (flag
+                        && itemCheck.Close > itemCheck.Open
+                        && itemCheck.Close > (decimal)lbb.First(y => y.Date == itemCheck.Date).Sma
+                        && itemCheck.Open < (decimal)lbb.First(y => y.Date == itemCheck.Date).Sma
+                        && itemCheck.Close < sos.Close)
+                    {
+                        //Entry dài hơn cả độ rộng BB
+                        var bb = lbb.First(x => x.Date == itemCheck.Date);
+                        if ((itemCheck.Close - itemCheck.Open) > (decimal)(bb.UpperBand - bb.LowerBand))
+                            break;
+
+                        //Entry tối thiểu 15 nến
+                        var count = lData.Count(x => x.Date > sos.Date && x.Date <= itemCheck.Date);
+                        if (count < 15)
+                            continue;
+
+                        //Check 5 nến gần nhất có vượt trên ma20 không
+                        var isValid = lData.Where(x => x.Date < itemCheck.Date).TakeLast(5).Any(x => x.Close > (decimal)lbb.First(y => y.Date == x.Date).Sma);
+                        if (isValid) continue;
+
+                        var upper = itemCheck.Close - (decimal)lbb.First(y => y.Date == itemCheck.Date).Sma;
+                        var lower = (decimal)lbb.First(y => y.Date == itemCheck.Date).Sma - itemCheck.Open;
+                        if (lower < 5 * upper)
+                        {
+                            return itemCheck;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
     }
 }
