@@ -1184,7 +1184,7 @@ namespace CoinUtilsPr
         {
             try
             {
-                if(lData.Count() < 150)
+                if(lData.Count() < 100)
                     return null;
 
                 var lVol = lData.Select(x => new Quote

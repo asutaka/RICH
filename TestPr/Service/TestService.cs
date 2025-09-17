@@ -2381,7 +2381,7 @@ namespace TestPr.Service
                     try
                     {
                         var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
-
+                        //Detect 
                         var lSOS = new List<SOSDTO>();
                         var count = l1H.Count();
                         for (int i = 1; i < count; i++)
@@ -2396,7 +2396,7 @@ namespace TestPr.Service
                                 }
                             }    
                         }
-
+                        //Entry
                         foreach (var itemSOS in lSOS)
                         {
                             for (int i = 1; i < count; i++)
@@ -2425,6 +2425,7 @@ namespace TestPr.Service
                                 }
                             }
                         }
+                        //Takeprofit
                     }
                     catch (Exception ex)
                     {
