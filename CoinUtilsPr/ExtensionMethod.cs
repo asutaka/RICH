@@ -1,6 +1,7 @@
 ﻿using CoinUtilsPr.DAL.Entity;
 using CoinUtilsPr.Model;
 using MongoDB.Driver;
+using SharpCompress.Common;
 using Skender.Stock.Indicators;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -1273,7 +1274,7 @@ namespace CoinUtilsPr
             return null;
         }
 
-        public static Quote IsWyckoffEntry_Fast(this IEnumerable<Quote> lData, Quote sos)
+        public static (Quote, decimal) IsWyckoffEntry_Fast(this IEnumerable<Quote> lData, Quote sos)
         {
             try
             {
@@ -1289,7 +1290,8 @@ namespace CoinUtilsPr
                     }
                     if (flag && itemCheck.Close > (decimal)bb.Sma)
                     {
-                        return itemCheck;
+                        var distanceUnit = ((sos.Close - sos.Open) * 2 + (decimal)(bb.UpperBand - bb.LowerBand)) / 2;
+                        return (itemCheck, distanceUnit);
                     }
                 }
             }
@@ -1298,16 +1300,16 @@ namespace CoinUtilsPr
                 Console.WriteLine(ex.Message);
             }
 
-            return null;
+            return (null, 0);
         }
 
-        public static Quote IsWyckoffEntry_Low(this IEnumerable<Quote> lData, Quote sos)
+        public static (Quote, decimal) IsWyckoffEntry_Low(this IEnumerable<Quote> lData, Quote sos)
         {
             try
             {
                 var lCheck = lData.Where(x => x.Date > sos.Date);
                 if (lCheck.Count() < 25)
-                    return null;
+                    return (null, 0);
 
                 var lbb = lData.GetBollingerBands();
                 var lVol = lData.Select(x => new Quote
@@ -1352,8 +1354,52 @@ namespace CoinUtilsPr
                         var lower = (decimal)lbb.First(y => y.Date == itemCheck.Date).Sma - itemCheck.Open;
                         if (lower < 5 * upper)
                         {
-                            return itemCheck;
+                            var distanceUnit = ((sos.Close - sos.Open) * 2 + (decimal)(bb.UpperBand - bb.LowerBand)) / 2;
+                            return (itemCheck, distanceUnit);
                         }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return (null, 0);
+        }
+
+        public static Quote IsWyckoffTP_Fast(this IEnumerable<Quote> lData, SOSDTO entity)
+        {
+            try
+            {
+                var lCheck = lData.Where(x => x.Date > entity.signal.Date);
+                var lbb = lData.GetSma(20);
+                var last = lCheck.LastOrDefault();
+                if (last is null)
+                    return null;
+
+                if (lCheck.Count() > 60)
+                    return last;
+
+                if(last.Low <= entity.sl)
+                {
+                    last.Close = entity.sl;
+                    return last;
+                }
+
+                if(last.Close >= entity.tp)
+                {
+                    entity.sl = entity.tp - 0.5m * entity.distance_unit;
+                    entity.tp += entity.distance_unit;
+                    entity.allowSell = true;
+                }
+
+                if (entity.allowSell)
+                {
+                    var bb = lbb.Last();
+                    if(last.Close < (decimal)bb.Sma)
+                    {
+                        //Close
                     }
                 }
             }

@@ -2397,6 +2397,7 @@ namespace TestPr.Service
                             }    
                         }
                         //Entry
+                        var lEntry = new List<SOSDTO>();
                         foreach (var itemSOS in lSOS)
                         {
                             for (int i = 1; i < count; i++)
@@ -2408,25 +2409,43 @@ namespace TestPr.Service
                                 if (itemSOS.ty == (int)EWyckoffMode.Fast)
                                 {
                                     var res = lDat.IsWyckoffEntry_Fast(itemSOS.sos);
-                                    if (res != null)
+                                    if (res.Item1 != null)
                                     {
-                                        Console.WriteLine($"{item}|{res.Date.ToString("dd/MM/yyyy HH")}-FAST");
+                                        itemSOS.signal = res.Item1;
+                                        itemSOS.distance_unit = res.Item2;
+                                        itemSOS.sl = res.Item1.Close - res.Item2;
+                                        itemSOS.tp = res.Item1.Close + res.Item2;
+                                        lEntry.Add(itemSOS);
+                                        Console.WriteLine($"{item}|{res.Item1.Date.ToString("dd/MM/yyyy HH")}-FAST");
                                         break;
                                     }
                                 }
                                 else
                                 {
                                     var res = lDat.IsWyckoffEntry_Low(itemSOS.sos);
-                                    if (res != null)
+                                    if (res.Item1 != null)
                                     {
-                                        Console.WriteLine($"{item}|{res.Date.ToString("dd/MM/yyyy HH")}-LOW");
+                                        itemSOS.signal = res.Item1;
+                                        itemSOS.distance_unit = res.Item2;
+                                        itemSOS.sl = res.Item1.Close - res.Item2;
+                                        itemSOS.tp = res.Item1.Close + res.Item2;
+                                        lEntry.Add(itemSOS);
+                                        Console.WriteLine($"{item}|{res.Item1.Date.ToString("dd/MM/yyyy HH")}-LOW");
                                         break;
                                     }
                                 }
                             }
                         }
                         //Takeprofit
+                        foreach (var itemEntry in lEntry)
+                        {
 
+                            //var bb = 
+                        }
+
+
+                        //Type Fast bán khi giá vượt BB và vol giảm 1 nửa
+                        //LOW SL = trung bình 2* SOS và bb 
                     }
                     catch (Exception ex)
                     {
