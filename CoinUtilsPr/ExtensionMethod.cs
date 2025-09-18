@@ -1387,21 +1387,22 @@ namespace CoinUtilsPr
                     return last;
                 }
 
-                if(last.Close >= entity.tp)
+                if (entity.allowSell)
+                {
+                    var bb = lbb.Last();
+                    if (last.Close < (decimal)bb.Sma)
+                    {
+                        return last;
+                    }
+                }
+
+                if (last.Close >= entity.tp)
                 {
                     entity.sl = entity.tp - 0.5m * entity.distance_unit;
                     entity.tp += 0.5m * entity.distance_unit;
                     entity.allowSell = true;
                 }
 
-                if (entity.allowSell)
-                {
-                    var bb = lbb.Last();
-                    if(last.Close < (decimal)bb.Sma)
-                    {
-                        return last;
-                    }
-                }
             }
             catch (Exception ex)
             {
