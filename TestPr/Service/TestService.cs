@@ -2349,29 +2349,29 @@ namespace TestPr.Service
                 var lTake = new List<string>
                 {
                     "BTCUSDT",
-                    //"ETHUSDT",
-                    //"XRPUSDT",
-                    //"BNBUSDT",
-                    //"SOLUSDT",
-                    //"TRXUSDT",
-                    //"ADAUSDT",
-                    //"LINKUSDT",
-                    //"XLMUSDT",
-                    //"BCHUSDT",
-                    //"AVAXUSDT",
-                    //"CROUSDT",
-                    //"HBARUSDT",
-                    //"LTCUSDT",
-                    //"TONUSDT",
-                    //"DOTUSDT",
-                    //"UNIUSDT",
-                    //"SUIUSDT",
-                    //"XMRUSDT",
-                    //"ETCUSDT",
-                    //"DOGEUSDT",
-                    //"SHIBUSDT",
-                    //"HYPEUSDT",
-                    //"QUICKUSDT"
+                    "ETHUSDT",
+                    "XRPUSDT",
+                    "BNBUSDT",
+                    "SOLUSDT",
+                    "TRXUSDT",
+                    "ADAUSDT",
+                    "LINKUSDT",
+                    "XLMUSDT",
+                    "BCHUSDT",
+                    "AVAXUSDT",
+                    "CROUSDT",
+                    "HBARUSDT",
+                    "LTCUSDT",
+                    "TONUSDT",
+                    "DOTUSDT",
+                    "UNIUSDT",
+                    "SUIUSDT",
+                    "XMRUSDT",
+                    "ETCUSDT",
+                    "DOGEUSDT",
+                    "SHIBUSDT",
+                    "HYPEUSDT",
+                    "QUICKUSDT"
                 };
                 /*
                  
@@ -2411,6 +2411,9 @@ namespace TestPr.Service
                                     var res = lDat.IsWyckoffEntry_Fast(itemSOS.sos);
                                     if (res.Item1 != null)
                                     {
+                                        if (lEntry.Any(x => x.signal.Date == res.Item1.Date))
+                                            break;
+
                                         itemSOS.signal = res.Item1;
                                         itemSOS.distance_unit = res.Item2;
                                         itemSOS.sl = res.Item1.Close - res.Item2;
@@ -2425,6 +2428,9 @@ namespace TestPr.Service
                                     var res = lDat.IsWyckoffEntry_Low(itemSOS.sos);
                                     if (res.Item1 != null)
                                     {
+                                        if (lEntry.Any(x => x.signal.Date == res.Item1.Date))
+                                            break;
+
                                         itemSOS.signal = res.Item1;
                                         itemSOS.distance_unit = res.Item2;
                                         itemSOS.sl = res.Item1.Close - res.Item2;
@@ -2439,8 +2445,18 @@ namespace TestPr.Service
                         //Takeprofit
                         foreach (var itemEntry in lEntry)
                         {
-
-                            //var bb = 
+                            for (int i = 0; i < count; i++)
+                            {
+                                var lDat = l1H.Take(i);
+                                var res = lDat.IsWyckoffTP_Fast(itemEntry);
+                                if(res != null)
+                                {
+                                    var rate = Math.Round(100 * (-1 + res.Close / itemEntry.signal.Close), 1);
+                                    var num = l1H.Count(x => x.Date > itemEntry.signal.Date && x.Date <= res.Date);
+                                    Console.WriteLine($"{item}|Buy: {itemEntry.signal.Date.ToString("dd/MM/yyyy HH")}|SELL: {res.Date.ToString("dd/MM/yyyy HH")}|NUM: {num}|RATE: {rate}%");
+                                    break;
+                                }
+                            }
                         }
 
 

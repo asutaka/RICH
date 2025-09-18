@@ -1390,7 +1390,7 @@ namespace CoinUtilsPr
                 if(last.Close >= entity.tp)
                 {
                     entity.sl = entity.tp - 0.5m * entity.distance_unit;
-                    entity.tp += entity.distance_unit;
+                    entity.tp += 0.5m * entity.distance_unit;
                     entity.allowSell = true;
                 }
 
@@ -1399,7 +1399,7 @@ namespace CoinUtilsPr
                     var bb = lbb.Last();
                     if(last.Close < (decimal)bb.Sma)
                     {
-                        //Close
+                        return last;
                     }
                 }
             }
