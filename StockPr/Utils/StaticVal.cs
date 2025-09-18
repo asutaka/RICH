@@ -122,7 +122,8 @@ namespace StockPr.Utils
             "DC4",
             "CII",
             "EVG",
-            "NVL"
+            "NVL",
+            "IJC"
         };
 
         public static List<string> _lKCNTP = new List<string>

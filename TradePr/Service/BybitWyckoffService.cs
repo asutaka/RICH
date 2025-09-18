@@ -6,11 +6,6 @@ using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -19,6 +14,7 @@ namespace TradePr.Service
     {
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
         Task Bybit_Trade();
+        Task Bybit_Signal();
     }
     public class BybitWyckoffService : IBybitWyckoffService
     {
@@ -457,5 +453,70 @@ namespace TradePr.Service
         {
             110007
         };
+
+        public async Task Bybit_Signal()
+        {
+            try
+            {
+                var lTake = new List<string>
+                {
+                    "BTCUSDT",
+                    "ETHUSDT",
+                    "XRPUSDT",
+                    "BNBUSDT",
+                    "SOLUSDT",
+                    "TRXUSDT",
+                    "ADAUSDT",
+                    "LINKUSDT",
+                    "XLMUSDT",
+                    "BCHUSDT",
+                    "AVAXUSDT",
+                    "CROUSDT",
+                    "HBARUSDT",
+                    "LTCUSDT",
+                    "TONUSDT",
+                    "DOTUSDT",
+                    "UNIUSDT",
+                    "SUIUSDT",
+                    "XMRUSDT",
+                    "ETCUSDT",
+                    "DOGEUSDT",
+                    "SHIBUSDT",
+                    "HYPEUSDT",
+                    "QUICKUSDT"
+                };
+
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
+                        //Detect 
+                        var lSOS = new List<SOSDTO>();
+                        var count = l1H.Count();
+                        for (int i = 1; i < count; i++)
+                        {
+                            var lDat = l1H.Take(i);
+                            var itemSOS = lDat.IsWyckoff_Prepare();
+                            if (itemSOS != null)
+                            {
+                                if (!lSOS.Any(x => x.sos.Date == itemSOS.sos.Date))
+                                {
+                                    lSOS.Add(itemSOS);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|{item}|BybitService.Bybit_Signal|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Signal|EXCEPTION| {ex.Message}");
+            }
+        }
     }
 }
