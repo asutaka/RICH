@@ -14,7 +14,8 @@ namespace TradePr.Service
     {
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
         Task Bybit_Trade();
-        Task Bybit_Signal();
+        Task Bybit_Signal_1809();
+        Task Bybit_Entry_1809();
     }
     public class BybitWyckoffService : IBybitWyckoffService
     {
@@ -25,6 +26,8 @@ namespace TradePr.Service
         private readonly IConfigDataRepo _configRepo;
         private readonly ITradingRepo _tradeRepo;
         private readonly IPrepareRepo _preRepo;
+        private readonly ISignalSOSRepo _sosRepo;
+        private readonly IEntrySOSRepo _entryRepo;
         private readonly int _exchange = (int)EExchange.Bybit;
         private const long _idUser = 1066022551;
         private readonly int _HOUR = 90;
@@ -32,7 +35,7 @@ namespace TradePr.Service
         private const decimal _margin = 10;
         public BybitWyckoffService(ILogger<BybitWyckoffService> logger,
                             IAPIService apiService, ITeleService teleService, ISymbolRepo symRepo,
-                            IConfigDataRepo configRepo, ITradingRepo tradeRepo, IPrepareRepo preRepo)
+                            IConfigDataRepo configRepo, ITradingRepo tradeRepo, IPrepareRepo preRepo, ISignalSOSRepo sosRepo, IEntrySOSRepo entryRepo)
         {
             _logger = logger;
             _apiService = apiService;
@@ -41,6 +44,8 @@ namespace TradePr.Service
             _configRepo = configRepo;
             _tradeRepo = tradeRepo;
             _preRepo = preRepo;
+            _sosRepo = sosRepo;
+            _entryRepo = entryRepo;
         }
 
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
@@ -454,10 +459,14 @@ namespace TradePr.Service
             110007
         };
 
-        public async Task Bybit_Signal()
+        public async Task Bybit_Signal_1809()
         {
             try
             {
+                var TIME_MAX = 60;
+                var now = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                var d = (int)DateTimeOffset.Now.AddHours(-TIME_MAX).ToUnixTimeSeconds();
+                var d_30 = (int)DateTimeOffset.Now.AddHours(-30).ToUnixTimeSeconds();
                 var lTake = new List<string>
                 {
                     "BTCUSDT",
@@ -485,37 +494,127 @@ namespace TradePr.Service
                     "HYPEUSDT",
                     "QUICKUSDT"
                 };
-
+                var lSig = _sosRepo.GetByFilter(Builders<SignalSOS>.Filter.Gte(x => x.d, d));
+                
                 foreach (var item in lTake)
                 {
                     try
                     {
+                        var any = lSig.Any(x => x.s == item && x.d > d_30);
+                        if (any)
+                            continue;
+
                         var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
-                        //Detect 
-                        var lSOS = new List<SOSDTO>();
-                        var count = l1H.Count();
-                        for (int i = 1; i < count; i++)
+                        var itemSOS = l1H.IsWyckoff_Prepare();
+                        if (itemSOS != null)
                         {
-                            var lDat = l1H.Take(i);
-                            var itemSOS = lDat.IsWyckoff_Prepare();
-                            if (itemSOS != null)
+                            if (lSig.Any(x => x.s == item && x.sos.Date == itemSOS.sos.Date))
+                                continue;
+
+                            _sosRepo.InsertOne(new SignalSOS
                             {
-                                if (!lSOS.Any(x => x.sos.Date == itemSOS.sos.Date))
-                                {
-                                    lSOS.Add(itemSOS);
-                                }
-                            }
+                                s = item,
+                                d = now,
+                                sos = itemSOS.sos,
+                                ty = itemSOS.ty,
+                                status = 1
+                            });
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|{item}|BybitService.Bybit_Signal|EXCEPTION| {ex.Message}");
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|{item}|BybitService.Bybit_Signal_1809|EXCEPTION| {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Signal|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Signal_1809|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task Bybit_Entry_1809()
+        {
+            try
+            {
+                var TIME_MAX = 60;
+                var now = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
+                var d = (int)DateTimeOffset.Now.AddHours(-TIME_MAX).ToUnixTimeSeconds();
+                var builder = Builders<SignalSOS>.Filter;
+                var lSig = _sosRepo.GetByFilter(builder.And(
+                    builder.Gte(x => x.d, d),
+                    builder.Gt(x => x.status, 0)
+                ));
+
+                var lEntry = _entryRepo.GetByFilter(Builders<EntrySOS>.Filter.Gte(x => x.d, d));
+                if(lEntry == null)
+                {
+                    lEntry = new List<EntrySOS>();
+                }  
+
+                var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                foreach (var item in lSig)
+                {
+                    try
+                    {
+                        var anyEntry = lEntry.Any(x => x.s == item.s && x.sos.Date == item.sos.Date);
+                        if (anyEntry)
+                            continue;
+
+                        var any = pos.Data.List.Any(x => x.Symbol == item.s);
+                        if (any)
+                            continue;
+
+                        var lDat = await _apiService.GetData_Binance(item.s, EInterval.H1);
+                        if (item.ty == (int)EWyckoffMode.Fast)
+                        {
+                            zz
+                            var res = lDat.SkipLast(1).IsWyckoffEntry_Fast(item.sos);
+                            if (res.Item1 != null)
+                            {
+                                _entryRepo.InsertOne(new EntrySOS
+                                {
+                                    s = item.s,
+                                    d = now,
+                                    sos = item.sos,
+                                    status = 1,
+                                    ty = item.ty,
+                                    signal = res.Item1,
+                                    distance_unit = res.Item2,
+                                    tp = res.Item1.Close + res.Item2,
+                                    sl = res.Item1.Close - res.Item2
+                                });
+                            }
+                        }
+                        else
+                        {
+                            var res = lDat.IsWyckoffEntry_Low(item.sos);
+                            if (res.Item1 != null)
+                            {
+                                _entryRepo.InsertOne(new EntrySOS
+                                {
+                                    s = item.s,
+                                    d = now,
+                                    sos = item.sos,
+                                    status = 1,
+                                    ty = item.ty,
+                                    signal = res.Item1,
+                                    distance_unit = res.Item2,
+                                    tp = res.Item1.Close + res.Item2,
+                                    sl = res.Item1.Close - res.Item2
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|{item}|Bybit_Entry_1809.Bybit_Signal|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|BybitService.Bybit_Entry_1809|EXCEPTION| {ex.Message}");
             }
         }
     }
