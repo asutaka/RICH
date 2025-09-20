@@ -668,6 +668,12 @@ namespace TradePr.Service
                     var lbb = lDat.GetSma(20);
                     var last = lDat.Last();
 
+                    if (last.Close <= (decimal)place.sl)
+                    {
+                        await PlaceOrderClose1809(item);
+                        continue;
+                    }
+
                     if (place.allow_sell)
                     {
                         var bb = lbb.Last();
