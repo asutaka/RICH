@@ -1383,6 +1383,7 @@ namespace CoinUtilsPr
 
                 if(last.Low <= entity.sl)
                 {
+                    //Console.WriteLine($"last.Low <= entity.sl");
                     last.Close = entity.sl;
                     return last;
                 }
@@ -1398,7 +1399,13 @@ namespace CoinUtilsPr
 
                 if (last.Close >= entity.tp)
                 {
-                    entity.sl = entity.tp - 0.5m * entity.distance_unit;
+                    //Console.WriteLine($"last.Close >= entity.tp| {last.Close}|{entity.tp}");
+                    var sl = entity.tp - 0.5m * entity.distance_unit;
+                    if(sl >= entity.sos.Close)
+                    {
+                        entity.sl = sl;
+                    }
+                   
                     entity.tp += 0.5m * entity.distance_unit;
                     entity.allowSell = true;
                 }
