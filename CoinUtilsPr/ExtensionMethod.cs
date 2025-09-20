@@ -1251,7 +1251,7 @@ namespace CoinUtilsPr
 
                     var output = new SOSDTO
                     {
-                        sos = itemSOS
+                        sos = lData.First(x => x.Date == itemSOS.Date)
                     };
                     var minNext = lNextCheck.Min(x => x.Close);
                     if (minNext > itemSOS.Open)
