@@ -670,6 +670,7 @@ namespace TradePr.Service
 
                     if (last.Close <= (decimal)place.sl)
                     {
+                        Console.WriteLine($"last.Close <= (decimal)place.sl|{last.Close}|{place.sl}");
                         await PlaceOrderClose1809(item);
                         continue;
                     }
@@ -679,6 +680,7 @@ namespace TradePr.Service
                         var bb = lbb.Last();
                         if (last.Close < (decimal)bb.Sma)
                         {
+                            Console.WriteLine($"last.Close < (decimal)bb.Sma|{last.Close}|{bb.Sma}");
                             await PlaceOrderClose1809(item);
                             continue;
                         }
