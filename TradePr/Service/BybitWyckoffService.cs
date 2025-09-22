@@ -869,7 +869,7 @@ namespace TradePr.Service
                     entity.sl = (double)Math.Round(sl, tronGia);
                     _entryRepo.InsertOne(entity);
 
-                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}";
+                    var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}|SL: {entity.sl}";
                     await _teleService.SendMessage(_idUser, mes);
                 }
             }
@@ -883,6 +883,7 @@ namespace TradePr.Service
 
         private async Task<bool> PlaceOrderClose1809(BybitPosition pos)
         {
+            Console.WriteLine($"[CLOSE] {JsonConvert.SerializeObject(pos)}");
             var side = pos.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
             var CLOSE_side = pos.Side == PositionSide.Sell ? OrderSide.Buy : OrderSide.Sell;
             try
