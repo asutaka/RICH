@@ -632,7 +632,9 @@ namespace TradePr.Service
             try
             {
                 var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                if (!pos.Data.List.Any())
+                if (pos is null 
+                    || pos.Data is null
+                    || !pos.Data.List.Any())
                     return;
 
                 var dt = DateTime.UtcNow;
