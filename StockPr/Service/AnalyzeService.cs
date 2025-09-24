@@ -15,17 +15,20 @@ namespace StockPr.Service
         Task<string> ThongKeTuDoanh();
         Task<(int, string, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
+        Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
     }
     public class AnalyzeService : IAnalyzeService
     {
         private readonly ILogger<AnalyzeService> _logger;
         private readonly IAPIService _apiService;
+        private readonly IChartService _chartService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IStockRepo _stockRepo;
         private readonly ISymbolRepo _symbolRepo;
         private readonly ICategoryRepo _categoryRepo;
         public AnalyzeService(ILogger<AnalyzeService> logger,
                                     IAPIService apiService,
+                                    IChartService chartService,
                                     IConfigDataRepo configRepo,
                                     IStockRepo stockRepo,
                                     ISymbolRepo symbolRepo,
@@ -33,6 +36,7 @@ namespace StockPr.Service
         {
             _logger = logger;
             _apiService = apiService;
+            _chartService = chartService;
             _configRepo = configRepo;
             _stockRepo = stockRepo;
             _symbolRepo = symbolRepo;
@@ -812,6 +816,50 @@ namespace StockPr.Service
             }
 
             return (0, null, null, null);
+        }
+
+        public async Task<Stream> Chart_ThongKeKhopLenh(string sym = "10")
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                var mode = (int)EConfigDataType.ThongKeKhopLenh;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t >= t))
+                        return null;
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var dat = await _apiService.Money24h_GetThongke(sym);
+                Thread.Sleep(200);
+                if (dat.data.Count() < 10)
+                    return null;
+
+                var first = dat.data.First();
+                var dt_detect = first.trading_date.UnixTimeStampToDateTime();
+                var t_detect = long.Parse($"{dt_detect.Year}{dt_detect.Month.To2Digit()}{dt_detect.Day.To2Digit()}");
+                if (lConfig.Any(x => x.t >= t_detect))
+                    return null;
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = mode,
+                    t = t
+                });
+
+                return await _chartService.Chart_ThongKeKhopLenh(sym, dat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.Chart_ThongKeKhopLenh|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
 
         private async Task<ReportPTKT> ChiBaoKyThuatOnlyStock(string code, int limitvol)

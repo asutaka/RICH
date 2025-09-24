@@ -27,7 +27,8 @@ namespace StockPr.Utils
         TraceGia = 60,
         CheckVietStockToken = 61,
         MacroMicro = 62,
-        EPS = 63
+        EPS = 63,
+        ThongKeKhopLenh = 64,
     }
 
     public enum EStockType

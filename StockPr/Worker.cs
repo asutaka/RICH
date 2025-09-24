@@ -200,12 +200,13 @@ namespace StockPr
                             if (!string.IsNullOrWhiteSpace(mes))
                             {
                                 await _teleService.SendMessage(_idChannel, mes, true);
-                                //chart
-                                var stream = await _chartService.Chart_ThongKeKhopLenh();
-                                if (stream != null)
-                                {
-                                    await _teleService.SendPhoto(_idChannel, stream);
-                                }
+                            }
+
+                            //chart
+                            var stream = await _analyzeService.Chart_ThongKeKhopLenh();
+                            if (stream != null)
+                            {
+                                await _teleService.SendPhoto(_idChannel, stream);
                             }
                         }
                     }
