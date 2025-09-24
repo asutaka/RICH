@@ -61,7 +61,6 @@ namespace StockPr
             //////for Test
             //await _testService.CheckWycKoff();
             //await _bctcService.SyncBCTCAll(false);
-            //return;
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dt = DateTime.Now;
@@ -195,7 +194,7 @@ namespace StockPr
                             }
                         }
 
-                        if(dt.Hour == 20)
+                        if(dt.Hour >= 19 && dt.Hour <= 23)
                         {
                             var mes = await _analyzeService.ThongKeTuDoanh();
                             if (!string.IsNullOrWhiteSpace(mes))

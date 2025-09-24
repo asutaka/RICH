@@ -266,13 +266,14 @@ namespace StockPr.Service
             {
                 sBuilder.AppendLine(today.Item2);
                 sBuilder.AppendLine();
-            }
 
-            var week = await ThongkeTuDoanhWeek(dt);
-            if (week.Item1 > 0)
-            {
-                sBuilder.AppendLine(week.Item2);
+                var week = await ThongkeTuDoanhWeek(dt);
+                if (week.Item1 > 0)
+                {
+                    sBuilder.AppendLine(week.Item2);
+                }
             }
+          
             return sBuilder.ToString();
         }
 
@@ -478,6 +479,11 @@ namespace StockPr.Service
                 var lData = new List<Money24h_TuDoanhResponse>();
                 lData.AddRange(await _apiService.Money24h_GetTuDoanh(EExchange.HSX, type));
                 if (!lData.Any())
+                    return (0, null);
+                var first = lData.First();
+                var date = ((decimal)(first.d)).UnixTimeStampToDateTime(); 
+                if(date.Month != dt.Month
+                    || date.Day != dt.Day)
                     return (0, null);
 
                 var head = $"*Tự doanh ngày {dt.ToString("dd/MM/yyyy")}*"; 
