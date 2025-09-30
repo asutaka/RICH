@@ -1,5 +1,6 @@
 ﻿using CoinUtilsPr.DAL.Entity;
 using CoinUtilsPr.Model;
+using CryptoExchange.Net.SharedApis;
 using MongoDB.Driver;
 using SharpCompress.Common;
 using Skender.Stock.Indicators;
@@ -1213,7 +1214,7 @@ namespace CoinUtilsPr
                 {
                     var lcheck = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(50);
                     if (lcheck.Any(x => x.Close > itemSOS.Close
-                                    || x.Volume > itemSOS.Volume))
+                                    || (x.Volume > itemSOS.Volume && x.Close > x.Open)))
                         continue;
 
                     var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
@@ -1418,5 +1419,238 @@ namespace CoinUtilsPr
 
             return null;
         }
+
+        /*
+            B1. Detect SOS
+            B2. Tìm ra đỉnh tiếp theo sau tối thiểu 9 nến và tối đa là ? nến 
+            B3. Nếu đỉnh tiếp theo lớn hơn đỉnh hiện tại và vol giảm 1 nửa => tín hiệu SHORT
+         */
+        public static SOSDTO IsFastTrade_Prepare_SHORT_1(this IEnumerable<Quote> lData)
+        {
+            try
+            {
+                var SoNenLonHonToiThieu = 9;
+                if (lData.Count() < 100)
+                    return null;
+
+                var lVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Volume = x.Volume,
+                    Close = x.Volume,
+                }).GetSma(20);
+                var lbb = lData.GetBollingerBands();
+                var l1hEx = lData.Select(x => new QuoteEx
+                {
+                    Open = x.Open,
+                    Close = x.Close,
+                    High = x.High,
+                    Low = x.Low,
+                    Volume = x.Volume,
+                    Date = x.Date,
+                    MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
+                    MA20 = lbb.First(y => y.Date == x.Date).Sma
+                });
+
+                var lSOS = l1hEx.TakeLast(72);
+                foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 2 * (decimal)x.MA20Vol && x.Close > x.Open && x.Close > (decimal)x.MA20)
+                                    .OrderByDescending(x => x.Date))
+                {
+                    var lcheck = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(50);
+                    if (lcheck.Any(x => x.Close > itemSOS.Close
+                                    || (x.Volume > itemSOS.Volume && x.Close > x.Open)))
+                        continue;
+
+                    var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(SoNenLonHonToiThieu);
+                    if (lNextCheck.Count() < SoNenLonHonToiThieu)
+                        continue;
+                    
+                    var output = new SOSDTO
+                    {
+                        sos = lData.First(x => x.Date == itemSOS.Date)
+                    };
+
+                    return output;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        public static SOSDTO IsFastTrade_Prepare_SHORT_2(this IEnumerable<Quote> lData, SOSDTO itemSOS)
+        {
+            try
+            {
+                var SoNenLonHonToiThieu = 9;
+                if (lData.Count() < 100)
+                    return null;
+
+                var last = lData.Last();
+                if (last.Date <= itemSOS.sos.Date)
+                    return null;
+
+                Quote sosReal = null;
+                var lNext = lData.Where(x => x.Date > itemSOS.sos.Date);
+                foreach (var item in lNext)
+                {
+                    if(item.Close < item.Open)
+                    {
+                        var next = lData.FirstOrDefault(x => x.Date > item.Date);
+                        if (next is null)
+                            return null;
+
+                        if(next.Close <= next.Open)
+                        {
+                            sosReal = item;
+                            break;
+                        }
+                    }
+                }
+                if (sosReal is null)
+                    return null;
+
+                var lCheck = lData.Where(x => x.Date > sosReal.Date).Skip(8).Take(17);
+                foreach (var item in lCheck)
+                {
+                    if(item.Close > sosReal.Close)
+                    {
+                        if (item.Volume >= itemSOS.sos.Volume)
+                            return null;
+
+                        var next = lData.FirstOrDefault(x => x.Date > item.Date);
+                        if (next is null)
+                            return null;
+
+                        if (next.Close <= next.Open)
+                        {
+                            var next2 = lData.FirstOrDefault(x => x.Date > next.Date);
+                            if (next2 is null)
+                                return null;
+
+                            if(next2.Close <= next2.Open
+                                && next2.Close >= itemSOS.sos.Open)
+                            {
+                                itemSOS.signal = next2;
+                                return itemSOS;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        //public static SOSDTO IsFastTrade_Prepare(this IEnumerable<Quote> lData)
+        //{
+        //    try
+        //    {
+        //        if (lData.Count() < 100)
+        //            return null;
+
+        //        var lVol = lData.Select(x => new Quote
+        //        {
+        //            Date = x.Date,
+        //            Volume = x.Volume,
+        //            Close = x.Volume,
+        //        }).GetSma(20);
+        //        var lbb = lData.GetBollingerBands();
+        //        var l1hEx = lData.Select(x => new QuoteEx
+        //        {
+        //            Open = x.Open,
+        //            Close = x.Close,
+        //            High = x.High,
+        //            Low = x.Low,
+        //            Volume = x.Volume,
+        //            Date = x.Date,
+        //            MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
+        //            bb = lbb.First(y => y.Date == x.Date),
+        //        });
+
+        //        var lSOS = l1hEx.TakeLast(72);
+        //        foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 2 * (decimal)x.MA20Vol && x.Close < x.Open && x.Close < (decimal)x.bb.LowerBand)
+        //                            .OrderByDescending(x => x.Date))
+        //        {
+        //            var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
+        //            if (lNextCheck.Count() < 1)
+        //                continue;
+
+        //            var next = lNextCheck.First();
+        //            var checkVolumeNext = (next.Volume + (decimal)itemSOS.MA20Vol) < itemSOS.Volume;
+        //            if (!checkVolumeNext)
+        //                continue;
+
+
+
+        //            //var lcheck = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(50);
+        //            //if (lcheck.Any(x => x.Close > itemSOS.Close
+        //            //                || x.Volume > itemSOS.Volume))
+        //            //    continue;
+
+        //            //var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(15);
+        //            //if (lNextCheck.Count() < 15)
+        //            //    continue;
+
+        //            //var maxCloseNext = lNextCheck.Max(x => x.Close);
+        //            ////Chỉ lấy SOS chuẩn
+        //            //if (maxCloseNext - itemSOS.Close > 0.5m * (itemSOS.Close - itemSOS.Open))
+        //            //    continue;
+
+        //            //var prev = l1hEx.Last(x => x.Date < itemSOS.Date);
+        //            ////item SOS có vol phải lớn hơn 2 lần vol liền trước
+        //            //if (itemSOS.Volume < 2 * prev.Volume)
+        //            //    continue;
+
+        //            //var maxClosePrevSOS = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(35).Max(x => x.Close);
+        //            //var minClosePrevSOS = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(35).Min(x => x.Close);
+        //            //var maxmin20Prev = maxClosePrevSOS - minClosePrevSOS;
+
+        //            ////Độ dài SOS không được lớn hơn 2.5 lần độ rộng của 35 nến trước đó
+        //            //if ((itemSOS.Close - itemSOS.Open) > 2.5m * maxmin20Prev) continue;
+
+        //            ////Độ dài SOS không được lớn hơn 2 lần độ rộng của BB
+        //            //var bb_Prev = lbb.First(x => x.Date == prev.Date);
+        //            //if ((itemSOS.Close - itemSOS.Open) > 1.5m * (decimal)(bb_Prev.UpperBand - bb_Prev.LowerBand))
+        //            //    continue;
+
+        //            ////độ dài 5 nến trước sos không được gấp 4 lần độ rộng bb
+        //            //var l5 = l1hEx.Where(x => x.Date <= itemSOS.Date).TakeLast(5);
+        //            //var prev_6 = lbb.Where(x => x.Date < itemSOS.Date).SkipLast(5).Last();
+        //            //var div5 = l5.Max(x => x.Close) - l5.Min(x => x.Open);
+        //            //if (div5 > 4 * (decimal)(prev_6.UpperBand - prev_6.LowerBand))
+        //            //    continue;
+
+        //            var output = new SOSDTO
+        //            {
+        //                sos = lData.First(x => x.Date == itemSOS.Date)
+        //            };
+        //            //var minNext = lNextCheck.Min(x => x.Close);
+        //            //if (minNext > itemSOS.Open)
+        //            //{
+        //            //    output.ty = (int)EWyckoffMode.Fast;
+        //            //}
+        //            //else
+        //            //{
+        //            //    output.ty = (int)EWyckoffMode.Low;
+        //            //}
+
+        //            return output;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+
+        //    return null;
+        //}
     }
 }

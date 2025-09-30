@@ -34,6 +34,7 @@ namespace TestPr.Service
         Task CheckWycKoff_Type3();
         Task CheckWycKoff_Type4();
         Task CheckWycKoff_Type5();
+        Task ShowLongShortRSI();
     }
     public class TestService : ITestService
     {
@@ -2462,6 +2463,156 @@ namespace TestPr.Service
 
                         //Type Fast bán khi giá vượt BB và vol giảm 1 nửa
                         //LOW SL = trung bình 2* SOS và bb 
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item}| {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine("END");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TestService.MethodTestEntry|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task ShowLongShortRSI()
+        {
+            try
+            {
+                var dt = DateTime.UtcNow;
+                //var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                //var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                //var lTake = lUsdt.Skip(0).Take(1000);
+                var lTake = new List<string>
+                {
+                    "BTCUSDT",
+                    //"ETHUSDT",
+                    //"XRPUSDT",
+                    //"BNBUSDT",
+                    //"SOLUSDT",
+                    //"TRXUSDT",
+                    //"ADAUSDT",
+                    //"LINKUSDT",
+                    //"XLMUSDT",
+                    //"BCHUSDT",
+                    //"AVAXUSDT",
+                    //"CROUSDT",
+                    //"HBARUSDT",
+                    //"LTCUSDT",
+                    //"TONUSDT",
+                    //"DOTUSDT",
+                    //"UNIUSDT",
+                    //"SUIUSDT",
+                    //"XMRUSDT",
+                    //"ETCUSDT",
+                    //"DOGEUSDT",
+                    //"SHIBUSDT",
+                    //"HYPEUSDT",
+                    //"QUICKUSDT"
+                };
+                /*
+                 
+                 */
+                foreach (var item in lTake)
+                {
+                    try
+                    {
+                        var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
+                        //Detect 
+                        var lSOS = new List<SOSDTO>();
+                        var count = l1H.Count();
+                        for (int i = 1; i < count; i++)
+                        {
+                            var lDat = l1H.Take(i);
+                            var itemSOS = lDat.IsFastTrade_Prepare_SHORT_1();
+                            if (itemSOS != null)
+                            {
+                                if (!lSOS.Any(x => x.sos.Date == itemSOS.sos.Date))
+                                {
+                                    lSOS.Add(itemSOS);
+                                }
+                            }
+                        }
+                        foreach (var itemSOS in lSOS)
+                        {
+                            Console.WriteLine($"{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}");
+                            for (int i = 1; i < count; i++)
+                            {
+                                var lDat = l1H.Take(i);
+                                var itemEntry = lDat.IsFastTrade_Prepare_SHORT_2(itemSOS);
+                                if (itemEntry != null)
+                                {
+                                    Console.WriteLine($"ENTRY:{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}");
+                                    break;
+                                }
+                            }
+                        }
+
+                        ////Entry
+                        //var lEntry = new List<SOSDTO>();
+                        //foreach (var itemSOS in lSOS)
+                        //{
+                        //    for (int i = 1; i < count; i++)
+                        //    {
+                        //        var lDat = l1H.Take(i);
+                        //        if (lDat.Last().Date < itemSOS.sos.Date)
+                        //            continue;
+
+                        //        if (itemSOS.ty == (int)EWyckoffMode.Fast)
+                        //        {
+                        //            var res = lDat.IsWyckoffEntry_Fast(itemSOS.sos);
+                        //            if (res.Item1 != null)
+                        //            {
+                        //                if (lEntry.Any(x => x.signal.Date == res.Item1.Date))
+                        //                    break;
+
+                        //                itemSOS.signal = res.Item1;
+                        //                itemSOS.distance_unit = res.Item2;
+                        //                itemSOS.sl = res.Item1.Close - res.Item2;
+                        //                itemSOS.tp = res.Item1.Close + res.Item2;
+                        //                lEntry.Add(itemSOS);
+                        //                Console.WriteLine($"{item}|{res.Item1.Date.ToString("dd/MM/yyyy HH")}-FAST");
+                        //                break;
+                        //            }
+                        //        }
+                        //        else
+                        //        {
+                        //            var res = lDat.IsWyckoffEntry_Low(itemSOS.sos);
+                        //            if (res.Item1 != null)
+                        //            {
+                        //                if (lEntry.Any(x => x.signal.Date == res.Item1.Date))
+                        //                    break;
+
+                        //                itemSOS.signal = res.Item1;
+                        //                itemSOS.distance_unit = res.Item2;
+                        //                itemSOS.sl = res.Item1.Close - res.Item2;
+                        //                itemSOS.tp = res.Item1.Close + res.Item2;
+                        //                lEntry.Add(itemSOS);
+                        //                Console.WriteLine($"{item}|{res.Item1.Date.ToString("dd/MM/yyyy HH")}-LOW");
+                        //                break;
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                        ////Takeprofit
+                        //foreach (var itemEntry in lEntry)
+                        //{
+                        //    for (int i = 0; i < count; i++)
+                        //    {
+                        //        var lDat = l1H.Take(i);
+                        //        var res = lDat.IsWyckoffTP_Fast(itemEntry);
+                        //        if (res != null)
+                        //        {
+                        //            var rate = Math.Round(100 * (-1 + res.Close / itemEntry.signal.Close), 1);
+                        //            var num = l1H.Count(x => x.Date > itemEntry.signal.Date && x.Date <= res.Date);
+                        //            Console.WriteLine($"{item}|Buy: {itemEntry.signal.Date.ToString("dd/MM/yyyy HH")}|SELL: {res.Date.ToString("dd/MM/yyyy HH")}|NUM: {num}|RATE: {rate}%");
+                        //            break;
+                        //        }
+                        //    }
+                        //}
                     }
                     catch (Exception ex)
                     {
