@@ -1451,7 +1451,14 @@ namespace CoinUtilsPr
                     MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
                     MA20 = lbb.First(y => y.Date == x.Date).Sma
                 });
-
+                /*
+                    Nến xanh,
+                    Vol lớn hơn 2 lần MAVol,
+                    Close > Ma20,
+                    50 nến gần nhất không có nến nào vượt SOS,
+                    50 nến gần nhất (chỉ lấy nến xanh) không có nến nào vol lớn hơn vol của SOS,
+                    Điểm check phải sau nến SOS 9 nến 
+                 */
                 var lSOS = l1hEx.TakeLast(72);
                 foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 2 * (decimal)x.MA20Vol && x.Close > x.Open && x.Close > (decimal)x.MA20)
                                     .OrderByDescending(x => x.Date))
@@ -1481,6 +1488,14 @@ namespace CoinUtilsPr
             return null;
         }
 
+        /*
+            Lấy ra đỉnh thật của SOS
+            Sau 8 nến tiếp theo, lấy ra đỉnh(nến xanh tiếp sau là 2 nến đỏ) thỏa mãn điều kiện
+            + Nến xanh lớn hơn SOS real
+            + vol nến xanh nhỏ hơn 0.7 lần vol của SOS
+            (Nếu giá Low của bất kỳ nến nào giảm dưới ma20 thì loại luôn - không chắc chắn là sóng 5 hay sóng 3)
+            + Nến hiện tại thuộc 1/2 phía trên
+         */
         public static SOSDTO IsFastTrade_Prepare_SHORT_2(this IEnumerable<Quote> lData, SOSDTO itemSOS)
         {
             try
@@ -1493,18 +1508,24 @@ namespace CoinUtilsPr
                 if (last.Date <= itemSOS.sos.Date)
                     return null;
 
+                #region Đỉnh của SOS
                 Quote sosReal = null;
                 var lNext = lData.Where(x => x.Date > itemSOS.sos.Date);
                 foreach (var item in lNext)
                 {
-                    if(item.Close < item.Open)
+                    if (item.Close < item.Open)
                     {
                         var next = lData.FirstOrDefault(x => x.Date > item.Date);
                         if (next is null)
                             return null;
 
-                        if(next.Close <= next.Open)
+                        if (next.Close <= next.Open)
                         {
+                            //SOS quá dài thì không đáng tin cậy
+                            var count = lData.Count(x => x.Date >= itemSOS.sos.Date && x.Date < item.Date);
+                            if (count >= 5)
+                                return null;
+
                             sosReal = item;
                             break;
                         }
@@ -1512,13 +1533,25 @@ namespace CoinUtilsPr
                 }
                 if (sosReal is null)
                     return null;
+                #endregion
 
-                var lCheck = lData.Where(x => x.Date > sosReal.Date).Skip(8).Take(17);
-                foreach (var item in lCheck)
+                var lCheck = lData.Where(x => x.Date > sosReal.Date);
+                if (lCheck.Count() > 25)
+                    return null;
+                var lbb = lData.GetBollingerBands();
+
+                foreach (var item in lCheck.Skip(SoNenLonHonToiThieu - 1))
                 {
-                    if(item.Close > sosReal.Close)
+                    //Giá Low giảm dưới ma20 thì không chắc chắn là sóng 5 hay sóng 3
+                    var bb = lbb.First(x => x.Date == item.Date);
+                    if (item.Low < (decimal)bb.Sma)
+                        return null;
+
+                    //Nến xanh 
+                    if (item.Close >= item.Open
+                        && item.Close > sosReal.Close)
                     {
-                        if (item.Volume >= itemSOS.sos.Volume)
+                        if (item.Volume >= 0.7m * itemSOS.sos.Volume)
                             return null;
 
                         var next = lData.FirstOrDefault(x => x.Date > item.Date);
@@ -1534,6 +1567,10 @@ namespace CoinUtilsPr
                             if(next2.Close <= next2.Open
                                 && next2.Close >= itemSOS.sos.Open)
                             {
+                                var isPosition = (next2.Close - (decimal)bb.Sma) < ((decimal)bb.UpperBand - next2.Close);
+                                if (isPosition)
+                                    return null;
+
                                 itemSOS.signal = next2;
                                 return itemSOS;
                             }
