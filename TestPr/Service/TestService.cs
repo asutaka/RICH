@@ -2488,10 +2488,10 @@ namespace TestPr.Service
                 //var lTake = lUsdt.Skip(0).Take(1000);
                 var lTake = new List<string>
                 {
-                    "BTCUSDT",
+                    //"BTCUSDT",
                     //"ETHUSDT",
                     //"XRPUSDT",
-                    //"BNBUSDT",
+                    "BNBUSDT",
                     //"SOLUSDT",
                     //"TRXUSDT",
                     //"ADAUSDT",
@@ -2545,7 +2545,7 @@ namespace TestPr.Service
                                 var itemEntry = lDat.IsFastTrade_Prepare_SHORT_2(itemSOS);
                                 if (itemEntry != null)
                                 {
-                                    Console.WriteLine($"ENTRY:{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}");
+                                    Console.WriteLine($"{item}|ENTRY:{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}");
                                     break;
                                 }
                             }

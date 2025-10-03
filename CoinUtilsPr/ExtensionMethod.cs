@@ -1495,6 +1495,7 @@ namespace CoinUtilsPr
             + vol nến xanh nhỏ hơn 0.7 lần vol của SOS
             (Nếu giá Low của bất kỳ nến nào giảm dưới ma20 thì loại luôn - không chắc chắn là sóng 5 hay sóng 3)
             + Nến hiện tại thuộc 1/2 phía trên
+            + Đà tăng từ SOS đến đỉnh SHORT không được quá lớn(lớn hơn gấp 2 lần độ dài SOS)
          */
         public static SOSDTO IsFastTrade_Prepare_SHORT_2(this IEnumerable<Quote> lData, SOSDTO itemSOS)
         {
@@ -1540,12 +1541,20 @@ namespace CoinUtilsPr
                     return null;
                 var lbb = lData.GetBollingerBands();
 
-                foreach (var item in lCheck.Skip(SoNenLonHonToiThieu - 1))
+                var index = 0;
+                foreach (var item in lCheck)
                 {
+                    index++;
                     //Giá Low giảm dưới ma20 thì không chắc chắn là sóng 5 hay sóng 3
                     var bb = lbb.First(x => x.Date == item.Date);
                     if (item.Low < (decimal)bb.Sma)
                         return null;
+
+                    if(index < SoNenLonHonToiThieu - 1)
+                    {
+                        continue;
+                    }
+
 
                     //Nến xanh 
                     if (item.Close >= item.Open
@@ -1569,6 +1578,11 @@ namespace CoinUtilsPr
                             {
                                 var isPosition = (next2.Close - (decimal)bb.Sma) < ((decimal)bb.UpperBand - next2.Close);
                                 if (isPosition)
+                                    return null;
+                                //độ dài sos
+                                var lengSOS = sosReal.Close - itemSOS.sos.Open;
+                                var distance = item.Close - sosReal.Close;
+                                if (distance > 2 * lengSOS)
                                     return null;
 
                                 itemSOS.signal = next2;
