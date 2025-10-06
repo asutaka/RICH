@@ -2488,30 +2488,30 @@ namespace TestPr.Service
                 //var lTake = lUsdt.Skip(0).Take(1000);
                 var lTake = new List<string>
                 {
-                    //"BTCUSDT",
-                    //"ETHUSDT",
-                    //"XRPUSDT",
+                    "BTCUSDT",
+                    "ETHUSDT",
+                    "XRPUSDT",
                     "BNBUSDT",
-                    //"SOLUSDT",
-                    //"TRXUSDT",
-                    //"ADAUSDT",
-                    //"LINKUSDT",
-                    //"XLMUSDT",
-                    //"BCHUSDT",
-                    //"AVAXUSDT",
-                    //"CROUSDT",
-                    //"HBARUSDT",
-                    //"LTCUSDT",
-                    //"TONUSDT",
-                    //"DOTUSDT",
-                    //"UNIUSDT",
-                    //"SUIUSDT",
-                    //"XMRUSDT",
-                    //"ETCUSDT",
-                    //"DOGEUSDT",
-                    //"SHIBUSDT",
-                    //"HYPEUSDT",
-                    //"QUICKUSDT"
+                    "SOLUSDT",
+                    "TRXUSDT",
+                    "ADAUSDT",
+                    "LINKUSDT",
+                    "XLMUSDT",
+                    "BCHUSDT",
+                    "AVAXUSDT",
+                    "CROUSDT",
+                    "HBARUSDT",
+                    "LTCUSDT",
+                    "TONUSDT",
+                    "DOTUSDT",
+                    "UNIUSDT",
+                    "SUIUSDT",
+                    "XMRUSDT",
+                    "ETCUSDT",
+                    "DOGEUSDT",
+                    "SHIBUSDT",
+                    "HYPEUSDT",
+                    "QUICKUSDT"
                 };
                 /*
                  
@@ -2538,7 +2538,7 @@ namespace TestPr.Service
                         }
                         foreach (var itemSOS in lSOS)
                         {
-                            Console.WriteLine($"{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}");
+                            Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}");
                             for (int i = 1; i < count; i++)
                             {
                                 var lDat = l1H.Take(i);
