@@ -808,6 +808,9 @@ namespace TradePr.Service
                     soluong = Math.Round(soluong, lamtronSL);
                 }
 
+                if(soluong <= 0)
+                    return EError.Error;
+
                 var res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
                                                                                         entity.s,
                                                                                         side: side,
