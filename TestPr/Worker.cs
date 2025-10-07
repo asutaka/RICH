@@ -6,16 +6,18 @@ namespace TestPr
     {
         private readonly ILogger<Worker> _logger;
         private readonly ITestService _testService;
+        private readonly ILastService _lastService;
 
-        public Worker(ILogger<Worker> logger, ITestService testService)
+        public Worker(ILogger<Worker> logger, ITestService testService, ILastService lastService)
         {
             _logger = logger;
             _testService = testService;
+            _lastService = lastService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _testService.ShowLongShortRSI();
+            await _lastService.RealTemplate();
             //while (!stoppingToken.IsCancellationRequested)
             //{
             //    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);

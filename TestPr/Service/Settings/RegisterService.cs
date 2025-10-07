@@ -7,6 +7,7 @@ namespace TestPr.Service.Settings
         public static void ServiceDependencies(this IServiceCollection services)
         {
             services.AddSingleton<ITestService, TestService>();
+            services.AddSingleton<ILastService, LastService>();
             services.AddSingleton<IAPIService, APIService>();
         }
     }
