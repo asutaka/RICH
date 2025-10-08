@@ -1,6 +1,7 @@
 ﻿using CoinUtilsPr;
 using CoinUtilsPr.DAL;
 using CoinUtilsPr.DAL.Entity;
+using MongoDB.Driver;
 using Skender.Stock.Indicators;
 
 namespace TestPr.Service
@@ -74,6 +75,24 @@ namespace TestPr.Service
                             }
                         }
 
+                        var lDetect = new List<SOSDTO>();
+                        foreach (var itemSOS in lSOS)
+                        {
+                            var lDat = l1H.Where(x => x.Date <= itemSOS.sos.Date.AddHours(10)).TakeLast(11);
+                            var countCheck = lDat.Count();
+                            for (int i = 1; i < countCheck - 3; i++) 
+                            {
+                                var item1 = lDat.ElementAt(i);
+                                var item2 = lDat.ElementAt(i + 1);
+                                var item3 = lDat.ElementAt(i + 2);
+                                var itemDetect = itemSOS.DetectTopBOT(item1, item2, item3);
+                                if(itemDetect != null)
+                                {
+                                    lDetect.Add(itemDetect);
+                                }
+                            }
+                        }
+
                         foreach (var itemSOS in lSOS)
                         {
                             Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}");
@@ -94,6 +113,7 @@ namespace TestPr.Service
 
     public static class clsEx
     {
+        //Lấy ra SOS
         public static SOSDTO Mutation(this IEnumerable<Quote> lData)
         {
             try
@@ -130,8 +150,7 @@ namespace TestPr.Service
                  */
                 var lSOS = l1hEx.TakeLast(72);
                 foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 1.5m * (decimal)x.MA20Vol
-                                                    //&& (x.High > (decimal)x.bb.UpperBand || x.Low < (decimal)x.bb.LowerBand))
-                                                    && (x.Low < (decimal)x.bb.LowerBand && x.Open > x.Close))
+                                                    && ((x.High > (decimal)x.bb.UpperBand && x.Close > x.Open) || (x.Low < (decimal)x.bb.LowerBand && x.Open > x.Close)))
                                             .OrderByDescending(x => x.Date))
                 {
                     //Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
@@ -150,6 +169,42 @@ namespace TestPr.Service
                     };
 
                     return output;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        //Xác định TOP-BOT của SOS
+        public static SOSDTO DetectTopBOT(this SOSDTO sos, Quote item1, Quote item2, Quote item3)
+        {
+            try
+            {
+                if(sos.sos.Close > sos.sos.Open)
+                {
+                    if (item1.Close > Math.Max(item2.Close, item3.Close))
+                    {
+                        sos.sos_real = item1;
+                    }
+                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close)
+                    {
+                        sos.sos_real = item2;
+                    }
+                }
+                else
+                {
+                    if (item1.Close < Math.Min(item2.Close, item3.Close))
+                    {
+                        sos.sos_real = item1;
+                    }
+                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close)
+                    {
+                        sos.sos_real = item2;
+                    }
                 }
             }
             catch (Exception ex)
