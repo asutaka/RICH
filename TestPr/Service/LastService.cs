@@ -60,6 +60,7 @@ namespace TestPr.Service
                     try
                     {
                         var l1H = await _apiService.GetData_Binance(item, EInterval.H1);
+                        var lbb = l1H.GetBollingerBands();
                         var count = l1H.Count();
                         var lSOS = new List<SOSDTO>();
                         for (int i = 1; i < count; i++)
@@ -88,14 +89,25 @@ namespace TestPr.Service
                                 var itemDetect = itemSOS.DetectTopBOT(item1, item2, item3);
                                 if(itemDetect != null)
                                 {
-                                    lDetect.Add(itemDetect);
+                                    var bb = lbb.First(x => x.Date == itemDetect.sos_real.Date);
+                                    //Chỉ lấy nến nếu close vượt ra ngoài Bollingerband
+                                    //if(itemDetect.sos_real.Close > (decimal)bb.UpperBand
+                                    //    || itemDetect.sos_real.Close < (decimal)bb.LowerBand)
+                                    //{
+                                        lDetect.Add(itemDetect);
+                                    //}
                                     break;
                                 }
                             }
                         }
 
-                        foreach (var itemSOS in lDetect)
+                        SOSDTO prev = null;
+                        foreach (var itemSOS in lDetect.OrderBy(x => x.sos_real.Date))
                         {
+                            if (prev != null && prev.sos_real.Date == itemSOS.sos_real.Date)
+                                continue;
+                            prev = itemSOS;
+
                             Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
                         }
                     }
