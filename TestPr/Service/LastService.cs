@@ -78,7 +78,7 @@ namespace TestPr.Service
                         var lDetect = new List<SOSDTO>();
                         foreach (var itemSOS in lSOS)
                         {
-                            var lDat = l1H.Where(x => x.Date <= itemSOS.sos.Date.AddHours(5)).TakeLast(7);
+                            var lDat = l1H.Where(x => x.Date <= itemSOS.sos.Date.AddHours(6)).TakeLast(8);
                             var countCheck = lDat.Count();
                             for (int i = 0; i < countCheck - 3; i++) 
                             {
@@ -89,6 +89,7 @@ namespace TestPr.Service
                                 if(itemDetect != null)
                                 {
                                     lDetect.Add(itemDetect);
+                                    break;
                                 }
                             }
                         }
