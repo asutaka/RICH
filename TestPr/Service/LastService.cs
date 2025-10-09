@@ -107,8 +107,43 @@ namespace TestPr.Service
                             if (prev != null && prev.sos_real.Date == itemSOS.sos_real.Date)
                                 continue;
                             prev = itemSOS;
+                            if (itemSOS.sos_real.Close > itemSOS.sos_real.Open)
+                            {
 
-                            Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
+                                var lDat = l1H.Where(x => x.Date > itemSOS.sos_real.Date).Skip(5).Take(15);
+                                var countCheck = lDat.Count();
+                                for (int i = 0; i < countCheck - 3; i++)
+                                {
+                                    var item1 = lDat.ElementAt(i);
+                                    var item2 = lDat.ElementAt(i + 1);
+                                    var item3 = lDat.ElementAt(i + 2);
+                                    var itemDetect = itemSOS.DetectEntry(item1, item2, item3);
+                                    if (itemDetect != null)
+                                    {
+                                        var max = Math.Max(itemDetect.sos.Volume, itemDetect.sos_real.Volume);
+                                        var maxRange = l1H.Where(x => x.Open >= x.Close && x.Date > itemDetect.sos_real.Date && x.Date <= itemDetect.signal.Date).Max(x => x.Volume);
+                                        if (max > 2 * itemDetect.signal.Volume
+                                            && maxRange < max)
+                                        {
+                                            Console.WriteLine($"{item}|{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}");
+                                        }
+                                        
+
+                                        var bb = lbb.First(x => x.Date == itemDetect.entry.Date);
+                                        ////Chỉ lấy nến nếu close vượt ra ngoài Bollingerband
+                                        ////if(itemDetect.sos_real.Close > (decimal)bb.UpperBand
+                                        ////    || itemDetect.sos_real.Close < (decimal)bb.LowerBand)
+                                        ////{
+                                        //lDetect.Add(itemDetect);
+                                        //}
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                     catch(Exception ex)
@@ -220,6 +255,50 @@ namespace TestPr.Service
                     else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close)
                     {
                         sos.sos_real = item2;
+                        return sos;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        //Xác định Entry
+        public static SOSDTO DetectEntry(this SOSDTO sos, Quote item1, Quote item2, Quote item3)
+        {
+            try
+            {
+                if (sos.sos.Close > sos.sos.Open)
+                {
+                    if (item1.Close > Math.Max(item2.Close, item3.Close))
+                    {
+                        sos.signal = item1;
+                        sos.entry = item3;
+                        return sos;
+                    }
+                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close)
+                    {
+                        sos.signal = item2;
+                        sos.entry = item3;
+                        return sos;
+                    }
+                }
+                else
+                {
+                    if (item1.Close < Math.Min(item2.Close, item3.Close))
+                    {
+                        sos.signal = item1;
+                        sos.entry = item3;
+                        return sos;
+                    }
+                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close)
+                    {
+                        sos.signal = item2;
+                        sos.entry = item3;
                         return sos;
                     }
                 }

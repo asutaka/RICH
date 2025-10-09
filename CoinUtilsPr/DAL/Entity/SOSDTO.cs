@@ -8,7 +8,8 @@ namespace CoinUtilsPr.DAL.Entity
     {
         public Quote sos { get; set; }//Nến SOS
         public Quote sos_real { get; set; }//Nến TOP-BOT sau SOS
-        public Quote signal { get; set; }//Nến tín hiệu cắt xuống MA20
+        public Quote entry { get; set; }//Signal
+        public Quote signal { get; set; }//Signal
         public int ty { get; set; }//1: Fast 2: Low
         public decimal distance_unit { get; set; }
         public decimal sl { get; set; }
