@@ -78,9 +78,9 @@ namespace TestPr.Service
                         var lDetect = new List<SOSDTO>();
                         foreach (var itemSOS in lSOS)
                         {
-                            var lDat = l1H.Where(x => x.Date <= itemSOS.sos.Date.AddHours(10)).TakeLast(11);
+                            var lDat = l1H.Where(x => x.Date <= itemSOS.sos.Date.AddHours(5)).TakeLast(7);
                             var countCheck = lDat.Count();
-                            for (int i = 1; i < countCheck - 3; i++) 
+                            for (int i = 0; i < countCheck - 3; i++) 
                             {
                                 var item1 = lDat.ElementAt(i);
                                 var item2 = lDat.ElementAt(i + 1);
@@ -93,9 +93,9 @@ namespace TestPr.Service
                             }
                         }
 
-                        foreach (var itemSOS in lSOS)
+                        foreach (var itemSOS in lDetect)
                         {
-                            Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}");
+                            Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
                         }
                     }
                     catch(Exception ex)
@@ -189,10 +189,12 @@ namespace TestPr.Service
                     if (item1.Close > Math.Max(item2.Close, item3.Close))
                     {
                         sos.sos_real = item1;
+                        return sos;
                     }
                     else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close)
                     {
                         sos.sos_real = item2;
+                        return sos;
                     }
                 }
                 else
@@ -200,10 +202,12 @@ namespace TestPr.Service
                     if (item1.Close < Math.Min(item2.Close, item3.Close))
                     {
                         sos.sos_real = item1;
+                        return sos;
                     }
                     else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close)
                     {
                         sos.sos_real = item2;
+                        return sos;
                     }
                 }
             }
