@@ -113,7 +113,7 @@ namespace TestPr.Service
                             }
                             else
                             {
-                                Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
+                                //Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
                                 var lDat = l1H.Where(x => x.Date > itemSOS.sos_real.Date).Skip(5).Take(15);
                                 var countCheck = lDat.Count();
                                 for (int i = 0; i < countCheck - 3; i++)
@@ -124,16 +124,34 @@ namespace TestPr.Service
                                     var itemDetect = itemSOS.DetectEntry(item1, item2, item3);
                                     if (itemDetect != null)
                                     {
+                                        //Kiểm tra volume của đáy 2 phải nhỏ hơn 2 lần đáy 1 
+                                        //Trong khoảng 2 đáy ko được có nến vol đỏ vượt đáy 1
+                                        //Đáy 2 không được vượt MA20
+
+                                        //entry tới upper > 2%
+                                        //đáy 2 cách đáy 1 tối thiểu 5 nến
+                                        //đáy 2 <= 1/2 (H + L) đáy 1
+
                                         var max = Math.Max(itemDetect.sos.Volume, itemDetect.sos_real.Volume);
                                         var maxRange = l1H.Where(x => x.Open >= x.Close && x.Date > itemDetect.sos_real.Date && x.Date <= itemDetect.signal.Date).Max(x => x.Volume);
+                                        var bb = lbb.First(x => x.Date == itemDetect.entry.Date);
+                                        var rateEntry = Math.Round(100 * (-1 + (decimal)bb.UpperBand / itemDetect.entry.Close), 2);
+                                        var count2Day = l1H.Count(x => x.Date >= itemDetect.sos_real.Date && x.Date < itemDetect.signal.Date);
+                                        var avgPrice1 = 0.5m * (Math.Max(itemDetect.sos.High, itemDetect.sos_real.High) + Math.Min(itemDetect.sos.Low, itemDetect.sos_real.Low));
+
                                         if (max > 2 * itemDetect.signal.Volume
-                                            && maxRange < max)
+                                            && maxRange < max
+                                            && itemSOS.signal.Close < (decimal)bb.Sma
+                                            && rateEntry > 2
+                                            && count2Day >= 5
+                                            && itemDetect.signal.Close <= avgPrice1)
                                         {
+                                            Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
                                             Console.WriteLine($"{item}|{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}");
                                         }
                                         
 
-                                        var bb = lbb.First(x => x.Date == itemDetect.entry.Date);
+                                        
                                         ////Chỉ lấy nến nếu close vượt ra ngoài Bollingerband
                                         ////if(itemDetect.sos_real.Close > (decimal)bb.UpperBand
                                         ////    || itemDetect.sos_real.Close < (decimal)bb.LowerBand)
