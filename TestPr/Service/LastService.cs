@@ -1,4 +1,5 @@
-﻿using CoinUtilsPr;
+﻿using Bybit.Net.Enums;
+using CoinUtilsPr;
 using CoinUtilsPr.DAL;
 using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
@@ -27,34 +28,169 @@ namespace TestPr.Service
         {
             try
             {
+                //var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+                //var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+                //var lTake = lUsdt.Skip(0).Take(1000);
                 var lTake = new List<string>
                 {
-                    //"BTCUSDT",
-                    //"ETHUSDT",
-                    //"XRPUSDT",
-                    //"BNBUSDT",
-                    //"SOLUSDT",
-                    //"TRXUSDT",
-                    //"ADAUSDT",
-                    //"LINKUSDT",
-                    //"XLMUSDT",
-                    //"BCHUSDT",
-                    //"AVAXUSDT",
-                    //"CROUSDT",
-                    //"HBARUSDT",
-                    //"LTCUSDT",
-                    //"TONUSDT",
-                    //"DOTUSDT",
-                    //"UNIUSDT",
-                    //"SUIUSDT",
-                    //"XMRUSDT",
-                    //"ETCUSDT",
-                    //"DOGEUSDT",
-                    //"SHIBUSDT",
-                    //"HYPEUSDT",
-                    "QUICKUSDT"
+                    "AAVEUSDT",
+"ADAUSDT",
+"AERGOUSDT",
+"AI16ZUSDT",
+"AINUSDT",
+"AIUSDT",
+"ALICEUSDT",
+"APTUSDT",
+"ARKMUSDT",
+"ARKUSDT",
+"ARPAUSDT",
+"ASRUSDT",
+"ASTERUSDT",
+"AUDIOUSDT",
+"AVAXUSDT",
+"AWEUSDT",
+"B2USDT",
+"BABYUSDT",
+"BANANAUSDT",
+"BBUSDT",
+"BCHUSDT",
+"BERAUSDT",
+"BLESSUSDT",
+"BMTUSDT",
+"BSVUSDT",
+"BTCUSDT",
+"CATIUSDT",
+"CFXUSDT",
+"CGPTUSDT",
+"CKBUSDT",
+"COSUSDT",
+"COWUSDT",
+"CROSSUSDT",
+"CVCUSDT",
+"DEGENUSDT",
+"DIAUSDT",
+"DOGSUSDT",
+"DOLOUSDT",
+"DRIFTUSDT",
+"EGLDUSDT",
+"ENJUSDT",
+"ENSUSDT",
+"ESPORTSUSDT",
+"ETHUSDT",
+"FIDAUSDT",
+"FIOUSDT",
+"FLOWUSDT",
+"FORTHUSDT",
+"GASUSDT",
+"GLMUSDT",
+"GRIFFAINUSDT",
+"GUSDT",
+"HAEDALUSDT",
+"HFTUSDT",
+"HIGHUSDT",
+"HIPPOUSDT",
+"HIVEUSDT",
+"HOOKUSDT",
+"HUSDT",
+"ICPUSDT",
+"IDUSDT",
+"INITUSDT",
+"INJUSDT",
+"INUSDT",
+"IOSTUSDT",
+"IOTXUSDT",
+"IOUSDT",
+"JELLYJELLYUSDT",
+"JOEUSDT",
+"KAVAUSDT",
+"KERNELUSDT",
+"KNCUSDT",
+"LIGHTUSDT",
+"LTCUSDT",
+"MANAUSDT",
+"MANTAUSDT",
+"MBOXUSDT",
+"MELANIAUSDT",
+"MEWUSDT",
+"MOCAUSDT",
+"MOVEUSDT",
+"MOVRUSDT",
+"MTLUSDT",
+"MUSDT",
+"NEARUSDT",
+"NEOUSDT",
+"NKNUSDT",
+"NMRUSDT",
+"NXPCUSDT",
+"OBOLUSDT",
+"OGNUSDT",
+"OLUSDT",
+"OMUSDT",
+"ONEUSDT",
+"ONGUSDT",
+"OPUSDT",
+"ORCAUSDT",
+"OXTUSDT",
+"PAXGUSDT",
+"PENGUUSDT",
+"PEOPLEUSDT",
+"PERPUSDT",
+"PHAUSDT",
+"PIPPINUSDT",
+"POLYXUSDT",
+"POWRUSDT",
+"PROMPTUSDT",
+"PROMUSDT",
+"PUNDIXUSDT",
+"QUICKUSDT",
+"RESOLVUSDT",
+"REZUSDT",
+"RLCUSDT",
+"RONINUSDT",
+"ROSEUSDT",
+"RPLUSDT",
+"RUNEUSDT",
+"SANDUSDT",
+"SCRTUSDT",
+"SEIUSDT",
+"SKLUSDT",
+"SKYUSDT",
+"SLPUSDT",
+"SOLUSDT",
+"SOONUSDT",
+"SPELLUSDT",
+"SPXUSDT",
+"STEEMUSDT",
+"STORJUSDT",
+"SUSHIUSDT",
+"SWARMSUSDT",
+"SXPUSDT",
+"SXTUSDT",
+"SYRUPUSDT",
+"SYSUSDT",
+"TAOUSDT",
+"THETAUSDT",
+"TOKENUSDT",
+"TONUSDT",
+"TOWNSUSDT",
+"TRUMPUSDT",
+"TRUUSDT",
+"UMAUSDT",
+"VANRYUSDT",
+"VELODROMEUSDT",
+"VETUSDT",
+"VFYUSDT",
+"VINEUSDT",
+"WCTUSDT",
+"YFIUSDT",
+"YGGUSDT",
+"ZECUSDT",
+"ZEREBROUSDT",
                 };
-                
+
+                decimal total = 0;
+                int win = 0, loss = 0;
+                var lCoin = new List<string>();
                 foreach (var item in lTake)
                 {
                     try
@@ -101,6 +237,7 @@ namespace TestPr.Service
                             }
                         }
 
+                        var lEntry = new List<SOSDTO>();
                         SOSDTO prev = null;
                         foreach (var itemSOS in lDetect.OrderBy(x => x.sos_real.Date))
                         {
@@ -122,7 +259,7 @@ namespace TestPr.Service
                                     var item2 = lDat.ElementAt(i + 1);
                                     var item3 = lDat.ElementAt(i + 2);
                                     var itemDetect = itemSOS.DetectEntry(item1, item2, item3);
-                                    if (itemDetect != null)
+                                    if (itemDetect != null && itemDetect.signal != null)
                                     {
                                         //Kiểm tra volume của đáy 2 phải nhỏ hơn 2 lần đáy 1 
                                         //Trong khoảng 2 đáy ko được có nến vol đỏ vượt đáy 1
@@ -133,7 +270,12 @@ namespace TestPr.Service
                                         //đáy 2 <= 1/2 (H + L) đáy 1
 
                                         var max = Math.Max(itemDetect.sos.Volume, itemDetect.sos_real.Volume);
-                                        var maxRange = l1H.Where(x => x.Open >= x.Close && x.Date > itemDetect.sos_real.Date && x.Date <= itemDetect.signal.Date).Max(x => x.Volume);
+                                        var lFilter = l1H.Where(x => x.Open >= x.Close && x.Date > itemDetect.sos_real.Date && x.Date <= itemDetect.signal.Date);
+                                        if(!lFilter.Any())
+                                        {
+                                            break;
+                                        }    
+                                        var maxRange = lFilter.Max(x => x.Volume);
                                         var bb = lbb.First(x => x.Date == itemDetect.entry.Date);
                                         var rateEntry = Math.Round(100 * (-1 + (decimal)bb.UpperBand / itemDetect.entry.Close), 2);
                                         var count2Day = l1H.Count(x => x.Date >= itemDetect.sos_real.Date && x.Date < itemDetect.signal.Date);
@@ -146,8 +288,8 @@ namespace TestPr.Service
                                             && count2Day >= 5
                                             && itemDetect.signal.Close <= avgPrice1)
                                         {
-                                            Console.WriteLine($"{item}|{itemSOS.sos.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.sos_real.Date.ToString("dd/MM/yyyy HH")}");
-                                            Console.WriteLine($"{item}|{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}");
+                                            lEntry.Add(itemDetect);
+                                            //Console.WriteLine($"{item}|{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.entry.Date.ToString("dd/MM/yyyy HH")}");
                                         }
                                         
 
@@ -163,12 +305,64 @@ namespace TestPr.Service
                                 }
                             }
                         }
+
+                        int tongWin = 0, tongLoss = 0;
+                        decimal tongRate = 0;
+                        var lMes = new List<string>();
+                        foreach (var itemEntry in lEntry)
+                        {
+                            var lTP = l1H.Where(x => x.Date > itemEntry.entry.Date).Take(30);
+                            foreach (var itemTP in lTP)
+                            {
+                                var bb = lbb.First(x => x.Date == itemTP.Date);
+                                var eEntry = itemEntry.entry;
+
+                                var rate = Math.Round(100 * (-1 + itemTP.Low / eEntry.Close), 2);
+                                if(rate < -5)
+                                {
+                                    tongRate -= 5;
+                                    tongLoss++;
+                                    loss++;
+                                    total -= 5;
+                                    lMes.Add($"{item}|Entry: {eEntry.Date.ToString("dd/MM/yyyy HH")}|SL: {itemTP.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
+                                    break;
+                                }
+
+                                if(itemTP.Close > (decimal)bb.UpperBand)
+                                {
+                                    tongRate += rate;
+                                    tongWin++;
+                                    win++;
+                                    rate = Math.Round(100 * (-1 + itemTP.Close / eEntry.Close), 2);
+                                    total += rate;
+                                    lMes.Add($"{item}|Entry: {eEntry.Date.ToString("dd/MM/yyyy HH")}|TP: {itemTP.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
+                                    break;
+                                }
+                            }
+                        }
+
+                        foreach (var itemMes in lMes)
+                        {
+                            Console.WriteLine(itemMes);
+                        }
+                        if(tongWin >= tongLoss
+                            && tongWin > 0
+                            && tongRate > 0)
+                        {
+                            lCoin.Add(item);
+                        }
                     }
                     catch(Exception ex)
                     {
                         Console.WriteLine(ex.ToString());
                     }
                 }
+
+                Console.WriteLine($"Total: {total}%|W/L: {win}/{loss}");
+                //foreach (var item in lCoin)
+                //{
+                //    Console.WriteLine($"\"{item}\",");
+                //}
             }
             catch(Exception ex)
             {
@@ -176,6 +370,7 @@ namespace TestPr.Service
             }
         }
     }
+
 
     public static class clsEx
     {
