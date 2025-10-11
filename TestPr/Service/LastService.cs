@@ -324,7 +324,7 @@ namespace TestPr.Service
                                     tongLoss++;
                                     loss++;
                                     total -= 5;
-                                    lMes.Add($"{item}|Entry: {eEntry.Date.ToString("dd/MM/yyyy HH")}|SL: {itemTP.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
+                                    lMes.Add($"{item}|SOS: {itemEntry.sos_real.Date.ToString("dd/MM/yyyy HH")}|Signal: {itemEntry.signal.Date.ToString("dd/MM/yyyy HH")}|SL: {itemTP.Date.ToString("dd/MM/yyyy HH")}|Rate: {rate}%");
                                     break;
                                 }
 
@@ -423,6 +423,9 @@ namespace TestPr.Service
                     //var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(SoNenLonHonToiThieu);
                     //if (lNextCheck.Count() < SoNenLonHonToiThieu)
                     //    continue;
+                    var checkPosClose = Math.Abs((decimal)itemSOS.bb.Sma - itemSOS.Close) < Math.Abs(itemSOS.Close - (decimal)itemSOS.bb.LowerBand);
+                    if (checkPosClose)
+                        return null;
 
                     var output = new SOSDTO
                     {
@@ -487,13 +490,15 @@ namespace TestPr.Service
             {
                 if (sos.sos.Close > sos.sos.Open)
                 {
-                    if (item1.Close > Math.Max(item2.Close, item3.Close))
+                    if (item1.Close > Math.Max(item2.Close, item3.Close)
+                        && item1.Open < item1.Close)
                     {
                         sos.signal = item1;
                         sos.entry = item3;
                         return sos;
                     }
-                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close)
+                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close
+                        && item1.Open < item1.Close)
                     {
                         sos.signal = item2;
                         sos.entry = item3;
@@ -502,13 +507,15 @@ namespace TestPr.Service
                 }
                 else
                 {
-                    if (item1.Close < Math.Min(item2.Close, item3.Close))
+                    if (item1.Close < Math.Min(item2.Close, item3.Close)
+                        && item1.Open > item1.Close)
                     {
                         sos.signal = item1;
                         sos.entry = item3;
                         return sos;
                     }
-                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close)
+                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close
+                            && item2.Open > item2.Close)
                     {
                         sos.signal = item2;
                         sos.entry = item3;
