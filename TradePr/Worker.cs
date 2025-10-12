@@ -30,11 +30,10 @@ namespace TradePr
             //    {
             //        await _bybitWyckoffService.Bybit_Entry_1809();
             //    }
-                
+
             //    await Task.Delay(1000 * 60, stoppingToken);
             //}
             //
-
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -43,7 +42,7 @@ namespace TradePr
                 var now = DateTime.Now;
                 if (now.Minute == 30)
                 {
-                    _lastService.Detect_SOSReal();
+                    await _lastService.Detect_SOSReal();
                 }
                 if (now.Minute == 0)
                 {
@@ -53,7 +52,7 @@ namespace TradePr
                 if (now.Hour % 4 == 0
                     && now.Minute <= 1)
                 {
-                    await _lastService.Detect_SOS();
+                    _lastService.Detect_SOS();
                 }
 
                 await Task.Delay(1000 * 60, stoppingToken);
