@@ -1703,5 +1703,135 @@ namespace CoinUtilsPr
 
         //    return null;
         //}
+
+
+        //Lấy ra SOS
+        public static Quote LAST_Mutation(this IEnumerable<Quote> lData)
+        {
+            try
+            {
+                if (lData.Count() < 100)
+                    return null;
+
+                var lVol = lData.Select(x => new Quote
+                {
+                    Date = x.Date,
+                    Volume = x.Volume,
+                    Close = x.Volume,
+                }).GetSma(20);
+                var lbb = lData.GetBollingerBands();
+                var l1hEx = lData.Select(x => new QuoteEx
+                {
+                    Open = x.Open,
+                    Close = x.Close,
+                    High = x.High,
+                    Low = x.Low,
+                    Volume = x.Volume,
+                    Date = x.Date,
+                    MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
+                    bb = lbb.First(y => y.Date == x.Date)
+                });
+                /*
+                    Nến xanh,
+                    Vol lớn hơn 2 lần MAVol,
+                    Close > Ma20,
+                    50 nến gần nhất không có nến nào vượt SOS,
+                    50 nến gần nhất (chỉ lấy nến xanh) không có nến nào vol lớn hơn vol của SOS,
+                    Điểm check phải sau nến SOS 9 nến 
+                 */
+                var lSOS = l1hEx.TakeLast(72);
+                foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 1.5m * (decimal)x.MA20Vol
+                                                    && ((x.High > (decimal)x.bb.UpperBand && x.Close > x.Open) || (x.Low < (decimal)x.bb.LowerBand && x.Open > x.Close)))
+                                            .OrderByDescending(x => x.Date))
+                {
+                    var checkPosClose = Math.Abs((decimal)itemSOS.bb.Sma - itemSOS.Close) < Math.Abs(itemSOS.Close - (decimal)itemSOS.bb.LowerBand);
+                    if (checkPosClose)
+                        return null;
+
+                    return lData.First(x => x.Date == itemSOS.Date);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+        //Xác định TOP-BOT của SOS
+        public static Quote LAST_DetectTopBOT(this SOSDTO sos, Quote item1, Quote item2, Quote item3)
+        {
+            try
+            {
+                if (sos.sos.Close > sos.sos.Open)
+                {
+                    if (item1.Close > Math.Max(item2.Close, item3.Close))
+                    {
+                        return item1;
+                    }
+                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close)
+                    {
+                        return item2;
+                    }
+                }
+                else
+                {
+                    if (item1.Close < Math.Min(item2.Close, item3.Close))
+                    {
+                        return item1;
+                    }
+                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close)
+                    {
+                        return item2;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        //Xác định Entry
+        public static Quote LAST_DetectEntry(this SOSDTO sos, Quote item1, Quote item2, Quote item3)
+        {
+            try
+            {
+                if (sos.sos.Close > sos.sos.Open)
+                {
+                    if (item1.Close > Math.Max(item2.Close, item3.Close)
+                        && item1.Open < item1.Close)
+                    {
+                        return item1;
+                    }
+                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close
+                        && item1.Open < item1.Close)
+                    {
+                        return item2;
+                    }
+                }
+                else
+                {
+                    if (item1.Close < Math.Min(item2.Close, item3.Close)
+                        && item1.Open > item1.Close)
+                    {
+                        return item1;
+                    }
+                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close
+                            && item2.Open > item2.Close)
+                    {
+                        return item2;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
     }
 }

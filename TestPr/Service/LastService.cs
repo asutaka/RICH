@@ -202,12 +202,15 @@ namespace TestPr.Service
                         for (int i = 1; i < count; i++)
                         {
                             var lDat = l1H.Take(i);
-                            var itemSOS = lDat.Mutation();
+                            var itemSOS = lDat.LAST_Mutation();
                             if (itemSOS != null)
                             {
-                                if (!lSOS.Any(x => x.sos.Date == itemSOS.sos.Date))
+                                if (!lSOS.Any(x => x.sos.Date == itemSOS.Date))
                                 {
-                                    lSOS.Add(itemSOS);
+                                    lSOS.Add(new SOSDTO
+                                    {
+                                        sos = itemSOS,
+                                    });
                                 }
                             }
                         }
@@ -222,16 +225,11 @@ namespace TestPr.Service
                                 var item1 = lDat.ElementAt(i);
                                 var item2 = lDat.ElementAt(i + 1);
                                 var item3 = lDat.ElementAt(i + 2);
-                                var itemDetect = itemSOS.DetectTopBOT(item1, item2, item3);
+                                var itemDetect = itemSOS.LAST_DetectTopBOT(item1, item2, item3);
                                 if(itemDetect != null)
                                 {
-                                    var bb = lbb.First(x => x.Date == itemDetect.sos_real.Date);
-                                    //Chỉ lấy nến nếu close vượt ra ngoài Bollingerband
-                                    //if(itemDetect.sos_real.Close > (decimal)bb.UpperBand
-                                    //    || itemDetect.sos_real.Close < (decimal)bb.LowerBand)
-                                    //{
-                                        lDetect.Add(itemDetect);
-                                    //}
+                                    itemSOS.sos_real = itemDetect;
+                                    lDetect.Add(itemSOS);
                                     break;
                                 }
                             }
@@ -258,9 +256,11 @@ namespace TestPr.Service
                                     var item1 = lDat.ElementAt(i);
                                     var item2 = lDat.ElementAt(i + 1);
                                     var item3 = lDat.ElementAt(i + 2);
-                                    var itemDetect = itemSOS.DetectEntry(item1, item2, item3);
-                                    if (itemDetect != null && itemDetect.signal != null)
+                                    var itemDetect = itemSOS.LAST_DetectEntry(item1, item2, item3);
+                                    if (itemDetect != null)
                                     {
+                                        itemSOS.signal = itemDetect;
+                                        itemSOS.entry = item3;
                                         //Kiểm tra volume của đáy 2 phải nhỏ hơn 2 lần đáy 1 
                                         //Trong khoảng 2 đáy ko được có nến vol đỏ vượt đáy 1
                                         //Đáy 2 không được vượt MA20
@@ -269,26 +269,26 @@ namespace TestPr.Service
                                         //đáy 2 cách đáy 1 tối thiểu 5 nến
                                         //đáy 2 <= 1/2 (H + L) đáy 1
 
-                                        var max = Math.Max(itemDetect.sos.Volume, itemDetect.sos_real.Volume);
-                                        var lFilter = l1H.Where(x => x.Open >= x.Close && x.Date > itemDetect.sos_real.Date && x.Date <= itemDetect.signal.Date);
+                                        var max = Math.Max(itemSOS.sos.Volume, itemSOS.sos_real.Volume);
+                                        var lFilter = l1H.Where(x => x.Open >= x.Close && x.Date > itemSOS.sos_real.Date && x.Date <= itemSOS.signal.Date);
                                         if(!lFilter.Any())
                                         {
                                             break;
                                         }    
                                         var maxRange = lFilter.Max(x => x.Volume);
-                                        var bb = lbb.First(x => x.Date == itemDetect.entry.Date);
-                                        var rateEntry = Math.Round(100 * (-1 + (decimal)bb.UpperBand / itemDetect.entry.Close), 2);
-                                        var count2Day = l1H.Count(x => x.Date >= itemDetect.sos_real.Date && x.Date < itemDetect.signal.Date);
-                                        var avgPrice1 = 0.5m * (Math.Max(itemDetect.sos.High, itemDetect.sos_real.High) + Math.Min(itemDetect.sos.Low, itemDetect.sos_real.Low));
+                                        var bb = lbb.First(x => x.Date == itemSOS.entry.Date);
+                                        var rateEntry = Math.Round(100 * (-1 + (decimal)bb.UpperBand / itemSOS.entry.Close), 2);
+                                        var count2Day = l1H.Count(x => x.Date >= itemSOS.sos_real.Date && x.Date < itemSOS.signal.Date);
+                                        var avgPrice1 = 0.5m * (Math.Max(itemSOS.sos.High, itemSOS.sos_real.High) + Math.Min(itemSOS.sos.Low, itemSOS.sos_real.Low));
 
-                                        if (max > 2 * itemDetect.signal.Volume
+                                        if (max > 2 * itemSOS.signal.Volume
                                             && maxRange < max
                                             && itemSOS.signal.Close < (decimal)bb.Sma
                                             && rateEntry > 2
                                             && count2Day >= 5
-                                            && itemDetect.signal.Close <= avgPrice1)
+                                            && itemSOS.signal.Close <= avgPrice1)
                                         {
-                                            lEntry.Add(itemDetect);
+                                            lEntry.Add(itemSOS);
                                             //Console.WriteLine($"{item}|{itemSOS.signal.Date.ToString("dd/MM/yyyy HH")}|{itemSOS.entry.Date.ToString("dd/MM/yyyy HH")}");
                                         }
                                         
@@ -368,167 +368,6 @@ namespace TestPr.Service
             {
                 Console.WriteLine(ex.ToString());
             }
-        }
-    }
-
-
-    public static class clsEx
-    {
-        //Lấy ra SOS
-        public static SOSDTO Mutation(this IEnumerable<Quote> lData)
-        {
-            try
-            {
-                var SoNenLonHonToiThieu = 9;
-                if (lData.Count() < 100)
-                    return null;
-
-                var lVol = lData.Select(x => new Quote
-                {
-                    Date = x.Date,
-                    Volume = x.Volume,
-                    Close = x.Volume,
-                }).GetSma(20);
-                var lbb = lData.GetBollingerBands();
-                var l1hEx = lData.Select(x => new QuoteEx
-                {
-                    Open = x.Open,
-                    Close = x.Close,
-                    High = x.High,
-                    Low = x.Low,
-                    Volume = x.Volume,
-                    Date = x.Date,
-                    MA20Vol = lVol.First(y => y.Date == x.Date).Sma,
-                    bb = lbb.First(y => y.Date == x.Date)
-                });
-                /*
-                    Nến xanh,
-                    Vol lớn hơn 2 lần MAVol,
-                    Close > Ma20,
-                    50 nến gần nhất không có nến nào vượt SOS,
-                    50 nến gần nhất (chỉ lấy nến xanh) không có nến nào vol lớn hơn vol của SOS,
-                    Điểm check phải sau nến SOS 9 nến 
-                 */
-                var lSOS = l1hEx.TakeLast(72);
-                foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 1.5m * (decimal)x.MA20Vol
-                                                    && ((x.High > (decimal)x.bb.UpperBand && x.Close > x.Open) || (x.Low < (decimal)x.bb.LowerBand && x.Open > x.Close)))
-                                            .OrderByDescending(x => x.Date))
-                {
-                    //Console.WriteLine($"{itemSOS.Date.ToString("dd/MM/yyyy HH")}");
-                    //var lcheck = l1hEx.Where(x => x.Date < itemSOS.Date).TakeLast(50);
-                    //if (lcheck.Any(x => x.Close > itemSOS.Close
-                    //                || (x.Volume > itemSOS.Volume && x.Close > x.Open)))
-                    //    continue;
-
-                    //var lNextCheck = l1hEx.Where(x => x.Date > itemSOS.Date).Take(SoNenLonHonToiThieu);
-                    //if (lNextCheck.Count() < SoNenLonHonToiThieu)
-                    //    continue;
-                    var checkPosClose = Math.Abs((decimal)itemSOS.bb.Sma - itemSOS.Close) < Math.Abs(itemSOS.Close - (decimal)itemSOS.bb.LowerBand);
-                    if (checkPosClose)
-                        return null;
-
-                    var output = new SOSDTO
-                    {
-                        sos = lData.First(x => x.Date == itemSOS.Date)
-                    };
-
-                    return output;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return null;
-        }
-
-        //Xác định TOP-BOT của SOS
-        public static SOSDTO DetectTopBOT(this SOSDTO sos, Quote item1, Quote item2, Quote item3)
-        {
-            try
-            {
-                if(sos.sos.Close > sos.sos.Open)
-                {
-                    if (item1.Close > Math.Max(item2.Close, item3.Close))
-                    {
-                        sos.sos_real = item1;
-                        return sos;
-                    }
-                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close)
-                    {
-                        sos.sos_real = item2;
-                        return sos;
-                    }
-                }
-                else
-                {
-                    if (item1.Close < Math.Min(item2.Close, item3.Close))
-                    {
-                        sos.sos_real = item1;
-                        return sos;
-                    }
-                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close)
-                    {
-                        sos.sos_real = item2;
-                        return sos;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return null;
-        }
-
-        //Xác định Entry
-        public static SOSDTO DetectEntry(this SOSDTO sos, Quote item1, Quote item2, Quote item3)
-        {
-            try
-            {
-                if (sos.sos.Close > sos.sos.Open)
-                {
-                    if (item1.Close > Math.Max(item2.Close, item3.Close)
-                        && item1.Open < item1.Close)
-                    {
-                        sos.signal = item1;
-                        sos.entry = item3;
-                        return sos;
-                    }
-                    else if (item2.Close > Math.Max(item1.Close, item3.Close) && item3.Close < item1.Close
-                        && item1.Open < item1.Close)
-                    {
-                        sos.signal = item2;
-                        sos.entry = item3;
-                        return sos;
-                    }
-                }
-                else
-                {
-                    if (item1.Close < Math.Min(item2.Close, item3.Close)
-                        && item1.Open > item1.Close)
-                    {
-                        sos.signal = item1;
-                        sos.entry = item3;
-                        return sos;
-                    }
-                    else if (item2.Close < Math.Min(item1.Close, item3.Close) && item3.Close > item1.Close
-                            && item2.Open > item2.Close)
-                    {
-                        sos.signal = item2;
-                        sos.entry = item3;
-                        return sos;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return null;
         }
     }
 }
