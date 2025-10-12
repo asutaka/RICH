@@ -6,24 +6,16 @@ using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TradePr.Utils;
 
 namespace TradePr.Service
 {
     public interface ILast_BybitService
     {
-        //Task<BybitAssetBalance> Bybit_GetAccountInfo();
-        //Task Bybit_Trade();
         Task Detect_SOS();
         Task Detect_SOSReal();
         Task Detect_Entry();
-        //Task Bybit_Entry_1809();
-        //Task Bybit_TakeProfit_1809();
+        Task Detect_TakeProfit();
     }
     public class Last_BybitService : ILast_BybitService
     {
@@ -32,10 +24,7 @@ namespace TradePr.Service
         private readonly ITeleService _teleService;
         private readonly ISymbolRepo _symRepo;
         private readonly IConfigDataRepo _configRepo;
-        //private readonly ITradingRepo _tradeRepo;
-        //private readonly IPrepareRepo _preRepo;
         private readonly ILast_SOSRepo _sosRepo;
-        //private readonly IEntrySOSRepo _entryRepo;
         private readonly int _exchange = (int)EExchange.Bybit;
         private const long _idUser = 1066022551;
         private readonly int _HOUR = 30;
@@ -50,10 +39,7 @@ namespace TradePr.Service
             _teleService = teleService;
             _symRepo = symRepo;
             _configRepo = configRepo;
-            //_tradeRepo = tradeRepo;
-            //_preRepo = preRepo;
             _sosRepo = sosRepo;
-            //_entryRepo = entryRepo;
         }
 
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
