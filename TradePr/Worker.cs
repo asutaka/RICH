@@ -15,7 +15,7 @@ namespace TradePr
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            //await _bybitService.Bybit_GetAccountInfo();
+            //await _bybitWyckoffService.Bybit_GetAccountInfo();
 
             //while (!stoppingToken.IsCancellationRequested)
             //{
