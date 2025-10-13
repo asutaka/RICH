@@ -313,6 +313,7 @@ namespace TradePr.Service
                 var builder = Builders<SOSDTO>.Filter;
                 var lsos = _sosRepo.GetByFilter(builder.And(
                     builder.Gte(x => x.t, time),
+                    builder.Ne(x => x.sos_real, null),
                     builder.Eq(x => x.signal, null),
                     builder.Eq(x => x.status, 0)
                 ));
