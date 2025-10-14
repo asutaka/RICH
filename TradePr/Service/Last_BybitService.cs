@@ -365,14 +365,16 @@ namespace TradePr.Service
                         }
                         var maxRange = lFilter.Max(x => x.Volume);
                         var lbb = l1H.GetBollingerBands();
-                        var bb = lbb.First(x => x.Date == itemSOS.entry.Date);
-                        var rateEntry = Math.Round(100 * (-1 + (decimal)bb.UpperBand / itemSOS.entry.Close), 2);
+                        var bb_signal = lbb.First(x => x.Date == itemSOS.signal.Date);
+                        var bb_entry = lbb.First(x => x.Date == itemSOS.entry.Date);
+                        var rateEntry = Math.Round(100 * (-1 + (decimal)bb_entry.UpperBand / itemSOS.entry.Close), 2);
                         var count2Day = l1H.Count(x => x.Date >= itemSOS.sos_real.Date && x.Date < itemSOS.signal.Date);
                         var avgPrice1 = 0.5m * (Math.Max(itemSOS.sos.High, itemSOS.sos_real.High) + Math.Min(itemSOS.sos.Low, itemSOS.sos_real.Low));
 
                         if (max > 2 * itemSOS.signal.Volume
                             && maxRange < max
-                            && itemSOS.signal.Close < (decimal)bb.Sma
+                            && itemSOS.signal.Close < (decimal)bb_signal.Sma
+                            && itemSOS.entry.Close < (decimal)bb_entry.Sma
                             && rateEntry > 2
                             && count2Day >= 5
                             && itemSOS.signal.Close <= avgPrice1)
