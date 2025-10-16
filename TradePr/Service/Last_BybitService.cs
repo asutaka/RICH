@@ -622,7 +622,7 @@ namespace TradePr.Service
                                                                                             quantity: soluong,
                                                                                             timeInForce: TimeInForce.GoodTillCanceled,
                                                                                             reduceOnly: true,
-                                                                                            stopLossOrderType: OrderType.Market,
+                                                                                            stopLossOrderType: OrderType.Limit,
                                                                                             stopLossTakeProfitMode: StopLossTakeProfitMode.Partial,
                                                                                             stopLossTriggerBy: TriggerType.LastPrice,
                                                                                             stopLossLimitPrice: sl);
