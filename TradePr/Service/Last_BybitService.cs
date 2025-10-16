@@ -612,22 +612,10 @@ namespace TradePr.Service
                     {
                         sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE), tronGia);
                     }
-                    res = await StaticTrade.ByBitInstance().V5Api.Trading.PlaceOrderAsync(Category.Linear,
-                                                                                            first.Symbol,
-                                                                                            side: SL_side,
-                                                                                            type: NewOrderType.Market,
-                                                                                            triggerPrice: sl,
-                                                                                            triggerDirection: direction,
-                                                                                            triggerBy: TriggerType.LastPrice,
-                                                                                            quantity: soluong,
-                                                                                            timeInForce: TimeInForce.GoodTillCanceled,
-                                                                                            reduceOnly: true,
-                                                                                            stopLossOrderType: OrderType.Limit,
-                                                                                            stopLossTakeProfitMode: StopLossTakeProfitMode.Partial,
-                                                                                            stopLossTriggerBy: TriggerType.LastPrice,
-                                                                                            stopLossLimitPrice: sl);
+                    //STOP LOSS
+                    var resSL = await StaticTrade.ByBitInstance().V5Api.Trading.SetTradingStopAsync(Category.Linear, first.Symbol, PositionIdx.OneWayMode, stopLoss: sl);
                     Thread.Sleep(500);
-                    if (!res.Success)
+                    if (!resSL.Success)
                     {
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{first.Symbol}|{res.Error.Code}:{res.Error.Message}");
                     }
