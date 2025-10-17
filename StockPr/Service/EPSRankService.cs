@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using Skender.Stock.Indicators;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Model;
@@ -13,6 +14,7 @@ namespace StockPr.Service
         Task<(decimal, decimal, decimal, decimal, decimal)> FreeFloat(string s);
         Task<Dictionary<string, Money24h_StatisticResponse>> RankMaCK(List<string> lInput);
         Task RankMaCKSync();
+        Task<List<string>> ListFocus();
     }
     public class EPSRankService : IEPSRankService
     {
@@ -338,6 +340,79 @@ namespace StockPr.Service
                     _logger.LogError($"EPSRankService.RankMaCKSync|EXCEPTION| {ex.Message}");
                 }
             }
+        }
+
+        public async Task<List<string>> ListFocus()
+        {
+            var lfocus = new List<string>();
+            foreach (var item in StaticVal._lStock.Where(x => x.ex == (int)EExchange.HSX))
+            {
+                try
+                {
+                    if (item.s == "VNINDEX")
+                        continue;
+
+                    var entityVNINDEX = _phanloaiRepo.GetEntityByFilter(Builders<PhanLoaiNDT>.Filter.Eq(x => x.s, item.s));
+                    if (entityVNINDEX is null || entityVNINDEX.Date.Count() < 30)
+                        continue;
+                    var group = entityVNINDEX.Group.TakeLast(50);
+
+                    var group_COUNT = group.Count();
+                    var group_COUNT_INCREASE = group.Count(x => x > 0);
+                    if (((double)group_COUNT_INCREASE / group_COUNT) < 0.5) 
+                        continue;
+
+                    var group_INCREASE = group.Where(x => x > 0).Sum();
+                    var group_DECREASE = group.Where(x => x < 0).Sum();
+                    if (group_INCREASE < 100
+                        || Math.Abs(group_DECREASE) * 2 > group_INCREASE) 
+                        continue;
+
+                    var individual_INCREASE = entityVNINDEX.Individual.TakeLast(50).Where(x => x > 0).Sum();
+                    var foreign_INCREASE = entityVNINDEX.Foreign.TakeLast(50).Where(x => x > 0).Sum();
+                    var tudoanh_INCREASE = entityVNINDEX.TuDoanh.TakeLast(50).Where(x => x > 0).Sum();
+                    var rate = group_INCREASE / (individual_INCREASE + foreign_INCREASE + tudoanh_INCREASE);
+                    if (rate < 0.5)
+                        continue;
+
+                    var group_DECREASE_15 = entityVNINDEX.Group.TakeLast(15).Where(x => x < 0);
+                    var foreign_DECREASE_15 = entityVNINDEX.Foreign.TakeLast(15).Where(x => x < 0);
+                    var individual_DECREASE_15 = entityVNINDEX.Individual.TakeLast(15).Where(x => x < 0);
+                    var tudoanh_DECREASE_15 = entityVNINDEX.TuDoanh.TakeLast(15).Where(x => x < 0);
+
+                    var group_DECREASE_15_MIN = group_DECREASE_15.Any() ? group_DECREASE_15.Min() : 0;
+                    var foreign_DECREASE_15_MIN = foreign_DECREASE_15.Any() ? foreign_DECREASE_15.Min() : 0;
+                    var individual_DECREASE_15_MIN = individual_DECREASE_15.Any() ? individual_DECREASE_15.Min() : 0;
+                    var tudoanh_DECREASE_15_MIN = tudoanh_DECREASE_15.Any() ? tudoanh_DECREASE_15.Min() : 0;
+
+                    var min = Math.Min(tudoanh_DECREASE_15_MIN, Math.Min(foreign_DECREASE_15_MIN, individual_DECREASE_15_MIN));
+
+                    if (group_DECREASE_15_MIN < min)
+                        continue;
+
+                    var lData = await _apiService.SSI_GetDataStock(item.s);
+                    if (lData.Count() < 250
+                        || lData.Last().Volume < 50000)
+                        continue;
+
+                    var lbb = lData.GetBollingerBands();
+                    var bb = lbb.Last();
+                    var cur = lData.Last();
+                    var isValid = cur.Close > (decimal)bb.UpperBand
+                                    || cur.Close < (decimal)bb.Sma
+                                    || ((decimal)bb.UpperBand - cur.Close) < (cur.Close - (decimal)bb.Sma);
+                    if (isValid)
+                        continue;
+
+                    lfocus.Add(item.s);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"EPSRankService.RankMaCKSync|EXCEPTION| {ex.Message}");
+                }
+            }
+
+            return lfocus;
         }
 
         private async Task<(List<double>, List<double>, List<double>, List<double>, List<double>)> GetThongKe(string sym)

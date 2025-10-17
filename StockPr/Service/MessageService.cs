@@ -1,4 +1,5 @@
-﻿using StockPr.DAL;
+﻿using Microsoft.Extensions.Logging.EventLog;
+using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
@@ -285,6 +286,15 @@ namespace StockPr.Service
                         }
 
                         return lRes;
+                    }
+                    else if(lmes[0].Equals("focus", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var lFocus = await _rankService.ListFocus();
+                        var message = lFocus.Any() ? $"{string.Join(",", lFocus)}" : "Không có dữ liệu";
+                        lRes.Add(new HandleMessageModel
+                        {
+                            Message = message
+                        });
                     }
                 }
             }
