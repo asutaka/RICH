@@ -617,7 +617,7 @@ namespace TradePr.Service
                     Thread.Sleep(500);
                     if (!resSL.Success)
                     {
-                        await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{first.Symbol}|{res.Error.Code}:{res.Error.Message}");
+                        await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{first.Symbol}|{resSL.Error.Code}:{resSL.Error.Message}");
                     }
 
                     //Save + Print
