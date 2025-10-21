@@ -606,11 +606,11 @@ namespace TradePr.Service
                     decimal sl = 0;
                     if (side == OrderSide.Buy)
                     {
-                        sl = Math.Round((decimal)entity.sl, tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (1 - _SL_RATE), tronGia);
                     }
                     else
                     {
-                        sl = Math.Round(first.MarkPrice.Value * (decimal)(1 + _SL_RATE), tronGia);
+                        sl = Math.Round(first.MarkPrice.Value * (1 + _SL_RATE), tronGia);
                     }
                     //STOP LOSS
                     var resSL = await StaticTrade.ByBitInstance().V5Api.Trading.SetTradingStopAsync(Category.Linear, first.Symbol, PositionIdx.OneWayMode, stopLoss: sl);
