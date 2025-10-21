@@ -623,7 +623,7 @@ namespace TradePr.Service
                     //Save + Print
                     var entry = Math.Round(first.AveragePrice.Value, tronGia);
                     entity.en = entry;
-                    entity.sl = Math.Round(sl, tronGia);
+                    entity.sl = sl;
                     _sosRepo.Update(entity);
 
                     var mes = $"[ACTION - {side.ToString().ToUpper()}|Bybit] {first.Symbol}|ENTRY: {entry}|SL: {entity.sl}";
