@@ -231,7 +231,7 @@ namespace TradePr.Service
                         if (itemSOS != null)
                         {
                             if (lsos.Any(x => x.s == item 
-                                        && x.sos.Date > itemSOS.Date))
+                                        && x.sos.Date >= itemSOS.Date))
                             {
                                 break;
                             }
