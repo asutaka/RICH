@@ -233,7 +233,7 @@ namespace TradePr.Service
                             if (lsos.Any(x => x.s == item 
                                         && x.sos.Date >= itemSOS.Date))
                             {
-                                break;
+                                continue;
                             }
                             _sosRepo.InsertOne(new SOSDTO
                             {
@@ -273,8 +273,14 @@ namespace TradePr.Service
                 {
                     if (itemSOS.s.Equals(prev))
                     {
-                        itemSOS.status = -1;
-                        _sosRepo.Update(itemSOS);
+                        _sosRepo.UpdateOneField("status", -1, builder.And(
+                                                                    builder.Eq(x => x.s, itemSOS.s),
+                                                                    builder.Gte(x => x.t, time),
+                                                                    builder.Eq(x => x.sos_real, null),
+                                                                    builder.Eq(x => x.status, 0)
+                                                                ));
+                        //itemSOS.status = -1;
+                        //_sosRepo.Update(itemSOS);
                         continue;
                     }
                     prev = itemSOS.s;
@@ -283,8 +289,14 @@ namespace TradePr.Service
                     var countCheck = l1H.SkipLast(1).Count(x => x.Date > itemSOS.sos.Date);
                     if(countCheck > 6)
                     {
-                        itemSOS.status = -10;
-                        _sosRepo.Update(itemSOS);
+                        _sosRepo.UpdateOneField("status", -10, builder.And(
+                                                                   builder.Eq(x => x.s, itemSOS.s),
+                                                                   builder.Gte(x => x.t, time),
+                                                                   builder.Eq(x => x.sos_real, null),
+                                                                   builder.Eq(x => x.status, 0)
+                                                               ));
+                        //itemSOS.status = -10;
+                        //_sosRepo.Update(itemSOS);
                         continue;
                     }
 
@@ -294,8 +306,14 @@ namespace TradePr.Service
                     var itemDetect = itemSOS.LAST_DetectTopBOT(item1, item2, item3);
                     if (itemDetect != null)
                     {
-                        itemSOS.sos_real = itemDetect;
-                        _sosRepo.Update(itemSOS);
+                        _sosRepo.UpdateOneField("sos_real", itemDetect, builder.And(
+                                                                   builder.Eq(x => x.s, itemSOS.s),
+                                                                   builder.Gte(x => x.t, time),
+                                                                   builder.Eq(x => x.sos_real, null),
+                                                                   builder.Eq(x => x.status, 0)
+                                                               ));
+                        //itemSOS.sos_real = itemDetect;
+                        //_sosRepo.Update(itemSOS);
                     }
                 }
             }
@@ -323,8 +341,15 @@ namespace TradePr.Service
                 {
                     if (itemSOS.s.Equals(prev))
                     {
-                        itemSOS.status = -2;
-                        _sosRepo.Update(itemSOS);
+                        _sosRepo.UpdateOneField("status", -2, builder.And(
+                                                                    builder.Eq(x => x.s, itemSOS.s),
+                                                                    builder.Gte(x => x.t, time),
+                                                                    builder.Ne(x => x.sos_real, null),
+                                                                    builder.Eq(x => x.signal, null),
+                                                                    builder.Eq(x => x.status, 0)
+                                                               ));
+                        //itemSOS.status = -2;
+                        //_sosRepo.Update(itemSOS);
                         continue;
                     }
                     prev = itemSOS.s;
@@ -333,8 +358,15 @@ namespace TradePr.Service
                     var countCheck = l1H.SkipLast(1).Count(x => x.Date > itemSOS.sos_real.Date);
                     if (countCheck > 15)
                     {
-                        itemSOS.status = -20;
-                        _sosRepo.Update(itemSOS);
+                        _sosRepo.UpdateOneField("status", -20, builder.And(
+                                                                  builder.Eq(x => x.s, itemSOS.s),
+                                                                  builder.Gte(x => x.t, time),
+                                                                  builder.Ne(x => x.sos_real, null),
+                                                                  builder.Eq(x => x.signal, null),
+                                                                  builder.Eq(x => x.status, 0)
+                                                             ));
+                        //itemSOS.status = -20;
+                        //_sosRepo.Update(itemSOS);
                         continue;
                     }
 
@@ -359,8 +391,15 @@ namespace TradePr.Service
                         var lFilter = l1H.Where(x => x.Open >= x.Close && x.Date > itemSOS.sos_real.Date && x.Date <= itemSOS.signal.Date);
                         if (!lFilter.Any())
                         {
-                            itemSOS.status = -200;
-                            _sosRepo.Update(itemSOS);
+                            _sosRepo.UpdateOneField("status", -200, builder.And(
+                                                                 builder.Eq(x => x.s, itemSOS.s),
+                                                                 builder.Gte(x => x.t, time),
+                                                                 builder.Ne(x => x.sos_real, null),
+                                                                 builder.Eq(x => x.signal, null),
+                                                                 builder.Eq(x => x.status, 0)
+                                                            ));
+                            //itemSOS.status = -200;
+                            //_sosRepo.Update(itemSOS);
                             continue;
                         }
                         var maxRange = lFilter.Max(x => x.Volume);
@@ -389,8 +428,15 @@ namespace TradePr.Service
                         }
                         else
                         {
-                            itemSOS.status = -200;
-                            _sosRepo.Update(itemSOS);
+                            _sosRepo.UpdateOneField("status", -200, builder.And(
+                                                                 builder.Eq(x => x.s, itemSOS.s),
+                                                                 builder.Gte(x => x.t, time),
+                                                                 builder.Ne(x => x.sos_real, null),
+                                                                 builder.Eq(x => x.signal, null),
+                                                                 builder.Eq(x => x.status, 0)
+                                                            ));
+                            //itemSOS.status = -200;
+                            //_sosRepo.Update(itemSOS);
                         }
                     }
                 }

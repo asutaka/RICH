@@ -112,7 +112,7 @@ namespace TestPr.Service
 //"MBOXUSDT",
 //"MELANIAUSDT",
 //"MEWUSDT",
-//"MOCAUSDT",
+"MOCAUSDT",
 //"MOVEUSDT",
 //"MOVRUSDT",
 //"MTLUSDT",
