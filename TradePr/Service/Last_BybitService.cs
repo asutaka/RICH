@@ -574,7 +574,11 @@ namespace TradePr.Service
 
                 var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos.Data.List.Count() >= thread.value)
+                {
+                    entity.status = -500;
+                    _sosRepo.Update(entity);
                     return EError.MaxThread;
+                }    
 
                 if (pos.Data.List.Any(x => x.Symbol == entity.s))
                     return EError.Error;
