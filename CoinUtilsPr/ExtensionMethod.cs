@@ -1744,6 +1744,8 @@ namespace CoinUtilsPr
                                                     && ((x.High > (decimal)x.bb.UpperBand && x.Close > x.Open) || (x.Low < (decimal)x.bb.LowerBand && x.Open > x.Close)))
                                             .OrderByDescending(x => x.Date))
                 {
+                    if (itemSOS.Open > (decimal)lbb.First(x => x.Date == itemSOS.Date).Sma)
+                        continue;
                     var checkPosClose = Math.Abs((decimal)itemSOS.bb.Sma - itemSOS.Close) < Math.Abs(itemSOS.Close - (decimal)itemSOS.bb.LowerBand);
                     if (checkPosClose)
                         return null;

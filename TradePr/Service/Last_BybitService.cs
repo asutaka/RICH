@@ -426,18 +426,18 @@ namespace TradePr.Service
                             //BUY
                             await PlaceOrder(itemSOS);
                         }
-                        else
-                        {
-                            _sosRepo.UpdateOneField("status", -200, builder.And(
-                                                                 builder.Eq(x => x.s, itemSOS.s),
-                                                                 builder.Gte(x => x.t, time),
-                                                                 builder.Ne(x => x.sos_real, null),
-                                                                 builder.Eq(x => x.signal, null),
-                                                                 builder.Eq(x => x.status, 0)
-                                                            ));
-                            //itemSOS.status = -200;
-                            //_sosRepo.Update(itemSOS);
-                        }
+                        //else
+                        //{
+                        //    _sosRepo.UpdateOneField("status", -2000, builder.And(
+                        //                                         builder.Eq(x => x.s, itemSOS.s),
+                        //                                         builder.Gte(x => x.t, time),
+                        //                                         builder.Ne(x => x.sos_real, null),
+                        //                                         builder.Eq(x => x.signal, null),
+                        //                                         builder.Eq(x => x.status, 0)
+                        //                                    ));
+                        //    //itemSOS.status = -200;
+                        //    //_sosRepo.Update(itemSOS);
+                        //}
                     }
                 }
             }
