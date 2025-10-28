@@ -227,6 +227,9 @@ namespace TradePr.Service
                     try
                     {
                         var lDat = await _apiService.GetData_Binance(item, EInterval.H1);
+                        if (lDat is null)
+                            continue;
+
                         var itemSOS = lDat.SkipLast(1).LAST_Mutation();
                         if (itemSOS != null)
                         {
@@ -286,6 +289,9 @@ namespace TradePr.Service
                     prev = itemSOS.s;
 
                     var l1H = await _apiService.GetData_Binance(itemSOS.s, EInterval.H1);
+                    if (l1H is null)
+                        continue;
+
                     var countCheck = l1H.SkipLast(1).Count(x => x.Date > itemSOS.sos.Date);
                     if(countCheck > 6)
                     {
@@ -355,6 +361,9 @@ namespace TradePr.Service
                     prev = itemSOS.s;
 
                     var l1H = await _apiService.GetData_Binance(itemSOS.s, EInterval.H1);
+                    if (l1H is null)
+                        continue;
+
                     var countCheck = l1H.SkipLast(1).Count(x => x.Date > itemSOS.sos_real.Date);
                     if (countCheck > 15)
                     {
@@ -488,6 +497,9 @@ namespace TradePr.Service
                     }
 
                     var lDat = await _apiService.GetData_Binance(item.Symbol, EInterval.H1);
+                    if (lDat is null)
+                        continue;
+
                     var lbb = lDat.GetBollingerBands();
                     var cur = lDat.Last();
                     var last = lDat.SkipLast(1).Last();
