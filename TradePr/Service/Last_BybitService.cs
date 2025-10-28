@@ -342,6 +342,7 @@ namespace TradePr.Service
                     builder.Eq(x => x.status, 0)
                 ));
 
+                var lBuy = new List<SOSDTO>();
                 var prev = string.Empty;
                 foreach (var itemSOS in lsos.OrderBy(x => x.s).OrderByDescending(x => x.sos.Date))
                 {
@@ -433,21 +434,21 @@ namespace TradePr.Service
                             itemSOS.t = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                             _sosRepo.Update(itemSOS);
                             //BUY
-                            await PlaceOrder(itemSOS);
+                            if(itemSOS.en < itemSOS.sos_real.Close)
+                            {
+                                await PlaceOrder(itemSOS);
+                            }
+                            else
+                            {
+                                lBuy.Add(itemSOS);
+                            }
                         }
-                        //else
-                        //{
-                        //    _sosRepo.UpdateOneField("status", -2000, builder.And(
-                        //                                         builder.Eq(x => x.s, itemSOS.s),
-                        //                                         builder.Gte(x => x.t, time),
-                        //                                         builder.Ne(x => x.sos_real, null),
-                        //                                         builder.Eq(x => x.signal, null),
-                        //                                         builder.Eq(x => x.status, 0)
-                        //                                    ));
-                        //    //itemSOS.status = -200;
-                        //    //_sosRepo.Update(itemSOS);
-                        //}
                     }
+                }
+
+                foreach (var item in lBuy.OrderByDescending(x => x.en < x.sos.Open))
+                {
+                    await PlaceOrder(item);
                 }
             }
             catch (Exception ex)
