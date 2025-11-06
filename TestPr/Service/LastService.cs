@@ -282,6 +282,23 @@ namespace TestPr.Service
                                         var count2Day = l1H.Count(x => x.Date >= itemSOS.sos_real.Date && x.Date < itemSOS.signal.Date);
                                         var avgPrice1 = 0.5m * (Math.Max(itemSOS.sos.High, itemSOS.sos_real.High) + Math.Min(itemSOS.sos.Low, itemSOS.sos_real.Low));
 
+                                        //Kiểm tra nếu 20 nến liền trước không có nến nào vượt MA20 thì bỏ qua
+                                        var lCheck20 = l1H.Where(x => x.Date < item3.Date).TakeLast(20);
+                                        var isPassCheck20 = false;
+                                        foreach (var item20 in lCheck20)
+                                        {
+                                            var bb20 = lbb.First(x => x.Date == item20.Date);
+                                            if (item20.Close > (decimal)bb20.Sma)
+                                            {
+                                                isPassCheck20 = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!isPassCheck20)
+                                        {
+                                            break;
+                                        }
+
                                         if (max > 2 * itemSOS.signal.Volume
                                             && maxRange < max
                                             && itemSOS.signal.Close < (decimal)bb.Sma

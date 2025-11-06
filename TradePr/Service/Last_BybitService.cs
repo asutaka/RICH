@@ -420,6 +420,32 @@ namespace TradePr.Service
                         var count2Day = l1H.Count(x => x.Date >= itemSOS.sos_real.Date && x.Date < itemSOS.signal.Date);
                         var avgPrice1 = 0.5m * (Math.Max(itemSOS.sos.High, itemSOS.sos_real.High) + Math.Min(itemSOS.sos.Low, itemSOS.sos_real.Low));
 
+                        //Kiểm tra nếu 20 nến liền trước không có nến nào vượt MA20 thì bỏ qua
+                        var lCheck20 = l1H.Where(x => x.Date < item3.Date).TakeLast(20);
+                        var isPassCheck20 = false;
+                        foreach (var item in lCheck20)
+                        {
+                            var bb = lbb.First(x => x.Date == item.Date);
+                            if(item.Close > (decimal)bb.Sma)
+                            {
+                                isPassCheck20 = true;
+                                break;
+                            }
+                        }
+                        if(!isPassCheck20)
+                        {
+                            _sosRepo.UpdateOneField("status", -2000, builder.And(
+                                                                builder.Eq(x => x.s, itemSOS.s),
+                                                                builder.Gte(x => x.t, time),
+                                                                builder.Ne(x => x.sos_real, null),
+                                                                builder.Eq(x => x.signal, null),
+                                                                builder.Eq(x => x.status, 0)
+                                                           ));
+                            //itemSOS.status = -200;
+                            //_sosRepo.Update(itemSOS);
+                            continue;
+                        }
+
                         if (max > 2 * itemSOS.signal.Volume
                             && maxRange < max
                             && itemSOS.signal.Close < (decimal)bb_signal.Sma
