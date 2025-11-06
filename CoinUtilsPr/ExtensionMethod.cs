@@ -1739,6 +1739,12 @@ namespace CoinUtilsPr
                     50 nến gần nhất (chỉ lấy nến xanh) không có nến nào vol lớn hơn vol của SOS,
                     Điểm check phải sau nến SOS 9 nến 
                  */
+                /*
+                    1. SOS là điểm có vol > 1.5 lần MA20 vol 
+                    2. Low < LowerBand và nến đỏ
+                    3. Loại nếu Open > ma20 
+                    4. Close phải nằm ở giữa trở xuống khoảng cách giữa MA20 và LowerBand
+                 */
                 var lSOS = l1hEx.TakeLast(72);
                 foreach (var itemSOS in lSOS.Where(x => x.MA20Vol != null && x.Volume > 1.5m * (decimal)x.MA20Vol
                                                     && ((x.High > (decimal)x.bb.UpperBand && x.Close > x.Open) || (x.Low < (decimal)x.bb.LowerBand && x.Open > x.Close)))
