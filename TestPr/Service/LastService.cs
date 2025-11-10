@@ -2,6 +2,7 @@
 using CoinUtilsPr;
 using CoinUtilsPr.DAL;
 using CoinUtilsPr.DAL.Entity;
+using CoinUtilsPr.Model;
 using MongoDB.Driver;
 using Skender.Stock.Indicators;
 
@@ -10,6 +11,8 @@ namespace TestPr.Service
     public interface ILastService
     {
         Task RealTemplate();
+        Task ProTradeEx();
+        Task fake();
     }
     //Phải dùng vol là tín hiệu đầu tiên vì nó là tín hiệu nhạy nhất 
     public class LastService : ILastService
@@ -24,6 +27,124 @@ namespace TestPr.Service
             _apiService = apiService;
             _symRepo = symRepo;
         }
+
+        public async Task fake()
+        {
+            var quotes = await _apiService.GetData_Binance("BTCUSDT", EInterval.H1);
+            decimal capital = 30m;
+            decimal peak = capital;
+            int win = 0, total = 0;
+            List<decimal> equity = new() { capital };
+
+            Console.WriteLine("BẮT ĐẦU BACKTEST 60 NGÀY – 30$ → ?");
+            Console.WriteLine("==================================================");
+
+            for (int i = 50; i < quotes.Count - 1; i++)
+            {
+                var window = quotes.Take(i + 1).ToList();
+                var entry = window.GetEntry();
+                if (entry == null) continue;
+
+                total++;
+                var result = SimulateTrade(entry, quotes.Skip(i + 1));
+                capital += result;
+                peak = Math.Max(peak, capital);
+                equity.Add(capital);
+
+                if (result > 0) win++;
+                Console.WriteLine($"{entry.entity.Date:dd/MM HH:mm} | {(SignalStrength)entry.Strength} | Lời ${result:F2} | Vốn ${capital:F1}");
+            }
+
+            decimal maxDD = equity.Count > 1 ? 100 * (peak - equity.Min()) / peak : 0;
+
+            Console.WriteLine("==================================================");
+            Console.WriteLine($"TỔNG LỆNH: {total}");
+            Console.WriteLine($"WINRATE: {100.0 * win / total:F1}%");
+            Console.WriteLine($"MAX DD: {maxDD:F1}%");
+            Console.WriteLine($"30$ → {capital:F0}$ SAU 60 NGÀY");
+            Console.WriteLine("==================================================");
+            Console.WriteLine("NHẤN PHÍM BẤT KÌ ĐỂ THOÁT...");
+            Console.ReadKey();
+        }
+
+        static decimal SimulateTrade(ProModel entry, IEnumerable<Quote> futureQuotes)
+        {
+            var future = futureQuotes.ToList();
+            if (future.Count < 50) return -entry.risk;
+
+            decimal sl = entry.sl;
+            decimal risk = entry.risk;
+            decimal profit = 0m;                         // ĐÃ SỬA: không mặc định thua
+            bool tp1Done = false, tp2Done = false;
+
+            var smaList = future.GetSma(20).ToList();
+            var bbList = future.GetBollingerBands(20, 2).ToList();
+            decimal fib = future.Take(50).Min(q => q.Low) + (future.Take(50).Max(q => q.High) - future.Take(50).Min(q => q.Low)) * 1.618m;
+
+            for (int i = 0; i < future.Count && i < 200; i++)
+            {
+                var q = future[i];
+
+                // SL
+                if (q.Low <= sl) return -risk;
+
+                // TP1 – MA20
+                if (!tp1Done && i < smaList.Count && smaList[i].Sma.HasValue && q.High >= (decimal)smaList[i].Sma.Value)
+                {
+                    profit += risk * 2.03m;  // 40%
+                    tp1Done = true;
+                }
+
+                // TP2 – UpperBand
+                if (!tp2Done && i < bbList.Count && bbList[i].UpperBand.HasValue && q.High >= (decimal)bbList[i].UpperBand.Value * 0.999m)
+                {
+                    profit += risk * 2.03m;  // 40%
+                    tp2Done = true;
+                }
+
+                // TP3 – Fib 1.618
+                if (q.High >= fib)
+                {
+                    profit += risk * 3.1m;   // 20%
+                    return profit;
+                }
+            }
+            return profit;
+        }
+
+        static decimal CalculateFib(IEnumerable<Quote> q)
+        {
+            var low = q.Min(x => x.Low);
+            var high = q.Max(x => x.High);
+            return low + (high - low) * 1.618m;
+        }
+
+        public async Task ProTradeEx()
+        {
+            try
+            {
+                var l1H = await _apiService.GetData_Binance("BTCUSDT", EInterval.H1);
+                var count = l1H.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    var lDat = l1H.Take(i).ToList();
+                    var entry = lDat.GetEntry();
+                    if(entry != null)
+                    {
+                        var mes = $"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{((SignalStrength)entry.Strength)}|Entry: {entry.entity.Close}|SL: {entry.sl}";
+                        Console.WriteLine(mes);
+                        Console.WriteLine($"    ==> {entry.mes}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            Console.WriteLine("END");
+        }
+
         public async Task RealTemplate()
         {
             try
@@ -387,5 +508,11 @@ namespace TestPr.Service
                 Console.WriteLine(ex.ToString());
             }
         }
+    }
+
+    public static class Ext
+    {
+        public static decimal? Sma(this Quote q, int p) => q.Date == DateTime.UtcNow ? 0 : null; // dummy
+        public static decimal? UpperBand(this Quote q, int p, int s) => q.Date == DateTime.UtcNow ? 0 : null;
     }
 }

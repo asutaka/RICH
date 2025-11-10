@@ -110,4 +110,6 @@ namespace CoinUtilsPr
         Fast = 1,
         Low = 2
     }
+
+    public enum SignalStrength { None, Normal, Good, Early, Confirm , Super }
 }

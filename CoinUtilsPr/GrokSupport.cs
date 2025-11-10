@@ -86,8 +86,6 @@ namespace CoinUtilsPr
             return current;
         }
 
-        public enum SignalStrength { None, Normal, Good, Super }
-
         public static (Quote? Candle, SignalStrength Strength) GetLongSignalWithStrength(this List<Quote> quotes)
         {
             var candle = quotes.GetLongSignalCandle();

@@ -1,4 +1,8 @@
+﻿using CoinUtilsPr.Model;
+using CoinUtilsPr;
+using Skender.Stock.Indicators;
 using TestPr.Service;
+using Newtonsoft.Json;
 
 namespace TestPr
 {
@@ -17,12 +21,15 @@ namespace TestPr
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _lastService.RealTemplate();
+            await _lastService.fake();
             //while (!stoppingToken.IsCancellationRequested)
             //{
             //    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
             //    await Task.Delay(1000, stoppingToken);
             //}
+
+            
         }
     }
+   
 }
