@@ -45,14 +45,35 @@ namespace TestPr.Service
                 var entry = window.GetEntry();
                 if (entry == null) continue;
 
-                total++;
-                var result = SimulateTrade(entry, quotes.Skip(i + 1));
-                capital += result;
-                peak = Math.Max(peak, capital);
-                equity.Add(capital);
+                var strength = (SignalStrength)entry.Strength;
+                var mes = string.Empty;
+                if(strength == SignalStrength.Confirm)
+                {
+                    mes = "rsiCur > rsiWMA45 && rsiPrev <= rsiWMA45Prev";
+                    continue;
+                }
+                else if(strength == SignalStrength.Super)
+                {
+                    mes = "rsiCur > rsiWMA45 && rsiPrev <= rsiWMA45Prev & rsiCur < 35m";
+                    continue;
+                }
+                else if (strength == SignalStrength.Early)
+                {
+                    mes = "rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev & rsiCur < 40m";
+                }
 
-                if (result > 0) win++;
-                Console.WriteLine($"{entry.entity.Date:dd/MM HH:mm} | {(SignalStrength)entry.Strength} | Lời ${result:F2} | Vốn ${capital:F1}");
+
+                Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{strength}|{mes}");
+                continue;
+
+                //total++;
+                //var result = SimulateTrade(entry, quotes.Skip(i + 1));
+                //capital += result;
+                //peak = Math.Max(peak, capital);
+                //equity.Add(capital);
+
+                //if (result > 0) win++;
+                //Console.WriteLine($"{entry.entity.Date:dd/MM HH:mm} | {(SignalStrength)entry.Strength} | Lời ${result:F2} | Vốn ${capital:F1}");
             }
 
             decimal maxDD = equity.Count > 1 ? 100 * (peak - equity.Min()) / peak : 0;

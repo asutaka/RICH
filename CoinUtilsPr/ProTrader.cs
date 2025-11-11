@@ -23,18 +23,21 @@ namespace CoinUtilsPr
                 var lrsi = quotes.GetRsi(14).ToList(); // thêm period 14 cho chắc
                 if (lrsi.Count < 46) return null;
 
+                var lma9 = lrsi.GetSma(9).ToList();
+                var lwma45 = lrsi.GetWma(45).ToList();
+
                 // RSI – ép kiểu double? → decimal
                 decimal rsiCur = lrsi[^2].Rsi.HasValue ? (decimal)lrsi[^2].Rsi.Value : 50m;
                 decimal rsiPrev = lrsi[^3].Rsi.HasValue ? (decimal)lrsi[^3].Rsi.Value : 50m;
 
                 // MA – decimal + ép kiểu
-                decimal rsiMA9 = lrsi.TakeLast(10).Skip(1).Take(9).Average(r => r.Rsi.HasValue ? (decimal)r.Rsi.Value : 0m);
-                decimal rsiMA45 = lrsi.TakeLast(46).Skip(1).Take(45).Average(r => r.Rsi.HasValue ? (decimal)r.Rsi.Value : 0m);
-                decimal rsiMA9Prev = lrsi.TakeLast(11).Skip(2).Take(9).Average(r => r.Rsi.HasValue ? (decimal)r.Rsi.Value : 0m);
-                decimal rsiMA45Prev = lrsi.TakeLast(47).Skip(2).Take(45).Average(r => r.Rsi.HasValue ? (decimal)r.Rsi.Value : 0m);
+                decimal rsiMA9 = (decimal)(lma9[^2].Sma ?? 0);
+                decimal rsiWMA45 = (decimal)(lwma45[^2].Wma ?? 0);
+                decimal rsiMA9Prev = (decimal)(lma9[^3].Sma ?? 0);
+                decimal rsiWMA45Prev = (decimal)(lwma45[^3].Wma ?? 0);
 
                 bool buy1 = rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev;
-                bool buy2 = rsiCur > rsiMA45 && rsiPrev <= rsiMA45Prev;
+                bool buy2 = rsiCur > rsiWMA45 && rsiPrev <= rsiWMA45Prev;
 
                 // SỬA LỖI 3: entity đúng nến đã đóng
                 var candle = quotes[^2];
@@ -58,6 +61,7 @@ namespace CoinUtilsPr
                 }
                 else if (buy1 && rsiCur < 40m)
                 {
+                    Console.WriteLine($"rsiCur: {rsiCur}|rsiMA9: {rsiMA9}|rsiPrev: {rsiPrev}|rsiMA9Prev: {rsiMA9Prev}|O: {output.entity.Open}|C: {output.entity.Close}");
                     output.Strength = (int)SignalStrength.Early;
                     output.riskPercent = 1.5m;
                 }
