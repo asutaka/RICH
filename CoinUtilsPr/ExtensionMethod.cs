@@ -11,6 +11,80 @@ namespace CoinUtilsPr
 {
     public static class ExtensionMethod
     {
+        public static List<SmaResult> GetMARate(this List<Quote> lData, int period)
+        {
+            var lResult = new List<SmaResult>();
+            try
+            {
+                if (lData is null)
+                    return lResult;
+
+                var lMA = lData.GetSma(period);
+                foreach (var item in lMA)
+                {
+                    if (item.Sma == null)
+                    {
+                        lResult.Add(new SmaResult(item.Date)
+                        {
+                            Sma = null
+                        });
+                        continue;
+                    }
+
+                    var lCheck = lData.Where(x => x.Date <= item.Date).TakeLast(175);
+                    var max = lCheck.Max(x => x.High);
+                    var min = lCheck.Min(x => x.Low);
+                    var sma = Math.Round(100 * ((decimal)item.Sma - min) / (max - min), 2);
+                    lResult.Add(new SmaResult(item.Date)
+                    {
+                        Sma = (double)sma
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ExtensionMethod.GetMARate|EXCEPTION| {ex.Message}");
+            }
+            return lResult;
+        }
+
+        public static List<WmaResult> GetWmaRate(this List<Quote> lData, int period)
+        {
+            var lResult = new List<WmaResult>();
+            try
+            {
+                if (lData is null)
+                    return lResult;
+
+                var lWMA = lData.GetWma(period);
+                foreach (var item in lWMA)
+                {
+                    if (item.Wma == null)
+                    {
+                        lResult.Add(new WmaResult(item.Date)
+                        {
+                            Wma = null
+                        });
+                        continue;
+                    }
+
+                    var lCheck = lData.Where(x => x.Date <= item.Date).TakeLast(175);
+                    var max = lCheck.Max(x => x.High);
+                    var min = lCheck.Min(x => x.Low);
+                    var wma = Math.Round(100 * ((decimal)item.Wma - min) / (max - min), 2);
+                    lResult.Add(new WmaResult(item.Date)
+                    {
+                        Wma = (double)wma
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ExtensionMethod.GetWmaRate|EXCEPTION| {ex.Message}");
+            }
+            return lResult;
+        }
+
         public static string Base64Encode(this string plainText)
         {
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
