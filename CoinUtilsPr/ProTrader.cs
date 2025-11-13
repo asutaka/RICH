@@ -59,9 +59,8 @@ namespace CoinUtilsPr
                     output.Strength = (int)SignalStrength.Confirm;
                     output.riskPercent = 2.8m;
                 }
-                else if (buy1 && rsiCur < 40m)
+                else if (buy1 && rsiCur < 45m)
                 {
-                    //Console.WriteLine($"rsiCur: {rsiCur}|rsiMA9: {rsiMA9}|rsiPrev: {rsiPrev}|rsiMA9Prev: {rsiMA9Prev}|O: {output.entity.Open}|C: {output.entity.Close}");
                     output.Strength = (int)SignalStrength.Early;
                     output.riskPercent = 1.5m;
                 }

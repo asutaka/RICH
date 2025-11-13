@@ -59,7 +59,7 @@ namespace TestPr.Service
                 }
                 else if (strength == SignalStrength.Early)
                 {
-                    mes = "rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev & rsiCur < 40m";
+                    //mes = "rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev & rsiCur < 40m";
                 }
 
 
