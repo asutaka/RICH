@@ -36,9 +36,6 @@ namespace TestPr.Service
             int win = 0, total = 0;
             List<decimal> equity = new() { capital };
 
-            Console.WriteLine("BẮT ĐẦU BACKTEST 60 NGÀY – 30$ → ?");
-            Console.WriteLine("==================================================");
-
             for (int i = 50; i < quotes.Count - 1; i++)
             {
                 var window = quotes.Take(i + 1).ToList();
@@ -64,10 +61,15 @@ namespace TestPr.Service
 
 
                 Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{strength}|{mes}");
-                continue;
 
                 //total++;
-                //var result = SimulateTrade(entry, quotes.Skip(i + 1));
+                var result = SimulateTrade2(entry, i, quotes);
+                if(result > 0)
+                {
+                    win++;
+                }
+                total++;
+
                 //capital += result;
                 //peak = Math.Max(peak, capital);
                 //equity.Add(capital);
@@ -88,50 +90,92 @@ namespace TestPr.Service
             Console.ReadKey();
         }
 
-        static decimal SimulateTrade(ProModel entry, IEnumerable<Quote> futureQuotes)
+        static decimal SimulateTrade2(ProModel entry, int index, List<Quote> futureQuotes)
         {
-            var future = futureQuotes.ToList();
-            if (future.Count < 50) return -entry.risk;
-
             decimal sl = entry.sl;
-            decimal risk = entry.risk;
-            decimal profit = 0m;                         // ĐÃ SỬA: không mặc định thua
+            decimal profit = 0m;                         
             bool tp1Done = false, tp2Done = false;
 
-            var smaList = future.GetSma(20).ToList();
-            var bbList = future.GetBollingerBands(20, 2).ToList();
-            decimal fib = future.Take(50).Min(q => q.Low) + (future.Take(50).Max(q => q.High) - future.Take(50).Min(q => q.Low)) * 1.618m;
+            var bbList = futureQuotes.GetBollingerBands(20, 2).ToList();
+            //decimal fib = futureQuotes.Take(50).Min(q => q.Low) + (futureQuotes.Take(50).Max(q => q.High) - futureQuotes.Take(50).Min(q => q.Low)) * 1.618m;
 
-            for (int i = 0; i < future.Count && i < 200; i++)
+            for (int i = index + 1; i < futureQuotes.Count(); i++)
             {
-                var q = future[i];
+                var q = futureQuotes.ElementAt(i);
 
                 // SL
-                if (q.Low <= sl) return -risk;
+                if (q.Low <= sl) return 0;
 
-                // TP1 – MA20
-                if (!tp1Done && i < smaList.Count && smaList[i].Sma.HasValue && q.High >= (decimal)smaList[i].Sma.Value)
-                {
-                    profit += risk * 2.03m;  // 40%
-                    tp1Done = true;
-                }
+                //// TP1 – MA20
+                //if (!tp1Done && i < smaList.Count && smaList[i].Sma.HasValue && q.High >= (decimal)smaList[i].Sma.Value)
+                //{
+                //    profit += risk * 2.03m;  // 40%
+                //    tp1Done = true;
+                //}
 
                 // TP2 – UpperBand
-                if (!tp2Done && i < bbList.Count && bbList[i].UpperBand.HasValue && q.High >= (decimal)bbList[i].UpperBand.Value * 0.999m)
+                if (!tp2Done && q.High >= (decimal)bbList[i].UpperBand.Value * 0.999m)
                 {
-                    profit += risk * 2.03m;  // 40%
-                    tp2Done = true;
+                    //profit += risk * 2.03m;  // 40%
+                    //tp2Done = true;
+                    return 1;
                 }
 
-                // TP3 – Fib 1.618
-                if (q.High >= fib)
-                {
-                    profit += risk * 3.1m;   // 20%
-                    return profit;
-                }
+                //// TP3 – Fib 1.618
+                //if (q.High >= fib)
+                //{
+                //    profit += risk * 3.1m;   // 20%
+                //    return profit;
+                //}
             }
-            return profit;
+            //return profit;
+            return 0;
         }
+
+        //static decimal SimulateTrade(ProModel entry, IEnumerable<Quote> futureQuotes)
+        //{
+        //    var future = futureQuotes.ToList();
+        //    if (future.Count < 50) return -entry.risk;
+
+        //    decimal sl = entry.sl;
+        //    decimal risk = entry.risk;
+        //    decimal profit = 0m;                         // ĐÃ SỬA: không mặc định thua
+        //    bool tp1Done = false, tp2Done = false;
+
+        //    var smaList = future.GetSma(20).ToList();
+        //    var bbList = future.GetBollingerBands(20, 2).ToList();
+        //    decimal fib = future.Take(50).Min(q => q.Low) + (future.Take(50).Max(q => q.High) - future.Take(50).Min(q => q.Low)) * 1.618m;
+
+        //    for (int i = 0; i < future.Count && i < 200; i++)
+        //    {
+        //        var q = future[i];
+
+        //        // SL
+        //        if (q.Low <= sl) return -risk;
+
+        //        // TP1 – MA20
+        //        if (!tp1Done && i < smaList.Count && smaList[i].Sma.HasValue && q.High >= (decimal)smaList[i].Sma.Value)
+        //        {
+        //            profit += risk * 2.03m;  // 40%
+        //            tp1Done = true;
+        //        }
+
+        //        // TP2 – UpperBand
+        //        if (!tp2Done && i < bbList.Count && bbList[i].UpperBand.HasValue && q.High >= (decimal)bbList[i].UpperBand.Value * 0.999m)
+        //        {
+        //            profit += risk * 2.03m;  // 40%
+        //            tp2Done = true;
+        //        }
+
+        //        // TP3 – Fib 1.618
+        //        if (q.High >= fib)
+        //        {
+        //            profit += risk * 3.1m;   // 20%
+        //            return profit;
+        //        }
+        //    }
+        //    return profit;
+        //}
 
         static decimal CalculateFib(IEnumerable<Quote> q)
         {

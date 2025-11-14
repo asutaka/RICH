@@ -45,8 +45,7 @@ namespace CoinUtilsPr
                 var output = new ProModel
                 {
                     entity = candle,
-                    sl = candle.Close * 0.981m,
-                    risk = 30m * 0m / 100m // sẽ gán sau
+                    sl = candle.Close * 0.985m
                 };
 
                 if (buy2 && rsiCur < 35m)
@@ -66,7 +65,8 @@ namespace CoinUtilsPr
                 }
                 else return null;
 
-                output.risk = 30m * output.riskPercent / 100m;
+                output.sl = candle.Close * (1 - output.riskPercent / 100);
+
                 return output;
             }
             catch (Exception ex)
