@@ -42,6 +42,9 @@ namespace TestPr.Service
                 var entry = window.GetEntry();
                 if (entry == null) continue;
 
+                //var real = entry.GetRealEntry(quotes);
+                //if (real == null) continue;
+
                 var strength = (SignalStrength)entry.Strength;
                 var mes = string.Empty;
                 if(strength == SignalStrength.Confirm)
@@ -107,19 +110,20 @@ namespace TestPr.Service
                 if (q.Low <= sl) return 0;
 
                 //// TP1 – MA20
-                //if (!tp1Done && i < smaList.Count && smaList[i].Sma.HasValue && q.High >= (decimal)smaList[i].Sma.Value)
-                //{
-                //    profit += risk * 2.03m;  // 40%
-                //    tp1Done = true;
-                //}
-
-                // TP2 – UpperBand
-                if (!tp2Done && q.High >= (decimal)bbList[i].UpperBand.Value * 0.999m)
+                if (!tp1Done && q.Close >= (decimal)bbList[i].Sma.Value)
                 {
                     //profit += risk * 2.03m;  // 40%
-                    //tp2Done = true;
+                    //tp1Done = true;
                     return 1;
                 }
+
+                //// TP2 – UpperBand
+                //if (!tp2Done && q.High >= (decimal)bbList[i].UpperBand.Value * 0.999m)
+                //{
+                //    //profit += risk * 2.03m;  // 40%
+                //    //tp2Done = true;
+                //    return 1;
+                //}
 
                 //// TP3 – Fib 1.618
                 //if (q.High >= fib)

@@ -5,6 +5,35 @@ namespace CoinUtilsPr
 {
     public static class ProTrader
     {
+        public static ProModel? GetRealEntry(this ProModel entity, IEnumerable<Quote> quotes)
+        {
+            try
+            {
+                var lrsi = quotes.GetRsi(14).ToList(); 
+                var lma9 = lrsi.GetSma(9).ToList();
+                var lwma45 = lrsi.GetWma(45).ToList();
+
+                var rsi_Cur = lrsi.First(x => x.Date == entity.entity.Date);
+                var lcheck = lrsi.Where(x => x.Date > entity.entity.Date);
+                var index = 1;
+                foreach ( var x in lcheck )
+                {
+                    if (index > 5)
+                        return null;
+
+                    if(x.Rsi < rsi_Cur.Rsi)
+                    {
+                        return entity;
+                    }
+                    index++;
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("GetEntry error: " + ex.Message);
+            }
+            return null;
+        }
         public static ProModel? GetEntry(this List<Quote> quotes)
         {
             try
@@ -20,7 +49,7 @@ namespace CoinUtilsPr
                 : 0m;
                 if (bbWidth < 1.8m) return null;
 
-                var lrsi = quotes.GetRsi(14).ToList(); // thêm period 14 cho chắc
+                var lrsi = quotes.GetRsi(14).ToList(); 
                 if (lrsi.Count < 46) return null;
 
                 var lma9 = lrsi.GetSma(9).ToList();
@@ -48,7 +77,12 @@ namespace CoinUtilsPr
                     sl = candle.Close * 0.985m
                 };
 
-                if (buy2 && rsiCur < 35m)
+                if (buy1 && rsiCur < 45m)
+                {
+                    output.Strength = (int)SignalStrength.Early;
+                    output.riskPercent = 1.5m;
+                }
+                else if (buy2 && rsiCur < 35m)
                 {
                     output.Strength = (int)SignalStrength.Super;
                     output.riskPercent = 3.5m;
@@ -57,11 +91,6 @@ namespace CoinUtilsPr
                 {
                     output.Strength = (int)SignalStrength.Confirm;
                     output.riskPercent = 2.8m;
-                }
-                else if (buy1 && rsiCur < 45m)
-                {
-                    output.Strength = (int)SignalStrength.Early;
-                    output.riskPercent = 1.5m;
                 }
                 else return null;
 
