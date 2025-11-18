@@ -186,8 +186,8 @@ namespace CoinUtilsPr
                 var prev = quotes[^3];
                 var prev_2 = quotes[^4];
                 var isHutVol = false;
-                if ((prev_2.Volume * 1.5m <= prev.Volume)
-                    || (prev.Volume * 1.5m <= cur.Volume))
+                if ((prev.Volume * 1.5m <= prev_2.Volume)
+                    || (cur.Volume * 1.5m <= prev.Volume))
                 {
                     isHutVol = true;
                 }
