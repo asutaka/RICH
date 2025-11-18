@@ -193,11 +193,14 @@ namespace CoinUtilsPr
                 }
 
                 var lMaVol = quotes.Use(CandlePart.Volume).GetSma(20).ToList();
-                var eMaxVol = quotes.SkipLast(5).TakeLast(25).Where(x => x.Close < x.Open).MaxBy(x => x.Volume);
+                var eMaxVol = quotes.SkipLast(5).TakeLast(13).Where(x => x.Close < x.Open).MaxBy(x => x.Volume);
                 var isNoVol = false;
                 if(eMaxVol != null && (decimal)lMaVol.First(x => x.Date == eMaxVol.Date).Sma * 1.5m < eMaxVol.Volume)
                 {
                     isNoVol = true;
+                    var eMaxVol_Prev = quotes.Last(x => x.Date < eMaxVol.Date);
+                    if (eMaxVol_Prev.Volume * 3 < eMaxVol.Volume)
+                        return null;//Vol giảm quá lớn
                 }
 
                 var isVolGiamDan = false;
@@ -232,6 +235,10 @@ namespace CoinUtilsPr
 
                 bool buy1 = rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev;
                 var candle = quotes[^2];
+                //if(candle.Date.Day == 14 && candle.Date.Month == 11 && candle.Date.Hour == 21)
+                //{
+                //    var tmp = 1;
+                //}    
 
                 var output = new ProModel
                 {
@@ -248,28 +255,22 @@ namespace CoinUtilsPr
 
                 output.sl = candle.Close * (1 - output.riskPercent / 100);
 
-                var rsi_30 = lrsi.SkipLast(10).TakeLast(20).MinBy(x => x.Rsi);
+                var rsi_30 = lrsi.SkipLast(7).TakeLast(23).MinBy(x => x.Rsi);
                 //rsi_30 phải nhỏ hơn 40 
                 var day_1 = false;
                 if(rsi_30.Rsi < 40)
                 {
                     var rsi_31 = lrsi.First(x => x.Date >  rsi_30.Date);
                     var rsi_29 = lrsi.Last(x => x.Date <  rsi_30.Date);
-                    if(rsi_30.Rsi <= Math.Min((double)rsi_31.Rsi, (double)rsi_29.Rsi))
+                    if (rsi_30.Rsi <= Math.Min((double)rsi_31.Rsi, (double)rsi_29.Rsi))
                     {
                         day_1 = true;
                     }
+                    else return null;//Phải là đáy 2 
                 }
 
-                var minRSI10 = Math.Round((decimal)lrsi.SkipLast(1).TakeLast(10).Min(x => x.Rsi), 1);
-                if(day_1)
-                {
-                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|HutVol:{isHutVol}|NoVol:{isNoVol}|VolGiamDan:{isVolGiamDan}|{rsi_30.Rsi}|{minRSI10}");
-                }
-                else
-                {
-                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|HutVol:{isHutVol}|NoVol:{isNoVol}|VolGiamDan:{isVolGiamDan}|{minRSI10}");
-                }
+                var minRSI10 = Math.Round((decimal)lrsi.SkipLast(1).TakeLast(5).Min(x => x.Rsi), 1);
+                Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|HutVol:{isHutVol}|NoVol:{isNoVol}|VolGiamDan:{isVolGiamDan}|{rsi_30.Rsi}|{minRSI10}");
 
                 return output;
             }
