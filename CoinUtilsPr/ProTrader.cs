@@ -1,4 +1,5 @@
 ﻿using CoinUtilsPr.Model;
+using SharpCompress.Common;
 using Skender.Stock.Indicators;
 
 namespace CoinUtilsPr
@@ -110,6 +111,8 @@ namespace CoinUtilsPr
             try
             {
                 var cur = quotes[^2];
+                var lbb = quotes.GetBollingerBands();
+
                 var lrsi = quotes.GetRsi().ToList();
                 var lma9 = lrsi.GetSma(9).ToList();
                 var lwma45 = lrsi.GetWma(45).ToList();
@@ -170,6 +173,85 @@ namespace CoinUtilsPr
             }
 
             return null;
+        }
+
+        public static ProModel? GetEntry1811(this List<Quote> quotes)
+        {
+            try
+            {
+                if (quotes.Count < 50) return null;
+
+                var lbb = quotes.GetBollingerBands().ToList();
+                var bbCur = lbb[^2];
+
+                // SỬA LỖI 1: công thức BB width đúng
+                decimal bbWidth = bbCur.LowerBand.HasValue && bbCur.LowerBand != 0
+                ? 100m * ((decimal)bbCur.UpperBand! - (decimal)bbCur.LowerBand!) / (decimal)bbCur.LowerBand!
+                : 0m;
+                if (bbWidth < 1.8m) return null;
+
+                var lrsi = quotes.GetRsi().ToList();
+                if (lrsi.Count < 46) return null;
+
+                var lma9 = lrsi.GetSma(9).ToList();
+                var lwma45 = lrsi.GetWma(45).ToList();
+
+                // RSI – ép kiểu double? → decimal
+                decimal rsiCur = lrsi[^2].Rsi.HasValue ? (decimal)lrsi[^2].Rsi.Value : 50m;
+                decimal rsiPrev = lrsi[^3].Rsi.HasValue ? (decimal)lrsi[^3].Rsi.Value : 50m;
+
+                // MA – decimal + ép kiểu
+                decimal rsiMA9 = (decimal)(lma9[^2].Sma ?? 0);
+                decimal rsiMA9Prev = (decimal)(lma9[^3].Sma ?? 0);
+
+                bool buy1 = rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev;
+                var candle = quotes[^2];
+
+                var output = new ProModel
+                {
+                    entity = candle,
+                    sl = candle.Close * 0.985m
+                };
+
+                if (buy1 && rsiCur < 45m)
+                {
+                    output.Strength = (int)SignalStrength.Early;
+                    output.riskPercent = 1.5m;
+                }
+                else return null;
+
+                output.sl = candle.Close * (1 - output.riskPercent / 100);
+
+                var rsi_30 = lrsi.SkipLast(10).TakeLast(20).MinBy(x => x.Rsi);
+                //rsi_30 phải nhỏ hơn 40 
+                var day_1 = false;
+                if(rsi_30.Rsi < 40)
+                {
+                    var rsi_31 = lrsi.First(x => x.Date >  rsi_30.Date);
+                    var rsi_29 = lrsi.Last(x => x.Date <  rsi_30.Date);
+                    if(rsi_30.Rsi <= Math.Min((double)rsi_31.Rsi, (double)rsi_29.Rsi))
+                    {
+                        day_1 = true;
+                    }
+                }
+
+                var minRSI10 = Math.Round((decimal)lrsi.SkipLast(1).TakeLast(10).Min(x => x.Rsi), 1);
+                if(day_1)
+                {
+                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|{rsi_30.Rsi}|{minRSI10}");
+                }
+                else
+                {
+                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|{minRSI10}");
+                }
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetEntry error: " + ex.Message);
+                return null;
+            }
         }
 
         //    public static void TakeProfit(this List<Quote> quotes, ProModel entry)
