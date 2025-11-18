@@ -193,7 +193,7 @@ namespace CoinUtilsPr
                 }
 
                 var lMaVol = quotes.Use(CandlePart.Volume).GetSma(20).ToList();
-                var eMaxVol = quotes.SkipLast(5).TakeLast(13).Where(x => x.Close < x.Open).MaxBy(x => x.Volume);
+                var eMaxVol = quotes.SkipLast(1).TakeLast(17).Where(x => x.Close < x.Open).MaxBy(x => x.Volume);
                 var isNoVol = false;
                 if(eMaxVol != null && (decimal)lMaVol.First(x => x.Date == eMaxVol.Date).Sma * 1.5m < eMaxVol.Volume)
                 {
