@@ -1,6 +1,7 @@
 ﻿using CoinUtilsPr.Model;
 using SharpCompress.Common;
 using Skender.Stock.Indicators;
+using System.Net.WebSockets;
 
 namespace CoinUtilsPr
 {
@@ -181,6 +182,31 @@ namespace CoinUtilsPr
             {
                 if (quotes.Count < 50) return null;
 
+                var cur = quotes[^2];
+                var prev = quotes[^3];
+                var prev_2 = quotes[^4];
+                var isHutVol = false;
+                if ((prev_2.Volume * 1.5m <= prev.Volume)
+                    || (prev.Volume * 1.5m <= cur.Volume))
+                {
+                    isHutVol = true;
+                }
+
+                var lMaVol = quotes.Use(CandlePart.Volume).GetSma(20).ToList();
+                var eMaxVol = quotes.SkipLast(5).TakeLast(25).Where(x => x.Close < x.Open).MaxBy(x => x.Volume);
+                var isNoVol = false;
+                if(eMaxVol != null && (decimal)lMaVol.First(x => x.Date == eMaxVol.Date).Sma * 1.5m < eMaxVol.Volume)
+                {
+                    isNoVol = true;
+                }
+
+                var isVolGiamDan = false;
+                var eMaxVolEntry = quotes.SkipLast(1).TakeLast(4).Where(x => x.Close < x.Open)?.MaxBy(x => x.Volume);
+                if(eMaxVol != null && eMaxVolEntry != null && eMaxVolEntry.Volume * 1.5m < eMaxVol.Volume)
+                {
+                    isVolGiamDan = true;
+                }
+
                 var lbb = quotes.GetBollingerBands().ToList();
                 var bbCur = lbb[^2];
 
@@ -238,11 +264,11 @@ namespace CoinUtilsPr
                 var minRSI10 = Math.Round((decimal)lrsi.SkipLast(1).TakeLast(10).Min(x => x.Rsi), 1);
                 if(day_1)
                 {
-                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|{rsi_30.Rsi}|{minRSI10}");
+                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|HutVol:{isHutVol}|NoVol:{isNoVol}|VolGiamDan:{isVolGiamDan}|{rsi_30.Rsi}|{minRSI10}");
                 }
                 else
                 {
-                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|{minRSI10}");
+                    Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|HutVol:{isHutVol}|NoVol:{isNoVol}|VolGiamDan:{isVolGiamDan}|{minRSI10}");
                 }
 
                 return output;
