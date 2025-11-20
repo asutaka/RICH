@@ -39,10 +39,10 @@ namespace TestPr.Service
             for (int i = 50; i < quotes.Count - 1; i++)
             {
                 var window = quotes.Take(i + 1).ToList();
-                var entry = window.GetEntry1811();
+                var entry = window.GetEntry();
                 if (entry == null) continue;
 
-                //Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}");
+                Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{entry.ratio}%");
                 //continue;
 
                 //var entry = window.GetEntry();
