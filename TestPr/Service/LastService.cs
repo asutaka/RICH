@@ -179,7 +179,7 @@ namespace TestPr.Service
                     var entry = lDat.GetEntry();
                     if(entry != null)
                     {
-                        var mes = $"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{((SignalStrength)entry.Strength)}|Entry: {entry.entity.Close}|SL: {entry.sl}";
+                        var mes = $"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|Entry: {entry.entity.Close}|SL: {entry.sl}";
                         Console.WriteLine(mes);
                         Console.WriteLine($"    ==> {entry.mes}");
                     }
