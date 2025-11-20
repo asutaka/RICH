@@ -195,14 +195,15 @@ namespace CoinUtilsPr
                 }
 
                
-                var eMaxVol = quotes.SkipLast(1).TakeLast(17).Where(x => x.Close < x.Open).MaxBy(x => x.Volume);
-                var isNoVol = false;
+                var eMaxVol = quotes.SkipLast(1).TakeLast(14).Where(x => x.Close < x.Open).MaxBy(x => x.Volume);
                 if(eMaxVol != null && (decimal)lMaVol.First(x => x.Date == eMaxVol.Date).Sma * 1.5m < eMaxVol.Volume)
                 {
-                    isNoVol = true;
-                    var eMaxVol_Prev = quotes.Last(x => x.Date < eMaxVol.Date);
-                    //if (eMaxVol_Prev.Volume * 3 < eMaxVol.Volume)
-                    //    return null;//Vol giảm quá lớn
+                    var eMaMaxVol = lMaVol.First(x => x.Date == eMaxVol.Date);
+                    if ((decimal)eMaMaxVol.Sma * 3 < eMaxVol.Volume)
+                    {
+                        return null;//Vol giảm quá lớn 
+                    }
+
                 }
 
                 var isVolGiamDan = false;
@@ -253,22 +254,22 @@ namespace CoinUtilsPr
 
                 output.sl = cur.Close * (1 - output.riskPercent / 100);
 
-                var rsi_30 = lrsi.SkipLast(7).TakeLast(23).MinBy(x => x.Rsi);
+                var rsi_30 = lrsi.SkipLast(6).TakeLast(30).MinBy(x => x.Rsi);
                 //rsi_30 phải nhỏ hơn 40 
-                var day_1 = false;
+                var day_2 = false;
                 if(rsi_30.Rsi < 40)
                 {
                     var rsi_31 = lrsi.First(x => x.Date >  rsi_30.Date);
                     var rsi_29 = lrsi.Last(x => x.Date <  rsi_30.Date);
                     if (rsi_30.Rsi <= Math.Min((double)rsi_31.Rsi, (double)rsi_29.Rsi))
                     {
-                        day_1 = true;
+                        day_2 = true;
                     }
-                    //else return null;//Phải là đáy 2 
+                    else return null;//Phải là đáy 2 
                 }
 
                 var minRSI10 = Math.Round((decimal)lrsi.SkipLast(1).TakeLast(5).Min(x => x.Rsi), 1);
-                Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|NoVol:{isNoVol}|VolGiamDan:{isVolGiamDan}|{rsi_30.Rsi}|{minRSI10}");
+                Console.WriteLine($"{output.entity.Date.ToString("dd/MM/yyyy HH")}|VolGiamDan:{isVolGiamDan}|{rsi_30.Rsi}|{minRSI10}");
 
                 return output;
             }
