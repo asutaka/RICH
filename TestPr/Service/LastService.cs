@@ -44,20 +44,20 @@ namespace TestPr.Service
 
                 Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{entry.ratio}%");
 
-                ////total++;
-                //var result = SimulateTrade2(entry, i, quotes);
-                //if(result > 0)
-                //{
-                //    win++;
-                //}
                 //total++;
+                var result = SimulateTrade2(entry, i, quotes);
+                if (result > 0)
+                {
+                    win++;
+                }
+                total++;
 
-                ////capital += result;
-                ////peak = Math.Max(peak, capital);
-                ////equity.Add(capital);
+                //capital += result;
+                //peak = Math.Max(peak, capital);
+                //equity.Add(capital);
 
-                ////if (result > 0) win++;
-                ////Console.WriteLine($"{entry.entity.Date:dd/MM HH:mm} | {(SignalStrength)entry.Strength} | Lời ${result:F2} | Vốn ${capital:F1}");
+                //if (result > 0) win++;
+                //Console.WriteLine($"{entry.entity.Date:dd/MM HH:mm} | {(SignalStrength)entry.Strength} | Lời ${result:F2} | Vốn ${capital:F1}");
             }
 
             decimal maxDD = equity.Count > 1 ? 100 * (peak - equity.Min()) / peak : 0;
@@ -81,6 +81,7 @@ namespace TestPr.Service
             var bbList = futureQuotes.GetBollingerBands(20, 2).ToList();
             //decimal fib = futureQuotes.Take(50).Min(q => q.Low) + (futureQuotes.Take(50).Max(q => q.High) - futureQuotes.Take(50).Min(q => q.Low)) * 1.618m;
 
+            var isFlagSellAll = false;
             for (int i = index + 1; i < futureQuotes.Count(); i++)
             {
                 var q = futureQuotes.ElementAt(i);
@@ -93,6 +94,7 @@ namespace TestPr.Service
                 {
                     //profit += risk * 2.03m;  // 40%
                     //tp1Done = true;
+                    isFlagSellAll = true;
                     return 1;
                 }
 
