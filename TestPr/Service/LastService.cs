@@ -43,33 +43,6 @@ namespace TestPr.Service
                 if (entry == null) continue;
 
                 Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{entry.ratio}%");
-                //continue;
-
-                //var entry = window.GetEntry();
-                //if (entry == null) continue;
-
-                ////var real = entry.GetRealEntry(quotes);
-                ////if (real == null) continue;
-
-                //var strength = (SignalStrength)entry.Strength;
-                //var mes = string.Empty;
-                //if(strength == SignalStrength.Confirm)
-                //{
-                //    mes = "rsiCur > rsiWMA45 && rsiPrev <= rsiWMA45Prev";
-                //    continue;
-                //}
-                //else if(strength == SignalStrength.Super)
-                //{
-                //    mes = "rsiCur > rsiWMA45 && rsiPrev <= rsiWMA45Prev & rsiCur < 35m";
-                //    continue;
-                //}
-                //else if (strength == SignalStrength.Early)
-                //{
-                //    //mes = "rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev & rsiCur < 40m";
-                //}
-
-
-                //Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{strength}|{mes}");
 
                 ////total++;
                 //var result = SimulateTrade2(entry, i, quotes);

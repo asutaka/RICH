@@ -9,6 +9,7 @@ namespace CoinUtilsPr
         {
             try
             {
+                var sl = 1.2m;
                 if (quotes.Count < 50) return null;
                 var lMaVol = quotes.Use(CandlePart.Volume).GetSma(20).ToList();
                 var maVolPrev = lMaVol[^3];
@@ -67,14 +68,10 @@ namespace CoinUtilsPr
                     sl = cur.Close * 0.985m
                 };
 
-                if (buy1 && rsiCur < 45m)
-                {
-                    output.Strength = (int)SignalStrength.Early;
-                    output.riskPercent = 1.5m;
-                }
+                if (buy1 && rsiCur < 45m){}
                 else return null;
 
-                output.sl = cur.Close * (1 - output.riskPercent / 100);
+                output.sl = cur.Low * (1 - sl / 100);
 
                 var rsi_30 = lrsi.SkipLast(6).TakeLast(30).MinBy(x => x.Rsi);
                 //rsi_30 phải nhỏ hơn 40 
