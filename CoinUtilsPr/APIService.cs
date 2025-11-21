@@ -149,7 +149,14 @@ namespace CoinUtilsPr
             }
             return lAll;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <param name="interval"></param>
+        /// <param name="DAY">Lấy bao nhiêu ngày về trước đến ngày SKIP_DAY</param>
+        /// <param name="SKIP_DAY">Trừ đi bao nhiêu ngày</param>
+        /// <returns></returns>
         public async Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, int DAY = 10, int SKIP_DAY = 0)
         {
             var lAll = new List<Quote>();
@@ -168,7 +175,13 @@ namespace CoinUtilsPr
                 for (int i = 0; i < even; i++)
                 {
                     var fromTime = from.AddDays(i * songay);
-                    var toTime = fromTime.AddDays(songay);
+
+                    var toTime = fromTime.AddDays(songay); 
+                    if(toTime > to)
+                    {
+                        toTime = to;
+                    }    
+
                     var lres = await GetData_Binance(symbol, interval, fromTime, toTime);
                     Thread.Sleep(200);
                     if (lres.Any())
