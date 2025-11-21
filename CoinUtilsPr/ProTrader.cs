@@ -65,13 +65,13 @@ namespace CoinUtilsPr
                 var output = new ProModel
                 {
                     entity = cur,
-                    sl = cur.Close * 0.985m
+                    sl_price = cur.Close * 0.985m
                 };
 
                 if (buy1 && rsiCur < 45m){}
                 else return null;
 
-                output.sl = cur.Low * (1 - sl / 100);
+                output.sl_price = cur.Low * (1 - sl / 100);
 
                 var rsi_30 = lrsi.SkipLast(6).TakeLast(30).MinBy(x => x.Rsi);
                 //rsi_30 phải nhỏ hơn 40 
@@ -113,6 +113,7 @@ namespace CoinUtilsPr
                 {
                     output.ratio = 30;
                 }
+                output.sl_rate = sl;
 
                 return output;
             }

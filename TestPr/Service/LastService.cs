@@ -21,6 +21,8 @@ namespace TestPr.Service
         private readonly IAPIService _apiService;
         private readonly ISymbolRepo _symRepo;
         private int _COUNT = 0;
+        decimal _cap = 30m;
+
         public LastService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symRepo)
         {
             _logger = logger;
@@ -31,10 +33,8 @@ namespace TestPr.Service
         public async Task fake()
         {
             var quotes = await _apiService.GetData_Binance("BTCUSDT", EInterval.H1);
-            decimal capital = 30m;
-            decimal peak = capital;
+            //decimal peak = capital;
             int win = 0, total = 0;
-            List<decimal> equity = new() { capital };
 
             for (int i = 50; i < quotes.Count - 1; i++)
             {
@@ -60,58 +60,76 @@ namespace TestPr.Service
                 //Console.WriteLine($"{entry.entity.Date:dd/MM HH:mm} | {(SignalStrength)entry.Strength} | Lời ${result:F2} | Vốn ${capital:F1}");
             }
 
-            decimal maxDD = equity.Count > 1 ? 100 * (peak - equity.Min()) / peak : 0;
-
             Console.WriteLine("==================================================");
             Console.WriteLine($"TỔNG LỆNH: {total}");
             Console.WriteLine($"WINRATE: {100.0 * win / total:F1}%");
-            Console.WriteLine($"MAX DD: {maxDD:F1}%");
-            Console.WriteLine($"30$ → {capital:F0}$ SAU 60 NGÀY");
+            Console.WriteLine($"30$ → {_cap:F0}$ SAU 60 NGÀY");
             Console.WriteLine("==================================================");
             Console.WriteLine("NHẤN PHÍM BẤT KÌ ĐỂ THOÁT...");
             Console.ReadKey();
         }
 
-        static decimal SimulateTrade2(ProModel entry, int index, List<Quote> futureQuotes)
+        decimal SimulateTrade2(ProModel entry, int index, List<Quote> futureQuotes)
         {
-            decimal sl = entry.sl;
-            decimal profit = 0m;                         
-            bool tp1Done = false, tp2Done = false;
+            var DONBAY = 10;
+            var SONEN_NAMGIU = 24;
+            var costbandau = DONBAY * entry.ratio * (_cap > 30 ? 30 : _cap) / 100;
+            var costthuc = costbandau;
+            bool tpMA20 = false;
+            var lbb = futureQuotes.GetBollingerBands(20, 2).ToList();
+            var lma9 = futureQuotes.GetSma(9).ToList();
+            var lwma45 = futureQuotes.GetWma(45).ToList();
 
-            var bbList = futureQuotes.GetBollingerBands(20, 2).ToList();
+            var soluongbandau = costbandau / entry.entity.Close;
+            var soluongthuc = soluongbandau;
             //decimal fib = futureQuotes.Take(50).Min(q => q.Low) + (futureQuotes.Take(50).Max(q => q.High) - futureQuotes.Take(50).Min(q => q.Low)) * 1.618m;
 
-            var isFlagSellAll = false;
             for (int i = index + 1; i < futureQuotes.Count(); i++)
             {
                 var q = futureQuotes.ElementAt(i);
 
                 // SL
-                if (q.Low <= sl) return 0;
-
-                //// TP1 – MA20
-                if (!tp1Done && q.Close >= (decimal)bbList[i].Sma.Value)
+                if (q.Low <= entry.sl_price)
                 {
-                    //profit += risk * 2.03m;  // 40%
-                    //tp1Done = true;
-                    isFlagSellAll = true;
+                    var loss = costthuc * entry.sl_rate / 100;
+                    _cap -= loss;
+                    return 0;
+                }
+                //dong lenh
+                if(futureQuotes.Count(x => x.Date > entry.entity.Date) >= SONEN_NAMGIU)
+                {
+                    var rate = costthuc * Math.Round((-1 + q.Close / entry.entity.Close), 3);
+                    _cap += rate;
+                }    
+
+                // TP1 – bán 40%
+                if (!tpMA20
+                    && q.Close > entry.entity.Close
+                    && q.Close >= (decimal)lbb[i].Sma.Value)
+                {
+                    tpMA20 = true;
+                    soluongthuc = soluongbandau * 0.6m;
+                    costthuc = costbandau * 0.6m;
+                    var win = costbandau * Math.Round((-1 + q.Close / entry.entity.Close), 3) * 0.4m;
+                    _cap += win;
+                }
+                // TP2 – bán 40%
+                if (tpMA20
+                    && q.High > (decimal)lbb[i].UpperBand.Value)
+                {
+                    soluongthuc = soluongbandau * 0.2m;
+                    costthuc = costbandau * 0.2m;
+                    var win = costbandau * Math.Round((-1 + q.Close / entry.entity.Close), 3) * 0.4m;
+                    _cap += win;
+                }
+                // TP3 – bán toàn bộ
+                if (tpMA20
+                    && lma9[i].Sma < lwma45[i].Wma)
+                {
+                    var win = costthuc * Math.Round((-1 + q.Close / entry.entity.Close), 3);
+                    _cap += win;
                     return 1;
                 }
-
-                //// TP2 – UpperBand
-                //if (!tp2Done && q.High >= (decimal)bbList[i].UpperBand.Value * 0.999m)
-                //{
-                //    //profit += risk * 2.03m;  // 40%
-                //    //tp2Done = true;
-                //    return 1;
-                //}
-
-                //// TP3 – Fib 1.618
-                //if (q.High >= fib)
-                //{
-                //    profit += risk * 3.1m;   // 20%
-                //    return profit;
-                //}
             }
             //return profit;
             return 0;
@@ -181,7 +199,7 @@ namespace TestPr.Service
                     var entry = lDat.GetEntry();
                     if(entry != null)
                     {
-                        var mes = $"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|Entry: {entry.entity.Close}|SL: {entry.sl}";
+                        var mes = $"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|Entry: {entry.entity.Close}|SL: {entry.sl_price}";
                         Console.WriteLine(mes);
                         Console.WriteLine($"    ==> {entry.mes}");
                     }
