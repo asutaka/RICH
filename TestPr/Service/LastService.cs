@@ -63,7 +63,7 @@ namespace TestPr.Service
             Console.WriteLine("==================================================");
             Console.WriteLine($"TỔNG LỆNH: {total}");
             Console.WriteLine($"WINRATE: {100.0 * win / total:F1}%");
-            Console.WriteLine($"30$ → {_cap:F0}$ SAU 60 NGÀY");
+            Console.WriteLine($"30$ → {_cap:F0}$ SAU {quotes.Count / 24} NGÀY");
             Console.WriteLine("==================================================");
             Console.WriteLine("NHẤN PHÍM BẤT KÌ ĐỂ THOÁT...");
             Console.ReadKey();
