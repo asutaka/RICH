@@ -93,7 +93,7 @@ namespace TestPr.Service
                 {
                     var loss = costthuc * entry.sl_rate / 100;
                     _cap -= loss;
-                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|STOPLOSS: {-loss}");
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{q.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|STOPLOSS: {-loss}");
                     return 0;
                 }
                 //dong lenh
@@ -102,7 +102,7 @@ namespace TestPr.Service
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
                     var rate = costthuc * tile;
                     _cap += rate;
-                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|EXPIRED: {rate}");
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{q.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|EXPIRED: {rate}");
                     return 0;
                 }    
 
@@ -117,7 +117,7 @@ namespace TestPr.Service
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
                     var win = costbandau * tile * 0.4m;
                     _cap += win;
-                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP1: {win}");
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{q.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP1: {win}");
                 }
                 // TP2 – bán 40%
                 if (tpMA20
@@ -128,7 +128,7 @@ namespace TestPr.Service
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
                     var win = costbandau * tile * 0.4m;
                     _cap += win;
-                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP2: {win}");
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{q.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP2: {win}");
                 }
                 // TP3 – bán toàn bộ
                 if (tpMA20
@@ -137,7 +137,7 @@ namespace TestPr.Service
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
                     var win = costthuc * tile;
                     _cap += win;
-                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP3: {win}");
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{q.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP3: {win}");
                     return 1;
                 }
             }
