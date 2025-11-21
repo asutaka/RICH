@@ -199,7 +199,7 @@ namespace CoinUtilsPr
 
         public async Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, DateTimeOffset from, DateTimeOffset to)
         {
-            var url = string.Format("https://www.binance.com/fapi/v1/continuousKlines?startTime={2}&endTime={3}&pair={0}&contractType=PERPETUAL&interval={1}", symbol, interval.GetDisplayName(), from.ToUnixTimeMilliseconds(), to.ToUnixTimeMilliseconds());
+            var url = string.Format("https://www.binance.com/fapi/v1/continuousKlines?limit=1000&startTime={2}&endTime={3}&pair={0}&contractType=PERPETUAL&interval={1}", symbol, interval.GetDisplayName(), from.ToUnixTimeMilliseconds(), to.ToUnixTimeMilliseconds());
 
             try
             {
