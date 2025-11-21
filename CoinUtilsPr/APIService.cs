@@ -169,7 +169,7 @@ namespace CoinUtilsPr
                 {
                     var fromTime = from.AddDays(i * 10);
                     var toTime = fromTime.AddDays(10);
-                    var lres = await GetData_Bybit(symbol, fromTime, toTime);
+                    var lres = await GetData_Binance(symbol, interval, fromTime, toTime);
                     Thread.Sleep(200);
                     if (lres.Any())
                     {
@@ -186,7 +186,7 @@ namespace CoinUtilsPr
 
         public async Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, DateTimeOffset from, DateTimeOffset to)
         {
-            var url = string.Format("https://www.binance.com/fapi/v1/continuousKlines?startTime={2}&endTime={3}&limit=1000&pair={0}&contractType=PERPETUAL&interval={1}", symbol, interval.GetDisplayName(), from.ToUnixTimeSeconds(), to.ToUnixTimeSeconds());
+            var url = string.Format("https://www.binance.com/fapi/v1/continuousKlines?startTime={2}&endTime={3}&pair={0}&contractType=PERPETUAL&interval={1}", symbol, interval.GetDisplayName(), from.ToUnixTimeMilliseconds(), to.ToUnixTimeMilliseconds());
 
             try
             {
