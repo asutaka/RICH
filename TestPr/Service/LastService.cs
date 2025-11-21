@@ -77,8 +77,8 @@ namespace TestPr.Service
             var costthuc = costbandau;
             bool tpMA20 = false;
             var lbb = futureQuotes.GetBollingerBands(20, 2).ToList();
-            var lma9 = futureQuotes.GetSma(9).ToList();
-            var lwma45 = futureQuotes.GetWma(45).ToList();
+            var lrsi = futureQuotes.GetRsi().ToList();
+            var lma9 = lrsi.GetSma(9).ToList();
 
             var soluongbandau = costbandau / entry.entity.Close;
             var soluongthuc = soluongbandau;
@@ -132,7 +132,7 @@ namespace TestPr.Service
                 }
                 // TP3 – bán toàn bộ
                 if (tpMA20
-                    && lma9[i].Sma < lwma45[i].Wma)
+                    && lrsi[i].Rsi < lma9[i].Sma)
                 {
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
                     var win = costthuc * tile;
