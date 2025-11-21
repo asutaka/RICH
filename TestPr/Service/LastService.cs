@@ -32,8 +32,12 @@ namespace TestPr.Service
 
         public async Task fake()
         {
-            var quotes = await _apiService.GetData_Binance("SUIUSDT", EInterval.H1);
-            //var quotes = await _apiService.GetData_Binance("SUIUSDT", EInterval.H1, 120, 90);
+            var sym = "SUIUSDT";
+            var quotes = await _apiService.GetData_Binance(sym, EInterval.H1);
+            //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 1460, 1095);
+            //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 1095, 730);
+            //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 730, 365);
+            //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 365, 0);
             //decimal peak = capital;
             int win = 0, total = 0;
 
@@ -42,6 +46,9 @@ namespace TestPr.Service
                 var window = quotes.Take(i + 1).ToList();
                 var entry = window.GetEntry();
                 if (entry == null) continue;
+
+                if (entry.entity.Date <= _cur.Date)
+                    continue;
 
                 Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{entry.ratio}%");
 
@@ -70,6 +77,7 @@ namespace TestPr.Service
             Console.ReadKey();
         }
 
+        Quote _cur = new Quote();
         decimal SimulateTrade2(ProModel entry, int index, List<Quote> futureQuotes)
         {
             var DONBAY = 10;
@@ -88,7 +96,7 @@ namespace TestPr.Service
             for (int i = index + 1; i < futureQuotes.Count(); i++)
             {
                 var q = futureQuotes.ElementAt(i);
-
+                _cur = q;
                 // SL
                 if (q.Low <= entry.sl_price)
                 {
