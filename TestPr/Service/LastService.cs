@@ -93,13 +93,16 @@ namespace TestPr.Service
                 {
                     var loss = costthuc * entry.sl_rate / 100;
                     _cap -= loss;
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|STOPLOSS: {-loss}");
                     return 0;
                 }
                 //dong lenh
-                if(futureQuotes.Count(x => x.Date > entry.entity.Date) >= SONEN_NAMGIU)
+                if(futureQuotes.Count(x => x.Date > entry.entity.Date && x.Date <= q.Date) >= SONEN_NAMGIU)
                 {
                     var rate = costthuc * Math.Round((-1 + q.Close / entry.entity.Close), 3);
                     _cap += rate;
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|EXPIRED: {rate}");
+                    return 0;
                 }    
 
                 // TP1 – bán 40%
@@ -112,6 +115,7 @@ namespace TestPr.Service
                     costthuc = costbandau * 0.6m;
                     var win = costbandau * Math.Round((-1 + q.Close / entry.entity.Close), 3) * 0.4m;
                     _cap += win;
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TP1: {win}");
                 }
                 // TP2 – bán 40%
                 if (tpMA20
@@ -121,6 +125,7 @@ namespace TestPr.Service
                     costthuc = costbandau * 0.2m;
                     var win = costbandau * Math.Round((-1 + q.Close / entry.entity.Close), 3) * 0.4m;
                     _cap += win;
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TP2: {win}");
                 }
                 // TP3 – bán toàn bộ
                 if (tpMA20
@@ -128,6 +133,7 @@ namespace TestPr.Service
                 {
                     var win = costthuc * Math.Round((-1 + q.Close / entry.entity.Close), 3);
                     _cap += win;
+                    Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TP3: {win}");
                     return 1;
                 }
             }
