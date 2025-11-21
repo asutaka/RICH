@@ -100,10 +100,10 @@ namespace CoinUtilsPr
                     + MA9 > WMA45: 20%
                     + Pos > 1/2(MA20 - LOWER): 30%
                  */
-                output.ratio = 40;
+                output.ratio = 50;
                 if(cur.Close > rsiWMA45)
                 {
-                    output.ratio += 40;
+                    output.ratio += 30;
                 }
                 if(rsiMA9 > rsiWMA45)
                 {
@@ -111,7 +111,7 @@ namespace CoinUtilsPr
                 }
                 if(Math.Abs((decimal)bbCur.Sma - cur.Close) < Math.Abs(cur.Close - (decimal)bbCur.LowerBand))
                 {
-                    output.ratio = 30;
+                    output.ratio = 50;
                 }
                 output.sl_rate = sl;
 

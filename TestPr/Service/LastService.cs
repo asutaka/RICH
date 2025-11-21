@@ -32,7 +32,7 @@ namespace TestPr.Service
 
         public async Task fake()
         {
-            var quotes = await _apiService.GetData_Binance("BTCUSDT", EInterval.H1);
+            var quotes = await _apiService.GetData_Binance("SUIUSDT", EInterval.H1);
             //decimal peak = capital;
             int win = 0, total = 0;
 
