@@ -32,8 +32,8 @@ namespace TestPr.Service
 
         public async Task fake()
         {
-            //var quotes = await _apiService.GetData_Binance("SUIUSDT", EInterval.H1);
-            var quotes = await _apiService.GetData_Binance("SUIUSDT", EInterval.H1, 41, 0);
+            var quotes = await _apiService.GetData_Binance("SUIUSDT", EInterval.H1);
+            //var quotes = await _apiService.GetData_Binance("SUIUSDT", EInterval.H1, 120, 90);
             //decimal peak = capital;
             int win = 0, total = 0;
 
