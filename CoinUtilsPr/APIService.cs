@@ -167,8 +167,8 @@ namespace CoinUtilsPr
                 var even = Math.Ceiling((double)divDay / songay);
                 for (int i = 0; i < even; i++)
                 {
-                    var fromTime = from.AddDays(i * 10);
-                    var toTime = fromTime.AddDays(10);
+                    var fromTime = from.AddDays(i * songay);
+                    var toTime = fromTime.AddDays(songay);
                     var lres = await GetData_Binance(symbol, interval, fromTime, toTime);
                     Thread.Sleep(200);
                     if (lres.Any())
