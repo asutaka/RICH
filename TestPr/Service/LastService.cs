@@ -75,7 +75,7 @@ namespace TestPr.Service
             var SONEN_NAMGIU = 24;
             var costbandau = DONBAY * entry.ratio * (_cap > 30 ? 30 : _cap) / 100;
             var costthuc = costbandau;
-            bool tpMA20 = false;
+            bool tp1 = false, tp2 = false;
             var lbb = futureQuotes.GetBollingerBands(20, 2).ToList();
             var lrsi = futureQuotes.GetRsi().ToList();
             var lma9 = lrsi.GetSma(9).ToList();
@@ -107,11 +107,11 @@ namespace TestPr.Service
                 }    
 
                 // TP1 – bán 40%
-                if (!tpMA20
+                if (!tp1
                     && q.Close > entry.entity.Close
                     && q.Close >= (decimal)lbb[i].Sma.Value)
                 {
-                    tpMA20 = true;
+                    tp1 = true;
                     soluongthuc = soluongbandau * 0.6m;
                     costthuc = costbandau * 0.6m;
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
@@ -120,9 +120,11 @@ namespace TestPr.Service
                     Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{q.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP1: {win}");
                 }
                 // TP2 – bán 40%
-                if (tpMA20
+                if (tp1
+                    && !tp2
                     && q.High > (decimal)lbb[i].UpperBand.Value)
                 {
+                    tp2 = true;
                     soluongthuc = soluongbandau * 0.2m;
                     costthuc = costbandau * 0.2m;
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
@@ -131,7 +133,7 @@ namespace TestPr.Service
                     Console.WriteLine($"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|{q.Date.ToString("dd/MM/yyyy HH")}|BALANCE: {_cap}|TiLe: {Math.Round(tile * 100, 2)}|TP2: {win}");
                 }
                 // TP3 – bán toàn bộ
-                if (tpMA20
+                if (tp1
                     && lrsi[i].Rsi < lma9[i].Sma)
                 {
                     var tile = Math.Round((-1 + q.Close / entry.entity.Close), 3);
