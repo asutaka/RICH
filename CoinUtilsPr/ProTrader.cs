@@ -1,11 +1,11 @@
-﻿using CoinUtilsPr.Model;
+﻿using CoinUtilsPr.DAL.Entity;
 using Skender.Stock.Indicators;
 
 namespace CoinUtilsPr
 {
     public static class ProTrader
     {
-        public static ProModel? GetEntry(this List<Quote> quotes)
+        public static Pro? GetEntry(this List<Quote> quotes)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace CoinUtilsPr
                 bool buy1 = rsiCur > rsiMA9 && rsiPrev <= rsiMA9Prev;
                 
 
-                var output = new ProModel
+                var output = new Pro
                 {
                     entity = cur,
                     sl_price = cur.Close * 0.985m

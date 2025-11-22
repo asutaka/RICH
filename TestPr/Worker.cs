@@ -1,8 +1,4 @@
-﻿using CoinUtilsPr.Model;
-using CoinUtilsPr;
-using Skender.Stock.Indicators;
-using TestPr.Service;
-using Newtonsoft.Json;
+﻿using TestPr.Service;
 
 namespace TestPr
 {

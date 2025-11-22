@@ -14,6 +14,7 @@ namespace TradePr.DAL
             services.AddSingleton<ISignalSOSRepo, SignalSOSRepo>();
             services.AddSingleton<IEntrySOSRepo, EntrySOSRepo>();
             services.AddSingleton<ILast_SOSRepo, Last_SOSRepo>();
+            services.AddSingleton<IProRepo, ProRepo>();
         }
     }
 }

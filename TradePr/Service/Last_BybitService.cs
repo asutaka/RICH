@@ -10,6 +10,28 @@ using TradePr.Utils;
 
 namespace TradePr.Service
 {
+      //while (!stoppingToken.IsCancellationRequested)
+      //  {
+      //      await _lastService.Detect_TakeProfit();
+
+      //      var now = DateTime.Now;
+      //      if (now.Minute == 30)
+      //      {
+      //          await _lastService.Detect_SOSReal();
+      //      }
+      //      if (now.Minute == 0)
+      //      {
+      //          await _lastService.Detect_Entry();
+      //      }
+
+      //      if (now.Hour % 4 == 0
+      //          && now.Minute <= 1)
+      //      {
+      //          _lastService.Detect_SOS();
+      //      }
+
+      //      await Task.Delay(1000 * 60, stoppingToken);
+      //  }
     public interface ILast_BybitService
     {
         Task Detect_SOS();

@@ -105,5 +105,10 @@ namespace CoinUtilsPr
             "MINAUSDT",
             "HIGHUSDT"
         };
+
+        public static List<long> _lIgnoreCode = new List<long>
+        {
+            110007
+        };
     }
 }

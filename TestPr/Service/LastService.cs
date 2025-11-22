@@ -81,7 +81,7 @@ namespace TestPr.Service
         }
 
         Quote _cur = new Quote();
-        decimal SimulateTrade2(ProModel entry, int index, List<Quote> futureQuotes)
+        decimal SimulateTrade2(Pro entry, int index, List<Quote> futureQuotes)
         {
             var DONBAY = 10;
             var SONEN_NAMGIU = 24;
