@@ -242,7 +242,7 @@ namespace TradePr.Service
                 var max = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.Max);
                 var val = account.WalletBalance.Value > (decimal)max.value ? (decimal)max.value : account.WalletBalance.Value;
 
-                var soluong = (val * _margin) / entry.entity.Close;
+                var soluong = (val * _margin * entry.ratio / 100) / entry.entity.Close;
                 if (tronSL == 1)
                 {
                     soluong = Math.Round(soluong);
@@ -310,7 +310,7 @@ namespace TradePr.Service
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{entry.s}|{resSL.Error.Code}:{resSL.Error.Message}");
                     }
 
-                    var mes = $"[ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit] {entry.s}|ENTRY: {entry}|SL: {sl}";
+                    var mes = $"[ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit] {entry.s}|ENTRY: {entry.entity.Close}|SL: {sl}";
                     await _teleService.SendMessage(_idUser, mes);
                 }
             }
