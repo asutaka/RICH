@@ -184,8 +184,6 @@ namespace TradePr.Service
                 {
                     "SOLUSDT",
                     "SUIUSDT",
-                    "WLDUSDT",
-                    "TAOUSDT"
                 };
                 foreach (var sym in lSym)
                 {
