@@ -6,6 +6,7 @@ using CoinUtilsPr.DAL.Entity;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
+using System.Drawing;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -81,7 +82,8 @@ namespace TradePr.Service
                     ));
 
                 var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                if (!pos.Data.List.Any())
+                if (pos is null 
+                    || !pos.Data.List.Any())
                 {
                     if(lentity.Any())//Case STOPLOSS
                     {
@@ -90,6 +92,8 @@ namespace TradePr.Service
                             item.status = -1;
                             item.is_sl = true;
                             _proRepo.Update(item);
+
+                            await _teleService.SendMessage(_idUser, $"[STOPLOSS|Bybit] {item.s}|SL: {item.sl_price}");
                         }
                     }
                     return;
