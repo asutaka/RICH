@@ -257,7 +257,8 @@ namespace TradePr.Service
                     "SOLUSDT",
                     "SUIUSDT",
                     "BTCUSDT",
-                    "ETHUSDT"
+                    "ETHUSDT",
+                    "BNBUSDT"
                 };
                 foreach (var sym in lSym)
                 {
