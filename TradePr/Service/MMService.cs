@@ -15,6 +15,7 @@ namespace TradePr.Service
     {
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
         Task Bybit_Trade();
+        Task Bybit_Signal();
     }
     public class MMService : IMMService
     {
@@ -209,6 +210,70 @@ namespace TradePr.Service
 
                         await PlaceOrder(entry);
                         _proRepo.InsertOne(entry);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_ENTRY|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_ENTRY|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task Bybit_Signal()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var lConfig = _configRepo.GetAll();
+                var signal = lConfig.First(x => x.ex == _exchange && x.op == (int)EOption.SignalNotify);
+                if(signal != null && signal.status > 0)
+                {
+                    if (now.Minute % 5 == 0) 
+                    {
+                        await Bybit_ENTRY_SIGNAL(EInterval.M5);
+                    }
+                    if (now.Minute % 15 == 0)
+                    {
+                        await Bybit_ENTRY_SIGNAL(EInterval.M15);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_Signal|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private async Task Bybit_ENTRY_SIGNAL(EInterval interval)
+        {
+            try
+            {
+                var lSym = new List<string>
+                {
+                    "SOLUSDT",
+                    "SUIUSDT",
+                };
+                foreach (var sym in lSym)
+                {
+                    try
+                    {
+                        //gia
+                        var quotes = await _apiService.GetData_Binance(sym, interval);
+                        if (quotes is null || !quotes.Any())
+                            continue;
+
+                        var last = quotes.Last();
+                        if (last.Volume <= 0)
+                            continue;
+
+                        var entry = quotes.GetEntry(interval);
+                        if (entry == null) continue;
+                        var mes = $"{sym}|{interval}|SIGNAL|{entry.entity.Date.ToString("dd/MM/yyyy HH:mm")}";
+                        await _teleService.SendMessage(_idUser, mes);
                     }
                     catch (Exception ex)
                     {

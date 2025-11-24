@@ -32,6 +32,7 @@ namespace CoinUtilsPr
         Thread = 2,//Số lệnh tối đa trong một thời điểm
         DisableLong = 4,//Tắt Long
         DisableShort = 5,//Tắt Short
+        SignalNotify = 6,
     }
 
     public enum EError

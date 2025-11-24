@@ -20,6 +20,7 @@ namespace TradePr
             while (!stoppingToken.IsCancellationRequested)
             {
                 await _mmService.Bybit_Trade();
+                await _mmService.Bybit_Signal();
                 await Task.Delay(1000 * 60, stoppingToken);
             }
         }

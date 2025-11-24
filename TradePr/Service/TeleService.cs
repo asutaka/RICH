@@ -166,6 +166,10 @@ namespace TradePr.Service
                     {
                         model.List = true;
                     }
+                    if (mes.Equals("signal", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.Signal = true;
+                    }
                 }
 
                 if(model.Exchange != null)
@@ -227,6 +231,11 @@ namespace TradePr.Service
                             await SendMessage(_idUser, mes);
                         }
                     }
+                    else if (model.Signal)
+                    {
+                        var res = SetSignal();
+                        await SendMessage(_idUser, $"SIGNAL SET: {(res > 0 ? "ON" : "OFF")} ");
+                    }
                 }
 
                 Console.WriteLine(msg.Text);
@@ -252,6 +261,27 @@ namespace TradePr.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"TeleService.OnMessage|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private int SetSignal()
+        {
+            var lConfig = _configRepo.GetAll();
+            var config = lConfig.FirstOrDefault(x => x.op == (int)EOption.SignalNotify);
+            if (config != null)
+            {
+                config.status = config.status > 0 ? 0 : 1;
+                _configRepo.Update(config);
+                return config.status;
+            }
+            else
+            {
+                _configRepo.InsertOne(new ConfigData
+                {
+                    op = (int)EOption.SignalNotify,
+                    status = 1
+                });
+                return 1;
             }
         }
 
