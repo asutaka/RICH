@@ -36,7 +36,9 @@ namespace TestPr.Service
             //var sym = "WLDUSDT";
             //var sym = "TAOUSDT";
             //var sym = "SUIUSDT";
-            var quotes = await _apiService.GetData_Binance(sym, EInterval.H1);
+            var interval = EInterval.H1;
+
+            var quotes = await _apiService.GetData_Binance(sym, interval);
             //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 1460, 1095);
             //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 1095, 730);
             //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 730, 365);
@@ -47,7 +49,7 @@ namespace TestPr.Service
             for (int i = 50; i < quotes.Count - 1; i++)
             {
                 var window = quotes.Take(i + 1).ToList();
-                var entry = window.GetEntry();
+                var entry = window.GetEntry(interval);
                 if (entry == null) continue;
 
                 if (entry.entity.Date <= _cur.Date)
@@ -215,12 +217,13 @@ namespace TestPr.Service
         {
             try
             {
-                var l1H = await _apiService.GetData_Binance("BTCUSDT", EInterval.H1);
+                var interval = EInterval.H1;
+                var l1H = await _apiService.GetData_Binance("BTCUSDT", interval);
                 var count = l1H.Count;
                 for (int i = 0; i < count; i++)
                 {
                     var lDat = l1H.Take(i).ToList();
-                    var entry = lDat.GetEntry();
+                    var entry = lDat.GetEntry(interval);
                     if(entry != null)
                     {
                         var mes = $"{entry.entity.Date.ToString("dd/MM/yyyy HH")}|Entry: {entry.entity.Close}|SL: {entry.sl_price}";

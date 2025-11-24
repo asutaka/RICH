@@ -5,7 +5,7 @@ namespace CoinUtilsPr
 {
     public static class ProTrader
     {
-        public static Pro? GetEntry(this List<Quote> quotes)
+        public static Pro? GetEntry(this List<Quote> quotes, EInterval interval)
         {
             try
             {
@@ -42,8 +42,20 @@ namespace CoinUtilsPr
                 decimal bbWidth = bbCur.LowerBand.HasValue && bbCur.LowerBand != 0
                 ? 100m * ((decimal)bbCur.UpperBand! - (decimal)bbCur.LowerBand!) / (decimal)bbCur.LowerBand!
                 : 0m;
-                if (bbWidth < 1.8m) return null;
+
                 if (cur.Close >= (decimal)bbCur.Sma) return null;
+                if(interval == EInterval.H1)
+                {
+                    if (bbWidth < 1.8m) return null;
+                }
+                else if (interval == EInterval.M15)
+                {
+                    if (bbWidth < 1.5m) return null;
+                }
+                else if (interval == EInterval.M5)
+                {
+                    if (bbWidth < 1m) return null;
+                }
 
                 var lrsi = quotes.GetRsi().ToList();
                 if (lrsi.Count < 46) return null;
@@ -65,7 +77,6 @@ namespace CoinUtilsPr
                 var output = new Pro
                 {
                     entity = cur,
-                    sl_price = cur.Close * 0.985m
                 };
 
                 if (buy1 && rsiCur < 45m){}

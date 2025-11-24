@@ -194,7 +194,8 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var quotes = await _apiService.GetData_Binance(sym, EInterval.H1);
+                        var interval = EInterval.H1;
+                        var quotes = await _apiService.GetData_Binance(sym, interval);
                         if (quotes is null || !quotes.Any())
                             continue;
 
@@ -202,7 +203,7 @@ namespace TradePr.Service
                         if (last.Volume <= 0)
                             continue;
 
-                        var entry = quotes.GetEntry();
+                        var entry = quotes.GetEntry(interval);
                         if (entry == null) continue;
                         entry.s = sym;
 
