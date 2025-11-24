@@ -32,11 +32,11 @@ namespace TestPr.Service
 
         public async Task fake()
         {
-            var sym = "SOLUSDT";
+            var sym = "SUIUSDT";
             //var sym = "WLDUSDT";
             //var sym = "TAOUSDT";
             //var sym = "SUIUSDT";
-            var interval = EInterval.H1;
+            var interval = EInterval.M5;
 
             var quotes = await _apiService.GetData_Binance(sym, interval);
             //var quotes = await _apiService.GetData_Binance(sym, EInterval.H1, 1460, 1095);

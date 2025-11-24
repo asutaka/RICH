@@ -107,8 +107,8 @@ namespace TradePr.Service
                     //Lỗi gì đó ko lưu lại đc log
                     if (place is null)
                     {
-                        Console.WriteLine($"Place null");
-                        await PlaceOrderClose(item);
+                        //Console.WriteLine($"Place null");
+                        //await PlaceOrderClose(item);
                         break;
                     }
                     var quotes = await _apiService.GetData_Binance(item.Symbol, EInterval.H1);
