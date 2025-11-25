@@ -275,7 +275,7 @@ namespace TradePr.Service
 
                         var entry = quotes.GetEntry(interval);
                         if (entry == null) continue;
-                        var mes = $"{sym}|{interval}|SIGNAL|{entry.entity.Date.ToString("dd/MM/yyyy HH:mm")}";
+                        var mes = $"{sym}|{interval}|SIGNAL({entry.ratio}%)|{entry.entity.Date.ToString("dd/MM/yyyy HH:mm")}";
                         await _teleService.SendMessage(_idUser, mes);
                     }
                     catch (Exception ex)
