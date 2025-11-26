@@ -63,7 +63,13 @@ namespace TradePr.Service
 
                 if(now.Minute <= 0)
                 {
-                    await Bybit_ENTRY();
+                    var interval = EInterval.H1;
+                    await Bybit_ENTRY(interval);
+                }
+                if (now.Minute % 15 == 0)
+                {
+                    var interval = EInterval.M15;
+                    await Bybit_ENTRY(interval);
                 }
             }
             catch (Exception ex)
@@ -112,7 +118,7 @@ namespace TradePr.Service
                         //await PlaceOrderClose(item);
                         break;
                     }
-                    var quotes = await _apiService.GetData_Binance(item.Symbol, EInterval.H1);
+                    var quotes = await _apiService.GetData_Binance(item.Symbol, (EInterval)place.interval);
                     var count = quotes.Count(x => x.Date > place.entity.Date);
                     //DONG LENH
                     if (count > SONEN_NAMGIU)
@@ -177,7 +183,7 @@ namespace TradePr.Service
             }
         }
 
-        private async Task Bybit_ENTRY()
+        private async Task Bybit_ENTRY(EInterval interval)
         {
             try
             {
@@ -195,7 +201,6 @@ namespace TradePr.Service
                     try
                     {
                         //gia
-                        var interval = EInterval.H1;
                         var quotes = await _apiService.GetData_Binance(sym, interval);
                         if (quotes is null || !quotes.Any())
                             continue;
@@ -236,10 +241,10 @@ namespace TradePr.Service
                     {
                         await Bybit_ENTRY_SIGNAL(EInterval.M5);
                     }
-                    if (now.Minute % 15 == 0)
-                    {
-                        await Bybit_ENTRY_SIGNAL(EInterval.M15);
-                    }
+                    //if (now.Minute % 15 == 0)
+                    //{
+                    //    await Bybit_ENTRY_SIGNAL(EInterval.M15);
+                    //}
                 }
             }
             catch(Exception ex)

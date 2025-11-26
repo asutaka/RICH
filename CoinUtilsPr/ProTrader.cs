@@ -125,6 +125,11 @@ namespace CoinUtilsPr
                     output.ratio = 50;
                 }
                 output.sl_rate = sl;
+                if (interval == EInterval.M15)
+                {
+                    output.ratio -= 20;
+                }
+                output.interval = (int)interval;
 
                 return output;
             }
