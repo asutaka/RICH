@@ -386,7 +386,7 @@ namespace TradePr.Service
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{entry.s}|{resSL.Error.Code}:{resSL.Error.Message}");
                     }
 
-                    var mes = $"[ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit] {entry.s}|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
+                    var mes = $"[ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit({(EInterval)entry.interval})] {entry.s}|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
                     await _teleService.SendMessage(_idUser, mes);
                 }
             }
