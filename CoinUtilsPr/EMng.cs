@@ -4,6 +4,8 @@ namespace CoinUtilsPr
 {
     public enum EInterval
     {
+        [Display(Name = "none")]
+        NONE =0,
         [Display(Name = "15m")]
         M15 = 1,//15m
         [Display(Name = "1h")]
