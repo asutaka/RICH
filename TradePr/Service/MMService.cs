@@ -90,6 +90,7 @@ namespace TradePr.Service
 
                 var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos is null 
+                    || pos.Data.List is null
                     || !pos.Data.List.Any())
                 {
                     if(lentity.Any())//Case STOPLOSS
@@ -119,6 +120,11 @@ namespace TradePr.Service
                         break;
                     }
                     var quotes = await _apiService.GetData_Binance(item.Symbol, (EInterval)place.interval);
+                    if(quotes is null || !quotes.Any())
+                    {
+                        //Console.WriteLine($"Quotes null");
+                        continue;
+                    }
                     var count = quotes.Count(x => x.Date > place.entity.Date);
                     //DONG LENH
                     if (count > SONEN_NAMGIU)
