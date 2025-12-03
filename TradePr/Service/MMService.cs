@@ -90,6 +90,7 @@ namespace TradePr.Service
 
                 var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
                 if (pos is null 
+                    || pos.Data is null
                     || pos.Data.List is null
                     || !pos.Data.List.Any())
                 {
