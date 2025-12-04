@@ -89,6 +89,7 @@ namespace TradePr.Service
                     ));
 
                 var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                Console.WriteLine("1.");
                 if (pos is null 
                     || pos.Data is null
                     || pos.Data.List is null
@@ -107,7 +108,7 @@ namespace TradePr.Service
                     }
                     return;
                 }
-               
+                Console.WriteLine("2.");
                 #region TP
                 foreach (var item in pos.Data.List)
                 {
