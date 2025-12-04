@@ -3,6 +3,7 @@ using Bybit.Net.Objects.Models.V5;
 using CoinUtilsPr;
 using CoinUtilsPr.DAL;
 using CoinUtilsPr.DAL.Entity;
+using CryptoExchange.Net.Objects;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Skender.Stock.Indicators;
@@ -88,8 +89,17 @@ namespace TradePr.Service
                         builder.Eq(x => x.status, 0)
                     ));
 
-                var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                Console.WriteLine("1.");
+                WebCallResult<BybitResponse<BybitPosition>> pos = null;
+                try
+                {
+                    pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|GetPositionsAsync:| {ex.Message}");
+                    return;
+                }
+
                 if (pos is null 
                     || pos.Data is null
                     || pos.Data.List is null
@@ -108,7 +118,6 @@ namespace TradePr.Service
                     }
                     return;
                 }
-                Console.WriteLine("2.");
                 #region TP
                 foreach (var item in pos.Data.List)
                 {
