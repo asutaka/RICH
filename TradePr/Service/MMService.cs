@@ -204,8 +204,20 @@ namespace TradePr.Service
         {
             try
             {
-                var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                if (pos.Data.List.Any())
+                WebCallResult<BybitResponse<BybitPosition>> pos = null;
+                try
+                {
+                    pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|Bybit_ENTRY:| {ex.Message}");
+                    return;
+                }
+
+                if (pos != null &&
+                    pos.Data != null &&
+                    pos.Data.List.Any())
                     return;
 
                 var lSym = new List<string>
