@@ -83,31 +83,32 @@ namespace TradePr.Service
         {
             try
             {
+                Console.WriteLine("phunv:0");
                 var dt = DateTime.UtcNow;
                 var builder = Builders<Pro>.Filter;
                 var lentity = _proRepo.GetByFilter(builder.And(
                         builder.Eq(x => x.status, 0)
                     ));
-                Console.WriteLine("1");
+                Console.WriteLine("phunv:1");
 
                 WebCallResult<BybitResponse<BybitPosition>> pos = null;
                 try
                 {
                     pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                    Console.WriteLine("2");
+                    Console.WriteLine("phunv:2");
                 }
                 catch(Exception ex)
                 {
                     _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|GetPositionsAsync:| {ex.Message}");
                     return;
                 }
-                Console.WriteLine("3");
+                Console.WriteLine("phunv:3");
                 if (pos is null 
                     || pos.Data is null
                     || pos.Data.List is null
                     || !pos.Data.List.Any())
                 {
-                    Console.WriteLine("4");
+                    Console.WriteLine("phunv:4");
                     if (lentity.Any())//Case STOPLOSS
                     {
                         foreach (var item in lentity)
@@ -122,7 +123,7 @@ namespace TradePr.Service
                     return;
                 }
                 #region TP
-                Console.WriteLine("5");
+                Console.WriteLine("phunv:5");
                 foreach (var item in pos.Data.List)
                 {
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
@@ -134,7 +135,7 @@ namespace TradePr.Service
                         //await PlaceOrderClose(item);
                         break;
                     }
-                    Console.WriteLine("6");
+                    Console.WriteLine("phunv:6");
                     var quotes = await _apiService.GetData_Binance(item.Symbol, (EInterval)place.interval);
                     if(quotes is null || !quotes.Any())
                     {
