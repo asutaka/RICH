@@ -19,15 +19,17 @@ namespace StockPr.Service
         private readonly IAccountRepo _accountRepo;
         private readonly IChartService _chartService;
         private readonly IEPSRankService _rankService;
+        private readonly IAIService _aiService;
 
         private readonly int _ty = (int)EUserMessageType.StockPr;
-        public MessageService(ILogger<MessageService> logger, IChartService chartService, IUserMessageRepo userMessageRepo, IEPSRankService rankService, IAccountRepo accountRepo)
+        public MessageService(ILogger<MessageService> logger, IChartService chartService, IUserMessageRepo userMessageRepo, IEPSRankService rankService, IAccountRepo accountRepo, IAIService ai)
         {
             _logger = logger;
             _chartService = chartService;
             _userMessageRepo = userMessageRepo;
             _rankService = rankService;
             _accountRepo = accountRepo;
+            _aiService = ai;
         }
         public async Task<List<HandleMessageModel>> ReceivedMessage(Message msg)
         {
@@ -122,6 +124,15 @@ namespace StockPr.Service
                             Message = $"FreeFloat: {Math.Round(rank.Item1)}%\nEPS: {Math.Round(rank.Item2).ToString("#,##0.#")} đồng\nPE: {Math.Round(rank.Item3, 1)}\nPB: {Math.Round(rank.Item4, 2)}\nNợ/VCSH: {Math.Round(rank.Item5, 2)}"
                         });
                     }
+
+                    //var ai = await _aiService.AskModel(input.ToUpper());
+                    //if(ai.Item1)
+                    //{
+                    //    lRes.Add(new HandleMessageModel
+                    //    {
+                    //        Message = ai.Item2
+                    //    });
+                    //}    
                 }
                 else
                 {
