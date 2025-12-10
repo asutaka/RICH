@@ -33,6 +33,7 @@ namespace TestPr.Service
         public async Task fake()
         {
             var sym = "SOLUSDT";
+            var tmp = await _apiService.GetBuySellRate(sym, EInterval.M15);
             //var sym = "WLDUSDT";
             //var sym = "TAOUSDT";
             //var sym = "SUIUSDT";

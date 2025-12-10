@@ -15,6 +15,12 @@ namespace CoinUtilsPr
         Task<List<Quote>> GetData_Binance(string symbol, EInterval interval, int DAY = 10, int SKIP_DAY = 0);
         Task<List<Quote>> GetData_Bybit_1H(string symbol);
         Task<CoinAnk_LiquidValue> CoinAnk_GetLiquidValue(string coin);
+        Task<DepthDTO> GetDepth(string symbol);
+        Task<List<FundingRateDTO>> GetFundingRate(string symbol);
+        Task<List<LongShortRatioDTO>> GetTopLongShortPositionRatio(string symbol, EInterval interval);
+        Task<List<LongShortRatioDTO>> GetTopLongShortAccountRatio(string symbol, EInterval interval);
+        Task<List<LongShortRatioDTO>> GetLongShortRatio(string symbol, EInterval interval);
+        Task<List<TakerVolumneBuySellDTO>> GetBuySellRate(string symbol, EInterval interval);
     }
     public class APIService : IAPIService
     {
@@ -291,6 +297,216 @@ namespace CoinUtilsPr
             }
             return new List<Quote>();
         }
+        /// <summary>
+        /// Độ sâu thị trường
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public async Task<DepthDTO> GetDepth(string symbol)
+        {
+            var url = $"https://www.binance.com/fapi/v1/depth?limit=50&symbol={symbol}";
+
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return null;
+
+                return JsonConvert.DeserializeObject<DepthDTO>(contents);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetDepth|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+            }
+            return null;
+        }
+        /// <summary>
+        /// Funding Rate
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public async Task<List<FundingRateDTO>> GetFundingRate(string symbol)
+        {
+            var url = $"https://www.binance.com/fapi/v1/fundingRate?limit=50&symbol={symbol}";
+
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return null;
+
+                return JsonConvert.DeserializeObject<List<FundingRateDTO>>(contents);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetFundingRate|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+            }
+            return null;
+        }
+        /// <summary>
+        /// Top 20% cá mập Long short vị thế
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public async Task<List<LongShortRatioDTO>> GetTopLongShortPositionRatio(string symbol, EInterval interval)
+        {
+            var url = $"https://www.binance.com/futures/data/topLongShortPositionRatio?limit=50&symbol={symbol}&period={interval.GetDisplayName()}";
+
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return null;
+
+                return JsonConvert.DeserializeObject<List<LongShortRatioDTO>>(contents);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetTopLongShortPositionRatio|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+            }
+            return null;
+        }
+        /// <summary>
+        /// Top 20% cá mập Long short tài khoản
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public async Task<List<LongShortRatioDTO>> GetTopLongShortAccountRatio(string symbol, EInterval interval)
+        {
+            var url = $"https://www.binance.com/futures/data/topLongShortAccountRatio?limit=50&symbol={symbol}&period={interval.GetDisplayName()}";
+
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return null;
+
+                return JsonConvert.DeserializeObject<List<LongShortRatioDTO>>(contents);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetTopLongShortAccountRatio|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+            }
+            return null;
+        }
+        /// <summary>
+        /// Tỉ lệ long short account toàn thị trường
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public async Task<List<LongShortRatioDTO>> GetLongShortRatio(string symbol, EInterval interval)
+        {
+            var url = $"https://www.binance.com/futures/data/globalLongShortAccountRatio?limit=50&symbol={symbol}&period={interval.GetDisplayName()}";
+
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return null;
+
+                return JsonConvert.DeserializeObject<List<LongShortRatioDTO>>(contents);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetLongShortRatio|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+            }
+            return null;
+        }
+        /// <summary>
+        /// Tỉ lệ mua bán volume toàn thị trường
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public async Task<List<TakerVolumneBuySellDTO>> GetBuySellRate(string symbol, EInterval interval)
+        {
+            var url = $"https://www.binance.com/futures/data/takerlongshortRatio?limit=50&symbol={symbol}&period={interval.GetDisplayName()}";
+
+            try
+            {
+                using var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "");
+                request.Content = new StringContent("",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (contents.Length < 200)
+                    return null;
+
+                return JsonConvert.DeserializeObject<List<TakerVolumneBuySellDTO>>(contents);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"APIService.GetBuySellRate|EXCEPTION|INPUT: symbol:{symbol}| {ex.Message}");
+            }
+            return null;
+        }
 
         private string CoinAnk_GetKey()
         {
@@ -331,7 +547,7 @@ namespace CoinUtilsPr
             return new CoinAnk_LiquidValue();
         }
     }
-
+   
     public class clsBybit
     {
         public clsBybitResult result { get; set; }
