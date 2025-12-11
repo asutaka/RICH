@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <WorkerService>True</WorkerService>
     <UserSecretsId>dotnet-TradePr-beb8a8d1-6a91-4dfa-8472-f6cdee7b7a67</UserSecretsId>
   </PropertyGroup>
 
