@@ -15,6 +15,7 @@ namespace TradePr.DAL
             services.AddSingleton<IEntrySOSRepo, EntrySOSRepo>();
             services.AddSingleton<ILast_SOSRepo, Last_SOSRepo>();
             services.AddSingleton<IProRepo, ProRepo>();
+            services.AddSingleton<IDepthRepo, DepthRepo>();
         }
     }
 }

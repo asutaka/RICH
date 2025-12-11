@@ -17,6 +17,7 @@ namespace TradePr.Service
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
         Task Bybit_Trade();
         Task Bybit_Signal();
+        Task Bybit_Trace();
     }
     public class MMService : IMMService
     {
@@ -24,6 +25,7 @@ namespace TradePr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly IConfigDataRepo _configRepo;
+        private readonly IDepthRepo _depthRepo;
         private readonly IProRepo _proRepo;
         private const long _idUser = 1066022551;
         private readonly int _exchange = (int)EExchange.Bybit;
@@ -31,13 +33,14 @@ namespace TradePr.Service
         private const int SONEN_NAMGIU = 24;
         public MMService(ILogger<MMService> logger,
                           IAPIService apiService, ITeleService teleService, 
-                          IConfigDataRepo configRepo, IProRepo proRepo)
+                          IConfigDataRepo configRepo, IProRepo proRepo, IDepthRepo depthRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _configRepo = configRepo;
             _proRepo = proRepo;
+            _depthRepo = depthRepo;
         }
 
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
@@ -285,6 +288,74 @@ namespace TradePr.Service
             catch(Exception ex)
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_Signal|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task Bybit_Trace()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                if(now.Minute % 15 == 0)
+                {
+                    var lSym = new List<string>
+                    {
+                        "SOLUSDT",
+                        "SUIUSDT",
+                    };
+                    foreach (var sym in lSym)
+                    {
+                        try
+                        {
+                            var buysell = await _apiService.GetBuySellRate(sym, EInterval.M15);
+                            var depth = await _apiService.GetDepth(sym);
+                            if(buysell is null 
+                                || !buysell.Any())
+                                continue;
+
+                            var model = new Depth
+                            {
+                                s = sym,
+                                t = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                                buySellRatio = (double)buysell.Last().buySellRatio
+                            };
+
+                            if (depth.asks.Any())
+                            {
+                                model.priceAsksTop = (double)depth.asks.Last()[0];
+                                model.priceAsksBot = (double)depth.asks.First()[0];
+                                model.priceBidsTop = (double)depth.bids.First()[0];
+                                model.priceBidsBot = (double)depth.bids.Last()[0];
+
+                                var maxBids = depth.bids.MaxBy(x => x[1]);
+                                var avgBids = depth.bids.Average(x => x[0] * x[1]);
+                                var sumBids = depth.bids.Sum(x => x[0] * x[1]);
+                                var ratioBids = Math.Round(maxBids[0] * maxBids[1] / avgBids, 2);
+
+                                var maxAsks = depth.asks.MaxBy(x => x[1]);
+                                var avgAsks = depth.asks.Average(x => x[0] * x[1]);
+                                var sumAsks = depth.asks.Sum(x => x[0] * x[1]);
+                                var ratioAsks = Math.Round(maxAsks[0] * maxAsks[1] / avgAsks, 2);
+
+                                model.posMaxBidsRatio = (double)ratioBids;
+                                model.posMaxAskRatio = (double)ratioAsks;
+                                model.priceAtMaxBids = (double)maxBids[0];
+                                model.priceAtMaxAsks = (double)maxAsks[0];
+                                model.tilebidask = Math.Round((double)(sumBids / sumAsks), 2);
+                                _depthRepo.InsertOne(model);
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_Trace|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                        }   
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_Trace|EXCEPTION| {ex.Message}");
             }
         }
 

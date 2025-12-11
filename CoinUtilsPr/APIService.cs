@@ -479,7 +479,7 @@ namespace CoinUtilsPr
         /// <returns></returns>
         public async Task<List<TakerVolumneBuySellDTO>> GetBuySellRate(string symbol, EInterval interval)
         {
-            var url = $"https://www.binance.com/futures/data/takerlongshortRatio?limit=50&symbol={symbol}&period={interval.GetDisplayName()}";
+            var url = $"https://www.binance.com/futures/data/takerlongshortRatio?limit=500&symbol={symbol}&period={interval.GetDisplayName()}";
 
             try
             {
