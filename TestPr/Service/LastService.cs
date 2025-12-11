@@ -35,7 +35,7 @@ namespace TestPr.Service
             var sym = "SOLUSDT";
             //var tmp = await _apiService.GetBuySellRate(sym, EInterval.M15);
             //var depth = await _apiService.GetDepth(sym);
-           
+
             //var tmp3 = await _apiService.GetFundingRate(sym);
             //var sym = "WLDUSDT";
             //var sym = "TAOUSDT";
