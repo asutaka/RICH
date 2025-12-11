@@ -86,32 +86,32 @@ namespace TradePr.Service
         {
             try
             {
-                Console.WriteLine("phunv:0");
+                //Console.WriteLine("phunv:0");
                 var dt = DateTime.UtcNow;
                 var builder = Builders<Pro>.Filter;
                 var lentity = _proRepo.GetByFilter(builder.And(
                         builder.Eq(x => x.status, 0)
                     ));
-                Console.WriteLine("phunv:1");
+                //Console.WriteLine("phunv:1");
 
                 WebCallResult<BybitResponse<BybitPosition>> pos = null;
                 try
                 {
                     pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
-                    Console.WriteLine("phunv:2");
+                    //Console.WriteLine("phunv:2");
                 }
                 catch(Exception ex)
                 {
                     _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|GetPositionsAsync:| {ex.Message}");
                     return;
                 }
-                Console.WriteLine("phunv:3");
+                //Console.WriteLine("phunv:3");
                 if (pos is null 
                     || pos.Data is null
                     || pos.Data.List is null
                     || !pos.Data.List.Any())
                 {
-                    Console.WriteLine("phunv:4");
+                    //Console.WriteLine("phunv:4");
                     if (lentity.Any())//Case STOPLOSS
                     {
                         foreach (var item in lentity)
@@ -296,7 +296,7 @@ namespace TradePr.Service
             try
             {
                 var now = DateTime.UtcNow;
-                Console.WriteLine($"TRACE: {now}");
+                //Console.WriteLine($"TRACE: {now}");
                 if(now.Minute % 15 == 0)
                 {
                     var lSym = new List<string>
