@@ -317,7 +317,7 @@ namespace TradePr.Service
                             var model = new Depth
                             {
                                 s = sym,
-                                t = (int)buysell.Last().timestamp / 1000,
+                                t = (int)(buysell.Last().timestamp / 1000),
                                 buySellRatio = (double)buysell.Last().buySellRatio
                             };
 
