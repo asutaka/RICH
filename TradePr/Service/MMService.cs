@@ -126,7 +126,7 @@ namespace TradePr.Service
                     return;
                 }
                 #region TP
-                Console.WriteLine("phunv:5");
+                //Console.WriteLine("phunv:5");
                 foreach (var item in pos.Data.List)
                 {
                     var side = item.Side == PositionSide.Sell ? OrderSide.Sell : OrderSide.Buy;
@@ -138,7 +138,7 @@ namespace TradePr.Service
                         //await PlaceOrderClose(item);
                         break;
                     }
-                    Console.WriteLine("phunv:6");
+                    //Console.WriteLine("phunv:6");
                     var quotes = await _apiService.GetData_Binance(item.Symbol, (EInterval)place.interval);
                     if(quotes is null || !quotes.Any())
                     {
