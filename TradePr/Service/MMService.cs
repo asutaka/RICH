@@ -296,6 +296,7 @@ namespace TradePr.Service
             try
             {
                 var now = DateTime.UtcNow;
+                Console.WriteLine($"TRACE: {now}");
                 if(now.Minute % 15 == 0)
                 {
                     var lSym = new List<string>
