@@ -1,10 +1,45 @@
 ﻿using CoinUtilsPr.DAL.Entity;
+using CoinUtilsPr.Model;
 using Skender.Stock.Indicators;
 
 namespace CoinUtilsPr
 {
     public static class ProTrader
     {
+        public static TakerVolumneBuySellDTO? GetEntry(this List<TakerVolumneBuySellDTO> takervolumes, List<Quote> quotes)
+        {
+            try
+            {
+                var count = takervolumes.Count;
+                if (count < 2) return null;
+
+                var prev = takervolumes[count - 2];
+                var cur = takervolumes[count - 1];
+                var up = Math.Round(cur.buySellRatio / prev.buySellRatio, 1);
+                if(up > 1.3m)
+                {
+                    var lrsi = quotes.GetRsi();
+                    var lma9 = lrsi.GetSma(9);
+                    var lbb = quotes.GetBollingerBands();
+                    var time = ((long)(cur.timestamp)).UnixTimeStampMinisecondToDateTime();
+                    var rsi = lrsi.First(x => x.Date == time);
+                    var ma9 = lma9.First(x => x.Date == time);
+                    var bb_check = lbb.Where(x => x.Date < time).TakeLast(20).MaxBy(x => x.UpperBand - x.LowerBand);
+                    var rate = Math.Round(100 * (-1 + bb_check.UpperBand.Value / bb_check.LowerBand.Value), 2);
+                    if (rsi.Rsi.Value < 45
+                        && rsi.Rsi.Value < ma9.Sma.Value
+                        && rate < 10)
+                    {
+                        return cur;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetEntry error: " + ex.Message);
+            }
+            return null;
+        }
         public static Pro? GetEntry(this List<Quote> quotes, EInterval interval)
         {
             try
