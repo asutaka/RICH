@@ -35,12 +35,13 @@ namespace TestPr.Service
         public async Task fake()
         {
             var sym = "SOLUSDT";
+            var buysell = await _apiService.GetBuySellRate(sym, EInterval.M15);
             var ldepth = _depthRepo.GetAll();
             var lfilter = ldepth.Where(x => x.s == sym).ToList();
-            foreach (var item in lfilter)
+            foreach (var item in buysell)
             {
-                var time = ((long)item.t * 1000).UnixTimeStampMinisecondToDateTime();
-                var mes = $"{time.ToString("dd/MM HH:mm")}|bs:{item.buySellRatio}|bidsask:{item.tilebidask}";
+                var time = ((long)(item.timestamp)).UnixTimeStampMinisecondToDateTime();
+                var mes = $"{time.ToString("dd/MM HH:mm")}|bs:{item.buySellRatio}";
                 Console.WriteLine(mes);
             }
 
