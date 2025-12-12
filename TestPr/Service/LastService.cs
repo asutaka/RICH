@@ -13,6 +13,7 @@ namespace TestPr.Service
         Task RealTemplate();
         Task ProTradeEx();
         Task fake();
+        Task fake2();
     }
     //Phải dùng vol là tín hiệu đầu tiên vì nó là tín hiệu nhạy nhất 
     public class LastService : ILastService
@@ -32,26 +33,55 @@ namespace TestPr.Service
             _depthRepo = depthRepo;
         }
 
+        public async Task fake2()
+        {
+            var sym = "SOLUSDT";
+            var interval = EInterval.M15;
+            var buysell = await _apiService.GetBuySellRate(sym, interval);
+            var quotes = await _apiService.GetData_Binance(sym, interval);
+            var lrsi = quotes.GetRsi().ToList();
+            var lma9 = lrsi.GetSma(9).ToList();
+            var lwma45 = lrsi.GetWma(45).ToList();
+
+            var count = buysell.Count();
+            for (int i = 1; i < count - 1; i++)
+            {
+                var prev = buysell[i - 1];
+                var cur = buysell[i];
+                var up = Math.Round(cur.buySellRatio / prev.buySellRatio, 1);
+                var down = Math.Round(prev.buySellRatio / cur.buySellRatio, 1);
+                var time = ((long)(cur.timestamp)).UnixTimeStampMinisecondToDateTime();
+                var rsi = lrsi.First(x => x.Date == time);
+                var ma9 = lma9.First(x => x.Date == time);
+                var wma45 = lwma45.First(x => x.Date == time);
+
+                var mes = $"{time.ToString("dd/MM HH:mm")}|bs:{cur.buySellRatio}";
+                Console.WriteLine(mes);
+                if (up > 1.3m)
+                {
+                    var mesPivot = $"UP:{time.ToString("dd/MM HH:mm")}";
+                    Console.WriteLine(mesPivot);
+
+                    if(rsi.Rsi.Value < 45
+                        && rsi.Rsi.Value < ma9.Sma.Value)
+                    {
+                        Console.WriteLine("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
+                        //5 nến kế tiếp phải vượt MA9 
+                        //20 nến liền trước bb max không được vượt 10%
+                        //Bán khi vượt ma20(30), chạm upperband(1/2), signal down?? 
+                    }
+                }
+                else if (down > 1.3m)
+                {
+                    var mesPivot = $"DOWN:{time.ToString("dd/MM HH:mm")}";
+                    Console.WriteLine(mesPivot);
+                }
+            }
+        }
+
         public async Task fake()
         {
             var sym = "SOLUSDT";
-            var buysell = await _apiService.GetBuySellRate(sym, EInterval.M15);
-            var ldepth = _depthRepo.GetAll();
-            var lfilter = ldepth.Where(x => x.s == sym).ToList();
-            foreach (var item in buysell)
-            {
-                var time = ((long)(item.timestamp)).UnixTimeStampMinisecondToDateTime();
-                var mes = $"{time.ToString("dd/MM HH:mm")}|bs:{item.buySellRatio}";
-                Console.WriteLine(mes);
-            }
-
-            //var tmp = await _apiService.GetBuySellRate(sym, EInterval.M15);
-            //var depth = await _apiService.GetDepth(sym);
-
-            //var tmp3 = await _apiService.GetFundingRate(sym);
-            //var sym = "WLDUSDT";
-            //var sym = "TAOUSDT";
-            //var sym = "SUIUSDT";
             var interval = EInterval.M15;
 
             var quotes = await _apiService.GetData_Binance(sym, interval);
