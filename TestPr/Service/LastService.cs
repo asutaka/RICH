@@ -39,7 +39,7 @@ namespace TestPr.Service
             var lfilter = ldepth.Where(x => x.s == sym).ToList();
             foreach (var item in lfilter)
             {
-                var time = ((long)(item.t * 1000)).UnixTimeStampMinisecondToDateTime();
+                var time = ((long)item.t * 1000).UnixTimeStampMinisecondToDateTime();
                 var mes = $"{time.ToString("dd/MM HH:mm")}|bs:{item.buySellRatio}|bidsask:{item.tilebidask}";
                 Console.WriteLine(mes);
             }
