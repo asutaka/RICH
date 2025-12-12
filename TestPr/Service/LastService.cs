@@ -49,7 +49,7 @@ namespace TestPr.Service
                     continue;
 
                 var window = quotes.Where(x => x.Date <= time).ToList();
-                var signal = takevolume.GetEntry(window);
+                var signal = takevolume.GetSignal(window);
                 if (signal == null) continue;
 
                 _cur.Date = time;

@@ -6,7 +6,7 @@ namespace CoinUtilsPr
 {
     public static class ProTrader
     {
-        public static TakerVolumneBuySellDTO? GetEntry(this List<TakerVolumneBuySellDTO> takervolumes, List<Quote> quotes)
+        public static TakerVolumneBuySellDTO? GetSignal(this List<TakerVolumneBuySellDTO> takervolumes, List<Quote> quotes)
         {
             try
             {
