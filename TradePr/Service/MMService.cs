@@ -17,7 +17,6 @@ namespace TradePr.Service
         Task<BybitAssetBalance> Bybit_GetAccountInfo();
         Task Bybit_Trade();
         Task Bybit_Signal();
-        Task Bybit_Trace();
     }
     public class MMService : IMMService
     {
@@ -25,7 +24,6 @@ namespace TradePr.Service
         private readonly IAPIService _apiService;
         private readonly ITeleService _teleService;
         private readonly IConfigDataRepo _configRepo;
-        private readonly IDepthRepo _depthRepo;
         private readonly IProRepo _proRepo;
         private const long _idUser = 1066022551;
         private readonly int _exchange = (int)EExchange.Bybit;
@@ -33,14 +31,13 @@ namespace TradePr.Service
         private const int SONEN_NAMGIU = 24;
         public MMService(ILogger<MMService> logger,
                           IAPIService apiService, ITeleService teleService, 
-                          IConfigDataRepo configRepo, IProRepo proRepo, IDepthRepo depthRepo)
+                          IConfigDataRepo configRepo, IProRepo proRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _teleService = teleService;
             _configRepo = configRepo;
             _proRepo = proRepo;
-            _depthRepo = depthRepo;
         }
 
         public async Task<BybitAssetBalance> Bybit_GetAccountInfo()
@@ -288,59 +285,6 @@ namespace TradePr.Service
             catch(Exception ex)
             {
                 _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_Signal|EXCEPTION| {ex.Message}");
-            }
-        }
-
-        public async Task Bybit_Trace()
-        {
-            try
-            {
-                var now = DateTime.UtcNow;
-                //Console.WriteLine($"TRACE: {now}");
-                if(now.Minute % 15 == 0)
-                {
-                    var lSym = new List<string>
-                    {
-                        "SOLUSDT",
-                        "SUIUSDT",
-                    };
-                    foreach (var sym in lSym)
-                    {
-                        try
-                        {
-                            var buysell = await _apiService.GetBuySellRate(sym, EInterval.M15);
-                            var depth = await _apiService.GetDepth(sym);
-                            if(buysell is null 
-                                || !buysell.Any())
-                                continue;
-
-                            var model = new Depth
-                            {
-                                s = sym,
-                                t = (int)(buysell.Last().timestamp / 1000),
-                                buySellRatio = (double)buysell.Last().buySellRatio
-                            };
-
-                            if (depth.asks.Any())
-                            {
-                                var sumBids = depth.bids.Sum(x => x[0] * x[1]);
-                                var sumAsks = depth.asks.Sum(x => x[0] * x[1]);
-
-                                model.tilebidask = Math.Round((double)(sumBids / sumAsks), 2);
-                                _depthRepo.InsertOne(model);
-                            }
-                        }
-                        catch(Exception ex)
-                        {
-                            _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_Trace|INPUT: {sym}|EXCEPTION| {ex.Message}");
-                        }   
-                    }
-
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_Trace|EXCEPTION| {ex.Message}");
             }
         }
 
