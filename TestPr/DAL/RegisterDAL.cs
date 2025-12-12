@@ -11,6 +11,7 @@ namespace TestPr.DAL
             services.AddSingleton<ISymbolRepo, SymbolRepo>();
             services.AddSingleton<IPlaceOrderTradeRepo, PlaceOrderTradeRepo>();
             services.AddSingleton<IPrepareRepo, PrepareRepo>();
+            services.AddSingleton<IDepthRepo, DepthRepo>();
         }
     }
 }

@@ -20,19 +20,30 @@ namespace TestPr.Service
         private readonly ILogger<TestService> _logger;
         private readonly IAPIService _apiService;
         private readonly ISymbolRepo _symRepo;
+        private readonly IDepthRepo _depthRepo;
         private int _COUNT = 0;
         decimal _cap = 30m;
 
-        public LastService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symRepo)
+        public LastService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symRepo, IDepthRepo depthRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _symRepo = symRepo;
+            _depthRepo = depthRepo;
         }
 
         public async Task fake()
         {
             var sym = "SOLUSDT";
+            var ldepth = _depthRepo.GetAll();
+            var lfilter = ldepth.Where(x => x.s == sym).ToList();
+            foreach (var item in lfilter)
+            {
+                var time = ((long)(item.t * 1000)).UnixTimeStampMinisecondToDateTime();
+                var mes = $"{time.ToString("dd/MM HH:mm")}|bs:{item.buySellRatio}|bidsask:{item.tilebidask}";
+                Console.WriteLine(mes);
+            }
+
             //var tmp = await _apiService.GetBuySellRate(sym, EInterval.M15);
             //var depth = await _apiService.GetDepth(sym);
 
