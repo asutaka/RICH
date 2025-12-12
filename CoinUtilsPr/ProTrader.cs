@@ -40,6 +40,31 @@ namespace CoinUtilsPr
             }
             return null;
         }
+        public static (int, Quote) GetEntry(this List<Quote> quotes)
+        {
+            try
+            {
+                var lrsi = quotes.GetRsi().ToList();
+                var lma9 = lrsi.GetSma(9).ToList();
+                var lbb = quotes.GetBollingerBands();
+
+                var cur = quotes[^1];
+                var bb = lbb.First(x => x.Date == cur.Date);
+                var rsi = lrsi.First(x => x.Date == cur.Date);
+                var ma9 = lma9.First(x => x.Date == cur.Date);
+                
+                if (rsi.Rsi.Value >= ma9.Sma.Value) 
+                {
+                    if (cur.High >= (decimal)bb.Sma) return (0, null);
+                    return (1, cur);
+                } 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetEntry error: " + ex.Message);
+            }
+            return (-1, null);
+        }
         public static Pro? GetEntry(this List<Quote> quotes, EInterval interval)
         {
             try

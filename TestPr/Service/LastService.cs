@@ -41,20 +41,42 @@ namespace TestPr.Service
 
             var quotes = await _apiService.GetData_Binance(sym, interval);
             var takevolumes = await _apiService.GetBuySellRate(sym, interval);
+            TakerVolumneBuySellDTO taker = null;
             for (int i = 0; i < takevolumes.Count - 1; i++)
             {
                 var takevolume = takevolumes.Take(i + 1).ToList();
                 var time = ((long)(takevolume.Last().timestamp)).UnixTimeStampMinisecondToDateTime();
                 if (time <= _cur.Date)
                     continue;
-
                 var window = quotes.Where(x => x.Date <= time).ToList();
+                if (taker != null)
+                {
+                    if (window.Count(x => x.Date > ((long)taker.timestamp).UnixTimeStampMinisecondToDateTime()) > 5)
+                    {
+                        taker = null;
+                    }
+
+                    var entry = window.GetEntry();
+                    if(entry.Item1 == 0)
+                    {
+                        taker = null;
+                    }
+                    else if(entry.Item1 > 0)
+                    {
+                        _cur.Date = entry.Item2.Date;
+                        taker = null;
+                        Console.WriteLine($"====> ENTRY: {entry.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
+                        continue;
+                    }
+                }
+                 
                 var signal = takevolume.GetSignal(window);
                 if (signal == null) continue;
 
                 _cur.Date = time;
-
-                Console.WriteLine($"{time.ToString("dd/MM/yyyy HH:mm")}");
+                taker = signal;
+               
+                //Console.WriteLine($"{time.ToString("dd/MM/yyyy HH:mm")}");
             }
         }
 
@@ -83,13 +105,13 @@ namespace TestPr.Service
                 //Console.WriteLine(mes);
                 if (up > 1.3m)
                 {
-                    var mesPivot = $"UP:{time.ToString("dd/MM HH:mm")}";
-                    Console.WriteLine(mesPivot);
+                    //var mesPivot = $"UP:{time.ToString("dd/MM HH:mm")}";
+                    //Console.WriteLine(mesPivot);
 
                     if (rsi.Rsi.Value < 45
                         && rsi.Rsi.Value < ma9.Sma.Value)
                     {
-                        Console.WriteLine("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
+                        //Console.WriteLine("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
                         var lEntry = quotes.Where(x => x.Date > time).Take(5);
                         foreach(var item in lEntry)
                         {
@@ -109,7 +131,7 @@ namespace TestPr.Service
                                     break;
                                 }
 
-                                //Console.WriteLine($"==================>ENTRY: {item.Date.ToString("dd/MM HH:mm")}");
+                                Console.WriteLine($"==================>ENTRY: {item.Date.ToString("dd/MM HH:mm")}");
                                 break;
                             }
                            
