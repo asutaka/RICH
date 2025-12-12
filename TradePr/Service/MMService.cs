@@ -323,25 +323,9 @@ namespace TradePr.Service
 
                             if (depth.asks.Any())
                             {
-                                model.priceAsksTop = (double)depth.asks.Last()[0];
-                                model.priceAsksBot = (double)depth.asks.First()[0];
-                                model.priceBidsTop = (double)depth.bids.First()[0];
-                                model.priceBidsBot = (double)depth.bids.Last()[0];
-
-                                var maxBids = depth.bids.MaxBy(x => x[1]);
-                                var avgBids = depth.bids.Average(x => x[0] * x[1]);
                                 var sumBids = depth.bids.Sum(x => x[0] * x[1]);
-                                var ratioBids = Math.Round(maxBids[0] * maxBids[1] / avgBids, 2);
-
-                                var maxAsks = depth.asks.MaxBy(x => x[1]);
-                                var avgAsks = depth.asks.Average(x => x[0] * x[1]);
                                 var sumAsks = depth.asks.Sum(x => x[0] * x[1]);
-                                var ratioAsks = Math.Round(maxAsks[0] * maxAsks[1] / avgAsks, 2);
 
-                                model.posMaxBidsRatio = (double)ratioBids;
-                                model.posMaxAskRatio = (double)ratioAsks;
-                                model.priceAtMaxBids = (double)maxBids[0];
-                                model.priceAtMaxAsks = (double)maxAsks[0];
                                 model.tilebidask = Math.Round((double)(sumBids / sumAsks), 2);
                                 _depthRepo.InsertOne(model);
                             }
