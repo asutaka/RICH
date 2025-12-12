@@ -21,16 +21,14 @@ namespace TestPr.Service
         private readonly ILogger<TestService> _logger;
         private readonly IAPIService _apiService;
         private readonly ISymbolRepo _symRepo;
-        private readonly IDepthRepo _depthRepo;
         private int _COUNT = 0;
         decimal _cap = 30m;
 
-        public LastService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symRepo, IDepthRepo depthRepo)
+        public LastService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symRepo)
         {
             _logger = logger;
             _apiService = apiService;
             _symRepo = symRepo;
-            _depthRepo = depthRepo;
         }
 
         public async Task fake2()
