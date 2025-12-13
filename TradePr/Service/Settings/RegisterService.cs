@@ -15,6 +15,7 @@ namespace TradePr.Service.Settings
             services.AddSingleton<IBybitWyckoffService, BybitWyckoffService>();
             services.AddSingleton<ILast_BybitService, Last_BybitService>();
             services.AddSingleton<IMMService, MMService>();
+            services.AddSingleton<ITakerService, TakerService>();
         }
     }
 }
