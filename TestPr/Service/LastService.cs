@@ -69,7 +69,11 @@ namespace TestPr.Service
                         continue;
                     }
                 }
-                 
+                else
+                {
+                    takevolume.GetOut();
+                }
+
                 var signal = takevolume.GetSignal(window);
                 if (signal == null) continue;
 
@@ -202,7 +206,7 @@ namespace TestPr.Service
         decimal SimulateTrade2(Pro entry, int index, List<Quote> futureQuotes)
         {
             var DONBAY = 10;
-            var SONEN_NAMGIU = 24;
+            var SONEN_NAMGIU = 100;
             var costbandau = DONBAY * entry.ratio * (_cap > 30 ? 30 : _cap) / 100;
             var costthuc = costbandau;
             bool tp1 = false, tp2 = false;

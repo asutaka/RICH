@@ -1,11 +1,36 @@
 ﻿using CoinUtilsPr.DAL.Entity;
 using CoinUtilsPr.Model;
+using SharpCompress.Common;
 using Skender.Stock.Indicators;
 
 namespace CoinUtilsPr
 {
     public static class ProTrader
     {
+        public static TakerVolumneBuySellDTO? GetOut(this List<TakerVolumneBuySellDTO> takervolumes)
+        {
+            try
+            {
+                var count = takervolumes.Count;
+                if (count < 2) return null;
+
+                var prev = takervolumes[count - 2];
+                var cur = takervolumes[count - 1];
+
+                var down = Math.Round(prev.buySellRatio / cur.buySellRatio, 1);
+                if (down > 1.3m)
+                {
+                    var time = ((long)(cur.timestamp)).UnixTimeStampMinisecondToDateTime();
+                    var mesPivot = $"DOWN:{time.ToString("dd/MM HH:mm")}";
+                    Console.WriteLine(mesPivot);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetEntry error: " + ex.Message);
+            }
+            return null;
+        }
         public static TakerVolumneBuySellDTO? GetSignal(this List<TakerVolumneBuySellDTO> takervolumes, List<Quote> quotes)
         {
             try
@@ -16,7 +41,8 @@ namespace CoinUtilsPr
                 var prev = takervolumes[count - 2];
                 var cur = takervolumes[count - 1];
                 var up = Math.Round(cur.buySellRatio / prev.buySellRatio, 1);
-                if(up > 1.3m)
+                
+                if (up > 1.3m)
                 {
                     var lrsi = quotes.GetRsi();
                     var lma9 = lrsi.GetSma(9);
@@ -30,9 +56,18 @@ namespace CoinUtilsPr
                         && rsi.Rsi.Value < ma9.Sma.Value
                         && rate < 10)
                     {
+                        Console.WriteLine($"====> SIGNAL: {time.Date.ToString("dd/MM")} {time.Hour.To2Digit()}:{time.Minute.To2Digit()}");
                         return cur;
                     }
                 }
+
+                //var down = Math.Round(prev.buySellRatio / cur.buySellRatio, 1);
+                //if (down > 1.3m)
+                //{
+                //    var time = ((long)(cur.timestamp)).UnixTimeStampMinisecondToDateTime();
+                //    var mesPivot = $"DOWN:{time.ToString("dd/MM HH:mm")}";
+                //    Console.WriteLine(mesPivot);
+                //}
             }
             catch (Exception ex)
             {

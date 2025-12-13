@@ -11,6 +11,13 @@ namespace CoinUtilsPr
 {
     public static class ExtensionMethod
     {
+        public static string To2Digit(this int val)
+        {
+            if (val > 9)
+                return val.ToString();
+            return $"0{val}";
+        }
+
         public static List<SmaResult> GetMARate(this List<Quote> lData, int period)
         {
             var lResult = new List<SmaResult>();
