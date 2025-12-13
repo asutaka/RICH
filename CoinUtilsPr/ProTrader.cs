@@ -46,16 +46,75 @@ namespace CoinUtilsPr
             {
                 var lrsi = quotes.GetRsi().ToList();
                 var lma9 = lrsi.GetSma(9).ToList();
+                var lwma45 = lrsi.GetWma(45);
                 var lbb = quotes.GetBollingerBands();
 
                 var cur = quotes[^1];
                 var bb = lbb.First(x => x.Date == cur.Date);
                 var rsi = lrsi.First(x => x.Date == cur.Date);
                 var ma9 = lma9.First(x => x.Date == cur.Date);
+                var wma45 = lwma45.First(x => x.Date == cur.Date);
                 
                 if (rsi.Rsi.Value >= ma9.Sma.Value) 
                 {
-                    if (cur.High >= (decimal)bb.Sma) return (0, null);
+                    //Entry không được vượt ma20
+                    if (cur.High >= (decimal)bb.Sma) 
+                    {
+                        //Console.WriteLine($"[LOAI]|{cur.Date.ToString("dd/MM HH:mm")}|Do nen vuot MA20");
+                        return (0, null);
+                    } 
+                    //bbwidth không được quá lớn
+                    var maxbbwidth = lbb.Where(x => x.Date < cur.Date).TakeLast(10).MaxBy(x => x.UpperBand.Value - x.LowerBand.Value);
+                    var rate_maxbbwidth = Math.Round((-1 + maxbbwidth.UpperBand.Value/maxbbwidth.LowerBand.Value),3);
+                    if(rate_maxbbwidth > 0.07)
+                    {
+                        var rate_bb = Math.Round((-1 + bb.UpperBand.Value / bb.LowerBand.Value), 3);
+                        if (rate_bb / rate_maxbbwidth > 0.9) 
+                        {
+                            //Console.WriteLine($"[LOAI]|{cur.Date.ToString("dd/MM HH:mm")}|Do BB Width qua rong");
+                            return (0, null);
+                        } 
+                    }
+                    //Nếu từ điểm ma9 cắt xuống wma45 > 24 thanh thì check độ rộng không được vượt quá 0.4 lần độ rộng lớn nhất
+                    var lma9_check = lma9.Where(x => x.Date < cur.Date).TakeLast(50).OrderByDescending(x => x.Date).ToList();
+                    var lwma45_check = lwma45.Where(x => x.Date < cur.Date).TakeLast(50).OrderByDescending(x => x.Date).ToList();
+                    var count_check = lma9_check.Count();
+                    var isSoDiemDuoiVuotToiDa = false;
+                    for ( var i = 0; i < count_check; i++ )
+                    {
+                        var ma9_check = lma9_check[i];
+                        var wma45_check = lwma45_check[i];
+                        if(ma9_check.Sma.Value > wma45_check.Wma.Value)
+                        {
+                            var sodiemduoi_wma45 = lma9.Count(x => x.Date > ma9_check.Date);
+                            if(sodiemduoi_wma45 >= 24)
+                            {
+                                isSoDiemDuoiVuotToiDa = true;
+                            }
+                            break;
+                        }
+                    }
+                    if (isSoDiemDuoiVuotToiDa)
+                    {
+                        double maxDiv = -1;
+                        for (var i = 0; i < count_check; i++)
+                        {
+                            var ma9_check = lma9_check[i];
+                            var wma45_check = lwma45_check[i];
+                            var div = wma45_check.Wma.Value - ma9_check.Sma.Value;
+                            if(div > maxDiv)
+                            {
+                                maxDiv = div;
+                            }
+                        }
+                        var div_cur = wma45.Wma.Value - ma9.Sma.Value;
+                        if(div_cur / maxDiv > 0.4)
+                        {
+                            //Console.WriteLine($"[LOAI]|{cur.Date.ToString("dd/MM HH:mm")}|Do nam trong bup qua dai");
+                            return (0, null);
+                        }
+                    }
+
                     return (1, cur);
                 } 
             }
