@@ -337,20 +337,20 @@ namespace StockPr.Service
                                 link = "https://tradingeconomics.com/commodity/crude-oil"
                             });
                         }
-                        else if (item.Code.Equals(EPrice.Natural_gas.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            lTraceGia.Add(new TraceGiaModel
-                            {
-                                content = "Khí tự nhiên",
-                                description = "GAS,DCM,DPM",
-                                weekly = item.Weekly,
-                                monthly = item.Monthly,
-                                yearly = item.YoY,
-                                YTD = item.YTD,
-                                price = item.Price,
-                                link = "https://tradingeconomics.com/commodity/natural-gas"
-                            });
-                        }
+                        //else if (item.Code.Equals(EPrice.Natural_gas.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
+                        //{
+                        //    lTraceGia.Add(new TraceGiaModel
+                        //    {
+                        //        content = "Khí tự nhiên",
+                        //        description = "GAS,DCM,DPM",
+                        //        weekly = item.Weekly,
+                        //        monthly = item.Monthly,
+                        //        yearly = item.YoY,
+                        //        YTD = item.YTD,
+                        //        price = item.Price,
+                        //        link = "https://tradingeconomics.com/commodity/natural-gas"
+                        //    });
+                        //}
                         else if (item.Code.Replace("-", "").Replace(" ", "").Equals(EPrice.kraftpulp.GetDisplayName().Replace("-","").Replace(" ", ""), StringComparison.CurrentCultureIgnoreCase))
                         {
                             lTraceGia.Add(new TraceGiaModel
@@ -365,20 +365,20 @@ namespace StockPr.Service
                                 link = "https://tradingeconomics.com/commodity/kraft-pulp"
                             });
                         }
-                        else if (item.Code.Equals(EPrice.Coal.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            lTraceGia.Add(new TraceGiaModel
-                            {
-                                content = "Than",
-                                description = "",
-                                weekly = item.Weekly,
-                                monthly = item.Monthly,
-                                yearly = item.YoY,
-                                YTD = item.YTD,
-                                price = item.Price,
-                                link = "https://tradingeconomics.com/commodity/coal"
-                            });
-                        }
+                        //else if (item.Code.Equals(EPrice.Coal.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
+                        //{
+                        //    lTraceGia.Add(new TraceGiaModel
+                        //    {
+                        //        content = "Than",
+                        //        description = "",
+                        //        weekly = item.Weekly,
+                        //        monthly = item.Monthly,
+                        //        yearly = item.YoY,
+                        //        YTD = item.YTD,
+                        //        price = item.Price,
+                        //        link = "https://tradingeconomics.com/commodity/coal"
+                        //    });
+                        //}
                         else if (item.Code.Equals(EPrice.Gold.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
                         {
                             lTraceGia.Add(new TraceGiaModel
@@ -435,20 +435,20 @@ namespace StockPr.Service
                                 link = "https://tradingeconomics.com/commodity/rubber"
                             });
                         }
-                        else if (item.Code.Equals(EPrice.Coffee.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            lTraceGia.Add(new TraceGiaModel
-                            {
-                                content = "Cà phê",
-                                description = "CTP",
-                                weekly = item.Weekly,
-                                monthly = item.Monthly,
-                                yearly = item.YoY,
-                                YTD = item.YTD,
-                                price = item.Price,
-                                link = "https://tradingeconomics.com/commodity/coffee"
-                            });
-                        }
+                        //else if (item.Code.Equals(EPrice.Coffee.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
+                        //{
+                        //    lTraceGia.Add(new TraceGiaModel
+                        //    {
+                        //        content = "Cà phê",
+                        //        description = "CTP",
+                        //        weekly = item.Weekly,
+                        //        monthly = item.Monthly,
+                        //        yearly = item.YoY,
+                        //        YTD = item.YTD,
+                        //        price = item.Price,
+                        //        link = "https://tradingeconomics.com/commodity/coffee"
+                        //    });
+                        //}
                         else if (item.Code.Equals(EPrice.Rice.GetDisplayName(), StringComparison.CurrentCultureIgnoreCase))
                         {
                             lTraceGia.Add(new TraceGiaModel
