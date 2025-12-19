@@ -4,6 +4,7 @@ using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
 using Telegram.Bot.Types;
+using System.Collections.Concurrent;
 
 namespace StockPr.Service
 {
@@ -14,7 +15,13 @@ namespace StockPr.Service
     public class MessageService : IMessageService
     {
         private readonly ILogger<MessageService> _logger;
-        private static List<UserMessage> _lUserMes = new List<UserMessage>();
+        
+        // ⚡ Thread-safe collections for concurrent user handling
+        private static readonly ConcurrentDictionary<long, UserMessage> _userMessages 
+            = new ConcurrentDictionary<long, UserMessage>();
+        private static readonly ConcurrentDictionary<long, SemaphoreSlim> _userSemaphores 
+            = new ConcurrentDictionary<long, SemaphoreSlim>();
+        
         private readonly IUserMessageRepo _userMessageRepo;
         private readonly IAccountRepo _accountRepo;
         private readonly IChartService _chartService;
@@ -33,31 +40,58 @@ namespace StockPr.Service
         }
         public async Task<List<HandleMessageModel>> ReceivedMessage(Message msg)
         {
+            // ⚡ Per-user locking: Nhiều users chạy song song, cùng user chạy tuần tự
+            var semaphore = _userSemaphores.GetOrAdd(msg.Chat.Id, 
+                _ => new SemaphoreSlim(1, 1));
+            
+            await semaphore.WaitAsync();
+            try
+            {
+                return await ProcessMessage(msg);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        private async Task<List<HandleMessageModel>> ProcessMessage(Message msg)
+        {
             var lRes = new List<HandleMessageModel>();
             try
             {
-                #region Lưu trữ thời gian mới nhất của từng User 
+                #region Lưu trữ thời gian mới nhất của từng User (Thread-safe)
                 var time = new DateTimeOffset(msg.Date, TimeSpan.Zero).ToUnixTimeSeconds();
-                var entityUserMes = _lUserMes.FirstOrDefault(x => x.u == msg.Chat.Id && x.ty == _ty);
-                if (entityUserMes != null)
-                {
-                    if (entityUserMes.t >= time)
-                        return null;
-
-                    entityUserMes.t = time;
-                    _userMessageRepo.Update(entityUserMes);
-                }
-                else
-                {
-                    var entityMes = new UserMessage
+                
+                var userMessage = _userMessages.AddOrUpdate(
+                    msg.Chat.Id,
+                    // Add new user
+                    _ => 
                     {
-                        u = msg.Chat.Id,
-                        ty = _ty,
-                        t = time
-                    };
-                    _lUserMes.Add(entityMes);
-                    _userMessageRepo.InsertOne(entityMes);
-                }
+                        var newMsg = new UserMessage
+                        {
+                            u = msg.Chat.Id,
+                            ty = _ty,
+                            t = time
+                        };
+                        _userMessageRepo.InsertOne(newMsg);
+                        return newMsg;
+                    },
+                    // Update existing user
+                    (_, existing) =>
+                    {
+                        if (existing.t >= time)
+                            return existing; // Skip old message
+                        
+                        existing.t = time;
+                        _userMessageRepo.Update(existing);
+                        return existing;
+                    }
+                );
+
+                // Check if message is too old
+                if (userMessage.t > time)
+                    return null;
                 #endregion
 
                 var lAccount = _accountRepo.GetAll();
@@ -81,7 +115,7 @@ namespace StockPr.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"MessageService.ReceivedMessage|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"MessageService.ProcessMessage|EXCEPTION| {ex.Message}");
             }
             return lRes;
         }
@@ -101,22 +135,27 @@ namespace StockPr.Service
                 }
                 else if (input.Length == 3) //Mã chứng khoán
                 {
-                    var overview = await Overview(input.ToUpper(), false);
+                    // ⚡ PARALLEL EXECUTION: Chạy 3 tasks cùng lúc
+                    var overviewTask = Overview(input.ToUpper(), false);
+                    var chartsTask = ChartChungKhoan(input);
+                    var rankTask = _rankService.FreeFloat(input.ToUpper());
+                    
+                    await Task.WhenAll(overviewTask, chartsTask, rankTask);
+                    
+                    // Collect results
+                    var overview = await overviewTask;
                     if (overview != null)
                     {
                         lRes.Add(overview);
                     }
-                    var lMa = await ChartChungKhoan(input);
+                    
+                    var lMa = await chartsTask;
                     if (lMa?.Any() ?? false)
                     {
                         lRes.AddRange(lMa);
                     }
-                    //var lCungCau = await ChartCungCau(input, now.AddDays(-28), now);
-                    //if (lCungCau?.Any() ?? false)
-                    //{
-                    //    lRes.AddRange(lCungCau);
-                    //}
-                    var rank = await _rankService.FreeFloat(input.ToUpper());
+                    
+                    var rank = await rankTask;
                     if (rank.Item1 > 0)
                     {
                         lRes.Add(new HandleMessageModel
@@ -284,17 +323,23 @@ namespace StockPr.Service
                             dic = await _rankService.RankMaCK(StaticVal._lKhacTP);
                         }
 
-                        foreach (var item in dic)
+                        // ⚡ PARALLEL CHART GENERATION: Tạo tất cả charts cùng lúc
+                        var chartTasks = dic.Select(async item =>
                         {
-                            var stream = await _chartService.Chart_ThongKeKhopLenh(item.Key, item.Value);
-                            if (stream != null)
+                            try
                             {
-                                lRes.Add(new HandleMessageModel
-                                {
-                                    Stream = stream,
-                                });
+                                var stream = await _chartService.Chart_ThongKeKhopLenh(item.Key, item.Value);
+                                return stream != null ? new HandleMessageModel { Stream = stream } : null;
                             }
-                        }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"Failed to generate chart for {item.Key}");
+                                return null;
+                            }
+                        });
+                        
+                        var charts = await Task.WhenAll(chartTasks);
+                        lRes.AddRange(charts.Where(c => c != null));
 
                         return lRes;
                     }
