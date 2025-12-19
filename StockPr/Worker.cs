@@ -70,35 +70,36 @@ namespace StockPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
-            
+
             // ==================== BACKTEST RUNNER ====================
             // ⚠️ UNCOMMENT PHẦN NÀY ĐỂ CHẠY BACKTEST
             // Nhớ COMMENT LẠI sau khi test xong!
-            
-            //try
-            //{
-            //    _logger.LogInformation("=== STARTING BACKTEST ===");
-            //    
-            //    // Chọn backtest muốn chạy (uncomment 1 trong các dòng dưới):
-            //    
-            //    await _backtestService.BatDayCK();                    // Bắt đáy CK
-            //    // await _backtestService.CheckAllDay_OnlyVolume();   // Check volume patterns
-            //    // await _backtestService.CheckGDNN();                // Check GDNN
-            //    // await _backtestService.CheckCungCau();             // Check cung cầu
-            //    // await _backtestService.CheckCrossMa50_BB();        // Check MA50 & BB
-            //    // await _backtestService.CheckWycKoff();             // Check Wyckoff
-            //    
-            //    _logger.LogInformation("=== BACKTEST COMPLETED ===");
-            //    return; // Dừng Worker sau khi backtest xong
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, "Backtest failed");
-            //    throw;
-            //}
-            
+
+            try
+            {
+                _logger.LogInformation("=== STARTING BACKTEST ===");
+
+                // Chọn backtest muốn chạy (uncomment 1 trong các dòng dưới):
+
+                await _backtestService.BacktestOptimalStrategy();        // ✨ Phân tích chỉ báo (BB, RSI, MA9, WMA45)
+                                                                   // await _backtestService.BatDayCK();                    // Bắt đáy CK
+                                                                   // await _backtestService.CheckAllDay_OnlyVolume();   // Check volume patterns
+                                                                   // await _backtestService.CheckGDNN();                // Check GDNN
+                                                                   // await _backtestService.CheckCungCau();             // Check cung cầu
+                                                                   // await _backtestService.CheckCrossMa50_BB();        // Check MA50 & BB
+                                                                   // await _backtestService.CheckWycKoff();             // Check Wyckoff
+
+                _logger.LogInformation("=== BACKTEST COMPLETED ===");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Backtest failed");
+                throw;
+            }
+            return; // Dừng Worker sau khi backtest xong
+
             // ==================== END BACKTEST RUNNER ====================
-            
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
