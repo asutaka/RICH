@@ -1,6 +1,8 @@
-﻿using StockPr.DAL;
+﻿using Microsoft.Extensions.Options;
+using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Service;
+using StockPr.Settings;
 using StockPr.Utils;
 
 namespace StockPr
@@ -24,17 +26,18 @@ namespace StockPr
         private readonly INewsService _newsService;
         private readonly ICommonService _commonService;
 
-        private const long _idGroup = -4237476810;
-        private const long _idGroupF319 = -4739186506;
-        private const long _idChannel = -1002247826353;
-        private const long _idChannelNews = -1002709849640;
-        private const long _idUser = 1066022551;
+        private readonly long _idGroup;
+        private readonly long _idGroupF319;
+        private readonly long _idChannel;
+        private readonly long _idChannelNews;
+        private readonly long _idUser;
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, 
                     IAnalyzeService analyzeService, ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, 
                     IPortfolioService portfolioService, IEPSRankService epsService, ITestService testService, IF319Service f319Service, 
-                    ICommonService commonService, INewsService newsService, IChartService chartService)
+                    ICommonService commonService, INewsService newsService, IChartService chartService,
+                    IOptions<TelegramSettings> telegramSettings)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -53,6 +56,13 @@ namespace StockPr
             _commonService = commonService;
             _newsService = newsService;
             _chartService = chartService;
+            
+            // Load Telegram IDs from configuration
+            _idGroup = telegramSettings.Value.GroupId;
+            _idGroupF319 = telegramSettings.Value.GroupF319Id;
+            _idChannel = telegramSettings.Value.ChannelId;
+            _idChannelNews = telegramSettings.Value.ChannelNewsId;
+            _idUser = telegramSettings.Value.UserId;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

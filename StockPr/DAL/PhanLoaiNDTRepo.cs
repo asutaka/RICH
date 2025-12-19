@@ -1,4 +1,5 @@
-﻿using StockPr.DAL.Entity;
+using MongoDB.Driver;
+using StockPr.DAL.Entity;
 
 namespace StockPr.DAL
 {
@@ -8,8 +9,6 @@ namespace StockPr.DAL
 
     public class PhanLoaiNDTRepo : BaseRepo<PhanLoaiNDT>, IPhanLoaiNDTRepo
     {
-        public PhanLoaiNDTRepo()
-        {
-        }
+        public PhanLoaiNDTRepo(IMongoDatabase database, ILogger<BaseRepo<PhanLoaiNDT>> logger) : base(database, logger) { }
     }
 }

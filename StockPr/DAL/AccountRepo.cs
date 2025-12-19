@@ -1,4 +1,5 @@
-﻿using StockPr.DAL.Entity;
+using MongoDB.Driver;
+using StockPr.DAL.Entity;
 
 namespace StockPr.DAL
 {
@@ -7,6 +8,6 @@ namespace StockPr.DAL
     }
     public class AccountRepo : BaseRepo<Account>, IAccountRepo
     {
-        public AccountRepo() { }
+        public AccountRepo(IMongoDatabase database, ILogger<BaseRepo<Account>> logger) : base(database, logger) { }
     }
 }

@@ -1,4 +1,5 @@
-﻿using StockPr.DAL.Entity;
+using MongoDB.Driver;
+using StockPr.DAL.Entity;
 
 namespace StockPr.DAL
 {
@@ -8,8 +9,6 @@ namespace StockPr.DAL
 
     public class ConfigPortfolioRepo : BaseRepo<ConfigPortfolio>, IConfigPortfolioRepo
     {
-        public ConfigPortfolioRepo()
-        {
-        }
+        public ConfigPortfolioRepo(IMongoDatabase database, ILogger<BaseRepo<ConfigPortfolio>> logger) : base(database, logger) { }
     }
 }

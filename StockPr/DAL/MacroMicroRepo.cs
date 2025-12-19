@@ -1,4 +1,5 @@
-﻿using StockPr.DAL.Entity;
+using MongoDB.Driver;
+using StockPr.DAL.Entity;
 
 namespace StockPr.DAL
 {
@@ -8,8 +9,6 @@ namespace StockPr.DAL
 
     public class MacroMicroRepo : BaseRepo<MacroMicro>, IMacroMicroRepo
     {
-        public MacroMicroRepo()
-        {
-        }
+        public MacroMicroRepo(IMongoDatabase database, ILogger<BaseRepo<MacroMicro>> logger) : base(database, logger) { }
     }
 }

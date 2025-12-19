@@ -1,4 +1,5 @@
-﻿using StockPr.DAL.Entity;
+using MongoDB.Driver;
+using StockPr.DAL.Entity;
 
 namespace StockPr.DAL
 {
@@ -7,6 +8,6 @@ namespace StockPr.DAL
     }
     public class UserMessageRepo : BaseRepo<UserMessage>, IUserMessageRepo
     {
-        public UserMessageRepo() { }
+        public UserMessageRepo(IMongoDatabase database, ILogger<BaseRepo<UserMessage>> logger) : base(database, logger) { }
     }
 }

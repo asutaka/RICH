@@ -1,4 +1,5 @@
-﻿using StockPr.DAL.Entity;
+using MongoDB.Driver;
+using StockPr.DAL.Entity;
 
 namespace StockPr.DAL
 {
@@ -8,8 +9,6 @@ namespace StockPr.DAL
 
     public class SymbolRepo : BaseRepo<Symbol>, ISymbolRepo
     {
-        public SymbolRepo()
-        {
-        }
+        public SymbolRepo(IMongoDatabase database, ILogger<BaseRepo<Symbol>> logger) : base(database, logger) { }
     }
 }

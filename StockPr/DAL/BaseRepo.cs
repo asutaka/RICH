@@ -91,19 +91,6 @@ namespace StockPr.DAL
         /// <summary>
         /// Constructor
         /// </summary>        
-        public BaseRepo()
-        {
-            //var client = new MongoClient(MongoDataSettingsManager.ConnectionString);
-
-            var clientSettings = MongoClientSettings.FromUrl(new MongoUrl(MongoSetting.ConnectionString));
-            clientSettings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
-            var client = new MongoClient(clientSettings);
-
-
-            _database = client.GetDatabase(MongoSetting.Database);
-            _collection = _database.GetCollection<T>(GetCollectionName());
-        }
-
         public BaseRepo(IMongoDatabase database, ILogger<BaseRepo<T>> logger)
         {
             _database = database;

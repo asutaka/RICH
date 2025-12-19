@@ -2,6 +2,8 @@
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
+using Microsoft.Extensions.Options;
+using StockPr.Settings;
 
 namespace StockPr.Service
 {
@@ -17,12 +19,15 @@ namespace StockPr.Service
     {
         private readonly ILogger<TeleService> _logger;
         private readonly IMessageService _messageService;
-        private TelegramBotClient _bot = new TelegramBotClient("7422438658:AAEPzAwq-5rA-5dLEFRpPrdOBt9yMfnkBxA");
+        private readonly TelegramBotClient _bot;
+        
         public TeleService(ILogger<TeleService> logger,
-            IMessageService messageService)
+            IMessageService messageService,
+            IOptions<TelegramSettings> telegramSettings)
         {
             _logger = logger;
             _messageService = messageService;
+            _bot = new TelegramBotClient(telegramSettings.Value.BotToken);
             _bot.OnMessage += OnMessage;
         }
         async Task OnMessage(Message msg, UpdateType type)
