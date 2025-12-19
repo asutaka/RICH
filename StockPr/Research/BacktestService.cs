@@ -2,10 +2,11 @@
 using StockPr.DAL;
 using StockPr.Model;
 using StockPr.Utils;
+using StockPr.Service;
 
-namespace StockPr.Service
+namespace StockPr.Research
 {
-    public interface ITestService
+    public interface IBacktestService
     {
         Task CheckAllDay_OnlyVolume();
         Task BatDayCK();
@@ -14,12 +15,14 @@ namespace StockPr.Service
         Task CheckCrossMa50_BB();
         Task CheckWycKoff();
     }
-    public class TestService : ITestService
+    
+    public class BacktestService : IBacktestService
     {
-        private readonly ILogger<TestService> _logger;
+        private readonly ILogger<BacktestService> _logger;
         private readonly IAPIService _apiService;
         private readonly ISymbolRepo _symbolRepo;
-        public TestService(ILogger<TestService> logger, IAPIService apiService, ISymbolRepo symbolRepo)
+        
+        public BacktestService(ILogger<BacktestService> logger, IAPIService apiService, ISymbolRepo symbolRepo)
         {
             _logger = logger;
             _apiService = apiService;
