@@ -38,6 +38,10 @@ msbuild.wrn
 # Visual Studio 2015
 .vs/
 
+# Configuration files với credentials - KHÔNG commit
+**/appsettings.json
+**/appsettings.*.json
+!**/appsettings.Development.json
 appsettings.Development.json
 appsettings.json
 /CoinPr/appsettings.Development.json
