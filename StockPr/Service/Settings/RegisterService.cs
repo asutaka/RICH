@@ -21,6 +21,9 @@ namespace StockPr.Service.Settings
             services.AddSingleton<ITeleService, TeleService>();
             services.AddSingleton<ITongCucThongKeService, TongCucThongKeService>();
             services.AddSingleton<IBaoCaoTaiChinhService, BaoCaoTaiChinhService>();
+            services.AddSingleton<ITuDoanhService, TuDoanhService>();
+            services.AddSingleton<IFileService, FileService>();
+            services.AddSingleton<IAIService, AIService>();
             
             // Research services (for backtesting)
             services.AddSingleton<IBacktestService, BacktestService>();
