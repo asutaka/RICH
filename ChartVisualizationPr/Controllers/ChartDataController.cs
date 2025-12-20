@@ -77,6 +77,21 @@ namespace ChartVisualizationPr.Controllers
             }
         }
 
+        [HttpGet("foreign/{symbol}")]
+        public async Task<ActionResult<List<InvestorData>>> GetForeignData(string symbol)
+        {
+            try
+            {
+                var data = await _chartDataService.GetForeignDataAsync(symbol);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting foreign data for {symbol}");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
         [HttpPost("markers")]
         public async Task<ActionResult<MarkerData>> SaveMarker([FromBody] MarkerData marker)
         {

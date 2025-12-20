@@ -14,6 +14,7 @@ namespace ChartVisualizationPr.Services
         Task<MarkerData> SaveMarkerAsync(MarkerData marker);
         Task<bool> DeleteMarkerAsync(string id);
         Task<List<InvestorData>> GetGroupDataAsync(string symbol);
+        Task<List<InvestorData>> GetForeignDataAsync(string symbol);
     }
 
     public class ChartDataService : IChartDataService
@@ -160,6 +161,38 @@ namespace ChartVisualizationPr.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting group data for {symbol}");
+                throw;
+            }
+        }
+
+        public async Task<List<InvestorData>> GetForeignDataAsync(string symbol)
+        {
+            try
+            {
+                var filter = Builders<StockPr.DAL.Entity.PhanLoaiNDT>.Filter.Eq(x => x.s, symbol);
+                var phanLoaiData = await Task.Run(() => _phanLoaiNDTRepo.GetByFilter(filter));
+                var data = phanLoaiData.FirstOrDefault();
+
+                if (data == null || data.Date == null || data.Foreign == null)
+                {
+                    return new List<InvestorData>();
+                }
+
+                var result = new List<InvestorData>();
+                for (int i = 0; i < Math.Min(data.Date.Count, data.Foreign.Count); i++)
+                {
+                    result.Add(new InvestorData
+                    {
+                        time = (long)data.Date[i],
+                        value = data.Foreign[i]
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting foreign data for {symbol}");
                 throw;
             }
         }
