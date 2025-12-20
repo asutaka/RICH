@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Chart Visualization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">📈 Stock Chart Visualization</h1>
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="symbolSelect">Mã cổ phiếu:</label>
+                        <select id="symbolSelect" class="symbol-select">
+                            <option value="">Chọn mã</option>
+                            <option value="AAA">AAA</option>
+                            <option value="ACB">ACB</option>
+                            <option value="BCM">BCM</option>
+                            <option value="BID">BID</option>
+                            <option value="CTG">CTG</option>
+                            <option value="FPT">FPT</option>
+                            <option value="GAS">GAS</option>
+                            <option value="HPG">HPG</option>
+                            <option value="MBB">MBB</option>
+                            <option value="MSN">MSN</option>
+                            <option value="MWG">MWG</option>
+                            <option value="PLX">PLX</option>
+                            <option value="POW">POW</option>
+                            <option value="SAB">SAB</option>
+                            <option value="SSI">SSI</option>
+                            <option value="STB">STB</option>
+                            <option value="TCB">TCB</option>
+                            <option value="VCB">VCB</option>
+                            <option value="VHM">VHM</option>
+                            <option value="VIC">VIC</option>
+                            <option value="VJC">VJC</option>
+                            <option value="VNM">VNM</option>
+                            <option value="VPB">VPB</option>
+                            <option value="VRE">VRE</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Công cụ đánh dấu:</label>
+                        <div class="marker-tools">
+                            <button id="markerBuy" class="marker-btn buy" title="Đánh dấu MUA">▲ MUA</button>
+                            <button id="markerSell" class="marker-btn sell" title="Đánh dấu BÁN">▼ BÁN</button>
+                            <button id="markerNote" class="marker-btn note" title="Ghi chú">● Ghi chú</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="chart-container">
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Đang tải dữ liệu...</p>
+                </div>
+                <div id="chartMain" class="chart"></div>
+            </div>
+            <div class="chart-container">
+                <div id="chartRSI" class="chart chart-small"></div>
+            </div>
+            <div class="chart-container">
+                <div id="chartVolume" class="chart chart-small"></div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>💡 Click vào nến để đánh dấu | Click vào marker để xem chi tiết</p>
+        </footer>
+    </div>
+
+    <!-- Marker Tooltip -->
+    <div id="markerTooltip" class="marker-tooltip hidden">
+        <div class="tooltip-header">
+            <span id="tooltipTitle"></span>
+            <button id="tooltipClose" class="tooltip-close">×</button>
+        </div>
+        <div id="tooltipContent" class="tooltip-content"></div>
+    </div>
+
+    <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="/js/chart.js"></script>
+</body>
+
+</html>

@@ -1807,7 +1807,11 @@ namespace StockPr.Research
                 Console.WriteLine("TP: 10% | SL: 7%");
                 Console.WriteLine();
 
-                var allSymbols = StaticVal._lStock.Where(x => x.status > 0).ToList();
+                var allSymbols = _symbolRepo.GetAll();
+                allSymbols = new List<Symbol>
+                {
+                    new Symbol{s="SSI"}
+                };
                 if (allSymbols == null || !allSymbols.Any())
                 {
                     Console.WriteLine("❌ Không có mã trong StaticVal._lStock");
@@ -1840,7 +1844,7 @@ namespace StockPr.Research
                         var latest = lData.Last();
                         
                         // Filter 1: Minimum Price (≥ 5,000 VND)
-                        if (latest.Close < 5000) continue;
+                        if (latest.Close < 5) continue;
                         
                         // Filter 2: Minimum Average Volume (≥ 100,000 shares/day)
                         var recentVolumes = lData.TakeLast(20).Select(x => x.Volume).ToList();
@@ -1849,7 +1853,7 @@ namespace StockPr.Research
                         
                         // Filter 3: Minimum Liquidity (Price × Volume ≥ 500M VND)
                         var liquidity = latest.Close * avgVolume;
-                        if (liquidity < 500000000) continue;
+                        if (liquidity < 500000) continue;
 
                         // Tính BB
                         var bb = lData.GetBollingerBands(20, 2);

@@ -1,0 +1,6 @@
+@ChartVisualizationPr_HostAddress = http://localhost:5073
+
+GET {{ChartVisualizationPr_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
