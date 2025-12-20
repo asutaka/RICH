@@ -1,6 +1,8 @@
 using ChartVisualizationPr.Models;
 using Skender.Stock.Indicators;
 using StockPr.Service;
+using StockPr.DAL;
+using MongoDB.Driver;
 
 namespace ChartVisualizationPr.Services
 {
@@ -11,18 +13,21 @@ namespace ChartVisualizationPr.Services
         Task<List<MarkerData>> GetMarkersAsync(string symbol);
         Task<MarkerData> SaveMarkerAsync(MarkerData marker);
         Task<bool> DeleteMarkerAsync(string id);
+        Task<List<InvestorData>> GetGroupDataAsync(string symbol);
     }
 
     public class ChartDataService : IChartDataService
     {
         private readonly IAPIService _apiService;
         private readonly ILogger<ChartDataService> _logger;
+        private readonly IPhanLoaiNDTRepo _phanLoaiNDTRepo;
         private static readonly List<MarkerData> _markers = new(); // In-memory storage for demo
 
-        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger)
+        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger, IPhanLoaiNDTRepo phanLoaiNDTRepo)
         {
             _apiService = apiService;
             _logger = logger;
+            _phanLoaiNDTRepo = phanLoaiNDTRepo;
         }
 
         public async Task<List<CandleData>> GetCandleDataAsync(string symbol)
@@ -123,6 +128,40 @@ namespace ChartVisualizationPr.Services
         {
             var removed = _markers.RemoveAll(m => m.Id == id);
             return Task.FromResult(removed > 0);
+        }
+
+        public async Task<List<InvestorData>> GetGroupDataAsync(string symbol)
+        {
+            try
+            {
+                // Query PhanLoaiNDT by symbol using FilterDefinition
+                var filter = Builders<StockPr.DAL.Entity.PhanLoaiNDT>.Filter.Eq(x => x.s, symbol);
+                var phanLoaiData = await Task.Run(() => _phanLoaiNDTRepo.GetByFilter(filter));
+                var data = phanLoaiData.FirstOrDefault();
+
+                if (data == null || data.Date == null || data.Group == null)
+                {
+                    return new List<InvestorData>();
+                }
+
+                // Map Date[i] to Group[i]
+                var result = new List<InvestorData>();
+                for (int i = 0; i < Math.Min(data.Date.Count, data.Group.Count); i++)
+                {
+                    result.Add(new InvestorData
+                    {
+                        time = (long)data.Date[i],
+                        value = data.Group[i]
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting group data for {symbol}");
+                throw;
+            }
         }
     }
 }

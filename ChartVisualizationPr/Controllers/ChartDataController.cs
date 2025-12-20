@@ -62,6 +62,21 @@ namespace ChartVisualizationPr.Controllers
             }
         }
 
+        [HttpGet("group/{symbol}")]
+        public async Task<ActionResult<List<InvestorData>>> GetGroupData(string symbol)
+        {
+            try
+            {
+                var data = await _chartDataService.GetGroupDataAsync(symbol);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting group data for {symbol}");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
         [HttpPost("markers")]
         public async Task<ActionResult<MarkerData>> SaveMarker([FromBody] MarkerData marker)
         {
