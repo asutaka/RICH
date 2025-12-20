@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/candle-info.css">
 </head>
 
 <body>
@@ -53,6 +54,8 @@
                             <button id="markerBuy" class="marker-btn buy" title="Đánh dấu MUA">▲ MUA</button>
                             <button id="markerSell" class="marker-btn sell" title="Đánh dấu BÁN">▼ BÁN</button>
                             <button id="markerNote" class="marker-btn note" title="Ghi chú">● Ghi chú</button>
+                            <button id="btnGoToLatest" class="marker-btn" title="Quay về nến mới nhất"
+                                style="margin-left: 20px;">⏩ Mới nhất</button>
                         </div>
                     </div>
                 </div>
@@ -60,6 +63,20 @@
         </header>
 
         <main class="main-content">
+            <!-- Info panel displayed above chart in horizontal layout -->
+            <div id="candleInfo" class="candle-info hidden">
+                <span class="info-item"><strong>Date:</strong> <span id="infoDate"></span></span>
+                <span class="info-item"><strong>O:</strong> <span id="infoOpen"></span></span>
+                <span class="info-item"><strong>H:</strong> <span id="infoHigh"></span></span>
+                <span class="info-item"><strong>L:</strong> <span id="infoLow"></span></span>
+                <span class="info-item"><strong>C:</strong> <span id="infoClose"></span></span>
+                <span class="info-item"><strong>MA20:</strong> <span id="infoMA20"></span></span>
+                <span class="info-item"><strong>BB↑:</strong> <span id="infoUpper"></span></span>
+                <span class="info-item"><strong>BB↓:</strong> <span id="infoLower"></span></span>
+                <span class="info-item"><strong>RSI:</strong> <span id="infoRSI"></span></span>
+                <span class="info-item"><strong>Vol:</strong> <span id="infoVolume"></span></span>
+            </div>
+
             <div class="chart-container">
                 <div id="loading" class="loading hidden">
                     <div class="spinner"></div>
@@ -76,7 +93,7 @@
         </main>
 
         <footer class="footer">
-            <p>💡 Click vào nến để đánh dấu | Click vào marker để xem chi tiết</p>
+            <p>💡 Click vào nến để đánh dấu | Click vào marker để xem chi tiết | Dùng phím ← → để di chuyển từng nến</p>
         </footer>
     </div>
 

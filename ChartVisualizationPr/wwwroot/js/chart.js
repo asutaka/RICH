@@ -176,7 +176,7 @@ function initializeCharts() {
         syncTimeRange(chartVolume, [chartMain, chartRSI]);
     });
 
-    // Sync crosshair position across all charts
+    // Sync crosshair position across all charts and update info panel
     chartMain.subscribeCrosshairMove((param) => {
         if (!param || !param.time) {
             // Clear crosshair on other charts when mouse leaves
@@ -186,6 +186,8 @@ function initializeCharts() {
             } catch (e) {
                 // Ignore errors when charts don't have data yet
             }
+            // Hide info panel
+            document.getElementById('candleInfo').classList.add('hidden');
             return;
         }
 
@@ -195,6 +197,34 @@ function initializeCharts() {
             chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
         } catch (e) {
             // Ignore errors when charts don't have data yet
+        }
+
+        // Update info panel with candle and indicator values
+        const candle = candlesData.find(c => c.time === param.time);
+        const indicator = indicatorsData.find(i => i.time === param.time);
+
+        if (candle) {
+            const infoPanel = document.getElementById('candleInfo');
+            infoPanel.classList.remove('hidden');
+
+            // Format date
+            const date = new Date(param.time * 1000);
+            document.getElementById('infoDate').textContent = date.toLocaleDateString('vi-VN');
+
+            // OHLC values
+            document.getElementById('infoOpen').textContent = candle.open.toFixed(2);
+            document.getElementById('infoHigh').textContent = candle.high.toFixed(2);
+            document.getElementById('infoLow').textContent = candle.low.toFixed(2);
+            document.getElementById('infoClose').textContent = candle.close.toFixed(2);
+
+            // Indicator values
+            if (indicator) {
+                document.getElementById('infoMA20').textContent = indicator.ma20 ? indicator.ma20.toFixed(2) : '-';
+                document.getElementById('infoUpper').textContent = indicator.upperBand ? indicator.upperBand.toFixed(2) : '-';
+                document.getElementById('infoLower').textContent = indicator.lowerBand ? indicator.lowerBand.toFixed(2) : '-';
+                document.getElementById('infoRSI').textContent = indicator.rsi ? indicator.rsi.toFixed(2) : '-';
+                document.getElementById('infoVolume').textContent = indicator.volume ? indicator.volume.toLocaleString() : '-';
+            }
         }
     });
 
@@ -260,6 +290,26 @@ function setupEventListeners() {
 
     document.getElementById('markerNote').addEventListener('click', () => {
         toggleMarkerMode('note');
+    });
+
+    // Go to latest candle button
+    document.getElementById('btnGoToLatest').addEventListener('click', () => {
+        if (!candlesData || candlesData.length === 0) return;
+
+        // Reset to latest candle
+        currentCandleIndex = candlesData.length - 1;
+
+        // Fit content to show all data with latest candle visible
+        chartMain.timeScale().fitContent();
+
+        // Wait a bit for main chart to finish, then sync other charts
+        setTimeout(() => {
+            const mainRange = chartMain.timeScale().getVisibleRange();
+            if (mainRange) {
+                chartRSI.timeScale().setVisibleRange(mainRange);
+                chartVolume.timeScale().setVisibleRange(mainRange);
+            }
+        }, 50);
     });
 
     // Keyboard navigation - Arrow keys to move by one candle using index-based approach

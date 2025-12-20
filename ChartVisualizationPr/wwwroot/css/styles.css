@@ -428,3 +428,45 @@ body::before {
         height: 150px;
     }
 }
+
+/* Candle Info Panel */
+.candle-info {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: rgba(10, 14, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.8rem;
+    z-index: 100;
+    min-width: 180px;
+    max-width: 220px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    /* Allow mouse events to pass through to chart */
+}
+
+.candle-info.hidden {
+    display: none;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    gap: 15px;
+}
+
+.info-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.info-item span:last-child {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+}
