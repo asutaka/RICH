@@ -21,6 +21,7 @@ let markers = [];
 let candlesData = [];  // Store candle data for tooltip
 let indicatorsData = [];  // Store indicator data for tooltip
 let isFirstLoad = true;  // Track first data load
+let currentCandleIndex = -1;  // Track current focused candle index
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -70,7 +71,6 @@ function initializeCharts() {
     ma20Series = chartMain.addLineSeries({
         color: '#FFB800',
         lineWidth: 2,
-        title: 'MA20',
         priceLineVisible: false,
         lastValueVisible: false,
     });
@@ -78,7 +78,6 @@ function initializeCharts() {
     upperBandSeries = chartMain.addLineSeries({
         color: '#275BE8',
         lineWidth: 1,
-        title: 'Upper BB',
         priceLineVisible: false,
         lastValueVisible: false,
     });
@@ -86,7 +85,6 @@ function initializeCharts() {
     lowerBandSeries = chartMain.addLineSeries({
         color: '#275BE8',
         lineWidth: 1,
-        title: 'Lower BB',
         priceLineVisible: false,
         lastValueVisible: false,
     });
@@ -102,7 +100,6 @@ function initializeCharts() {
     rsiSeries = chartRSI.addLineSeries({
         color: '#7c3aed',
         lineWidth: 2,
-        title: 'RSI',
         priceLineVisible: false,
         lastValueVisible: false,
     });
@@ -110,7 +107,6 @@ function initializeCharts() {
     rsiMa9Series = chartRSI.addLineSeries({
         color: '#10b981',
         lineWidth: 1.5,
-        title: 'RSI MA9',
         priceLineVisible: false,
         lastValueVisible: false,
     });
@@ -118,7 +114,6 @@ function initializeCharts() {
     rsiWma45Series = chartRSI.addLineSeries({
         color: '#ef4444',
         lineWidth: 1.5,
-        title: 'RSI WMA45',
         priceLineVisible: false,
         lastValueVisible: false,
     });
@@ -267,9 +262,9 @@ function setupEventListeners() {
         toggleMarkerMode('note');
     });
 
-    // Keyboard navigation - Arrow keys to move by one candle
+    // Keyboard navigation - Arrow keys to move by one candle using index-based approach
     document.addEventListener('keydown', (e) => {
-        if (!candlesData || candlesData.length === 0) return;
+        if (!candlesData || candlesData.length < 2) return;
 
         // Only handle arrow keys
         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
@@ -286,28 +281,43 @@ function setupEventListeners() {
             const visibleRange = timeScale.getVisibleRange();
             if (!visibleRange) return;
 
-            // Get the visible range width
+            // Initialize current index if not set (find the last visible candle)
+            if (currentCandleIndex === -1) {
+                // Find the rightmost visible candle
+                for (let i = candlesData.length - 1; i >= 0; i--) {
+                    if (candlesData[i].time <= visibleRange.to) {
+                        currentCandleIndex = i;
+                        break;
+                    }
+                }
+                if (currentCandleIndex === -1) currentCandleIndex = candlesData.length - 1;
+            }
+
+            // Move to next/previous candle
+            let newIndex = currentCandleIndex;
+            if (e.key === 'ArrowLeft') {
+                newIndex = Math.max(0, currentCandleIndex - 1);
+            } else {
+                newIndex = Math.min(candlesData.length - 1, currentCandleIndex + 1);
+            }
+
+            // If we can't move further, do nothing
+            if (newIndex === currentCandleIndex) return;
+
+            // Calculate the time difference we need to shift
+            const oldCandle = candlesData[currentCandleIndex];
+            currentCandleIndex = newIndex;
+            const newCandle = candlesData[currentCandleIndex];
+
+            // Calculate the shift amount (difference between old and new candle time)
+            const shiftAmount = newCandle.time - oldCandle.time;
+
+            // Keep the same visible range width (no zoom change)
             const rangeWidth = visibleRange.to - visibleRange.from;
 
-            // Count visible candles
-            const visibleCandles = candlesData.filter(c =>
-                c.time >= visibleRange.from && c.time <= visibleRange.to
-            );
-
-            if (visibleCandles.length === 0) return;
-
-            // Calculate shift for exactly 1 candle
-            // Divide visible range by number of visible candles
-            const shiftAmount = rangeWidth / visibleCandles.length;
-
-            let newFrom, newTo;
-            if (e.key === 'ArrowLeft') {
-                newFrom = visibleRange.from - shiftAmount;
-                newTo = visibleRange.to - shiftAmount;
-            } else {
-                newFrom = visibleRange.from + shiftAmount;
-                newTo = visibleRange.to + shiftAmount;
-            }
+            // Shift the range by exactly the time difference between candles
+            const newFrom = visibleRange.from + shiftAmount;
+            const newTo = visibleRange.to + shiftAmount;
 
             // Apply the new range
             timeScale.setVisibleRange({
@@ -349,6 +359,9 @@ async function loadChartData(symbol) {
         // Store data for tooltip
         candlesData = candles;
         indicatorsData = indicators;
+
+        // Reset candle index for keyboard navigation
+        currentCandleIndex = -1;
 
         updateCharts(candles, indicators);
         updateMarkers();
@@ -455,6 +468,13 @@ function getMarkerShape(shape) {
 
 async function handleChartClick(param) {
     if (!param.time) return;
+
+    // Update current candle index based on clicked time
+    // This allows keyboard navigation to start from clicked position
+    const clickedIndex = candlesData.findIndex(c => c.time === param.time);
+    if (clickedIndex !== -1) {
+        currentCandleIndex = clickedIndex;
+    }
 
     const clickedMarker = markers.find(m => m.time === param.time);
 
