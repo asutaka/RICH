@@ -20,6 +20,7 @@ let currentMarkerMode = null;
 let markers = [];
 let candlesData = [];  // Store candle data for tooltip
 let indicatorsData = [];  // Store indicator data for tooltip
+let isFirstLoad = true;  // Track first data load
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -137,31 +138,85 @@ function initializeCharts() {
         },
     });
 
-    // Sync time scales - one way from main chart
-    let lastSyncedRange = null;
-    chartMain.timeScale().subscribeVisibleTimeRangeChange(() => {
+    // Sync time scales - bidirectional sync between charts
+    let isSyncing = false; // Prevent circular updates
+
+    // Function to sync time range from source to targets
+    const syncTimeRange = (sourceChart, targetCharts) => {
+        if (isSyncing) return;
+
         try {
-            const timeRange = chartMain.timeScale().getVisibleRange();
+            isSyncing = true;
+            const timeRange = sourceChart.timeScale().getVisibleRange();
             if (!timeRange) return;
 
-            // Check if range actually changed to avoid redundant syncs
-            if (lastSyncedRange &&
-                lastSyncedRange.from === timeRange.from &&
-                lastSyncedRange.to === timeRange.to) {
-                return;
-            }
-
-            lastSyncedRange = timeRange;
-
-            // Sync with other charts - only use setVisibleRange
-            chartRSI.timeScale().setVisibleRange(timeRange);
-            chartVolume.timeScale().setVisibleRange(timeRange);
-        } catch (error) {
-            // Only log in debug mode - charts might not have data yet
-            if (error.message !== 'Value is null') {
-                console.warn('Time scale sync error:', error.message);
-            }
+            // Apply range to all target charts
+            targetCharts.forEach(targetChart => {
+                try {
+                    targetChart.timeScale().setVisibleRange(timeRange);
+                } catch (err) {
+                    // Silently ignore if chart doesn't have data yet
+                    if (err.message !== 'Value is null') {
+                        console.warn('Sync error:', err.message);
+                    }
+                }
+            });
+        } finally {
+            isSyncing = false;
         }
+    };
+
+    // Subscribe main chart changes to sync with RSI and Volume
+    chartMain.timeScale().subscribeVisibleTimeRangeChange(() => {
+        syncTimeRange(chartMain, [chartRSI, chartVolume]);
+    });
+
+    // Subscribe RSI chart changes to sync with Main and Volume
+    chartRSI.timeScale().subscribeVisibleTimeRangeChange(() => {
+        syncTimeRange(chartRSI, [chartMain, chartVolume]);
+    });
+
+    // Subscribe Volume chart changes to sync with Main and RSI
+    chartVolume.timeScale().subscribeVisibleTimeRangeChange(() => {
+        syncTimeRange(chartVolume, [chartMain, chartRSI]);
+    });
+
+    // Sync crosshair position across all charts
+    chartMain.subscribeCrosshairMove((param) => {
+        if (!param || !param.time) {
+            // Clear crosshair on other charts when mouse leaves
+            chartRSI.clearCrosshairPosition();
+            chartVolume.clearCrosshairPosition();
+            return;
+        }
+
+        // Sync crosshair to RSI and Volume charts
+        chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+        chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+    });
+
+    // Also sync from RSI chart to others
+    chartRSI.subscribeCrosshairMove((param) => {
+        if (!param || !param.time) {
+            chartMain.clearCrosshairPosition();
+            chartVolume.clearCrosshairPosition();
+            return;
+        }
+
+        chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
+        chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+    });
+
+    // Also sync from Volume chart to others
+    chartVolume.subscribeCrosshairMove((param) => {
+        if (!param || !param.time) {
+            chartMain.clearCrosshairPosition();
+            chartRSI.clearCrosshairPosition();
+            return;
+        }
+
+        chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
+        chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
     });
 
     // Handle chart clicks
@@ -276,12 +331,28 @@ function updateCharts(candles, indicators) {
     }));
     volumeSeries.setData(volumeData);
 
-    // Use timeout to ensure charts are rendered before fitting content
-    setTimeout(() => {
-        chartMain.timeScale().fitContent();
-        chartRSI.timeScale().fitContent();
-        chartVolume.timeScale().fitContent();
-    }, 100);
+    // Only fit content on first load, then let sync handle it
+    if (isFirstLoad) {
+        setTimeout(() => {
+            chartMain.timeScale().fitContent();
+            // Get the visible range from main chart after fit
+            setTimeout(() => {
+                const mainRange = chartMain.timeScale().getVisibleRange();
+                if (mainRange) {
+                    chartRSI.timeScale().setVisibleRange(mainRange);
+                    chartVolume.timeScale().setVisibleRange(mainRange);
+                }
+                isFirstLoad = false;
+            }, 50);
+        }, 100);
+    } else {
+        // On subsequent loads, keep the current time range
+        const currentRange = chartMain.timeScale().getVisibleRange();
+        if (currentRange) {
+            chartRSI.timeScale().setVisibleRange(currentRange);
+            chartVolume.timeScale().setVisibleRange(currentRange);
+        }
+    }
 }
 
 function updateMarkers() {
