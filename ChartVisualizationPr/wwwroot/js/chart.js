@@ -15,6 +15,8 @@ let rsiWma45Series = null;
 let volumeSeries = null;
 let chartGroup = null;
 let groupSeries = null;
+let chartForeign = null;
+let foreignSeries = null;
 
 // State
 let currentSymbol = '';
@@ -150,6 +152,20 @@ function initializeCharts() {
         },
     });
 
+    // Foreign (International Investors) chart
+    const foreignContainer = document.getElementById('chartForeign');
+    chartForeign = LightweightCharts.createChart(foreignContainer, {
+        ...chartOptions,
+        autoSize: true,
+        height: 200,
+    });
+    foreignSeries = chartForeign.addHistogramSeries({
+        color: '#00d4ff',  // Cyan (giống Volume color)
+        priceFormat: {
+            type: 'volume',
+        },
+    });
+
     // Sync time scales - bidirectional sync between charts
     let isSyncing = false; // Prevent circular updates
 
@@ -180,22 +196,27 @@ function initializeCharts() {
 
     // Subscribe main chart changes to sync with RSI, Volume, and Group
     chartMain.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartMain, [chartRSI, chartVolume, chartGroup]);
+        syncTimeRange(chartMain, [chartRSI, chartVolume, chartGroup, chartForeign]);
     });
 
     // Subscribe RSI chart changes to sync with Main, Volume, and Group
     chartRSI.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartRSI, [chartMain, chartVolume, chartGroup]);
+        syncTimeRange(chartRSI, [chartMain, chartVolume, chartGroup, chartForeign]);
     });
 
     // Subscribe Volume chart changes to sync with Main, RSI, and Group
     chartVolume.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartVolume, [chartMain, chartRSI, chartGroup]);
+        syncTimeRange(chartVolume, [chartMain, chartRSI, chartGroup, chartForeign]);
     });
 
     // Subscribe Group chart changes to sync with Main, RSI, and Volume
     chartGroup.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartGroup, [chartMain, chartRSI, chartVolume]);
+        syncTimeRange(chartGroup, [chartMain, chartRSI, chartVolume, chartForeign]);
+    });
+
+    // Subscribe Foreign chart changes to sync with Main, RSI, Volume, and Group
+    chartForeign.timeScale().subscribeVisibleTimeRangeChange(() => {
+        syncTimeRange(chartForeign, [chartMain, chartRSI, chartVolume, chartGroup]);
     });
 
     // Sync crosshair position across all charts and update info panel
@@ -206,6 +227,7 @@ function initializeCharts() {
                 chartRSI.clearCrosshairPosition();
                 chartVolume.clearCrosshairPosition();
                 chartGroup.clearCrosshairPosition();
+                chartForeign.clearCrosshairPosition();
             } catch (e) {
                 // Ignore errors when charts don't have data yet
             }
@@ -219,6 +241,7 @@ function initializeCharts() {
             chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
             chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
             chartGroup.setCrosshairPosition(0, param.time, groupSeries);
+            chartForeign.setCrosshairPosition(0, param.time, foreignSeries);
         } catch (e) {
             // Ignore errors when charts don't have data yet
         }
@@ -433,6 +456,9 @@ async function loadChartData(symbol) {
         const groupResponse = await fetch(`${API_BASE_URL}/api/chartdata/group/${symbol}`);
         const groupData = await groupResponse.json();
 
+        const foreignResponse = await fetch(`${API_BASE_URL}/api/chartdata/foreign/${symbol}`);
+        const foreignData = await foreignResponse.json();
+
         // Store data for tooltip
         candlesData = candles;
         indicatorsData = indicators;
@@ -440,7 +466,7 @@ async function loadChartData(symbol) {
         // Reset candle index for keyboard navigation
         currentCandleIndex = -1;
 
-        updateCharts(candles, indicators, groupData);
+        updateCharts(candles, indicators, groupData, foreignData);
         updateMarkers();
 
         showLoading(false);
@@ -450,7 +476,7 @@ async function loadChartData(symbol) {
     }
 }
 
-function updateCharts(candles, indicators, groupData = []) {
+function updateCharts(candles, indicators, groupData = [], foreignData = []) {
     const candleData = candles.map(c => ({
         time: c.time,
         open: c.open,
@@ -507,6 +533,16 @@ function updateCharts(candles, indicators, groupData = []) {
         groupSeries.setData(groupChartData);
     }
 
+    // Foreign data display
+    if (foreignData && foreignData.length > 0) {
+        const foreignChartData = foreignData.map(f => ({
+            time: f.time,
+            value: f.value,
+            color: f.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
+        }));
+        foreignSeries.setData(foreignChartData);
+    }
+
     // Only fit content on first load, then let sync handle it
     if (isFirstLoad) {
         setTimeout(() => {
@@ -518,10 +554,11 @@ function updateCharts(candles, indicators, groupData = []) {
                     chartRSI.timeScale().setVisibleRange(mainRange);
                     chartVolume.timeScale().setVisibleRange(mainRange);
                     chartGroup.timeScale().setVisibleRange(mainRange);
+                    chartForeign.timeScale().setVisibleRange(mainRange);
                 }
                 isFirstLoad = false;
             }, 50);
-        }, 100);
+        }, 200);
     } else {
         // On subsequent loads, keep the current time range
         const currentRange = chartMain.timeScale().getVisibleRange();
@@ -529,6 +566,7 @@ function updateCharts(candles, indicators, groupData = []) {
             chartRSI.timeScale().setVisibleRange(currentRange);
             chartVolume.timeScale().setVisibleRange(currentRange);
             chartGroup.timeScale().setVisibleRange(currentRange);
+            chartForeign.timeScale().setVisibleRange(currentRange);
         }
     }
 }
