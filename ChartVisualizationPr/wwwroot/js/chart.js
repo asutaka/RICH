@@ -185,38 +185,62 @@ function initializeCharts() {
     chartMain.subscribeCrosshairMove((param) => {
         if (!param || !param.time) {
             // Clear crosshair on other charts when mouse leaves
-            chartRSI.clearCrosshairPosition();
-            chartVolume.clearCrosshairPosition();
+            try {
+                chartRSI.clearCrosshairPosition();
+                chartVolume.clearCrosshairPosition();
+            } catch (e) {
+                // Ignore errors when charts don't have data yet
+            }
             return;
         }
 
         // Sync crosshair to RSI and Volume charts
-        chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
-        chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+        try {
+            chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+            chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+        } catch (e) {
+            // Ignore errors when charts don't have data yet
+        }
     });
 
     // Also sync from RSI chart to others
     chartRSI.subscribeCrosshairMove((param) => {
         if (!param || !param.time) {
-            chartMain.clearCrosshairPosition();
-            chartVolume.clearCrosshairPosition();
+            try {
+                chartMain.clearCrosshairPosition();
+                chartVolume.clearCrosshairPosition();
+            } catch (e) {
+                // Ignore errors when charts don't have data yet
+            }
             return;
         }
 
-        chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
-        chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+        try {
+            chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
+            chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+        } catch (e) {
+            // Ignore errors when charts don't have data yet
+        }
     });
 
     // Also sync from Volume chart to others
     chartVolume.subscribeCrosshairMove((param) => {
         if (!param || !param.time) {
-            chartMain.clearCrosshairPosition();
-            chartRSI.clearCrosshairPosition();
+            try {
+                chartMain.clearCrosshairPosition();
+                chartRSI.clearCrosshairPosition();
+            } catch (e) {
+                // Ignore errors when charts don't have data yet
+            }
             return;
         }
 
-        chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
-        chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+        try {
+            chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
+            chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+        } catch (e) {
+            // Ignore errors when charts don't have data yet
+        }
     });
 
     // Handle chart clicks
@@ -241,6 +265,58 @@ function setupEventListeners() {
 
     document.getElementById('markerNote').addEventListener('click', () => {
         toggleMarkerMode('note');
+    });
+
+    // Keyboard navigation - Arrow keys to move by one candle
+    document.addEventListener('keydown', (e) => {
+        if (!candlesData || candlesData.length === 0) return;
+
+        // Only handle arrow keys
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+
+        // Don't interfere if user is typing in an input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+
+        e.preventDefault();
+
+        try {
+            const timeScale = chartMain.timeScale();
+            const visibleRange = timeScale.getVisibleRange();
+            if (!visibleRange) return;
+
+            // Get the visible range width
+            const rangeWidth = visibleRange.to - visibleRange.from;
+
+            // Count visible candles
+            const visibleCandles = candlesData.filter(c =>
+                c.time >= visibleRange.from && c.time <= visibleRange.to
+            );
+
+            if (visibleCandles.length === 0) return;
+
+            // Calculate shift for exactly 1 candle
+            // Divide visible range by number of visible candles
+            const shiftAmount = rangeWidth / visibleCandles.length;
+
+            let newFrom, newTo;
+            if (e.key === 'ArrowLeft') {
+                newFrom = visibleRange.from - shiftAmount;
+                newTo = visibleRange.to - shiftAmount;
+            } else {
+                newFrom = visibleRange.from + shiftAmount;
+                newTo = visibleRange.to + shiftAmount;
+            }
+
+            // Apply the new range
+            timeScale.setVisibleRange({
+                from: newFrom,
+                to: newTo
+            });
+        } catch (error) {
+            console.warn('Keyboard navigation error:', error);
+        }
     });
 }
 
