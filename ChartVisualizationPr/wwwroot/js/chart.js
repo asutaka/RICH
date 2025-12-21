@@ -508,6 +508,11 @@ async function loadChartData(symbol) {
         const netTradeData = await netTradeResponse.json();
         console.log('✅ netTradeData fetched:', netTradeData);
 
+        console.log('📊 Sample timestamps:');
+        console.log('  Candles:', candles.slice(0, 3).map(c => ({ time: c.time, date: new Date(c.time * 1000) })));
+        console.log('  Group:', groupData.slice(0, 3).map(g => ({ time: g.time, date: new Date(g.time * 1000) })));
+        console.log('  Foreign:', foreignData.slice(0, 3).map(f => ({ time: f.time, date: new Date(f.time * 1000) })));
+        console.log('  NetTrade:', netTradeData.slice(0, 3).map(n => ({ time: n.time, date: new Date(n.time * 1000) })));
         // Store data for tooltip
         candlesData = candles;
         indicatorsData = indicators;
@@ -613,7 +618,7 @@ function updateCharts(candles, indicators, groupData = [], foreignData = [], net
             const dataLength = candleData.length;
             if (dataLength > 0) {
                 // Show last 100 candles or all if less than 100
-                const barsToShow = Math.min(150, dataLength);
+                const barsToShow = Math.min(100, dataLength);
                 const fromIndex = Math.max(0, dataLength - barsToShow);
 
                 chartMain.timeScale().setVisibleLogicalRange({

@@ -156,26 +156,33 @@ namespace ChartVisualizationPr.Services
         {
             try
             {
-                // Query PhanLoaiNDT by symbol using FilterDefinition
+                // Get candle data to know the full timeline
+                var quotes = await _apiService.SSI_GetDataStock(symbol);
+                var candleTimestamps = quotes.Select(q => new DateTimeOffset(q.Date).ToUnixTimeSeconds()).ToList();
+
+                // Query PhanLoaiNDT by symbol
                 var filter = Builders<StockPr.DAL.Entity.PhanLoaiNDT>.Filter.Eq(x => x.s, symbol);
                 var phanLoaiData = await Task.Run(() => _phanLoaiNDTRepo.GetByFilter(filter));
                 var data = phanLoaiData.FirstOrDefault();
 
-                if (data == null || data.Date == null || data.Group == null)
+                // Create a dictionary for fast lookup
+                var groupDict = new Dictionary<long, double>();
+                
+                if (data != null && data.Date != null && data.Group != null)
                 {
-                    return new List<InvestorData>();
+                    for (int i = 0; i < Math.Min(data.Date.Count, data.Group.Count); i++)
+                    {
+                        var timestamp = (long)data.Date[i] + 25200;
+                        groupDict[timestamp] = data.Group[i];
+                    }
                 }
 
-                // Map Date[i] to Group[i]
-                var result = new List<InvestorData>();
-                for (int i = 0; i < Math.Min(data.Date.Count, data.Group.Count); i++)
+                // Fill all timestamps from candles, use 0 for missing data
+                var result = candleTimestamps.Select(timestamp => new InvestorData
                 {
-                    result.Add(new InvestorData
-                    {
-                        time = (long)data.Date[i],
-                        value = data.Group[i]
-                    });
-                }
+                    time = timestamp,
+                    value = groupDict.ContainsKey(timestamp) ? groupDict[timestamp] : 0
+                }).ToList();
 
                 return result;
             }
@@ -190,24 +197,33 @@ namespace ChartVisualizationPr.Services
         {
             try
             {
+                // Get candle data to know the full timeline
+                var quotes = await _apiService.SSI_GetDataStock(symbol);
+                var candleTimestamps = quotes.Select(q => new DateTimeOffset(q.Date).ToUnixTimeSeconds()).ToList();
+
+                // Query PhanLoaiNDT by symbol
                 var filter = Builders<StockPr.DAL.Entity.PhanLoaiNDT>.Filter.Eq(x => x.s, symbol);
                 var phanLoaiData = await Task.Run(() => _phanLoaiNDTRepo.GetByFilter(filter));
                 var data = phanLoaiData.FirstOrDefault();
 
-                if (data == null || data.Date == null || data.Foreign == null)
+                // Create a dictionary for fast lookup
+                var foreignDict = new Dictionary<long, double>();
+                
+                if (data != null && data.Date != null && data.Foreign != null)
                 {
-                    return new List<InvestorData>();
+                    for (int i = 0; i < Math.Min(data.Date.Count, data.Foreign.Count); i++)
+                    {
+                        var timestamp = (long)data.Date[i] + 25200;
+                        foreignDict[timestamp] = data.Foreign[i];
+                    }
                 }
 
-                var result = new List<InvestorData>();
-                for (int i = 0; i < Math.Min(data.Date.Count, data.Foreign.Count); i++)
+                // Fill all timestamps from candles, use 0 for missing data
+                var result = candleTimestamps.Select(timestamp => new InvestorData
                 {
-                    result.Add(new InvestorData
-                    {
-                        time = (long)data.Date[i],
-                        value = data.Foreign[i]
-                    });
-                }
+                    time = timestamp,
+                    value = foreignDict.ContainsKey(timestamp) ? foreignDict[timestamp] : 0
+                }).ToList();
 
                 return result;
             }
