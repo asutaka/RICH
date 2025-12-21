@@ -261,6 +261,7 @@ function initializeCharts() {
                 chartVolume.clearCrosshairPosition();
                 chartGroup.clearCrosshairPosition();
                 chartForeign.clearCrosshairPosition();
+                chartNetTrade.clearCrosshairPosition();
             } catch (e) {
                 // Ignore errors when charts don't have data yet
             }
@@ -305,6 +306,7 @@ function initializeCharts() {
                 document.getElementById('infoLower').textContent = indicator.lowerBand ? indicator.lowerBand.toFixed(2) : '-';
                 document.getElementById('infoRSI').textContent = indicator.rsi ? indicator.rsi.toFixed(2) : '-';
                 document.getElementById('infoVolume').textContent = indicator.volume ? indicator.volume.toLocaleString() : '-';
+                document.getElementById('infoNetTrade').textContent = indicator.netTrade ? indicator.netTrade.toLocaleString() : '-';
             }
         }
     });
@@ -315,6 +317,9 @@ function initializeCharts() {
             try {
                 chartMain.clearCrosshairPosition();
                 chartVolume.clearCrosshairPosition();
+                chartGroup.clearCrosshairPosition();
+                chartForeign.clearCrosshairPosition();
+                chartNetTrade.clearCrosshairPosition();
             } catch (e) {
                 // Ignore errors when charts don't have data yet
             }
@@ -324,6 +329,9 @@ function initializeCharts() {
         try {
             chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
             chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+            chartGroup.setCrosshairPosition(0, param.time, groupSeries);
+            chartForeign.setCrosshairPosition(0, param.time, foreignSeries);
+            chartNetTrade.setCrosshairPosition(0, param.time, netTradeSeries);
         } catch (e) {
             // Ignore errors when charts don't have data yet
         }
@@ -335,6 +343,9 @@ function initializeCharts() {
             try {
                 chartMain.clearCrosshairPosition();
                 chartRSI.clearCrosshairPosition();
+                chartGroup.clearCrosshairPosition();
+                chartForeign.clearCrosshairPosition();
+                chartNetTrade.clearCrosshairPosition();
             } catch (e) {
                 // Ignore errors when charts don't have data yet
             }
@@ -344,6 +355,84 @@ function initializeCharts() {
         try {
             chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
             chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+            chartGroup.setCrosshairPosition(0, param.time, groupSeries);
+            chartForeign.setCrosshairPosition(0, param.time, foreignSeries);
+            chartNetTrade.setCrosshairPosition(0, param.time, netTradeSeries);
+        } catch (e) {
+            // Ignore errors when charts don't have data yet
+        }
+    });
+
+    chartGroup.subscribeCrosshairMove((param) => {
+        if (!param || !param.time) {
+            try {
+                chartMain.clearCrosshairPosition();
+                chartRSI.clearCrosshairPosition();
+                chartVolume.clearCrosshairPosition();
+                chartForeign.clearCrosshairPosition();
+                chartNetTrade.clearCrosshairPosition();
+            } catch (e) {
+                // Ignore errors when charts don't have data yet
+            }
+            return;
+        }
+
+        try {
+            chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
+            chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+            chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+            chartForeign.setCrosshairPosition(0, param.time, foreignSeries);
+            chartNetTrade.setCrosshairPosition(0, param.time, netTradeSeries);
+        } catch (e) {
+            // Ignore errors when charts don't have data yet
+        }
+    });
+
+    chartForeign.subscribeCrosshairMove((param) => {
+        if (!param || !param.time) {
+            try {
+                chartMain.clearCrosshairPosition();
+                chartRSI.clearCrosshairPosition();
+                chartVolume.clearCrosshairPosition();
+                chartGroup.clearCrosshairPosition();
+                chartNetTrade.clearCrosshairPosition();
+            } catch (e) {
+                // Ignore errors when charts don't have data yet
+            }
+            return;
+        }
+
+        try {
+            chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
+            chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+            chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+            chartGroup.setCrosshairPosition(0, param.time, groupSeries);
+            chartNetTrade.setCrosshairPosition(0, param.time, netTradeSeries);
+        } catch (e) {
+            // Ignore errors when charts don't have data yet
+        }
+    });
+
+    chartNetTrade.subscribeCrosshairMove((param) => {
+        if (!param || !param.time) {
+            try {
+                chartMain.clearCrosshairPosition();
+                chartRSI.clearCrosshairPosition();
+                chartVolume.clearCrosshairPosition();
+                chartGroup.clearCrosshairPosition();
+                chartForeign.clearCrosshairPosition();
+            } catch (e) {
+                // Ignore errors when charts don't have data yet
+            }
+            return;
+        }
+
+        try {
+            chartMain.setCrosshairPosition(0, param.time, candlestickSeries);
+            chartRSI.setCrosshairPosition(0, param.time, rsiSeries);
+            chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
+            chartGroup.setCrosshairPosition(0, param.time, groupSeries);
+            chartForeign.setCrosshairPosition(0, param.time, foreignSeries);
         } catch (e) {
             // Ignore errors when charts don't have data yet
         }
