@@ -563,7 +563,58 @@ function setupEventListeners() {
         }
     });
 
-    setupSymbolSearch();
+    // Chart visibility toggles
+    document.getElementById('toggleRSI')?.addEventListener('change', (e) => {
+        const container = document.getElementById('chartRSI').parentElement;
+        if (e.target.checked) {
+            container.classList.remove('hidden');
+            chartRSI.resize();
+        } else {
+            container.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('toggleVolume')?.addEventListener('change', (e) => {
+        const container = document.getElementById('chartVolume').parentElement;
+        if (e.target.checked) {
+            container.classList.remove('hidden');
+            chartVolume.resize();
+        } else {
+            container.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('toggleGroup')?.addEventListener('change', (e) => {
+        const container = document.getElementById('chartGroup').parentElement;
+        if (e.target.checked) {
+            container.classList.remove('hidden');
+            chartGroup.resize();
+        } else {
+            container.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('toggleForeign')?.addEventListener('change', (e) => {
+        const container = document.getElementById('chartForeign').parentElement;
+        if (e.target.checked) {
+            container.classList.remove('hidden');
+            chartForeign.resize();
+        } else {
+            container.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('toggleNetTrade')?.addEventListener('change', (e) => {
+        const container = document.getElementById('chartNetTrade').parentElement;
+        if (e.target.checked) {
+            container.classList.remove('hidden');
+            chartNetTrade.resize();
+        } else {
+            container.classList.add('hidden');
+        }
+    });
+
+    setupSymbolSearch(); // Dòng cuối hàm
 }
 
 function toggleMarkerMode(mode) {
