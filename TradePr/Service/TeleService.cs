@@ -19,7 +19,7 @@ namespace TradePr.Service
     {
         private const long _idUser = 1066022551;
         private readonly ILogger<TeleService> _logger;
-        private TelegramBotClient _bot = new TelegramBotClient("7783423206:AAGnpRM_8xnxr44sbgOX-ktIHXQEsyMxH6A");
+        private TelegramBotClient _bot = new TelegramBotClient("8533331189:AAHBZFCXHI-jSV46v0YXq1MZPvx5duweqNI");
         private readonly ISymbolRepo _symRepo;
         private readonly IConfigDataRepo _configRepo;
         private readonly IPrepareRepo _prepareRepo;
