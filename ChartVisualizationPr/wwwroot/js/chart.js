@@ -58,6 +58,15 @@ function initializeCharts() {
         timeScale: {
             borderColor: 'rgba(255, 255, 255, 0.1)',
             timeVisible: true,
+            rightOffset: 10,
+            barSpacing: 6,
+            minBarSpacing: 0.5,
+            fixLeftEdge: false,
+            fixRightEdge: false,
+            lockVisibleTimeRangeOnResize: false,
+            rightBarStaysOnScroll: false,
+            borderVisible: true,
+            visible: true,
         },
         rightPriceScale: {
             borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -566,8 +575,21 @@ function updateCharts(candles, indicators, groupData = [], foreignData = []) {
     // Only fit content on first load, then let sync handle it
     if (isFirstLoad) {
         setTimeout(() => {
-            chartMain.timeScale().fitContent();
-            // Get the visible range from main chart after fit
+            // Instead of fitContent (which zooms to show ALL data),
+            // scroll to show recent data with comfortable zoom level
+            const dataLength = candleData.length;
+            if (dataLength > 0) {
+                // Show last 100 candles or all if less than 100
+                const barsToShow = Math.min(150, dataLength);
+                const fromIndex = Math.max(0, dataLength - barsToShow);
+
+                chartMain.timeScale().setVisibleLogicalRange({
+                    from: fromIndex,
+                    to: dataLength - 1
+                });
+            }
+
+            // Sync other charts
             setTimeout(() => {
                 const mainRange = chartMain.timeScale().getVisibleRange();
                 if (mainRange) {
@@ -579,7 +601,8 @@ function updateCharts(candles, indicators, groupData = [], foreignData = []) {
                 isFirstLoad = false;
             }, 50);
         }, 200);
-    } else {
+    }
+    else {
         // On subsequent loads, keep the current time range
         const currentRange = chartMain.timeScale().getVisibleRange();
         if (currentRange) {
