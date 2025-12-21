@@ -18,6 +18,8 @@ let groupSeries = null;
 let chartForeign = null;
 let foreignSeries = null;
 let cachedSymbols = null;
+let chartNetTrade = null;
+let netTradeSeries = null;
 
 // State
 let currentSymbol = '';
@@ -184,6 +186,19 @@ function initializeCharts() {
         },
     });
 
+    // Net Trade chart
+    const netTradeContainer = document.getElementById('chartNetTrade');
+    chartNetTrade = LightweightCharts.createChart(netTradeContainer, {
+        ...chartOptions,
+        autoSize: true,
+        height: 200,
+    });
+    netTradeSeries = chartNetTrade.addHistogramSeries({
+        color: '#00d4ff',  // Cyan (giống Volume color)
+        priceFormat: {
+            type: 'volume',
+        },
+    });
     // Sync time scales - bidirectional sync between charts
     let isSyncing = false; // Prevent circular updates
 
@@ -491,6 +506,7 @@ async function loadChartData(symbol) {
 
         const netTradeResponse = await fetch(`${API_BASE_URL}/api/chartdata/nettrade/${symbol}`);
         const netTradeData = await netTradeResponse.json();
+        console.log('✅ netTradeData fetched:', netTradeData);
 
         // Store data for tooltip
         candlesData = candles;
@@ -583,9 +599,12 @@ function updateCharts(candles, indicators, groupData = [], foreignData = [], net
             value: nt.value,
             color: nt.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
         }));
+        console.log('✅ netTradeChartData:', netTradeChartData); // <-- THÊM DÒNG NÀY
         netTradeSeries.setData(netTradeChartData);
     }
-
+    else {
+        console.log('❌ netTradeData is empty or null:', netTradeData); // <-- THÊM DÒNG NÀY
+    }
     // Only fit content on first load, then let sync handle it
     if (isFirstLoad) {
         setTimeout(() => {
