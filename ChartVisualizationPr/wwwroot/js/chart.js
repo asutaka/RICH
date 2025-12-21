@@ -33,6 +33,7 @@ let currentCandleIndex = -1;  // Track current focused candle index
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     initializeCharts();
+    restoreChartVisibility();
     setupEventListeners();
     loadSymbols().then(() => {
         // Restore last selected symbol from localStorage
@@ -448,6 +449,35 @@ function initializeCharts() {
     chartMain.subscribeClick(handleChartClick);
 }
 
+function restoreChartVisibility() {
+    const charts = [
+        { id: 'toggleRSI', chartId: 'chartRSI', chart: chartRSI, key: 'chartVisibility_RSI' },
+        { id: 'toggleVolume', chartId: 'chartVolume', chart: chartVolume, key: 'chartVisibility_Volume' },
+        { id: 'toggleGroup', chartId: 'chartGroup', chart: chartGroup, key: 'chartVisibility_Group' },
+        { id: 'toggleForeign', chartId: 'chartForeign', chart: chartForeign, key: 'chartVisibility_Foreign' },
+        { id: 'toggleNetTrade', chartId: 'chartNetTrade', chart: chartNetTrade, key: 'chartVisibility_NetTrade' }
+    ];
+
+    charts.forEach(({ id, chartId, chart, key }) => {
+        const saved = localStorage.getItem(key);
+        const isVisible = saved === null ? true : saved === 'true';
+
+        const checkbox = document.getElementById(id);
+        const container = document.getElementById(chartId).parentElement;
+
+        if (checkbox) {
+            checkbox.checked = isVisible;
+        }
+
+        if (!isVisible) {
+            container.classList.add('hidden');
+        } else {
+            container.classList.remove('hidden');
+            chart.resize();
+        }
+    });
+}
+
 function setupEventListeners() {
     document.getElementById('symbolSelect').addEventListener('change', (e) => {
         const symbol = e.target.value;
@@ -572,6 +602,8 @@ function setupEventListeners() {
         } else {
             container.classList.add('hidden');
         }
+        // Save to localStorage
+        localStorage.setItem('chartVisibility_RSI', e.target.checked);
     });
 
     document.getElementById('toggleVolume')?.addEventListener('change', (e) => {
@@ -582,6 +614,8 @@ function setupEventListeners() {
         } else {
             container.classList.add('hidden');
         }
+        // Save to localStorage
+        localStorage.setItem('chartVisibility_Volume', e.target.checked);
     });
 
     document.getElementById('toggleGroup')?.addEventListener('change', (e) => {
@@ -592,6 +626,8 @@ function setupEventListeners() {
         } else {
             container.classList.add('hidden');
         }
+        // Save to localStorage
+        localStorage.setItem('chartVisibility_Group', e.target.checked);
     });
 
     document.getElementById('toggleForeign')?.addEventListener('change', (e) => {
@@ -602,6 +638,8 @@ function setupEventListeners() {
         } else {
             container.classList.add('hidden');
         }
+        // Save to localStorage
+        localStorage.setItem('chartVisibility_Foreign', e.target.checked);
     });
 
     document.getElementById('toggleNetTrade')?.addEventListener('change', (e) => {
@@ -612,6 +650,8 @@ function setupEventListeners() {
         } else {
             container.classList.add('hidden');
         }
+        // Save to localStorage
+        localStorage.setItem('chartVisibility_NetTrade', e.target.checked);
     });
 
     setupSymbolSearch(); // Dòng cuối hàm
