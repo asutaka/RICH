@@ -16,6 +16,7 @@ namespace ChartVisualizationPr.Services
         Task<bool> DeleteMarkerAsync(string id);
         Task<List<InvestorData>> GetGroupDataAsync(string symbol);
         Task<List<InvestorData>> GetForeignDataAsync(string symbol);
+        Task<List<InvestorData>> GetNetTradeVolumeDataAsync(string symbol);
     }
 
     public class ChartDataService : IChartDataService
@@ -213,6 +214,41 @@ namespace ChartVisualizationPr.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting foreign data for {symbol}");
+                throw;
+            }
+        }
+
+        public async Task<List<InvestorData>> GetNetTradeVolumeDataAsync(string symbol)
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var from = now.AddYears(-1);
+
+                var data = await _apiService.SSI_GetStockInfo(symbol, from, now);
+
+                if (data?.data == null)
+                    return new List<InvestorData>();
+
+                var result = data.data
+                    .Where(d => !string.IsNullOrEmpty(d.tradingDate))
+                    .Select(d =>
+                    {
+                        var date = DateTime.ParseExact(d.tradingDate, "dd/MM/yyyy", null);
+                        return new InvestorData
+                        {
+                            time = new DateTimeOffset(date).ToUnixTimeSeconds(),
+                            value = d.netTotalTradeVol
+                        };
+                    })
+                    .OrderBy(d => d.time)
+                    .ToList();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting net trade volume data for {symbol}");
                 throw;
             }
         }

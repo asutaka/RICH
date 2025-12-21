@@ -138,5 +138,20 @@ namespace ChartVisualizationPr.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
+        [HttpGet("nettrade/{symbol}")]
+        public async Task<ActionResult<List<InvestorData>>> GetNetTradeVolumeData(string symbol)
+        {
+            try
+            {
+                var data = await _chartDataService.GetNetTradeVolumeDataAsync(symbol);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting net trade volume data for {symbol}");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
     }
 }

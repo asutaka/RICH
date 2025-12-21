@@ -260,6 +260,7 @@ function initializeCharts() {
             chartVolume.setCrosshairPosition(0, param.time, volumeSeries);
             chartGroup.setCrosshairPosition(0, param.time, groupSeries);
             chartForeign.setCrosshairPosition(0, param.time, foreignSeries);
+            chartNetTrade.setCrosshairPosition(0, param.time, netTradeSeries);
         } catch (e) {
             // Ignore errors when charts don't have data yet
         }
@@ -488,6 +489,9 @@ async function loadChartData(symbol) {
         const foreignResponse = await fetch(`${API_BASE_URL}/api/chartdata/foreign/${symbol}`);
         const foreignData = await foreignResponse.json();
 
+        const netTradeResponse = await fetch(`${API_BASE_URL}/api/chartdata/nettrade/${symbol}`);
+        const netTradeData = await netTradeResponse.json();
+
         // Store data for tooltip
         candlesData = candles;
         indicatorsData = indicators;
@@ -495,7 +499,7 @@ async function loadChartData(symbol) {
         // Reset candle index for keyboard navigation
         currentCandleIndex = -1;
 
-        updateCharts(candles, indicators, groupData, foreignData);
+        updateCharts(candles, indicators, groupData, foreignData, netTradeData);
         updateMarkers();
 
         showLoading(false);
@@ -505,7 +509,7 @@ async function loadChartData(symbol) {
     }
 }
 
-function updateCharts(candles, indicators, groupData = [], foreignData = []) {
+function updateCharts(candles, indicators, groupData = [], foreignData = [], netTradeData = []) {
     const candleData = candles.map(c => ({
         time: c.time,
         open: c.open,
@@ -572,6 +576,16 @@ function updateCharts(candles, indicators, groupData = [], foreignData = []) {
         foreignSeries.setData(foreignChartData);
     }
 
+    // Net Trade data display
+    if (netTradeData && netTradeData.length > 0) {
+        const netTradeChartData = netTradeData.map(nt => ({
+            time: nt.time,
+            value: nt.value,
+            color: nt.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
+        }));
+        netTradeSeries.setData(netTradeChartData);
+    }
+
     // Only fit content on first load, then let sync handle it
     if (isFirstLoad) {
         setTimeout(() => {
@@ -597,6 +611,7 @@ function updateCharts(candles, indicators, groupData = [], foreignData = []) {
                     chartVolume.timeScale().setVisibleRange(mainRange);
                     chartGroup.timeScale().setVisibleRange(mainRange);
                     chartForeign.timeScale().setVisibleRange(mainRange);
+                    chartNetTrade.timeScale().setVisibleRange(mainRange);
                 }
                 isFirstLoad = false;
             }, 50);
@@ -610,6 +625,7 @@ function updateCharts(candles, indicators, groupData = [], foreignData = []) {
             chartVolume.timeScale().setVisibleRange(currentRange);
             chartGroup.timeScale().setVisibleRange(currentRange);
             chartForeign.timeScale().setVisibleRange(currentRange);
+            chartNetTrade.timeScale().setVisibleRange(currentRange);
         }
     }
 }
