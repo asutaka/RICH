@@ -217,25 +217,25 @@ function initializeCharts() {
         syncTimeRange(chartMain, [chartRSI, chartVolume, chartGroup, chartForeign]);
     });
 
-    // Subscribe RSI chart changes to sync with Main, Volume, and Group
-    chartRSI.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartRSI, [chartMain, chartVolume, chartGroup, chartForeign]);
-    });
+    // // Subscribe RSI chart changes to sync with Main, Volume, and Group
+    // chartRSI.timeScale().subscribeVisibleTimeRangeChange(() => {
+    //     syncTimeRange(chartRSI, [chartMain, chartVolume, chartGroup, chartForeign]);
+    // });
 
-    // Subscribe Volume chart changes to sync with Main, RSI, and Group
-    chartVolume.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartVolume, [chartMain, chartRSI, chartGroup, chartForeign]);
-    });
+    // // Subscribe Volume chart changes to sync with Main, RSI, and Group
+    // chartVolume.timeScale().subscribeVisibleTimeRangeChange(() => {
+    //     syncTimeRange(chartVolume, [chartMain, chartRSI, chartGroup, chartForeign]);
+    // });
 
-    // Subscribe Group chart changes to sync with Main, RSI, and Volume
-    chartGroup.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartGroup, [chartMain, chartRSI, chartVolume, chartForeign]);
-    });
+    // // Subscribe Group chart changes to sync with Main, RSI, and Volume
+    // chartGroup.timeScale().subscribeVisibleTimeRangeChange(() => {
+    //     syncTimeRange(chartGroup, [chartMain, chartRSI, chartVolume, chartForeign]);
+    // });
 
-    // Subscribe Foreign chart changes to sync with Main, RSI, Volume, and Group
-    chartForeign.timeScale().subscribeVisibleTimeRangeChange(() => {
-        syncTimeRange(chartForeign, [chartMain, chartRSI, chartVolume, chartGroup]);
-    });
+    // // Subscribe Foreign chart changes to sync with Main, RSI, Volume, and Group
+    // chartForeign.timeScale().subscribeVisibleTimeRangeChange(() => {
+    //     syncTimeRange(chartForeign, [chartMain, chartRSI, chartVolume, chartGroup]);
+    // });
 
     // Sync crosshair position across all charts and update info panel
     chartMain.subscribeCrosshairMove((param) => {
