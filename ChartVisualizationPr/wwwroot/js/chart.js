@@ -69,6 +69,7 @@ function initializeCharts() {
             rightBarStaysOnScroll: false,
             borderVisible: true,
             visible: true,
+            shiftVisibleRangeOnNewBar: false,
         },
         rightPriceScale: {
             borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -81,6 +82,11 @@ function initializeCharts() {
         ...chartOptions,
         autoSize: true,
         height: 500,
+        timeScale: {
+            ...chartOptions.timeScale,
+            handleScroll: false,
+            handleScale: false,
+        },
     });
 
     candlestickSeries = chartMain.addCandlestickSeries({
