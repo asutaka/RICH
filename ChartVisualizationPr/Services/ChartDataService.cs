@@ -25,21 +25,23 @@ namespace ChartVisualizationPr.Services
         private readonly ILogger<ChartDataService> _logger;
         private readonly IPhanLoaiNDTRepo _phanLoaiNDTRepo;
         private readonly IStockRepo _stockRepo;
+        private readonly ISymbolRepo _symbolRepo;
         private static readonly List<MarkerData> _markers = new(); // In-memory storage for demo
 
-        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger, IPhanLoaiNDTRepo phanLoaiNDTRepo, IStockRepo stockRepo)
+        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger, IPhanLoaiNDTRepo phanLoaiNDTRepo, IStockRepo stockRepo, ISymbolRepo symbolRepo)
         {
             _apiService = apiService;
             _logger = logger;
             _phanLoaiNDTRepo = phanLoaiNDTRepo;
             _stockRepo = stockRepo;
+            _symbolRepo = symbolRepo;
         }
 
         public async Task<List<string>> GetSymbolsAsync()
         {
             try
             {
-                var stocks = await Task.Run(() => _stockRepo.GetAll());
+                var stocks = await Task.Run(() => _symbolRepo.GetAll());
                 return stocks?.Select(s => s.s)
                              .Where(s => !string.IsNullOrEmpty(s))
                              .OrderBy(s => s)
@@ -238,27 +240,41 @@ namespace ChartVisualizationPr.Services
         {
             try
             {
+                // Get candle data to know the full timeline
+                var quotes = await _apiService.SSI_GetDataStock(symbol);
+                var candleTimestamps = quotes.Select(q => new DateTimeOffset(q.Date).ToUnixTimeSeconds()).ToList();
+
                 var now = DateTime.Now;
                 var from = now.AddYears(-1);
 
                 var data = await _apiService.SSI_GetStockInfo(symbol, from, now);
 
-                if (data?.data == null)
-                    return new List<InvestorData>();
+                // Create a dictionary for fast lookup
+                var netTradeDict = new Dictionary<long, int>();
 
-                var result = data.data
-                    .Where(d => !string.IsNullOrEmpty(d.tradingDate))
-                    .Select(d =>
+                if (data?.data != null)
+                {
+                    foreach (var d in data.data.Where(d => !string.IsNullOrEmpty(d.tradingDate)))
                     {
-                        var date = DateTime.ParseExact(d.tradingDate, "dd/MM/yyyy", null);
-                        return new InvestorData
+                        try
                         {
-                            time = new DateTimeOffset(date).ToUnixTimeSeconds(),
-                            value = d.netTotalTradeVol
-                        };
-                    })
-                    .OrderBy(d => d.time)
-                    .ToList();
+                            var date = DateTime.ParseExact(d.tradingDate, "dd/MM/yyyy", null);
+                            var timestamp = new DateTimeOffset(date.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+                            netTradeDict[timestamp] = d.netTotalTradeVol;
+                        }
+                        catch
+                        {
+                            // Skip invalid dates
+                        }
+                    }
+                }
+
+                // Fill all timestamps from candles, use 0 for missing data
+                var result = candleTimestamps.Select(timestamp => new InvestorData
+                {
+                    time = timestamp,
+                    value = netTradeDict.ContainsKey(timestamp) ? netTradeDict[timestamp] : 0
+                }).ToList();
 
                 return result;
             }
