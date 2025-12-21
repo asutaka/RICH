@@ -35,6 +35,7 @@ builder.Services.AddSingleton<IAPIService, APIService>();
 builder.Services.AddMongoDb(builder.Configuration);
 builder.Services.AddSingleton<ISymbolRepo, SymbolRepo>();
 builder.Services.AddSingleton<IPhanLoaiNDTRepo, PhanLoaiNDTRepo>();
+builder.Services.AddSingleton<IStockRepo, StockRepo>();
 
 // Register ChartVisualization services
 builder.Services.AddScoped<IChartDataService, ChartDataService>();

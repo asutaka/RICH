@@ -1,0 +1,33 @@
+/* Candle Info Panel - Horizontal layout above chart */
+.candle-info {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.candle-info.hidden {
+    display: none;
+}
+
+.candle-info .info-item {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.candle-info .info-item strong {
+    color: var(--accent-primary);
+    margin-right: 5px;
+}
+
+.candle-info .info-item span {
+    color: var(--text-primary);
+    font-weight: 600;
+}

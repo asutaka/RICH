@@ -1,0 +1,28 @@
+/* Symbol Search Input */
+.symbol-search {
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.symbol-search::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.symbol-search:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: var(--accent-primary);
+}
+
+.symbol-search:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+}

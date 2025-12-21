@@ -8,6 +8,7 @@ namespace ChartVisualizationPr.Services
 {
     public interface IChartDataService
     {
+        Task<List<string>> GetSymbolsAsync();
         Task<List<CandleData>> GetCandleDataAsync(string symbol);
         Task<List<IndicatorData>> GetIndicatorDataAsync(string symbol);
         Task<List<MarkerData>> GetMarkersAsync(string symbol);
@@ -22,13 +23,32 @@ namespace ChartVisualizationPr.Services
         private readonly IAPIService _apiService;
         private readonly ILogger<ChartDataService> _logger;
         private readonly IPhanLoaiNDTRepo _phanLoaiNDTRepo;
+        private readonly IStockRepo _stockRepo;
         private static readonly List<MarkerData> _markers = new(); // In-memory storage for demo
 
-        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger, IPhanLoaiNDTRepo phanLoaiNDTRepo)
+        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger, IPhanLoaiNDTRepo phanLoaiNDTRepo, IStockRepo stockRepo)
         {
             _apiService = apiService;
             _logger = logger;
             _phanLoaiNDTRepo = phanLoaiNDTRepo;
+            _stockRepo = stockRepo;
+        }
+
+        public async Task<List<string>> GetSymbolsAsync()
+        {
+            try
+            {
+                var stocks = await Task.Run(() => _stockRepo.GetAll());
+                return stocks?.Select(s => s.s)
+                             .Where(s => !string.IsNullOrEmpty(s))
+                             .OrderBy(s => s)
+                             .ToList() ?? new List<string>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting symbols");
+                throw;
+            }
         }
 
         public async Task<List<CandleData>> GetCandleDataAsync(string symbol)
@@ -71,7 +91,7 @@ namespace ChartVisualizationPr.Services
                     .Select(r => new Quote
                     {
                         Date = r.Date,
-                        Close = (decimal)r.Rsi.Value
+                        Close = (decimal)r.Rsi!.Value
                     })
                     .ToList();
 

@@ -17,6 +17,21 @@ namespace ChartVisualizationPr.Controllers
             _logger = logger;
         }
 
+        [HttpGet("symbols")]
+        public async Task<ActionResult<List<string>>> GetSymbols()
+        {
+            try
+            {
+                var symbols = await _chartDataService.GetSymbolsAsync();
+                return Ok(symbols);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting symbols");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
         [HttpGet("candles/{symbol}")]
         public async Task<ActionResult<List<CandleData>>> GetCandles(string symbol)
         {

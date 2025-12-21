@@ -1,0 +1,2 @@
+Task<List<InvestorData>> GetGroupDataAsync(string symbol);
+Task<List<InvestorData>> GetForeignDataAsync(string symbol);
