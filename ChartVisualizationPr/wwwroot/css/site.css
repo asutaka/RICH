@@ -1,0 +1,44 @@
+/* Disable zoom on all charts */
+.chart {
+    touch-action: pan-y !important;
+}
+
+.tv-lightweight-charts {
+    touch-action: pan-y !important;
+}
+
+/* Chart visibility controls */
+.chart-controls {
+    display: flex;
+    gap: 15px;
+    margin: 10px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #e0e0e0;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.checkbox-label:hover {
+    color: #ffffff;
+}
+
+/* Hidden chart container */
+.chart-container.hidden {
+    display: none;
+}
