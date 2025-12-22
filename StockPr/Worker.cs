@@ -81,7 +81,8 @@ namespace StockPr
 
                 // Chọn backtest muốn chạy (uncomment 1 trong các dòng dưới):
 
-                await _backtestService.BacktestOptimalStrategy();        // ✨ Phân tích chỉ báo (BB, RSI, MA9, WMA45)
+                await _backtestService.BackTest22122025();    
+                //await _backtestService.BacktestOptimalStrategy();        // ✨ Phân tích chỉ báo (BB, RSI, MA9, WMA45)
                                                                    // await _backtestService.BatDayCK();                    // Bắt đáy CK
                                                                    // await _backtestService.CheckAllDay_OnlyVolume();   // Check volume patterns
                                                                    // await _backtestService.CheckGDNN();                // Check GDNN

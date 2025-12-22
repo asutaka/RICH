@@ -39,6 +39,7 @@ namespace StockPr.Service
         Task<Stream> TuDoanhHSX(DateTime dt);
 
         Task<List<Quote>> SSI_GetDataStock(string code);
+        Task<List<QuoteT>> SSI_GetDataStockT(string code);
         Task<List<Quote>> SSI_GetDataStock_HOUR(string code);
         Task<SSI_DataFinanceDetailResponse> SSI_GetFinanceStock(string code);
         Task<decimal> SSI_GetFreefloatStock(string code);
@@ -1351,6 +1352,45 @@ namespace StockPr.Service
             return lOutput;
         }
 
+        public async Task<List<QuoteT>> SSI_GetDataStockT(string code)
+        {
+            var lOutput = new List<QuoteT>();
+            var urlBase = "https://iboard-api.ssi.com.vn/statistics/charts/history?symbol={0}&resolution={1}&from={2}&to={3}";
+            try
+            {
+                var url = string.Format(urlBase, code, "1D", DateTimeOffset.Now.AddYears(-2).ToUnixTimeSeconds(), DateTimeOffset.Now.ToUnixTimeSeconds());
+                var client = _client.CreateClient();
+                client.BaseAddress = new Uri(url);
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
+                var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                var responseModel = JsonConvert.DeserializeObject<SSI_DataTradingResponse>(resultArray);
+                if (responseModel.data.t.Any())
+                {
+                    var count = responseModel.data.t.Count();
+                    for (int i = 0; i < count; i++)
+                    {
+                        lOutput.Add(new QuoteT
+                        {
+                            TimeStamp = responseModel.data.t.ElementAt(i),
+                            Date = responseModel.data.t.ElementAt(i).UnixTimeStampToDateTime(),
+                            Open = responseModel.data.o.ElementAt(i),
+                            Close = responseModel.data.c.ElementAt(i),
+                            High = responseModel.data.h.ElementAt(i),
+                            Low = responseModel.data.l.ElementAt(i),
+                            Volume = responseModel.data.v.ElementAt(i)
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.SSI_GetDataStock|EXCEPTION| {ex.Message}");
+            }
+            Thread.Sleep(200);
+            return lOutput;
+        }
+
         public async Task<List<Quote>> SSI_GetDataStock_HOUR(string code)
         {
             var lOutput = new List<Quote>();
@@ -1996,5 +2036,10 @@ namespace StockPr.Service
             return null;
         }
         #endregion
+    }
+
+    public class QuoteT : Quote
+    {
+        public decimal TimeStamp { get; set; }
     }
 }

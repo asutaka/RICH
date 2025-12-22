@@ -215,6 +215,7 @@ namespace StockPr.Model
         //public int high { get; set; }
         //public int low { get; set; }
         public decimal close { get; set; }
+        public decimal TimeStamp { get; set; }
     }
 
     public class VNDirect_ForeignResponse

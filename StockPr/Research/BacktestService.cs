@@ -19,6 +19,7 @@ namespace StockPr.Research
         Task BacktestBBEntryStrategy(); // ✨ New: Backtest BB Entry Strategy
         Task BacktestBBEntryStrategy_Advanced(); // ✨ Advanced with filters
         Task BacktestOptimalStrategy(); // ✨ Optimal: BB + Group only
+        Task BackTest22122025();
     }
     
     public class BacktestService : IBacktestService
@@ -1959,6 +1960,232 @@ namespace StockPr.Research
                 Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 Console.WriteLine("✅ BACKTEST COMPLETED");
                 Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR: {ex.Message}");
+                _logger.LogError(ex, "BacktestOptimalStrategy failed");
+            }
+        }
+
+        public async Task BackTest22122025()
+        {
+            try
+            {
+                Console.WriteLine("=== BACKTEST OPTIMAL STRATEGY (BB + GROUP) ===");
+                Console.WriteLine($"Thời gian: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+                Console.WriteLine();
+                Console.WriteLine("Filters: BB Entry (1/2 zones) + Group Accumulation (3+ days)");
+                Console.WriteLine("TP: 10% | SL: 7%");
+                Console.WriteLine();
+
+                var allSymbols = _symbolRepo.GetAll();
+                allSymbols = new List<Symbol>
+                {
+                    new Symbol{s="VPB"}
+                };
+                if (allSymbols == null || !allSymbols.Any())
+                {
+                    Console.WriteLine("❌ Không có mã trong StaticVal._lStock");
+                    return;
+                }
+
+                Console.WriteLine($"Testing {allSymbols.Count} symbols...");
+                Console.WriteLine();
+
+                //var tp = 0.10m; // 10%
+                //var sl = 0.07m; // 7%
+                //int wins = 0;
+                //int losses = 0;
+                //decimal totalProfit = 0;
+                //int totalEntries = 0;
+                //int validEntries = 0;
+                //int processedSymbols = 0;
+
+                foreach (var stock in allSymbols)
+                {
+                    try
+                    {
+                        var symbol = stock.s;
+
+                        // Lấy dữ liệu
+                        var lData = (await _apiService.SSI_GetDataStockT(symbol)).DistinctBy(x => x.Date).ToList();
+                        if (lData == null || lData.Count() < 100) continue;
+
+                        // ✨ QUALITY FILTERS
+                        var latest = lData.Last();
+
+                        // Filter 1: Minimum Price (≥ 5,000 VND)
+                        if (latest.Close < 5) continue;
+
+                        // Filter 2: Minimum Average Volume (≥ 100,000 shares/day)
+                        var recentVolumes = lData.TakeLast(20).Select(x => x.Volume).ToList();
+                        var avgVolume = recentVolumes.Average();
+                        if (avgVolume < 100000) continue;
+
+                        // Filter 3: Minimum Liquidity (Price × Volume ≥ 500M VND)
+                        var liquidity = latest.Close * avgVolume;
+                        if (liquidity < 500000) continue;
+
+                        // Tính BB
+                        var lbb = lData.GetBollingerBands(20, 2);
+                        var lrsi = lData.GetRsi(14);
+                        var lma9 = lrsi.GetSma(9);
+                        //StockInfo
+                        var now = DateTime.Now;
+                        var from = now.AddYears(-1);
+
+                        var lInfo = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-30), now);
+                        var lPrev_1 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-60), now.AddDays(-31));
+                        var lPrev_2 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-90), now.AddDays(-61));
+                        var lPrev_3 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-120), now.AddDays(-91));
+                        lInfo.data.AddRange(lPrev_1.data);
+                        lInfo.data.AddRange(lPrev_2.data);
+                        lInfo.data.AddRange(lPrev_3.data);
+                        foreach (var item in lInfo.data)
+                        {
+                            var date = DateTime.ParseExact(item.tradingDate, "dd/MM/yyyy", null);
+                            item.TimeStamp = new DateTimeOffset(date.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+                        }
+
+                        // Tìm entries
+                        for (int i = 50; i < lData.Count(); i++)
+                        {
+                            var cur = lData.ElementAt(i);
+                            var bb_cur = lbb.ElementAt(i);
+
+                            var prev_1 = lData.ElementAt(i - 1);
+                            var bb_prev_1 = lbb.ElementAt(i - 1);
+
+                            var prev_2 = lData.ElementAt(i - 2);
+                            var bb_prev_2 = lbb.ElementAt(i - 2);
+
+                            if (!bb_prev_2.Sma.HasValue || !bb_prev_2.LowerBand.HasValue || !bb_prev_2.UpperBand.HasValue)
+                                continue;
+
+                            var sma = (decimal)bb_cur.Sma.Value;
+                            var lower = (decimal)bb_cur.LowerBand.Value;
+                            var upper = (decimal)bb_cur.UpperBand.Value;
+
+                            // Check BB Entry (1/2 zones)
+                            var midLower = sma - (sma - lower) / 2;
+                            var midUpper = sma + (upper - sma) / 2;
+                            var maxPrev = Math.Max(Math.Max(prev_1.Open, prev_1.Close), Math.Max(prev_2.Open, prev_2.Close));
+                            var minPrev = Math.Min(Math.Min(prev_1.Open, prev_1.Close), Math.Min(prev_2.Open, prev_2.Close));
+
+                            bool isEntryDown = (Math.Max(cur.Close, cur.Open) <= midLower && maxPrev < sma);
+                            bool isEntryUp = (Math.Min(cur.Close, cur.Open) >= sma && Math.Max(cur.Close, cur.Open) <= midUpper && minPrev >= sma);
+
+                            bool isBBEntry = isEntryDown || isEntryUp;
+
+                            if (!isBBEntry) continue;
+
+                            var rsi_cur = lrsi.ElementAt(i);
+                            var ma9_cur = lma9.ElementAt(i);
+                            var rsi_prev_1 = lrsi.ElementAt(i - 1);
+                            var ma9_prev_1 = lma9.ElementAt(i - 1);
+
+                            bool isRsi = false, isPressure = false, isNN1 = false, isNN2 = false, isNN3 = false;
+                            //Tín hiệu RSI  
+                            if (isEntryDown && rsi_cur.Rsi.Value >= ma9_cur.Sma.Value
+                                && rsi_prev_1.Rsi.Value < ma9_prev_1.Sma.Value)
+                            {
+                                isRsi = true;
+                            }
+                            //Pressure
+                            var info_cur = lInfo.data.FirstOrDefault(x => x.TimeStamp == cur.TimeStamp);
+                            var info_prev_1 = lInfo.data.FirstOrDefault(x => x.TimeStamp == prev_1.TimeStamp);
+                            var info_prev_2 = lInfo.data.FirstOrDefault(x => x.TimeStamp == prev_2.TimeStamp);
+                            if (info_cur != null && info_cur.netTotalTradeVol > 0)
+                            {
+                                if ((info_prev_1 is null || info_prev_1.netTotalTradeVol < 0)
+                                    && (info_prev_2 is null || info_prev_2.netTotalTradeVol < 0))
+                                {
+                                    isPressure = true;
+                                }
+                            }
+                            //NN
+                            if (info_cur != null && info_prev_1 != null)
+                            {
+                                if (info_cur.netBuySellVol > 0 && info_prev_1.netBuySellVol < 0)
+                                {
+                                    isNN1 = true;
+                                }
+                                if (info_cur.netBuySellVol > 0 && info_prev_1.netBuySellVol > 0 && info_cur.netBuySellVol / info_prev_1.netBuySellVol > 2)
+                                {
+                                    isNN2 = true;
+                                }
+                                if (info_cur.netBuySellVol < 0 && info_prev_1.netBuySellVol < 0 && info_prev_1.netBuySellVol / info_cur.netBuySellVol > 2)
+                                {
+                                    isNN3 = true;
+                                }
+                            }
+
+                            if(isRsi || isPressure || isNN1 || isNN2 || isNN3)
+                            {
+                                var signal = string.Empty;
+                                if(isRsi)
+                                {
+                                    signal += "RSI;";
+                                }
+                                if(isPressure)
+                                {
+                                    signal += "Pressure;";
+                                }
+                                if(isNN1)
+                                {
+                                    signal += "NN1;";
+                                }
+                                if(isNN2)
+                                {
+                                    signal += "NN2;";
+                                }
+                                if(isNN3)
+                                {
+                                    signal += "NN3;";
+                                }
+                                var mes = $"{symbol}|{cur.Date.ToString("dd/MM/yyyy")}|{signal}";
+                                var isWyckoff = lData.Take(i).IsWyckoff();
+                                if (isWyckoff.Item1)
+                                {
+                                    mes += "Wyckoff;";
+                                }
+                                Console.WriteLine(mes);
+                            }
+                        }
+                        await Task.Delay(200); // Rate limit
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error processing {stock.s}");
+                    }
+                }
+
+                //// Print results
+                //Console.WriteLine();
+                //Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                //Console.WriteLine("📊 KẾT QUẢ BACKTEST");
+                //Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                //Console.WriteLine();
+                //Console.WriteLine($"Symbols Processed: {processedSymbols}/{allSymbols.Count}");
+                //Console.WriteLine($"Total Potential Entries: {totalEntries}");
+                //Console.WriteLine($"Valid Entries (after Group filter): {validEntries}");
+                //Console.WriteLine($"Filter Pass Rate: {(totalEntries > 0 ? (decimal)validEntries / totalEntries * 100 : 0):N1}%");
+                //Console.WriteLine();
+
+                //var totalTrades = wins + losses;
+                //var winRate = totalTrades > 0 ? (decimal)wins / totalTrades * 100 : 0;
+                //var avgProfit = totalTrades > 0 ? totalProfit / totalTrades : 0;
+
+                //Console.WriteLine($"Total Trades: {totalTrades}");
+                //Console.WriteLine($"Wins: {wins} | Losses: {losses}");
+                //Console.WriteLine($"Win Rate: {winRate:N1}%");
+                //Console.WriteLine($"Avg Profit per Trade: {avgProfit:N2}%");
+                //Console.WriteLine($"Total Profit: {totalProfit:N2}%");
+                //Console.WriteLine();
+                //Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                //Console.WriteLine("✅ BACKTEST COMPLETED");
+                //Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             }
             catch (Exception ex)
             {
