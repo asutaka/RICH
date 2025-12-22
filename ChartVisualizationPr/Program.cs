@@ -37,6 +37,9 @@ builder.Services.AddSingleton<ISymbolRepo, SymbolRepo>();
 builder.Services.AddSingleton<IPhanLoaiNDTRepo, PhanLoaiNDTRepo>();
 builder.Services.AddSingleton<IStockRepo, StockRepo>();
 
+// Add MemoryCache for performance optimization
+builder.Services.AddMemoryCache();
+
 // Register ChartVisualization services
 builder.Services.AddScoped<IChartDataService, ChartDataService>();
 

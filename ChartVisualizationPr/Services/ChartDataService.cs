@@ -2,6 +2,7 @@ using ChartVisualizationPr.Models;
 using Skender.Stock.Indicators;
 using StockPr.Service;
 using StockPr.DAL;
+using Microsoft.Extensions.Caching.Memory;
 using MongoDB.Driver;
 
 namespace ChartVisualizationPr.Services
@@ -26,15 +27,44 @@ namespace ChartVisualizationPr.Services
         private readonly IPhanLoaiNDTRepo _phanLoaiNDTRepo;
         private readonly IStockRepo _stockRepo;
         private readonly ISymbolRepo _symbolRepo;
+        private readonly IMemoryCache _cache;
         private static readonly List<MarkerData> _markers = new(); // In-memory storage for demo
 
-        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger, IPhanLoaiNDTRepo phanLoaiNDTRepo, IStockRepo stockRepo, ISymbolRepo symbolRepo)
+        public ChartDataService(IAPIService apiService, ILogger<ChartDataService> logger, IPhanLoaiNDTRepo phanLoaiNDTRepo, IStockRepo stockRepo, ISymbolRepo symbolRepo, IMemoryCache memoryCache)
         {
             _apiService = apiService;
             _logger = logger;
             _phanLoaiNDTRepo = phanLoaiNDTRepo;
             _stockRepo = stockRepo;
             _symbolRepo = symbolRepo;
+            _cache = memoryCache;
+        }
+
+        /// <summary>
+        /// Get stock data from cache or API. Cache expires after 5 minutes.
+        /// </summary>
+        private async Task<List<Quote>> GetCachedStockDataAsync(string symbol)
+        {
+            string cacheKey = $"stock_data_{symbol}";
+            
+            if (!_cache.TryGetValue(cacheKey, out List<Quote> quotes))
+            {
+                // Cache miss - fetch from API
+                _logger.LogInformation($"Cache MISS for {symbol} - fetching from API");
+                quotes = (await _apiService.SSI_GetDataStock(symbol)).DistinctBy(x => x.Date).ToList();
+                
+                // Store in cache with 5 minute expiration
+                var cacheOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+                    
+                _cache.Set(cacheKey, quotes, cacheOptions);
+            }
+            else
+            {
+                _logger.LogInformation($"Cache HIT for {symbol} - using cached data");
+            }
+            
+            return quotes;
         }
 
         public async Task<List<string>> GetSymbolsAsync()
@@ -58,8 +88,8 @@ namespace ChartVisualizationPr.Services
         {
             try
             {
-                var quotes = await _apiService.SSI_GetDataStock(symbol);
-                return quotes.DistinctBy(x => x.Date).Select(q => new CandleData
+                var quotes = await GetCachedStockDataAsync(symbol);
+                return quotes.Select(q => new CandleData
                 {
                     Time = new DateTimeOffset(q.Date).ToUnixTimeSeconds(),
                     Open = q.Open,
@@ -80,7 +110,7 @@ namespace ChartVisualizationPr.Services
         {
             try
             {
-                var quotes = await _apiService.SSI_GetDataStock(symbol);
+                var quotes = await GetCachedStockDataAsync(symbol);
                 
                 // Calculate indicators
                 var bbResults = quotes.GetBollingerBands().ToList();
@@ -158,7 +188,7 @@ namespace ChartVisualizationPr.Services
             try
             {
                 // Get candle data to know the full timeline
-                var quotes = await _apiService.SSI_GetDataStock(symbol);
+                var quotes = await GetCachedStockDataAsync(symbol);
                 var candleTimestamps = quotes.Select(q => new DateTimeOffset(q.Date).ToUnixTimeSeconds()).ToList();
 
                 // Query PhanLoaiNDT by symbol
@@ -199,7 +229,7 @@ namespace ChartVisualizationPr.Services
             try
             {
                 // Get candle data to know the full timeline
-                var quotes = await _apiService.SSI_GetDataStock(symbol);
+                var quotes = await GetCachedStockDataAsync(symbol);
                 var candleTimestamps = quotes.Select(q => new DateTimeOffset(q.Date).ToUnixTimeSeconds()).ToList();
 
                 // Query PhanLoaiNDT by symbol
@@ -240,7 +270,7 @@ namespace ChartVisualizationPr.Services
             try
             {
                 // Get candle data to know the full timeline
-                var quotes = await _apiService.SSI_GetDataStock(symbol);
+                var quotes = await GetCachedStockDataAsync(symbol);
                 var candleTimestamps = quotes.Select(q => new DateTimeOffset(q.Date).ToUnixTimeSeconds()).ToList();
 
                 var now = DateTime.Now;
