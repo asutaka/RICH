@@ -2070,8 +2070,8 @@ namespace StockPr.Research
                             // Check BB Entry (1/2 zones)
                             var midLower = sma - (sma - lower) / 2;
                             var midUpper = sma + (upper - sma) / 2;
-                            var maxPrev = Math.Max(Math.Max(prev_1.Open, prev_1.Close), Math.Max(prev_2.Open, prev_2.Close));
-                            var minPrev = Math.Min(Math.Min(prev_1.Open, prev_1.Close), Math.Min(prev_2.Open, prev_2.Close));
+                            var maxPrev = Math.Max(Math.Max(prev_1.Open, prev_1.Close), prev_2.Close);
+                            var minPrev = Math.Min(Math.Min(prev_1.Open, prev_1.Close), prev_2.Close);
 
                             bool isEntryDown = (Math.Max(cur.Close, cur.Open) <= midLower && maxPrev < sma);
                             bool isEntryUp = (Math.Min(cur.Close, cur.Open) >= sma && Math.Max(cur.Close, cur.Open) <= midUpper && minPrev >= sma);

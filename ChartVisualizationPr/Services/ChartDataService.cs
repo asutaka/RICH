@@ -276,20 +276,30 @@ namespace ChartVisualizationPr.Services
                 var now = DateTime.Now;
                 var from = now.AddYears(-1);
 
-                var data = await _apiService.SSI_GetStockInfo(symbol, from, now);
+
+                var lInfo = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-30), now);
+                var lPrev_1 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-60), now.AddDays(-31));
+                var lPrev_2 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-90), now.AddDays(-61));
+                var lPrev_3 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-120), now.AddDays(-91));
+                lInfo.data.AddRange(lPrev_1.data);
+                lInfo.data.AddRange(lPrev_2.data);
+                lInfo.data.AddRange(lPrev_3.data);
+                foreach (var item in lInfo.data)
+                {
+                    var date = DateTime.ParseExact(item.tradingDate, "dd/MM/yyyy", null);
+                    item.TimeStamp = new DateTimeOffset(date.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+                }
 
                 // Create a dictionary for fast lookup
                 var netTradeDict = new Dictionary<long, int>();
 
-                if (data?.data != null)
+                if (lInfo?.data != null)
                 {
-                    foreach (var d in data.data.Where(d => !string.IsNullOrEmpty(d.tradingDate)))
+                    foreach (var d in lInfo.data.Where(d => !string.IsNullOrEmpty(d.tradingDate)))
                     {
                         try
                         {
-                            var date = DateTime.ParseExact(d.tradingDate, "dd/MM/yyyy", null);
-                            var timestamp = new DateTimeOffset(date.Date, TimeSpan.Zero).ToUnixTimeSeconds();
-                            netTradeDict[timestamp] = d.netTotalTradeVol;
+                            netTradeDict[(long)d.TimeStamp] = d.netTotalTradeVol;
                         }
                         catch
                         {
