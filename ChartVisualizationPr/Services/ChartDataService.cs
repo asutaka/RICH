@@ -59,8 +59,7 @@ namespace ChartVisualizationPr.Services
             try
             {
                 var quotes = await _apiService.SSI_GetDataStock(symbol);
-                
-                return quotes.Select(q => new CandleData
+                return quotes.DistinctBy(x => x.Date).Select(q => new CandleData
                 {
                     Time = new DateTimeOffset(q.Date).ToUnixTimeSeconds(),
                     Open = q.Open,

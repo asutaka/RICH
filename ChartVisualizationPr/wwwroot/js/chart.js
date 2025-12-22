@@ -313,7 +313,7 @@ function initializeCharts() {
                 document.getElementById('infoLower').textContent = indicator.lowerBand ? indicator.lowerBand.toFixed(2) : '-';
                 document.getElementById('infoRSI').textContent = indicator.rsi ? indicator.rsi.toFixed(2) : '-';
                 document.getElementById('infoVolume').textContent = indicator.volume ? indicator.volume.toLocaleString() : '-';
-                document.getElementById('infoNetTrade').textContent = indicator.netTrade ? indicator.netTrade.toLocaleString() : '-';
+                // document.getElementById('infoNetTrade').textContent = indicator.netTrade ? indicator.netTrade.toLocaleString() : '-';
             }
         }
     });
@@ -692,13 +692,7 @@ async function loadChartData(symbol) {
 
         const netTradeResponse = await fetch(`${API_BASE_URL}/api/chartdata/nettrade/${symbol}`);
         const netTradeData = await netTradeResponse.json();
-        console.log('✅ netTradeData fetched:', netTradeData);
 
-        console.log('📊 Sample timestamps:');
-        console.log('  Candles:', candles.slice(0, 3).map(c => ({ time: c.time, date: new Date(c.time * 1000) })));
-        console.log('  Group:', groupData.slice(0, 3).map(g => ({ time: g.time, date: new Date(g.time * 1000) })));
-        console.log('  Foreign:', foreignData.slice(0, 3).map(f => ({ time: f.time, date: new Date(f.time * 1000) })));
-        console.log('  NetTrade:', netTradeData.slice(0, 3).map(n => ({ time: n.time, date: new Date(n.time * 1000) })));
         // Store data for tooltip
         candlesData = candles;
         indicatorsData = indicators;
@@ -724,78 +718,76 @@ function updateCharts(candles, indicators, groupData = [], foreignData = [], net
         low: c.low,
         close: c.close,
     }));
+    console.log('✅ candleData:', candleData);
     candlestickSeries.setData(candleData);
 
-    const ma20Data = indicators
-        .filter(i => i.ma20 !== null && i.ma20 !== undefined && typeof i.ma20 === 'number')
-        .map(i => ({ time: i.time, value: i.ma20 }));
-    ma20Series.setData(ma20Data);
+    // const ma20Data = indicators
+    //     .filter(i => i.ma20 !== null && i.ma20 !== undefined && typeof i.ma20 === 'number')
+    //     .map(i => ({ time: i.time, value: i.ma20 }));
+    // ma20Series.setData(ma20Data);
 
-    const upperBandData = indicators
-        .filter(i => i.upperBand !== null && i.upperBand !== undefined && typeof i.upperBand === 'number' && !isNaN(i.upperBand))
-        .map(i => ({ time: i.time, value: i.upperBand }));
-    if (upperBandData.length > 0) upperBandSeries.setData(upperBandData);
+    // const upperBandData = indicators
+    //     .filter(i => i.upperBand !== null && i.upperBand !== undefined && typeof i.upperBand === 'number' && !isNaN(i.upperBand))
+    //     .map(i => ({ time: i.time, value: i.upperBand }));
+    // if (upperBandData.length > 0) upperBandSeries.setData(upperBandData);
 
-    const lowerBandData = indicators
-        .filter(i => i.lowerBand !== null && i.lowerBand !== undefined && typeof i.lowerBand === 'number' && !isNaN(i.lowerBand))
-        .map(i => ({ time: i.time, value: i.lowerBand }));
-    if (lowerBandData.length > 0) lowerBandSeries.setData(lowerBandData);
+    // const lowerBandData = indicators
+    //     .filter(i => i.lowerBand !== null && i.lowerBand !== undefined && typeof i.lowerBand === 'number' && !isNaN(i.lowerBand))
+    //     .map(i => ({ time: i.time, value: i.lowerBand }));
+    // if (lowerBandData.length > 0) lowerBandSeries.setData(lowerBandData);
 
-    const rsiData = indicators
-        .filter(i => i.rsi !== null && i.rsi !== undefined && typeof i.rsi === 'number')
-        .map(i => ({ time: i.time, value: i.rsi }));
-    rsiSeries.setData(rsiData);
+    // const rsiData = indicators
+    //     .filter(i => i.rsi !== null && i.rsi !== undefined && typeof i.rsi === 'number')
+    //     .map(i => ({ time: i.time, value: i.rsi }));
+    // rsiSeries.setData(rsiData);
 
-    const rsiMa9Data = indicators
-        .filter(i => i.rsiMa9 !== null && i.rsiMa9 !== undefined && typeof i.rsiMa9 === 'number' && !isNaN(i.rsiMa9))
-        .map(i => ({ time: i.time, value: i.rsiMa9 }));
-    if (rsiMa9Data.length > 0) rsiMa9Series.setData(rsiMa9Data);
+    // const rsiMa9Data = indicators
+    //     .filter(i => i.rsiMa9 !== null && i.rsiMa9 !== undefined && typeof i.rsiMa9 === 'number' && !isNaN(i.rsiMa9))
+    //     .map(i => ({ time: i.time, value: i.rsiMa9 }));
+    // if (rsiMa9Data.length > 0) rsiMa9Series.setData(rsiMa9Data);
 
-    const rsiWma45Data = indicators
-        .filter(i => i.rsiWma45 !== null && i.rsiWma45 !== undefined && typeof i.rsiWma45 === 'number' && !isNaN(i.rsiWma45))
-        .map(i => ({ time: i.time, value: i.rsiWma45 }));
-    if (rsiWma45Data.length > 0) rsiWma45Series.setData(rsiWma45Data);
+    // const rsiWma45Data = indicators
+    //     .filter(i => i.rsiWma45 !== null && i.rsiWma45 !== undefined && typeof i.rsiWma45 === 'number' && !isNaN(i.rsiWma45))
+    //     .map(i => ({ time: i.time, value: i.rsiWma45 }));
+    // if (rsiWma45Data.length > 0) rsiWma45Series.setData(rsiWma45Data);
 
-    const volumeData = indicators.map(i => ({
-        time: i.time,
-        value: i.volume,
-        color: i.volume > 0 ? '#00d4ff' : '#ef4444',
-    }));
-    volumeSeries.setData(volumeData);
+    // const volumeData = indicators.map(i => ({
+    //     time: i.time,
+    //     value: i.volume,
+    //     color: i.volume > 0 ? '#00d4ff' : '#ef4444',
+    // }));
+    // volumeSeries.setData(volumeData);
 
-    // Set Group (Institutional Investors) data
-    if (groupData && groupData.length > 0) {
-        const groupChartData = groupData.map(g => ({
-            time: g.time,
-            value: g.value,
-            color: g.value >= 0 ? '#7c3aed' : '#ef4444', // Purple for positive, Red for negative
-        }));
-        groupSeries.setData(groupChartData);
-    }
+    // // Set Group (Institutional Investors) data
+    // if (groupData && groupData.length > 0) {
+    //     const groupChartData = groupData.map(g => ({
+    //         time: g.time,
+    //         value: g.value,
+    //         color: g.value >= 0 ? '#7c3aed' : '#ef4444', // Purple for positive, Red for negative
+    //     }));
+    //     groupSeries.setData(groupChartData);
+    // }
 
-    // Foreign data display
-    if (foreignData && foreignData.length > 0) {
-        const foreignChartData = foreignData.map(f => ({
-            time: f.time,
-            value: f.value,
-            color: f.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
-        }));
-        foreignSeries.setData(foreignChartData);
-    }
+    // // Foreign data display
+    // if (foreignData && foreignData.length > 0) {
+    //     const foreignChartData = foreignData.map(f => ({
+    //         time: f.time,
+    //         value: f.value,
+    //         color: f.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
+    //     }));
+    //     foreignSeries.setData(foreignChartData);
+    // }
 
-    // Net Trade data display
-    if (netTradeData && netTradeData.length > 0) {
-        const netTradeChartData = netTradeData.map(nt => ({
-            time: nt.time,
-            value: nt.value,
-            color: nt.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
-        }));
-        console.log('✅ netTradeChartData:', netTradeChartData); // <-- THÊM DÒNG NÀY
-        netTradeSeries.setData(netTradeChartData);
-    }
-    else {
-        console.log('❌ netTradeData is empty or null:', netTradeData); // <-- THÊM DÒNG NÀY
-    }
+    // // Net Trade data display
+    // if (netTradeData && netTradeData.length > 0) {
+    //     const netTradeChartData = netTradeData.map(nt => ({
+    //         time: nt.time,
+    //         value: nt.value,
+    //         color: nt.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
+    //     }));
+    //     netTradeSeries.setData(netTradeChartData);
+    // }
+
     // Only fit content on first load, then let sync handle it
     if (isFirstLoad) {
         setTimeout(() => {
