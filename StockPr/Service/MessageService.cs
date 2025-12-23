@@ -352,6 +352,67 @@ namespace StockPr.Service
                             Message = message
                         });
                     }
+                    else if (lmes[0].Equals("list", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var lAccount = _accountRepo.GetAll();
+                        var exists = lAccount.FirstOrDefault(x => x.u == msg.Chat.Id);
+                        if (exists != null)
+                        {
+                            if (lmes.Length == 1)
+                            {
+                                if(exists.list?.Any() ?? false)
+                                {
+                                    var message = string.Join(", ", exists.list);
+                                    lRes.Add(new HandleMessageModel
+                                    {
+                                        Message = $"Danh sách theo dõi: {message}"
+                                    });
+                                }
+                                else
+                                {
+                                    lRes.Add(new HandleMessageModel
+                                    {
+                                        Message = "Chưa tạo danh sách theo dõi"
+                                    });
+                                }
+                            }
+                            else if(lmes.Length == 2)
+                            {
+                                if(lmes[1].Equals("delete", StringComparison.OrdinalIgnoreCase)
+                                    || lmes[1].Equals("xoa", StringComparison.OrdinalIgnoreCase)
+                                    || lmes[1].Equals("clear", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    exists.list = new List<string>();
+                                    _accountRepo.Update(exists);
+                                }
+                                else
+                                {
+                                    var lMaCK = lmes[1].ToUpper().Split(",");
+                                    if(lMaCK.Length > 10)
+                                    {
+                                        lRes.Add(new HandleMessageModel
+                                        {
+                                            Message = "Danh sách theo dõi quá dài"
+                                        });
+                                    }
+                                    else
+                                    {
+                                        var lList = new List<string>();
+                                        foreach (var item in lMaCK)
+                                        {
+                                            var check = StaticVal._lStock.FirstOrDefault(x => x.s == item.Trim() && x.ex == (int)EExchange.HSX);
+                                            if(check != null)
+                                            {
+                                                lList.Add(item.Trim());
+                                            }
+                                        }
+                                        exists.list = lList;
+                                        _accountRepo.Update(exists);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             catch(Exception ex)

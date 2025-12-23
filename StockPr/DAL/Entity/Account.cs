@@ -7,6 +7,7 @@ namespace StockPr.DAL.Entity
     {
         public long u { get; set; }//userid
         public string name { get; set; }
+        public List<string> list { get; set; }
         public int status { get; set; }//type
     }
 }
