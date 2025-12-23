@@ -2049,9 +2049,14 @@ namespace StockPr.Research
                         }
 
                         // Tìm entries
+                        bool isPrePressure = false, isPreNN1 = false;
                         for (int i = 50; i < lData.Count(); i++)
                         {
                             var cur = lData.ElementAt(i);
+                            if(cur.Date.Day == 31 && cur.Date.Month == 10)
+                            {
+                                var tmp = 1;
+                            }
                             var bb_cur = lbb.ElementAt(i);
 
                             var prev_1 = lData.ElementAt(i - 1);
@@ -2061,7 +2066,12 @@ namespace StockPr.Research
                             var bb_prev_2 = lbb.ElementAt(i - 2);
 
                             if (!bb_prev_2.Sma.HasValue || !bb_prev_2.LowerBand.HasValue || !bb_prev_2.UpperBand.HasValue)
+                            {
+                                isPrePressure = false;
+                                isPreNN1 = false;
                                 continue;
+                            }
+                                
 
                             var sma = (decimal)bb_cur.Sma.Value;
                             var lower = (decimal)bb_cur.LowerBand.Value;
@@ -2070,15 +2080,26 @@ namespace StockPr.Research
                             // Check BB Entry (1/2 zones)
                             var midLower = sma - (sma - lower) / 2;
                             var midUpper = sma + (upper - sma) / 2;
+
+                            var midLower_14 = lower + (sma - lower) / 4;
+                            var midUpper_14 = sma + (upper - sma) / 4;
+
                             var maxPrev = Math.Max(Math.Max(prev_1.Open, prev_1.Close), prev_2.Close);
                             var minPrev = Math.Min(Math.Min(prev_1.Open, prev_1.Close), prev_2.Close);
+                            var maxCur = Math.Max(cur.Open, cur.Close);
+                            var minCur = Math.Min(cur.Open, cur.Close);
 
-                            bool isEntryDown = (Math.Max(cur.Close, cur.Open) <= midLower && maxPrev < sma);
-                            bool isEntryUp = (Math.Min(cur.Close, cur.Open) >= sma && Math.Max(cur.Close, cur.Open) <= midUpper && minPrev >= sma);
+                            bool isEntryDown = (maxCur <= midLower && maxPrev < sma);
+                            bool isEntryUp = (minCur >= sma && maxCur <= midUpper && minPrev >= sma);
 
                             bool isBBEntry = isEntryDown || isEntryUp;
 
-                            if (!isBBEntry) continue;
+                            if (!isBBEntry)
+                            {
+                                isPrePressure = false;
+                                isPreNN1 = false;
+                                continue;
+                            }
 
                             var rsi_cur = lrsi.ElementAt(i);
                             var ma9_cur = lma9.ElementAt(i);
@@ -2098,18 +2119,45 @@ namespace StockPr.Research
                             var info_prev_2 = lInfo.data.FirstOrDefault(x => x.TimeStamp == prev_2.TimeStamp);
                             if (info_cur != null && info_cur.netTotalTradeVol > 0)
                             {
-                                if ((info_prev_1 is null || info_prev_1.netTotalTradeVol < 0)
+                                if (((info_prev_1 is null || info_prev_1.netTotalTradeVol < 0)
                                     && (info_prev_2 is null || info_prev_2.netTotalTradeVol < 0))
+                                    || (isPrePressure))
                                 {
-                                    isPressure = true;
+                                    // Check BB Entry (1/4 zones)
+                                    if ((isEntryDown && minCur < midLower_14)
+                                        || (isEntryUp && minCur < midUpper_14))
+                                    {
+                                        isPressure = true;
+                                        isPrePressure = false;
+                                    }
+                                    else
+                                    {
+                                        isPrePressure = true;
+                                    }
                                 }
                             }
+
+                            if(info_cur is null || info_cur.netTotalTradeVol <= 0)
+                            {
+                                isPrePressure = false;
+                            }    
+
                             //NN
                             if (info_cur != null && info_prev_1 != null)
                             {
-                                if (info_cur.netBuySellVol > 0 && info_prev_1.netBuySellVol < 0)
+                                if ((info_cur.netBuySellVol > 0 && info_prev_1.netBuySellVol < 0)
+                                    || isPreNN1)
                                 {
-                                    isNN1 = true;
+                                    if ((isEntryDown && minCur < midLower_14)
+                                       || (isEntryUp && minCur < midUpper_14))
+                                    {
+                                        isNN1 = true;
+                                        isPreNN1 = false;
+                                    }
+                                    else
+                                    {
+                                        isPreNN1 = true;
+                                    }
                                 }
                                 if (info_cur.netBuySellVol > 0 && info_prev_1.netBuySellVol > 0 && info_cur.netBuySellVol / info_prev_1.netBuySellVol > 2)
                                 {
@@ -2118,6 +2166,11 @@ namespace StockPr.Research
                                 if (info_cur.netBuySellVol < 0 && info_prev_1.netBuySellVol < 0 && info_prev_1.netBuySellVol / info_cur.netBuySellVol > 2)
                                 {
                                     isNN3 = true;
+                                }
+                                //
+                                if(info_cur.netBuySellVol <= 0)
+                                {
+                                    isPreNN1 = false;
                                 }
                             }
 
