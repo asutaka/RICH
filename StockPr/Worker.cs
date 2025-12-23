@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
+using StockPr.Research;
 using StockPr.Service;
 using StockPr.Settings;
 using StockPr.Utils;
-using StockPr.Research;
 
 namespace StockPr
 {
@@ -12,6 +13,7 @@ namespace StockPr
     {
         private readonly ILogger<Worker> _logger;
         private readonly IStockRepo _stockRepo;
+        private readonly IAccountRepo _accountRepo;
         private readonly IBaoCaoPhanTichService _bcptService;
         private readonly IGiaNganhHangService _giaService;
         private readonly ITeleService _teleService;
@@ -35,7 +37,7 @@ namespace StockPr
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, 
-                    IAnalyzeService analyzeService, ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, 
+                    IAnalyzeService analyzeService, ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IAccountRepo accountRepo,
                     IPortfolioService portfolioService, IEPSRankService epsService, IF319Service f319Service, 
                     ICommonService commonService, INewsService newsService, IChartService chartService,
                     IBacktestService backtestService, // ✨ Inject backtest service
@@ -51,6 +53,7 @@ namespace StockPr
             _bctcService = bctcService;
 
             _stockRepo = stockRepo;
+            _accountRepo = accountRepo;
             _portfolioService = portfolioService;
             _epsService = epsService;
             _f319Service = f319Service;
@@ -157,12 +160,12 @@ namespace StockPr
                             {
                                 tasks.Add(ProcessThongKeTuDoanh());
                                 tasks.Add(ProcessChartThongKeKhopLenh());
+                                Process4U();
                             }
 
                             if(dt.Hour >= 19 && dt.Minute >= 30)
                             {
                                 tasks.Add(ProcessDetectEntry());
-                                tasks.Add(Process4U());
                             }
                         }
 
@@ -442,7 +445,56 @@ namespace StockPr
 
         private async Task Process4U()
         {
-            await _chartService.Chart_4U();
+            try
+            {
+                var res = _analyzeService.Chart_4U();
+                if (!res)
+                    return;
+
+                var dic = new Dictionary<string, Stream>();
+                var lAccount = _accountRepo.GetByFilter(Builders<Account>.Filter.Gt(x => x.status, 0));
+                foreach (var item in lAccount)
+                {
+                    if (item.list is null)
+                        item.list = new List<string>();
+
+                    var lStream = new List<Stream>();
+                    foreach (var itemMaCK in item.list)
+                    {
+                        try
+                        {
+                            if (dic.ContainsKey(itemMaCK))
+                            {
+                                lStream.Add(dic[itemMaCK]);
+                                continue;
+                            }
+                            var stream = await _chartService.Chart_ThongKeKhopLenh(itemMaCK);
+                            if (stream != null)
+                            {
+                                lStream.Add(stream);
+                                dic.Add(itemMaCK, stream);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"ChartService.Chart_4U|ACCOUNT| {item.u}|EXCEPTION| {ex.Message}");
+                        }
+                    }
+
+                    if (lStream.Any())
+                    {
+                        foreach (var itemStream in lStream)
+                        {
+                            await _teleService.SendPhoto(item.u, itemStream);
+                            Thread.Sleep(500);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ChartService.Chart_4U|EXCEPTION| {ex.Message}");
+            }
         }
 
         #endregion

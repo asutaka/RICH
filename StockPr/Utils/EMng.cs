@@ -29,7 +29,8 @@ namespace StockPr.Utils
         MacroMicro = 62,
         EPS = 63,
         ThongKeKhopLenh = 64,
-        Entry = 68
+        ForUser = 65,
+        Entry = 68,
     }
 
     public enum EStockType

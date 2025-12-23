@@ -372,7 +372,7 @@ namespace StockPr.Service
                                 {
                                     lRes.Add(new HandleMessageModel
                                     {
-                                        Message = "Chưa tạo danh sách theo dõi"
+                                        Message = "Chưa tạo danh sách theo dõi!"
                                     });
                                 }
                             }
@@ -384,6 +384,10 @@ namespace StockPr.Service
                                 {
                                     exists.list = new List<string>();
                                     _accountRepo.Update(exists);
+                                    lRes.Add(new HandleMessageModel
+                                    {
+                                        Message = "Đã xóa danh sách theo dõi!"
+                                    });
                                 }
                                 else
                                 {
@@ -392,7 +396,7 @@ namespace StockPr.Service
                                     {
                                         lRes.Add(new HandleMessageModel
                                         {
-                                            Message = "Danh sách theo dõi quá dài"
+                                            Message = "Danh sách theo dõi quá dài!"
                                         });
                                     }
                                     else
@@ -408,6 +412,10 @@ namespace StockPr.Service
                                         }
                                         exists.list = lList;
                                         _accountRepo.Update(exists);
+                                        lRes.Add(new HandleMessageModel
+                                        {
+                                            Message = $"Đã follow DS: {string.Join(",", lList)}"
+                                        });
                                     }
                                 }
                             }

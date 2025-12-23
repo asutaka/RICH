@@ -17,6 +17,7 @@ namespace StockPr.Service
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
         Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
         Task<string> DetectEntry();
+        bool Chart_4U();
     }
     public class AnalyzeService : IAnalyzeService
     {
@@ -28,6 +29,7 @@ namespace StockPr.Service
         private readonly ISymbolRepo _symbolRepo;
         private readonly ICategoryRepo _categoryRepo;
         private readonly IPreEntryRepo _preEntryRepo;
+        
         public AnalyzeService(ILogger<AnalyzeService> logger,
                                     IAPIService apiService,
                                     IChartService chartService,
@@ -1004,6 +1006,43 @@ namespace StockPr.Service
                 _logger.LogError($"AnalyzeService.Chart_ThongKeKhopLenh|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public bool Chart_4U()
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                var lKhopLenh = _configRepo.GetByFilter(Builders<ConfigData>.Filter.Eq(x => x.ty, (int)EConfigDataType.ThongKeKhopLenh));
+                if (!lKhopLenh.Any())
+                    return false;
+
+                var mode = (int)EConfigDataType.ForUser;
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t >= t))
+                        return false;
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = mode,
+                    t = t
+                });
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.Chart_4U|EXCEPTION| {ex.Message}");
+            }
+            return false;
         }
 
         private async Task<ReportPTKT> ChiBaoKyThuatOnlyStock(string code, int limitvol)
