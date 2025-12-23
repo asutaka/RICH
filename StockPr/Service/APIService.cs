@@ -2037,9 +2037,4 @@ namespace StockPr.Service
         }
         #endregion
     }
-
-    public class QuoteT : Quote
-    {
-        public decimal TimeStamp { get; set; }
-    }
 }

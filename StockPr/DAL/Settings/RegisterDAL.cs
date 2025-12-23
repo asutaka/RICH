@@ -22,6 +22,7 @@
             services.AddSingleton<IConfigNewsRepo, ConfigNewsRepo>();
             services.AddSingleton<IAccountRepo, AccountRepo>();
             services.AddSingleton<IPhanLoaiNDTRepo, PhanLoaiNDTRepo>();
+            services.AddSingleton<IPreEntryRepo, PreEntryRepo>();
         }
     }
 }

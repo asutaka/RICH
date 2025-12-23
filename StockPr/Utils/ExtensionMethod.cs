@@ -1,5 +1,6 @@
 ﻿using Skender.Stock.Indicators;
 using StockPr.DAL.Entity;
+using StockPr.Model;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Reflection;
@@ -10,7 +11,7 @@ namespace StockPr.Utils
     {
         public static string RemoveSpace(this string val)
         {
-            return val.Replace(" ", "").Replace(",", "").Replace(".", "").Replace("-", "").Replace("_", "").Replace("(", "").Replace(")","").Trim();
+            return val.Replace(" ", "").Replace(",", "").Replace(".", "").Replace("-", "").Replace("_", "").Replace("(", "").Replace(")", "").Trim();
         }
 
         public static double GetAngle(this double val, double prev, int distance)
@@ -26,7 +27,7 @@ namespace StockPr.Utils
 
                 var div = beta * (val - prev);
                 var angle = Math.Round(Math.Acos(distance / Math.Sqrt(div * div + distance * distance)) * 180 / Math.PI);
-                if(div < 0)
+                if (div < 0)
                     angle = -angle;
 
                 return angle;
@@ -202,9 +203,9 @@ namespace StockPr.Utils
         public static string ShowLimit(this string val, int num = 10)
         {
             var res = string.Empty;
-            if(string.IsNullOrWhiteSpace(val))
+            if (string.IsNullOrWhiteSpace(val))
             {
-                for(int i = 0; i < num; i++)
+                for (int i = 0; i < num; i++)
                 {
                     res += "  ";
                 }
@@ -212,15 +213,15 @@ namespace StockPr.Utils
             else
             {
                 var div = num - val.Length;
-                if(div < 0)
+                if (div < 0)
                 {
                     res = val.Substring(0, num);
                 }
                 else
                 {
-                    for(int i = 0;i < div;i++)
+                    for (int i = 0; i < div; i++)
                     {
-                        res +="  ";
+                        res += "  ";
                     }
                     res += val;
                 }
@@ -461,7 +462,7 @@ namespace StockPr.Utils
 
                         //rate Hiện tại
                         var rateCur = Math.Round(100 * (-1 + cur.Close / itemSOS.Close));
-                        if(rateCur >= 10) continue;
+                        if (rateCur >= 10) continue;
 
                         if (lWyc.Any(x => x.Date == itemSOS.Date))
                             continue;
@@ -474,10 +475,10 @@ namespace StockPr.Utils
                     }
                 }
 
-                if(lWyc.Any())
+                if (lWyc.Any())
                 {
                     return (true, lWyc);
-                }    
+                }
             }
             catch (Exception ex)
             {
@@ -485,6 +486,206 @@ namespace StockPr.Utils
             }
 
             return (false, null);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lData"></param>
+        /// <param name="lInfo"></param>
+        /// <param name="preEntry"></param>
+        /// <returns>
+        /// 0: không làm gì 
+        /// -1: xóa preEntry
+        /// -2: update preEntry Pressure
+        /// -3: update preEntry NN1
+        /// 1: Pressure
+        /// 2: RSI 
+        /// 4: NN1
+        /// 8: NN2
+        /// 16: NN3
+        /// 32: Wyckoff 
+        /// </returns>
+        public static EntryModel CheckEntry(this List<QuoteT> lData, SSI_DataStockInfoResponse lInfo, PreEntry preEntry)
+        {
+            var output = new EntryModel
+            {
+                Response = EEntry.NONE,
+            };
+            try
+            {
+                if ((lData?.Count() ?? 0) < 100)
+                    return output;
+
+                if (preEntry is null)
+                {
+                    preEntry = new PreEntry();
+                }
+
+                var cur = lData[^1];
+                // Filter 1: Minimum Price (≥ 5,000 VND)
+                if (cur.Close < 5) return output;
+                // Filter 2: Minimum Average Volume (≥ 100,000 shares/day)
+                var recentVolumes = lData.TakeLast(20).Select(x => x.Volume).ToList();
+                var avgVolume = recentVolumes.Average();
+                if (avgVolume < 100000) return output;
+                // Filter 3: Minimum Liquidity (Price × Volume ≥ 500M VND)
+                var liquidity = cur.Close * avgVolume;
+                if (liquidity < 500000) return output;
+                // Tính BB
+                var lbb = lData.GetBollingerBands(20, 2).ToList();
+                var lrsi = lData.GetRsi(14).ToList();
+                var lma9 = lrsi.GetSma(9).ToList();
+                foreach (var item in lInfo.data)
+                {
+                    var date = DateTime.ParseExact(item.tradingDate, "dd/MM/yyyy", null);
+                    item.TimeStamp = new DateTimeOffset(date.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+                }
+                // Tìm entries
+                var bb_cur = lbb[^1];
+
+                var prev_1 = lData[^2];
+                var bb_prev_1 = lbb[^2];
+
+                var prev_2 = lData[^3];
+                var bb_prev_2 = lbb[^3];
+
+                var sma = (decimal)bb_cur.Sma.Value;
+                var lower = (decimal)bb_cur.LowerBand.Value;
+                var upper = (decimal)bb_cur.UpperBand.Value;
+
+                // Check BB Entry (1/2 zones)
+                var midLower = sma - (sma - lower) / 2;
+                var midUpper = sma + (upper - sma) / 2;
+
+                var midLower_14 = lower + (sma - lower) / 4;
+                var midUpper_14 = sma + (upper - sma) / 4;
+
+                var maxPrev = Math.Max(Math.Max(prev_1.Open, prev_1.Close), prev_2.Close);
+                var minPrev = Math.Min(Math.Min(prev_1.Open, prev_1.Close), prev_2.Close);
+                var maxCur = Math.Max(cur.Open, cur.Close);
+                var minCur = Math.Min(cur.Open, cur.Close);
+
+                bool isEntryDown = (maxCur <= midLower && maxPrev < sma);
+                bool isEntryUp = (minCur >= sma && maxCur <= midUpper && minPrev >= sma);
+
+                bool isBBEntry = isEntryDown || isEntryUp;
+
+                if (!isBBEntry)
+                {
+                    output.preAction = preEntry.d > 0 ? EPreEntryAction.DELETE : EPreEntryAction.NONE;
+                    return output;
+                }
+
+                var rsi_cur = lrsi[^1];
+                var ma9_cur = lma9[^1];
+                var rsi_prev_1 = lrsi[^2];
+                var ma9_prev_1 = lma9[^2];
+
+                bool isRsi = false, isPressure = false, isNN1 = false, isNN2 = false, isNN3 = false;
+                //Tín hiệu RSI  
+                if (isEntryDown && rsi_cur.Rsi.Value >= ma9_cur.Sma.Value
+                    && rsi_prev_1.Rsi.Value < ma9_prev_1.Sma.Value)
+                {
+                    isRsi = true;
+                    output.Response |= EEntry.RSI;
+                }
+
+                //Pressure
+                var info_cur = lInfo.data.FirstOrDefault(x => x.TimeStamp == cur.TimeStamp);
+                var info_prev_1 = lInfo.data.FirstOrDefault(x => x.TimeStamp == prev_1.TimeStamp);
+                var info_prev_2 = lInfo.data.FirstOrDefault(x => x.TimeStamp == prev_2.TimeStamp);
+                if (info_cur != null && info_cur.netTotalTradeVol > 0)
+                {
+                    if (((info_prev_1 is null || info_prev_1.netTotalTradeVol < 0)
+                        && (info_prev_2 is null || info_prev_2.netTotalTradeVol < 0))
+                        || preEntry.isPrePressure)
+                    {
+                        // Check BB Entry (1/4 zones)
+                        if ((isEntryDown && minCur < midLower_14)
+                            || (isEntryUp && minCur < midUpper_14))
+                        {
+                            isPressure = true;
+                            output.Response |= EEntry.PRESSURE;
+                            output.preAction = preEntry.d <= 0 ? EPreEntryAction.DELETE : EPreEntryAction.NONE;
+                            preEntry.isPrePressure = false;
+                        }
+                        else
+                        {
+                            output.preAction = EPreEntryAction.UPDATE;
+                            preEntry.isPrePressure = true;
+                        }
+                    }
+                }
+
+                if (info_cur is null || info_cur.netTotalTradeVol <= 0)
+                {
+                    output.preAction = EPreEntryAction.UPDATE;
+                    preEntry.isPrePressure = false;
+                }
+
+                //NN
+                if (info_cur != null && info_prev_1 != null)
+                {
+                    if ((info_cur.netBuySellVol > 0 && info_prev_1.netBuySellVol < 0)
+                         || preEntry.isPreNN1)
+                    {
+                        if ((isEntryDown && minCur < midLower_14)
+                           || (isEntryUp && minCur < midUpper_14))
+                        {
+                            isNN1 = true;
+                            output.Response |= EEntry.NN1;
+                            output.preAction = preEntry.d <= 0 ? EPreEntryAction.DELETE : EPreEntryAction.NONE;
+                            preEntry.isPreNN1 = false;
+                        }
+                        else
+                        {
+                            output.preAction = EPreEntryAction.UPDATE;
+                            preEntry.isPreNN1 = true;
+                        }
+                    }
+                    if (info_cur.netBuySellVol > 0 && info_prev_1.netBuySellVol > 0 && info_cur.netBuySellVol / info_prev_1.netBuySellVol > 2)
+                    {
+                        output.Response |= EEntry.NN2;
+                        isNN2 = true;
+                    }
+                    if (info_cur.netBuySellVol < 0 && info_prev_1.netBuySellVol < 0 && info_prev_1.netBuySellVol / info_cur.netBuySellVol > 2)
+                    {
+                        output.Response |= EEntry.NN3;
+                        isNN3 = true;
+                    }
+                    //
+                    if (info_cur.netBuySellVol <= 0)
+                    {
+                        output.preAction = EPreEntryAction.UPDATE;
+                        preEntry.isPreNN1 = false;
+                    }
+                }
+
+                if (isRsi || isPressure || isNN1 || isNN2 || isNN3)
+                {
+                    output.quote = cur;
+                    var checkWyckoff = lData.IsWyckoff();
+                    if (checkWyckoff.Item1)
+                    {
+                        output.Response |= EEntry.WYCKOFF;
+                    }
+                }
+
+                if (output.preAction == EPreEntryAction.UPDATE) 
+                {
+                    if(preEntry.d <= 0)
+                    {
+                        preEntry.d = (int)cur.TimeStamp;
+                    }
+                    output.pre = preEntry;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return output;
         }
     }
 }

@@ -416,5 +416,22 @@ namespace StockPr.Utils
     }
     #endregion
     #region Response
+    public enum EEntry 
+    {
+        NONE = 0,
+        PRESSURE = 1,
+        RSI = 2,
+        NN1 = 4,
+        NN2 = 8,
+        NN3 = 16,
+        WYCKOFF = 32,
+    }
+
+    public enum EPreEntryAction
+    {
+        DELETE = -1,
+        NONE = 0,
+        UPDATE = 1
+    }
     #endregion
 }
