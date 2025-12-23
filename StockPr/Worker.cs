@@ -157,7 +157,12 @@ namespace StockPr
                             {
                                 tasks.Add(ProcessThongKeTuDoanh());
                                 tasks.Add(ProcessChartThongKeKhopLenh());
+                            }
+
+                            if(dt.Hour >= 19 && dt.Minute >= 30)
+                            {
                                 tasks.Add(ProcessDetectEntry());
+                                tasks.Add(Process4U());
                             }
                         }
 
@@ -433,6 +438,11 @@ namespace StockPr
             {
                 await _teleService.SendMessage(_idUser, mes, true);
             }
+        }
+
+        private async Task Process4U()
+        {
+            await _chartService.Chart_4U();
         }
 
         #endregion

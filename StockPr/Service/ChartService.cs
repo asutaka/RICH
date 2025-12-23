@@ -15,6 +15,7 @@ namespace StockPr.Service
         Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
         Task<Stream> Chart_ThongKeKhopLenh(string sym, Money24h_StatisticResponse dat);
         Task<Stream> Chart_ThongKeKhopLenh_Long(string sym);
+        Task Chart_4U();
     }
     public class ChartService : IChartService
     {
@@ -24,16 +25,20 @@ namespace StockPr.Service
         private readonly IAPIService _apiService;
         private readonly IThongKeRepo _thongkeRepo;
         private readonly IPhanLoaiNDTRepo _phanloaiRepo;
+        private readonly IAccountRepo _accountRepo;
+        private readonly ITeleService _teleService;
         public ChartService(ILogger<ChartService> logger, 
-            ICommonService commonService, IAPIService apiService,  
-            IFinancialRepo financialRepo, IThongKeRepo thongKeRepo, IPhanLoaiNDTRepo phanloaiRepo) 
+            ICommonService commonService, IAPIService apiService, ITeleService teleService,
+            IFinancialRepo financialRepo, IThongKeRepo thongKeRepo, IPhanLoaiNDTRepo phanloaiRepo, IAccountRepo accountRepo) 
         {
             _logger = logger;
             _commonService = commonService;
             _apiService = apiService;
+            _teleService = teleService;
             _financialRepo = financialRepo;
             _thongkeRepo = thongKeRepo;
             _phanloaiRepo = phanloaiRepo;
+            _accountRepo = accountRepo;
         }
 
         public async Task<List<InputFileStream>> Chart_MaCK(string input)
@@ -1088,11 +1093,11 @@ namespace StockPr.Service
                 if (dat is null)
                     return null;
 
-                var lCat = dat.Date.Select(x => ((decimal)x).UnixTimeStampToDateTime().ToString("dd/MM/yyyy")).ToList();
-                var lForeign = dat.Foreign;
-                var lTudoanh = dat.TuDoanh;
-                var lIndividual = dat.Individual;
-                var lGroup = dat.Group;
+                var lCat = dat.Date.Select(x => ((decimal)x).UnixTimeStampToDateTime().ToString("dd/MM/yyyy")).TakeLast(50).ToList();
+                var lForeign = dat.Foreign.TakeLast(50);
+                var lTudoanh = dat.TuDoanh.TakeLast(50); 
+                var lIndividual = dat.Individual.TakeLast(50); 
+                var lGroup = dat.Group.TakeLast(50); 
                 var title = "Giá trị khớp lệnh";
                 if (sym != "10")
                 {
@@ -1171,6 +1176,57 @@ namespace StockPr.Service
                 _logger.LogError($"ChartService.Chart_BasicBase|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public async Task Chart_4U()
+        {
+            try
+            {
+                var dic = new Dictionary<string, Stream>();
+                var lAccount = _accountRepo.GetByFilter(Builders<Account>.Filter.Gt(x => x.status, 0));
+                foreach (var item in lAccount)
+                {
+                    if (item.list is null)
+                        item.list = new List<string>();
+
+                    var lStream = new List<Stream>();
+
+                    foreach (var itemMaCK in item.list)
+                    {
+                        try
+                        {
+                            if (dic.ContainsKey(itemMaCK))
+                            {
+                                lStream.Add(dic[itemMaCK]);
+                                continue;
+                            }
+                            var stream = await Chart_ThongKeKhopLenh(itemMaCK);
+                            if (stream != null)
+                            {
+                                lStream.Add(stream);
+                                dic.Add(itemMaCK, stream);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"ChartService.Chart_4U|ACCOUNT| {item.u}|EXCEPTION| {ex.Message}");
+                        }
+                    }
+
+                    if (lStream.Any())
+                    {
+                        foreach (var itemStream in lStream)
+                        {
+                            await _teleService.SendPhoto(item.u, itemStream);
+                            Thread.Sleep(500);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ChartService.Chart_4U|EXCEPTION| {ex.Message}");
+            }
         }
     }
 }
