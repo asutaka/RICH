@@ -71,33 +71,33 @@ namespace StockPr
         {
             StockInstance();
 
-            // ==================== BACKTEST RUNNER ====================
-            // ⚠️ UNCOMMENT PHẦN NÀY ĐỂ CHẠY BACKTEST
-            // Nhớ COMMENT LẠI sau khi test xong!
+            //// ==================== BACKTEST RUNNER ====================
+            //// ⚠️ UNCOMMENT PHẦN NÀY ĐỂ CHẠY BACKTEST
+            //// Nhớ COMMENT LẠI sau khi test xong!
 
-            try
-            {
-                _logger.LogInformation("=== STARTING BACKTEST ===");
+            //try
+            //{
+            //    _logger.LogInformation("=== STARTING BACKTEST ===");
 
-                // Chọn backtest muốn chạy (uncomment 1 trong các dòng dưới):
+            //    // Chọn backtest muốn chạy (uncomment 1 trong các dòng dưới):
 
-                await _backtestService.BackTest22122025();    
-                //await _backtestService.BacktestOptimalStrategy();        // ✨ Phân tích chỉ báo (BB, RSI, MA9, WMA45)
-                                                                   // await _backtestService.BatDayCK();                    // Bắt đáy CK
-                                                                   // await _backtestService.CheckAllDay_OnlyVolume();   // Check volume patterns
-                                                                   // await _backtestService.CheckGDNN();                // Check GDNN
-                                                                   // await _backtestService.CheckCungCau();             // Check cung cầu
-                                                                   // await _backtestService.CheckCrossMa50_BB();        // Check MA50 & BB
-                                                                   // await _backtestService.CheckWycKoff();             // Check Wyckoff
+            //    await _backtestService.BackTest22122025();    
+            //    //await _backtestService.BacktestOptimalStrategy();        // ✨ Phân tích chỉ báo (BB, RSI, MA9, WMA45)
+            //                                                       // await _backtestService.BatDayCK();                    // Bắt đáy CK
+            //                                                       // await _backtestService.CheckAllDay_OnlyVolume();   // Check volume patterns
+            //                                                       // await _backtestService.CheckGDNN();                // Check GDNN
+            //                                                       // await _backtestService.CheckCungCau();             // Check cung cầu
+            //                                                       // await _backtestService.CheckCrossMa50_BB();        // Check MA50 & BB
+            //                                                       // await _backtestService.CheckWycKoff();             // Check Wyckoff
 
-                _logger.LogInformation("=== BACKTEST COMPLETED ===");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Backtest failed");
-                throw;
-            }
-            return; // Dừng Worker sau khi backtest xong
+            //    _logger.LogInformation("=== BACKTEST COMPLETED ===");
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, "Backtest failed");
+            //    throw;
+            //}
+            //return; // Dừng Worker sau khi backtest xong
 
             // ==================== END BACKTEST RUNNER ====================
 
@@ -157,6 +157,7 @@ namespace StockPr
                             {
                                 tasks.Add(ProcessThongKeTuDoanh());
                                 tasks.Add(ProcessChartThongKeKhopLenh());
+                                tasks.Add(ProcessDetectEntry());
                             }
                         }
 
@@ -422,6 +423,15 @@ namespace StockPr
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ProcessEPSRank failed");
+            }
+        }
+
+        private async Task ProcessDetectEntry()
+        {
+            var mes = await _analyzeService.DetectEntry();
+            if (!string.IsNullOrWhiteSpace(mes))
+            {
+                await _teleService.SendMessage(_idUser, mes, true);
             }
         }
 

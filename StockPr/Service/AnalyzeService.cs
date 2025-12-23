@@ -16,6 +16,7 @@ namespace StockPr.Service
         Task<(int, string, string, string)> ChiBaoKyThuat(DateTime dt, bool isSave);
         Task<(int, string)> ThongkeForeign_PhienSang(DateTime dt);
         Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
+        Task<string> DetectEntry();
     }
     public class AnalyzeService : IAnalyzeService
     {
@@ -26,13 +27,15 @@ namespace StockPr.Service
         private readonly IStockRepo _stockRepo;
         private readonly ISymbolRepo _symbolRepo;
         private readonly ICategoryRepo _categoryRepo;
+        private readonly IPreEntryRepo _preEntryRepo;
         public AnalyzeService(ILogger<AnalyzeService> logger,
                                     IAPIService apiService,
                                     IChartService chartService,
                                     IConfigDataRepo configRepo,
                                     IStockRepo stockRepo,
                                     ISymbolRepo symbolRepo,
-                                    ICategoryRepo categoryRepo) 
+                                    ICategoryRepo categoryRepo,
+                                    IPreEntryRepo preEntryRepo) 
         {
             _logger = logger;
             _apiService = apiService;
@@ -41,6 +44,7 @@ namespace StockPr.Service
             _stockRepo = stockRepo;
             _symbolRepo = symbolRepo;
             _categoryRepo = categoryRepo;
+            _preEntryRepo = preEntryRepo;
         }
 
         public async Task<string> Realtime()
@@ -279,6 +283,146 @@ namespace StockPr.Service
             }
           
             return sBuilder.ToString();
+        }
+
+        public async Task<string> DetectEntry()
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var ty = (int)EConfigDataType.Entry;
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                FilterDefinition<ConfigData> filterConfig = Builders<ConfigData>.Filter.Eq(x => x.ty, ty);
+                var lConfig = _configRepo.GetByFilter(filterConfig);
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t == t))
+                        return string.Empty;
+
+                    _configRepo.DeleteMany(filterConfig);
+                }
+
+                var lSym = _symbolRepo.GetAll();
+                var strOutput = new StringBuilder();
+                var lReport = new List<EntryModel>();
+                foreach (var symbol in lSym.Select(x => x.s))
+                {
+                    try
+                    {
+                        var lInfo = await _apiService.SSI_GetStockInfo(symbol, dt.AddDays(-30), dt);
+                        if(lInfo.data.Count < 5)
+                            continue;
+                        foreach (var item in lInfo.data)
+                        {
+                            var date = DateTime.ParseExact(item.tradingDate, "dd/MM/yyyy", null);
+                            item.TimeStamp = new DateTimeOffset(date.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+                        }
+                        var filter = Builders<PreEntry>.Filter.Eq(x => x.s, symbol);
+                        var pre = _preEntryRepo.GetEntityByFilter(filter);
+                        var lData = (await _apiService.SSI_GetDataStockT(symbol)).DistinctBy(x => x.Date).ToList();
+                        if(lData.Count < 50)
+                            continue;
+                        var res = lData.CheckEntry(lInfo, pre);
+                        if (res.preAction == EPreEntryAction.DELETE)
+                        {
+                            if (pre != null)
+                            {
+                                _preEntryRepo.DeleteMany(filter);
+                            }
+                        }
+                        else if (res.preAction == EPreEntryAction.UPDATE)
+                        {
+                            if ((!res.pre.isPrePressure && !res.pre.isPreNN1))
+                            {
+                                if (pre != null)
+                                {
+                                    _preEntryRepo.DeleteMany(filter);
+                                }
+                            }
+                            else
+                            {
+                                if (pre is null)
+                                {
+                                    res.pre.s = symbol;
+                                    _preEntryRepo.InsertOne(res.pre);
+                                }
+                                else
+                                {
+                                    _preEntryRepo.Update(res.pre);
+                                }
+                            }
+                        }
+                        if (res.Response > 0)
+                        {
+                            res.s = symbol;
+                            lReport.Add(res);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"AnalyzeService.DetectEntry|EXCEPTION(DetectEntry)| {ex.Message}");
+                    }
+                }
+
+                _configRepo.InsertOne(new ConfigData
+                {
+                    ty = ty,
+                    t = t
+                });
+                var count = lReport.Count;
+                if(count <= 0)
+                {
+                    return string.Empty;
+                }
+
+                strOutput.AppendLine($"*Tín hiệu*");
+                var index = 1;
+                foreach (var res in lReport.OrderByDescending(x => x.Response).Take(15))
+                {
+                    var signal = string.Empty;
+                    if ((res.Response & EEntry.RSI) == EEntry.RSI)
+                    {
+                        // Có RSI
+                        signal += "RSI|";
+                    }
+                    if ((res.Response & EEntry.PRESSURE) == EEntry.PRESSURE)
+                    {
+                        // Có Pressure
+                        signal += "Pressure|";
+                    }
+                    if ((res.Response & EEntry.NN1) == EEntry.NN1)
+                    {
+                        // Có NN1
+                        signal += "NN1|";
+                    }
+
+                    if ((res.Response & EEntry.NN2) == EEntry.NN2)
+                    {
+                        // Có NN1
+                        signal += "NN2|";
+                    }
+                    if ((res.Response & EEntry.NN3) == EEntry.NN3)
+                    {
+                        // Có NN1
+                        signal += "NN3|";
+                    }
+                    if ((res.Response & EEntry.WYCKOFF) == EEntry.WYCKOFF)
+                    {
+                        // Có NN1
+                        signal += "Wyckoff|";
+                    }
+                    var content = $"{index++}. [{res.s}](https://fireant.vn/ma-chung-khoan/{res.s}) - {signal.TrimEnd('|')}";
+                    strOutput.AppendLine(content);
+                }
+
+                return strOutput.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.DetectEntry|EXCEPTION| {ex.Message}");
+            }
+
+            return string.Empty;
         }
 
         private async Task<(int, string)> ThongkeForeign(DateTime dt)
@@ -950,11 +1094,11 @@ namespace StockPr.Service
                     }
                 }
 
-                var wyckoff = lData.IsWyckoff();
-                if(wyckoff.Item1)
-                {
-                    model.Wyckoff = wyckoff.Item2.Last();
-                }
+                //var wyckoff = lData.IsWyckoff();
+                //if(wyckoff.Item1)
+                //{
+                //    model.Wyckoff = wyckoff.Item2.Last();
+                //}
                
                 return model;
             }

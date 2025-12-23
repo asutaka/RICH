@@ -29,6 +29,7 @@ namespace StockPr.Utils
         MacroMicro = 62,
         EPS = 63,
         ThongKeKhopLenh = 64,
+        Entry = 68
     }
 
     public enum EStockType
@@ -419,12 +420,12 @@ namespace StockPr.Utils
     public enum EEntry 
     {
         NONE = 0,
-        PRESSURE = 1,
-        RSI = 2,
-        NN1 = 4,
-        NN2 = 8,
-        NN3 = 16,
-        WYCKOFF = 32,
+        PRESSURE = 32,
+        RSI = 16,
+        NN1 = 8,
+        NN2 = 4,
+        NN3 = 2,
+        WYCKOFF = 1,
     }
 
     public enum EPreEntryAction

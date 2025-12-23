@@ -5,6 +5,7 @@ namespace StockPr.Model
 {
     public class EntryModel
     {
+        public string s { get; set; }
         public EEntry Response { get; set; }
         public QuoteT quote { get; set; }
         public PreEntry pre { get; set; }
