@@ -363,10 +363,10 @@ namespace StockPr
                 {
                     await _teleService.SendMessage(_idChannel, res.Item2, true);
                 }
-                if (!string.IsNullOrWhiteSpace(res.Item4))
-                {
-                    await _teleService.SendMessage(_idUser, res.Item4);
-                }
+                //if (!string.IsNullOrWhiteSpace(res.Item4))
+                //{
+                //    await _teleService.SendMessage(_idUser, res.Item4);
+                //}
             }
             catch (Exception ex)
             {

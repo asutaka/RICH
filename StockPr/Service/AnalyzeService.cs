@@ -951,10 +951,10 @@ namespace StockPr.Service
                     });
                 }
 
-                var lWyckoff = lReport.Where(x => x.Wyckoff != null);
-                var mesWyckoff = $">>Wyckoff:\n {string.Join("\n", lWyckoff.Select(x => $"+ {x.s}({x.Wyckoff.Date.ToString("dd/MM/yyyy")})"))}";
+                //var lWyckoff = lReport.Where(x => x.Wyckoff != null);
+                //var mesWyckoff = $">>Wyckoff:\n {string.Join("\n", lWyckoff.Select(x => $"+ {x.s}({x.Wyckoff.Date.ToString("dd/MM/yyyy")})"))}";
 
-                return (1, strOutput.ToString(), PrintSignal(lReport), mesWyckoff);
+                return (1, strOutput.ToString(), PrintSignal(lReport), null);
             }
             catch (Exception ex)
             {
