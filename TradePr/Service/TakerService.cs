@@ -1,4 +1,5 @@
 ﻿using Bybit.Net.Enums;
+using System.Collections.Concurrent;
 using Bybit.Net.Objects.Models.V5;
 using CoinUtilsPr;
 using CoinUtilsPr.DAL;
@@ -202,8 +203,9 @@ namespace TradePr.Service
             }
         }
 
-        private TakerVolumneBuySellDTO _taker = null;
-        private async Task Bybit_ENTRY(EInterval interval)
+        private ConcurrentDictionary<string, TakerVolumneBuySellDTO> _takerStates = new ConcurrentDictionary<string, TakerVolumneBuySellDTO>();
+        
+        public async Task Bybit_ENTRY(EInterval interval)
         {
             try
             {
@@ -227,70 +229,86 @@ namespace TradePr.Service
                 {
                     "SOLUSDT",
                 };
-                foreach (var sym in lSym)
+
+                // Chạy song song để tối ưu thời gian xử lý
+                var tasks = lSym.Select(sym => ProcessSymbolEntry(sym, interval));
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_ENTRY|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        private async Task ProcessSymbolEntry(string sym, EInterval interval)
+        {
+            try
+            {
+                //gia
+                var now = DateTime.Now;
+                var quotes = await _apiService.GetData_Binance(sym, interval);
+                if (quotes is null || !quotes.Any())
+                    return;
+
+                var last = quotes.Last();
+                if (last.Volume <= 0)
+                    return;
+                quotes.Remove(last);
+
+                var takevolumes = await _apiService.GetBuySellRate(sym, interval);
+                if (takevolumes is null || !takevolumes.Any())
+                    return;
+
+                if (_takerStates.ContainsKey(sym) && _takerStates[sym] != null)
                 {
-                    try
+                    var currentTaker = _takerStates[sym];
+                    if (quotes.Count(x => x.Date > ((long)currentTaker.timestamp).UnixTimeStampMinisecondToDateTime()) > 5)
                     {
-                        //gia
-                        var quotes = await _apiService.GetData_Binance(sym, interval);
-                        if (quotes is null || !quotes.Any())
-                            continue;
-
-                        var last = quotes.Last();
-                        if (last.Volume <= 0)
-                            continue;
-                        quotes.Remove(last);
-
-                        var takevolumes = await _apiService.GetBuySellRate(sym, interval);
-                        if(takevolumes is null || !takevolumes.Any())
-                            continue;
-
-                        if (_taker != null)
-                        {
-                            if (quotes.Count(x => x.Date > ((long)_taker.timestamp).UnixTimeStampMinisecondToDateTime()) > 5)
-                            {
-                                _taker = null;
-                            }
-
-                            var entry = quotes.GetEntry();
-                            if (entry.Item1 == 0)
-                            {
-                                _taker = null;
-                            }
-                            else if (entry.Item1 > 0)
-                            {
-                                _taker = null;
-                                var sl_price = Math.Min(last.Open, last.Close) * (1 - SL_RATE / 100);
-                                var eEntry = new Pro
-                                {
-                                    entity = entry.Item2,
-                                    s = sym,
-                                    ratio = 100,
-                                    interval = (int)interval,
-                                    sl_price = sl_price,
-                                };
-                                await PlaceOrder(eEntry);
-                                _proRepo.InsertOne(eEntry);
-                                Console.WriteLine($"====> ENTRY: {entry.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
-                                continue;
-                            }
-                        }
-
-
-                        var signal = takevolumes.GetSignal(quotes);
-                        if (signal == null) continue;
-
-                        _taker = signal;
+                        // Reset state nếu quá hạn
+                        _takerStates.TryRemove(sym, out _);
+                        currentTaker = null;
                     }
-                    catch (Exception ex)
+
+                    if (currentTaker != null)
                     {
-                        _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_ENTRY|INPUT: {sym}|EXCEPTION| {ex.Message}");
+                        var entry = quotes.GetEntry();
+                        if (entry.Item1 == 0)
+                        {
+                            _takerStates.TryRemove(sym, out _);
+                        }
+                        else if (entry.Item1 > 0)
+                        {
+                            _takerStates.TryRemove(sym, out _);
+                            var sl_price = Math.Min(last.Open, last.Close) * (1 - SL_RATE / 100);
+                            var eEntry = new Pro
+                            {
+                                entity = entry.Item2,
+                                s = sym,
+                                ratio = 100,
+                                interval = (int)interval,
+                                sl_price = sl_price,
+                            };
+                            await PlaceOrder(eEntry, now);
+                            _proRepo.InsertOne(eEntry);
+                            Console.WriteLine($"====> ENTRY: {entry.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
+                            return;
+                        }
+                    }
+                }
+
+                // Logic tìm signal mới nếu chưa có hoặc đã reset
+                if (!_takerStates.ContainsKey(sym))
+                {
+                    var signal = takevolumes.GetSignal(quotes);
+                    if (signal != null)
+                    {
+                        _takerStates.TryAdd(sym, signal);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.Bybit_ENTRY|EXCEPTION| {ex.Message}");
+                _logger.LogError(ex, $"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.ProcessSymbolEntry|INPUT: {sym}|EXCEPTION| {ex.Message}");
             }
         }
 
@@ -361,10 +379,17 @@ namespace TradePr.Service
             }
         }
 
-        private async Task<EError> PlaceOrder(Pro entry)
+        private async Task<EError> PlaceOrder(Pro entry, DateTime dt)
         {
             try
             {
+                var now = DateTime.Now;
+                if((now - dt).TotalSeconds > 60)
+                {
+                    _logger.LogInformation($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.PlaceOrder|SKIP OLD SIGNAL| {JsonConvert.SerializeObject(entry)}");
+                    return EError.Error;
+                }
+
                 Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}|BYBIT PlaceOrder: {JsonConvert.SerializeObject(entry)}");
                 var curTime = (int)DateTimeOffset.Now.ToUnixTimeSeconds();
                 var account = await Bybit_GetAccountInfo();
