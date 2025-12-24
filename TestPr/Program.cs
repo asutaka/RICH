@@ -14,6 +14,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddHttpClient();
         services.ServiceDependencies();
         services.DALDependencies();
+        
+        // Đăng ký BacktestService
+        services.AddScoped<TestPr.Service.IBacktestService, TestPr.Service.BacktestService>();
     })
     .Build();
 
