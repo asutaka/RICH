@@ -76,7 +76,7 @@ namespace TestPr.Service
             }
 
             // Lấy volume data
-            var takevolumes = await _apiService.GetBuySellRate(symbol, EInterval.M15);
+            var takevolumes = await _apiService.GetBuySellRate(symbol, EInterval.M15, 500);
 
             Trade? openTrade = null;
             TakerVolumneBuySellDTO? signal = null;

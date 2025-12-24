@@ -83,28 +83,28 @@ namespace TestPr
             var symbolsInput = Console.ReadLine();
             var symbols = symbolsInput?.Split(',').Select(s => s.Trim().ToUpper()).ToList() ?? new List<string> { "SOLUSDT" };
 
-            // Nhập số ngày backtest
-            Console.Write("\nNhập số ngày backtest (mặc định 30): ");
-            var daysInput = Console.ReadLine();
-            int days = int.TryParse(daysInput, out var d) ? d : 30;
+            //// Nhập số ngày backtest
+            //Console.Write("\nNhập số ngày backtest (mặc định 30): ");
+            //var daysInput = Console.ReadLine();
+            //int days = int.TryParse(daysInput, out var d) ? d : 30;
 
-            // Nhập Stop Loss Rate
-            Console.Write("\nNhập Stop Loss % (mặc định 1.5): ");
-            var slInput = Console.ReadLine();
-            decimal slRate = decimal.TryParse(slInput, out var sl) ? sl : 1.5m;
+            //// Nhập Stop Loss Rate
+            //Console.Write("\nNhập Stop Loss % (mặc định 1.5): ");
+            //var slInput = Console.ReadLine();
+            //decimal slRate = decimal.TryParse(slInput, out var sl) ? sl : 1.5m;
 
-            // Nhập Max Candles Hold
-            Console.Write("\nNhập số nến giữ tối đa (mặc định 24): ");
-            var maxCandlesInput = Console.ReadLine();
-            int maxCandles = int.TryParse(maxCandlesInput, out var mc) ? mc : 24;
+            //// Nhập Max Candles Hold
+            //Console.Write("\nNhập số nến giữ tối đa (mặc định 24): ");
+            //var maxCandlesInput = Console.ReadLine();
+            //int maxCandles = int.TryParse(maxCandlesInput, out var mc) ? mc : 24;
 
             var config = new BacktestConfig
             {
                 Symbols = symbols,
-                StartDate = DateTime.UtcNow.AddDays(-days),
+                StartDate = DateTime.UtcNow.AddDays(-90), // Tăng từ 30 lên 90 ngày
                 EndDate = DateTime.UtcNow,
-                MaxCandlesHold = maxCandles,
-                StopLossRate = slRate
+                MaxCandlesHold = 24,
+                StopLossRate = 1.5m
             };
 
             await backtestService.RunBacktest(config);

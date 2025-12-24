@@ -20,7 +20,7 @@ namespace CoinUtilsPr
         Task<List<LongShortRatioDTO>> GetTopLongShortPositionRatio(string symbol, EInterval interval);
         Task<List<LongShortRatioDTO>> GetTopLongShortAccountRatio(string symbol, EInterval interval);
         Task<List<LongShortRatioDTO>> GetLongShortRatio(string symbol, EInterval interval);
-        Task<List<TakerVolumneBuySellDTO>> GetBuySellRate(string symbol, EInterval interval);
+        Task<List<TakerVolumneBuySellDTO>> GetBuySellRate(string symbol, EInterval interval, int l = 50);
     }
     public class APIService : IAPIService
     {
@@ -477,9 +477,9 @@ namespace CoinUtilsPr
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns></returns>
-        public async Task<List<TakerVolumneBuySellDTO>> GetBuySellRate(string symbol, EInterval interval)
+        public async Task<List<TakerVolumneBuySellDTO>> GetBuySellRate(string symbol, EInterval interval, int limit = 50)
         {
-            var url = $"https://www.binance.com/futures/data/takerlongshortRatio?limit=50&symbol={symbol}&period={interval.GetDisplayName()}";
+            var url = $"https://www.binance.com/futures/data/takerlongshortRatio?limit={limit}&symbol={symbol}&period={interval.GetDisplayName()}";
 
             try
             {
