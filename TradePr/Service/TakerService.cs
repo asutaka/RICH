@@ -7,14 +7,7 @@ using CoinUtilsPr.Model;
 using CryptoExchange.Net.Objects;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using SharpCompress.Common.Tar;
 using Skender.Stock.Indicators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -195,7 +188,11 @@ namespace TradePr.Service
 
                     //
                     var takevolumes = await _apiService.GetBuySellRate(item.Symbol, (EInterval)place.interval);
-                    takevolumes.GetOut();
+                    var mes = takevolumes.GetOut();
+                    if (!string.IsNullOrEmpty(mes))
+                    {
+                        await _teleService.SendMessage(_idUser, $"[TAKEVOLUME|Bybit] {item.Symbol}|{mes}");
+                    }
                 }
                 #endregion
             }

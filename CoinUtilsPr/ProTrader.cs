@@ -1,13 +1,12 @@
 ﻿using CoinUtilsPr.DAL.Entity;
 using CoinUtilsPr.Model;
-using SharpCompress.Common;
 using Skender.Stock.Indicators;
 
 namespace CoinUtilsPr
 {
     public static class ProTrader
     {
-        public static TakerVolumneBuySellDTO? GetOut(this List<TakerVolumneBuySellDTO> takervolumes)
+        public static string GetOut(this List<TakerVolumneBuySellDTO> takervolumes)
         {
             try
             {
@@ -23,13 +22,14 @@ namespace CoinUtilsPr
                     var time = ((long)(cur.timestamp)).UnixTimeStampMinisecondToDateTime();
                     var mesPivot = $"DOWN:{time.ToString("dd/MM HH:mm")}";
                     Console.WriteLine(mesPivot);
+                    return mesPivot;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("GetEntry error: " + ex.Message);
             }
-            return null;
+            return string.Empty;
         }
         public static TakerVolumneBuySellDTO? GetSignal(this List<TakerVolumneBuySellDTO> takervolumes, List<Quote> quotes)
         {
