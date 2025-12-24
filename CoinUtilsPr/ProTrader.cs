@@ -10,6 +10,10 @@ namespace CoinUtilsPr
         {
             try
             {
+                var dt = DateTime.Now;
+                if (dt.Minute % 15 != 14)
+                    return string.Empty;
+
                 var count = takervolumes.Count;
                 if (count < 2) return null;
 
