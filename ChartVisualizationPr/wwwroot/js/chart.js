@@ -309,8 +309,6 @@ function initializeCharts() {
             // Indicator values
             if (indicator) {
                 document.getElementById('infoMA20').textContent = indicator.ma20 ? indicator.ma20.toFixed(2) : '-';
-                document.getElementById('infoUpper').textContent = indicator.upperBand ? indicator.upperBand.toFixed(2) : '-';
-                document.getElementById('infoLower').textContent = indicator.lowerBand ? indicator.lowerBand.toFixed(2) : '-';
                 document.getElementById('infoRSI').textContent = indicator.rsi ? indicator.rsi.toFixed(2) : '-';
                 document.getElementById('infoVolume').textContent = indicator.volume ? indicator.volume.toLocaleString() : '-';
                 // document.getElementById('infoNetTrade').textContent = indicator.netTrade ? indicator.netTrade.toLocaleString() : '-';
@@ -762,7 +760,7 @@ function updateCharts(candles, indicators, groupData = [], foreignData = [], net
         const groupChartData = groupData.map(g => ({
             time: g.time,
             value: g.value,
-            color: g.value >= 0 ? '#7c3aed' : '#ef4444', // Purple for positive, Red for negative
+            color: g.value >= 0 ? '#10b981' : '#ef4444', // Purple for positive, Red for negative
         }));
         groupSeries.setData(groupChartData);
     }
@@ -772,7 +770,7 @@ function updateCharts(candles, indicators, groupData = [], foreignData = [], net
         const foreignChartData = foreignData.map(f => ({
             time: f.time,
             value: f.value,
-            color: f.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
+            color: f.value >= 0 ? '#10b981' : '#ef4444', // Cyan for positive, Red for negative
         }));
         foreignSeries.setData(foreignChartData);
     }
@@ -782,7 +780,7 @@ function updateCharts(candles, indicators, groupData = [], foreignData = [], net
         const netTradeChartData = netTradeData.map(nt => ({
             time: nt.time,
             value: nt.value,
-            color: nt.value >= 0 ? '#00d4ff' : '#ef4444', // Cyan for positive, Red for negative
+            color: nt.value >= 0 ? '#10b981' : '#ef4444', // Cyan for positive, Red for negative
         }));
         netTradeSeries.setData(netTradeChartData);
     }
