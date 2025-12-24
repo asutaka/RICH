@@ -31,20 +31,24 @@ namespace StockExtendPr.Service
                 };
                 web.PostResponse += (request, response) =>
                 {
-                    cookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
+                    cookie = response.Headers.GetValues("Set-Cookie")?.FirstOrDefault();
                 };
                 var document = web.Load(url);
-                var html = document.ParsedText;
-                var index = html.IndexOf("data-stk=");
-                if (index < 0)
+                // Use HtmlAgilityPack to find the element with 'data-stk' attribute
+                var node = document.DocumentNode.SelectSingleNode("//*[@data-stk]");
+                if (node == null)
+                {
+                    _logger.LogWarning("APIService.MacroMicro_GetAuthorize|WARNING| Could not find element with 'data-stk' attribute.");
                     return (null, null);
+                }
 
-                var sub = html.Substring(index + 10);
-                var indexCut = sub.IndexOf("\"");
-                if (indexCut < 0)
+                var authorize = node.GetAttributeValue("data-stk", string.Empty);
+                if (string.IsNullOrWhiteSpace(authorize))
+                {
+                    _logger.LogWarning("APIService.MacroMicro_GetAuthorize|WARNING| 'data-stk' attribute value is empty.");
                     return (null, null);
+                }
 
-                var authorize = sub.Substring(0, indexCut);
                 return (authorize, cookie);
             }
             catch (Exception ex)
