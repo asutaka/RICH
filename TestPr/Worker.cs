@@ -1,4 +1,6 @@
-﻿using TestPr.Model;
+﻿using Bybit.Net.Enums;
+using CoinUtilsPr;
+using TestPr.Model;
 using TestPr.Service;
 
 namespace TestPr
@@ -75,13 +77,16 @@ namespace TestPr
             var backtestService = scope.ServiceProvider.GetRequiredService<IBacktestService>();
 
             Console.WriteLine("\n--- BACKTEST TÙY CHỈNH ---");
-            
+            //var lAll = await StaticVal.ByBitInstance().V5Api.ExchangeData.GetLinearInverseSymbolsAsync(Category.Linear, limit: 1000);
+            //var lUsdt = lAll.Data.List.Where(x => x.QuoteAsset == "USDT" && !x.Name.StartsWith("1000")).Select(x => x.Name);
+            //var symbols = lUsdt.Skip(500).Take(100).ToList();
+
             // Nhập danh sách coin
-            Console.WriteLine("\nNhập danh sách coin (cách nhau bởi dấu phẩy):");
-            Console.WriteLine("Ví dụ: SOLUSDT,BTCUSDT,ETHUSDT");
-            Console.Write("Danh sách coin: ");
-            var symbolsInput = Console.ReadLine();
-            var symbols = symbolsInput?.Split(',').Select(s => s.Trim().ToUpper()).ToList() ?? new List<string> { "SOLUSDT" };
+            //Console.WriteLine("\nNhập danh sách coin (cách nhau bởi dấu phẩy):");
+            //Console.WriteLine("Ví dụ: SOLUSDT,BTCUSDT,ETHUSDT");
+            //Console.Write("Danh sách coin: ");
+            //var symbolsInput = Console.ReadLine();
+            var symbols = new List<string> { "YGGUSDT", "VINEUSDT", "ZKCUSDT" };
 
             //// Nhập số ngày backtest
             //Console.Write("\nNhập số ngày backtest (mặc định 30): ");

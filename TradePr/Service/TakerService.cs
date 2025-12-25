@@ -204,6 +204,7 @@ namespace TradePr.Service
         }
 
         private ConcurrentDictionary<string, TakerVolumneBuySellDTO> _takerStates = new ConcurrentDictionary<string, TakerVolumneBuySellDTO>();
+        private readonly SemaphoreSlim _placeOrderSemaphore = new SemaphoreSlim(1, 1); // Đảm bảo PlaceOrder được gọi tuần tự
         
         public async Task Bybit_ENTRY(EInterval interval)
         {
@@ -228,6 +229,18 @@ namespace TradePr.Service
                 var lSym = new List<string>
                 {
                     "SOLUSDT",
+                    "LUNA2USDT",
+                    "QUSDT",
+                    "ACEUSDT",
+                    "MIRAUSDT",
+                    "YGGUSDT",
+                    "FUSDT",
+                    "SCRUSDT",
+                    "ENSOUSDT",
+                    "VINEUSDT",
+                    "BRUSDT",
+                    "NOMUSDT",
+                    "DOODUSDT"
                 };
 
                 // Chạy song song để tối ưu thời gian xử lý
@@ -288,9 +301,19 @@ namespace TradePr.Service
                                 interval = (int)interval,
                                 sl_price = sl_price,
                             };
-                            await PlaceOrder(eEntry, now);
-                            _proRepo.InsertOne(eEntry);
-                            Console.WriteLine($"====> ENTRY: {entry.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
+                            
+                            // Sử dụng semaphore để đảm bảo PlaceOrder được gọi tuần tự
+                            await _placeOrderSemaphore.WaitAsync();
+                            try
+                            {
+                                await PlaceOrder(eEntry, now);
+                                _proRepo.InsertOne(eEntry);
+                                Console.WriteLine($"====> ENTRY: {entry.Item2.Date.ToString("dd/MM/yyyy HH:mm")}");
+                            }
+                            finally
+                            {
+                                _placeOrderSemaphore.Release();
+                            }
                             return;
                         }
                     }
@@ -387,6 +410,15 @@ namespace TradePr.Service
                 if((now - dt).TotalSeconds > 60)
                 {
                     _logger.LogInformation($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.PlaceOrder|SKIP OLD SIGNAL| {JsonConvert.SerializeObject(entry)}");
+                    return EError.Error;
+                }
+
+                var pos = await StaticTrade.ByBitInstance().V5Api.Trading.GetPositionsAsync(Category.Linear, settleAsset: "USDT");
+                if (pos != null &&
+                    pos.Data != null &&
+                    pos.Data.List.Count() > 2)
+                {
+                    _logger.LogInformation($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm")}|MMService.PlaceOrder|EXIST POSITION| {JsonConvert.SerializeObject(entry)}");
                     return EError.Error;
                 }
 
