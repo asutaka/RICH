@@ -13,7 +13,7 @@ namespace TradePr.Service
     public interface ITeleService
     {
         Task SendMessage(long id, string mes);
-
+        Task SendMessage(long id, string mes, bool isMark = false);
     }
     public class TeleService : ITeleService
     {
@@ -363,6 +363,28 @@ namespace TradePr.Service
             {
                 Console.WriteLine(mes);
                 await _bot.SendMessage(id, mes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"TeleService.SendMessage|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task SendMessage(long id, string mes, bool isMark = false)
+        {
+            try
+            {
+                if (isMark)
+                {
+                    await _bot.SendMessage(id, mes, ParseMode.Markdown, linkPreviewOptions: new LinkPreviewOptions
+                    {
+                        IsDisabled = true,
+                    });
+                }
+                else
+                {
+                    await _bot.SendMessage(id, mes);
+                }
             }
             catch (Exception ex)
             {

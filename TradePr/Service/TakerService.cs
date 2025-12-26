@@ -32,6 +32,7 @@ namespace TradePr.Service
         private const decimal _margin = 10;
         private const int SONEN_NAMGIU = 24;
         private const decimal SL_RATE = 1.5m;
+        private const string _urlBase = "https://www.binance.com/vi/futures/";
         public TakerService(ILogger<TakerService> logger,
                           IAPIService apiService, ITeleService teleService,
                           IConfigDataRepo configRepo, IProRepo proRepo)
@@ -109,7 +110,8 @@ namespace TradePr.Service
                             item.is_sl = true;
                             _proRepo.Update(item);
 
-                            await _teleService.SendMessage(_idUser, $"[STOPLOSS|Bybit] {item.s}|SL: {item.sl_price}");
+                            var msg = $"*STOPLOSS* [{item.s}]({_urlBase}{item.s})|SL: {item.sl_price}";
+                            await _teleService.SendMessage(_idUser, msg, true);
                         }
                     }
                     return;
@@ -193,7 +195,8 @@ namespace TradePr.Service
                     var mes = takevolumes.GetOut();
                     if (!string.IsNullOrEmpty(mes))
                     {
-                        await _teleService.SendMessage(_idUser, $"[{item.Symbol}](https://www.binance.com/vi/futures/{item.Symbol}) [TAKEVOLUME|Bybit]|{mes}");
+                        var msg = $"*TAKEVOLUME* [{item.Symbol}]({_urlBase}{item.Symbol})|{mes}";
+                        await _teleService.SendMessage(_idUser, msg, true);
                     }
                 }
                 #endregion
@@ -389,7 +392,7 @@ namespace TradePr.Service
                         var entry = quotes.GetEntry(interval);
                         if (entry == null) continue;
                         var mes = $"{sym}|{interval}|SIGNAL({entry.ratio}%)|{entry.entity.Date.ToString("dd/MM/yyyy HH:mm")}";
-                        await _teleService.SendMessage(_idUser, mes);
+                        await _teleService.SendMessage(_idUser, mes, true);
                     }
                     catch (Exception ex)
                     {
@@ -510,8 +513,8 @@ namespace TradePr.Service
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{entry.s}|{resSL.Error.Code}:{resSL.Error.Message}");
                     }
 
-                    var mes = $"[{entry.s}](https://www.binance.com/vi/futures/{entry.s}) [ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit({(EInterval)entry.interval})]|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
-                    await _teleService.SendMessage(_idUser, mes);
+                    var msg = $"*ACTION - {OrderSide.Buy.ToString().ToUpper()}({(EInterval)entry.interval})* [{entry.s}]({_urlBase}{entry.s})|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
+                    await _teleService.SendMessage(_idUser, msg, true);
                 }
             }
             catch (Exception ex)
@@ -604,7 +607,8 @@ namespace TradePr.Service
                         balance = $"|Balance: {Math.Round(account.WalletBalance.Value, 1)}$";
                     }
 
-                    await _teleService.SendMessage(_idUser, $"[{pos.Symbol}](https://www.binance.com/vi/futures/{pos.Symbol}) [CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit]|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}");
+                    var msg = $"*CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)* [{pos.Symbol}]({_urlBase}{pos.Symbol})|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}";
+                    await _teleService.SendMessage(_idUser, msg, true);
                     return true;
                 }
             }
