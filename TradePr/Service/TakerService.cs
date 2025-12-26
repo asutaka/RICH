@@ -193,7 +193,7 @@ namespace TradePr.Service
                     var mes = takevolumes.GetOut();
                     if (!string.IsNullOrEmpty(mes))
                     {
-                        await _teleService.SendMessage(_idUser, $"[TAKEVOLUME|Bybit] [{item.Symbol}](https://www.binance.com/vi/futures/{item.Symbol})|{mes}");
+                        await _teleService.SendMessage(_idUser, $"[{item.Symbol}](https://www.binance.com/vi/futures/{item.Symbol}) [TAKEVOLUME|Bybit]|{mes}");
                     }
                 }
                 #endregion
@@ -510,7 +510,7 @@ namespace TradePr.Service
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{entry.s}|{resSL.Error.Code}:{resSL.Error.Message}");
                     }
 
-                    var mes = $"[ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit({(EInterval)entry.interval})] [{entry.s}](https://www.binance.com/vi/futures/{entry.s})|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
+                    var mes = $"[{entry.s}](https://www.binance.com/vi/futures/{entry.s}) [ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit({(EInterval)entry.interval})]|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
                     await _teleService.SendMessage(_idUser, mes);
                 }
             }
@@ -604,7 +604,7 @@ namespace TradePr.Service
                         balance = $"|Balance: {Math.Round(account.WalletBalance.Value, 1)}$";
                     }
 
-                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] [{pos.Symbol}](https://www.binance.com/vi/futures/{pos.Symbol})|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}");
+                    await _teleService.SendMessage(_idUser, $"[{pos.Symbol}](https://www.binance.com/vi/futures/{pos.Symbol}) [CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit]|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}");
                     return true;
                 }
             }
