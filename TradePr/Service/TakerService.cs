@@ -1,5 +1,4 @@
 ﻿using Bybit.Net.Enums;
-using System.Collections.Concurrent;
 using Bybit.Net.Objects.Models.V5;
 using CoinUtilsPr;
 using CoinUtilsPr.DAL;
@@ -8,7 +7,9 @@ using CoinUtilsPr.Model;
 using CryptoExchange.Net.Objects;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using SharpCompress.Common;
 using Skender.Stock.Indicators;
+using System.Collections.Concurrent;
 using TradePr.Utils;
 
 namespace TradePr.Service
@@ -192,7 +193,7 @@ namespace TradePr.Service
                     var mes = takevolumes.GetOut();
                     if (!string.IsNullOrEmpty(mes))
                     {
-                        await _teleService.SendMessage(_idUser, $"[TAKEVOLUME|Bybit] {item.Symbol}|{mes}");
+                        await _teleService.SendMessage(_idUser, $"[TAKEVOLUME|Bybit] [{item.Symbol}](https://www.binance.com/vi/futures/{item.Symbol})|{mes}");
                     }
                 }
                 #endregion
@@ -509,7 +510,7 @@ namespace TradePr.Service
                         await _teleService.SendMessage(_idUser, $"[ERROR_Bybit_SL] |{entry.s}|{resSL.Error.Code}:{resSL.Error.Message}");
                     }
 
-                    var mes = $"[ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit({(EInterval)entry.interval})] {entry.s}|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
+                    var mes = $"[ACTION - {OrderSide.Buy.ToString().ToUpper()}|Bybit({(EInterval)entry.interval})] [{entry.s}](https://www.binance.com/vi/futures/{entry.s})|ENTRY(Rate: {entry.ratio}%): {entry.entity.Close}|SL: {sl}";
                     await _teleService.SendMessage(_idUser, mes);
                 }
             }
@@ -603,7 +604,7 @@ namespace TradePr.Service
                         balance = $"|Balance: {Math.Round(account.WalletBalance.Value, 1)}$";
                     }
 
-                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] {pos.Symbol}|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}");
+                    await _teleService.SendMessage(_idUser, $"[CLOSE - {side.ToString().ToUpper()}({winloss}: {rate}%)|Bybit] [{pos.Symbol}](https://www.binance.com/vi/futures/{pos.Symbol})|TP: {pos.MarkPrice}|Entry: {pos.AveragePrice}{balance}");
                     return true;
                 }
             }
