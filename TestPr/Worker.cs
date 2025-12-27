@@ -61,7 +61,7 @@ namespace TestPr
 
             var config = new BacktestConfig
             {
-                Symbols = new List<string> { "SOLUSDT" },
+                Symbols = new List<string> { "NOMUSDT" },
                 StartDate = DateTime.UtcNow.AddDays(-90), // Tăng từ 30 lên 90 ngày
                 EndDate = DateTime.UtcNow,
                 MaxCandlesHold = 24,

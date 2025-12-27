@@ -96,6 +96,15 @@ namespace CoinUtilsPr
                 
                 if (rsi.Rsi.Value >= ma9.Sma.Value) 
                 {
+                    var prev = quotes[^2];
+                    var rsi_prev = lrsi.First(x => x.Date == prev.Date);
+                    var ma9_prev = lma9.First(x => x.Date == prev.Date);
+                    if(rsi_prev.Rsi.Value >= ma9_prev.Sma.Value)
+                    {
+                        //Console.WriteLine($"[LOAI]|{cur.Date.ToString("dd/MM HH:mm")}|Do RSI da cat MA9 tren");
+                        return (0, null);
+                    }
+
                     //Entry không được vượt ma20
                     if (cur.High >= (decimal)bb.Sma) 
                     {
