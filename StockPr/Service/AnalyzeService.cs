@@ -322,6 +322,7 @@ namespace StockPr.Service
                         var filter = Builders<PreEntry>.Filter.Eq(x => x.s, symbol);
                         var pre = _preEntryRepo.GetEntityByFilter(filter);
                         var lData = (await _apiService.SSI_GetDataStockT(symbol)).DistinctBy(x => x.Date).ToList();
+                        lData.Remove(lData.Last());
                         if(lData.Count < 50)
                             continue;
                         var res = lData.CheckEntry(lInfo, pre);
