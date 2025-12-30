@@ -143,6 +143,11 @@ namespace StockPr
 
                     if (isDayOfWork && !StaticVal._lNghiLe.Any(x => x.Month == dt.Month && x.Day == dt.Day))
                     {
+                        if (dt.Hour == 8 && dt.Minute < 15)
+                        {
+                            tasks.Add(ProcessDetectEntry());
+                        }
+
                         if (!isPreTrade)
                         {
                             if (isRealTime && isTimePrint)
@@ -161,11 +166,6 @@ namespace StockPr
                                 tasks.Add(ProcessThongKeTuDoanh());
                                 tasks.Add(ProcessChartThongKeKhopLenh());
                                 Process4U();
-                            }
-
-                            if(dt.Hour >= 19 && dt.Minute >= 30)
-                            {
-                                tasks.Add(ProcessDetectEntry());
                             }
                         }
 

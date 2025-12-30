@@ -26,6 +26,19 @@ namespace StockPr.Utils
             new DateTime(2025,5,2),
             new DateTime(2025,9,1),
             new DateTime(2025,9,2),
+
+             new DateTime(2026,1,1),
+             new DateTime(2026,1,2),
+             new DateTime(2026,2,16),
+             new DateTime(2026,2,17),
+             new DateTime(2026,2,18),
+             new DateTime(2026,2,19),
+             new DateTime(2026,4,27),
+             new DateTime(2026,4,30),
+             new DateTime(2026,5,1),
+             new DateTime(2025,8,31),
+             new DateTime(2025,9,1),
+             new DateTime(2025,9,2),
         };
 
         public static Dictionary<string, int> _dicMa = new Dictionary<string, int>
