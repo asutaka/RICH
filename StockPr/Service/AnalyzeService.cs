@@ -18,6 +18,7 @@ namespace StockPr.Service
         Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
         Task<string> DetectEntry();
         bool Chart_4U();
+        Task<(int, string)> AnalyzeSectorIndex();
     }
     public class AnalyzeService : IAnalyzeService
     {
@@ -1180,6 +1181,68 @@ namespace StockPr.Service
                 sBuilder.AppendLine(mes);
             }
             return sBuilder.ToString();
+        }
+
+        public async Task<(int, string)> AnalyzeSectorIndex()
+        {
+            try
+            {
+                var strOutput = new StringBuilder();
+                strOutput.AppendLine("*PHÂN TÍCH SỨC MẠNH DÒNG TIỀN NGÀNH*");
+                strOutput.AppendLine($"> Ngày: {DateTime.Now:dd/MM/yyyy}");
+                strOutput.AppendLine();
+
+                var lSectorRank = new List<(string Name, decimal Change, decimal RSI, bool IsAboveMA20)>();
+
+                foreach (var sector in StaticVal._dicSectorIndex)
+                {
+                    try
+                    {
+                        var lData = await _apiService.SSI_GetDataStock(sector.Value);
+                        if (lData == null || lData.Count < 50) continue;
+
+                        var current = lData.Last();
+                        var prev = lData.SkipLast(1).Last();
+                        
+                        // % Thay đổi
+                        var change = Math.Round((current.Close - prev.Close) * 100 / prev.Close, 2);
+                        
+                        // RSI
+                        var rsiList = lData.GetRsi(14);
+                        var rsi = rsiList.Last()?.Rsi ?? 0;
+
+                        // MA20
+                        var ma20List = lData.GetSma(20);
+                        var ma20 = ma20List.Last()?.Sma ?? 0;
+                        var isAboveMA20 = current.Close >= (decimal)ma20;
+
+                        lSectorRank.Add((sector.Key, (decimal)change, (decimal)rsi, isAboveMA20));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"AnalyzeSectorIndex error for {sector.Key}: {ex.Message}");
+                    }
+                }
+
+                if (!lSectorRank.Any()) return (0, null);
+
+                // Sắp xếp theo RSI hoặc % Thay đổi
+                var sorted = lSectorRank.OrderByDescending(x => x.Change).ToList();
+
+                strOutput.AppendLine(">> Xếp hạng theo % thay đổi:");
+                foreach (var item in sorted)
+                {
+                    var status = item.IsAboveMA20 ? "🚀" : "☁️";
+                    strOutput.AppendLine($"{status} *{item.Name}*: {item.Change}% | RSI: {Math.Round(item.RSI, 1)}");
+                }
+
+                return (1, strOutput.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.AnalyzeSectorIndex|EXCEPTION| {ex.Message}");
+            }
+            return (0, null);
         }
     }
 

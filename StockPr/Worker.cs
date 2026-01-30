@@ -166,6 +166,7 @@ namespace StockPr
                             {
                                 tasks.Add(ProcessThongKeGDNN());
                                 tasks.Add(ProcessChiBaoKyThuat(dt));
+                                tasks.Add(ProcessAnalyzeSectorIndex());
                             }
 
                             if (dt.Hour >= 19 && dt.Hour <= 23)
@@ -447,6 +448,22 @@ namespace StockPr
             if (!string.IsNullOrWhiteSpace(mes))
             {
                 await _teleService.SendMessage(_idUser, mes, true);
+            }
+        }
+
+        private async Task ProcessAnalyzeSectorIndex()
+        {
+            try
+            {
+                var res = await _analyzeService.AnalyzeSectorIndex();
+                if (res.Item1 > 0)
+                {
+                    await _teleService.SendMessage(_idUser, res.Item2, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ProcessAnalyzeSectorIndex failed");
             }
         }
 

@@ -239,5 +239,21 @@ namespace StockPr.Utils
             "BVH",
             "MIG",
         };
+
+        public static Dictionary<string, string> _dicSectorIndex = new Dictionary<string, string>
+        {
+            {"Bất động sản", "VNREAL"},
+            {"Tài chính", "VNFIN"},
+            {"Ngân hàng", "VNFIN"}, // VNFINBANK thường bị ẩn, dùng VNFIN làm đại diện chính hoặc sẽ tự tính toán sau
+            {"Công nghiệp", "VNIND"},
+            {"Hàng tiêu dùng", "VNCONS"},
+            {"Y tế", "VNHEAL"},
+            {"Công nghệ", "VNIT"},
+            {"Nguyên vật liệu", "VNMAT"},
+            {"Tiện ích", "VNUTI"},
+            {"Năng lượng", "VNENE"},
+            {"Dịch vụ tài chính", "VNFINSEL"},
+            {"Bán lẻ", "VNCONS"}, 
+        };
     }
 }
