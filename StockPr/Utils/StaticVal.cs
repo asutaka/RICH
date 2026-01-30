@@ -242,18 +242,21 @@ namespace StockPr.Utils
 
         public static Dictionary<string, string> _dicSectorIndex = new Dictionary<string, string>
         {
-            {"Bất động sản", "VNREAL"},
-            {"Tài chính", "VNFIN"},
-            {"Ngân hàng", "VNFIN"}, // VNFINBANK thường bị ẩn, dùng VNFIN làm đại diện chính hoặc sẽ tự tính toán sau
-            {"Công nghiệp", "VNIND"},
-            {"Hàng tiêu dùng", "VNCONS"},
-            {"Y tế", "VNHEAL"},
-            {"Công nghệ", "VNIT"},
-            {"Nguyên vật liệu", "VNMAT"},
-            {"Tiện ích", "VNUTI"},
-            {"Năng lượng", "VNENE"},
-            {"Dịch vụ tài chính", "VNFINSEL"},
-            {"Bán lẻ", "VNCONS"}, 
+            {"Ngân hàng", "4010"},
+            {"Chứng khoán", "4020"},
+            {"Bất động sản", "60"},
+            {"Thép,cao su, phân bón", "1510"},
+            {"Bảo hiểm", "4030"},
+            {"Điện nước", "5510"},
+            {"Bán lẻ", "3020"},
+            {"Dầu khí", "1010"},
+            {"Xây dựng", "2010"},
+            {"Thực phẩm", "2550"},
+            {"Dệt may", "2520"},
+            {"Cảng, Hàng không", "2030"},
+            {"Dược phẩm", "3520"},
+            {"Công nghệ", "4510"},
+            {"Viễn thông", "5010"},
         };
     }
 }

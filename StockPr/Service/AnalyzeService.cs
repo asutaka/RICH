@@ -1198,7 +1198,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var lData = await _apiService.SSI_GetDataStock(sector.Value);
+                        var lData = await _apiService.Vietstock_GetDataStock(sector.Value);
                         if (lData == null || lData.Count < 50) continue;
 
                         var current = lData.Last();

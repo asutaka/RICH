@@ -190,6 +190,8 @@ namespace StockPr
                     // ⚡ CHẠY TẤT CẢ TASKS SONG SONG
                     await Task.WhenAll(tasks);
 
+
+
                     _logger.LogInformation($"Completed {tasks.Count} tasks in parallel at {DateTime.Now}");
 
                     await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
