@@ -27,6 +27,7 @@ namespace StockPr
         private readonly IChartService _chartService;
         private readonly INewsService _newsService;
         private readonly ICommonService _commonService;
+        private readonly IVietstockAuthService _authService;
         private readonly IBacktestService _backtestService; // ✨ For research/testing
 
         private readonly long _idGroup;
@@ -34,12 +35,13 @@ namespace StockPr
         private readonly long _idChannel;
         private readonly long _idChannelNews;
         private readonly long _idUser;
+        private AuthSession? _session;
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, 
                     IAnalyzeService analyzeService, ITuDoanhService tudoanhService, IBaoCaoTaiChinhService bctcService, IStockRepo stockRepo, IAccountRepo accountRepo,
                     IPortfolioService portfolioService, IEPSRankService epsService, IF319Service f319Service, 
-                    ICommonService commonService, INewsService newsService, IChartService chartService,
+                    ICommonService commonService, INewsService newsService, IChartService chartService, IVietstockAuthService authService,
                     IBacktestService backtestService, // ✨ Inject backtest service
                     IOptions<TelegramSettings> telegramSettings)
         {
@@ -60,6 +62,7 @@ namespace StockPr
             _commonService = commonService;
             _newsService = newsService;
             _chartService = chartService;
+            _authService = authService;
             _backtestService = backtestService; // ✨ Store backtest service
             
             // Load Telegram IDs from configuration
@@ -73,6 +76,16 @@ namespace StockPr
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             StockInstance();
+
+            try
+            {
+                if (_session == null || _session.IsExpired)
+                    _session = await _authService.LoginAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Initial login failed. Worker will continue and retry in main loop.");
+            }
 
             //// ==================== BACKTEST RUNNER ====================
             //// ⚠️ UNCOMMENT PHẦN NÀY ĐỂ CHẠY BACKTEST
@@ -108,6 +121,17 @@ namespace StockPr
             {
                 try
                 {
+                    if (_session == null || _session.IsExpired)
+                    {
+                        try
+                        {
+                            _session = await _authService.LoginAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Login retry failed in main loop.");
+                        }
+                    }
                     var dt = DateTime.Now;
                     var isDayOfWork = dt.DayOfWeek >= DayOfWeek.Monday && dt.DayOfWeek <= DayOfWeek.Friday;
                     var isPreTrade = dt.Hour < 9;

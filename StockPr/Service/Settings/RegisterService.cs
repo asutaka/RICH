@@ -1,5 +1,4 @@
-﻿using StockPr.DAL.Settings;
-using StockPr.Research;
+﻿using StockPr.Research;
 
 namespace StockPr.Service.Settings
 {
@@ -24,6 +23,7 @@ namespace StockPr.Service.Settings
             services.AddSingleton<ITuDoanhService, TuDoanhService>();
             services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IAIService, AIService>();
+            services.AddSingleton<IVietstockAuthService, VietstockAuthService>();
             
             // Research services (for backtesting)
             services.AddSingleton<IBacktestService, BacktestService>();

@@ -1,3 +1,4 @@
+using StockPr.Config;
 using StockPr;
 using StockPr.DAL.Settings;
 using StockPr.Service.Settings;
@@ -17,6 +18,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         
         services.AddHostedService<Worker>();
         services.AddHttpClient();
+        services.Configure<VietstockOptions>(context.Configuration.GetSection("VietStock"));
         services.ServiceDependencies();
         services.DALDependencies(context.Configuration);
         

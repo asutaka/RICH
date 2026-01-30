@@ -64,6 +64,7 @@ namespace StockPr.Service
         Task<ReportDataIDResponse> VietStock_TM_GetListReportData(string code);
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body);
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
+        Task<string> VietStock_CallAPI(AuthSession session);
 
         Task<List<F319Model>> F319_Scout(string acc);
 
@@ -1941,6 +1942,47 @@ namespace StockPr.Service
                 _logger.LogError($"APIService.GetFinanceIndexDataValue|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public async Task<string> VietStock_CallAPI(AuthSession session)
+        {
+            try
+            {
+                using var handler = new HttpClientHandler
+                {
+                    UseCookies = false
+                };
+
+                using var client = new HttpClient(handler);
+
+                var cookieHeader = string.Join("; ",
+                    session.Cookies.Select(c => $"{c.Name}={c.Value}"));
+
+                var request = new HttpRequestMessage(
+                    HttpMethod.Post,
+                    "https://finance.vietstock.vn/dataapi/market");
+
+                request.Headers.Add("Cookie", cookieHeader);
+                request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+
+                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["__RequestVerificationToken"] = session.CsrfToken,
+                    ["param1"] = "value1"
+                });
+
+                var response = await client.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception($"API error {response.StatusCode}");
+
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"APIService.VietStock_Login|EXCEPTION| {ex.Message}");
+            }
+            return null;   
         }
         #endregion
 
