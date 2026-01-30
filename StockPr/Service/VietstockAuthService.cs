@@ -23,7 +23,7 @@ namespace StockPr.Service
         {
             try
             {
-                _logger.LogInformation("Starting Robust Vietstock Login (Final Attempt)...");
+                _logger.LogInformation("Starting Robust Vietstock Login...");
                 using var playwright = await Playwright.CreateAsync();
                 await using var browser = await playwright.Chromium.LaunchAsync(
                     new BrowserTypeLaunchOptions 
@@ -32,8 +32,7 @@ namespace StockPr.Service
                         Args = new[] { 
                             "--disable-blink-features=AutomationControlled",
                             "--no-sandbox",
-                            "--disable-gpu",
-                            "--host-resolver-rules=MAP id.vietstock.vn 183.81.34.197, MAP finance.vietstock.vn 221.132.38.227"
+                            "--disable-gpu"
                         }
                     });
 
@@ -46,98 +45,158 @@ namespace StockPr.Service
 
                 var page = await context.NewPageAsync();
                 
-                string[] urls = { 
-                    "https://id.vietstock.vn/dang-nhap",
-                    "https://finance.vietstock.vn/",
-                    "https://id.vietstock.vn.ftech.ai/dang-nhap"
-                };
-                
-                bool foundForm = false;
-                foreach (var url in urls)
-                {
-                    try {
-                        _logger.LogInformation($"Navigating to {url}...");
-                        await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.Commit, Timeout = 30000 });
-                        await Task.Delay(3000);
+                _logger.LogInformation("Navigating to https://finance.vietstock.vn/...");
+                try {
+                    await page.GotoAsync("https://finance.vietstock.vn/", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 30000 });
+                } catch (Exception ex) {
+                    _logger.LogWarning($"Initial navigation timed out or failed: {ex.Message}. Trying to proceed.");
+                }
+                await Task.Delay(2000); // Allow some time for scripts to run
 
-                        // Xóa các thành phần gây nhiễu nhưng giữ lại form
-                        await page.EvaluateAsync(@"
-                            document.querySelectorAll('.ads-popup, .modal-backdrop, .popup:not(:has(#email)):not(:has(#txtUsername))').forEach(el => el.remove());
-                            document.body.classList.remove('modal-open');
-                        ");
+                // Thử đóng bất kỳ popup quảng cáo nào nếu có
+                try {
+                    await page.EvaluateAsync(@"
+                        document.querySelectorAll('.ads-popup, .modal-backdrop, .close, .btn-close').forEach(el => {
+                            if(el.offsetParent !== null) el.click();
+                        });
+                    ");
+                } catch { }
 
-                        // Kiểm tra form
-                        var userField = page.Locator("#txtUsername, #email").First;
-                        if (await userField.CountAsync() > 0) {
-                            foundForm = true;
-                            _logger.LogInformation($"Form detected on {url}");
-                            break;
-                        }
-
-                        // Nếu là homepage, thử click nút Đăng nhập
-                        if (page.Url.Contains("finance.vietstock.vn")) {
-                            var loginBtn = page.Locator("a:has-text('Đăng nhập'), a:has-text('Login'), a[href*='dang-nhap']").First;
-                            if (await loginBtn.CountAsync() > 0) {
-                                await loginBtn.ClickAsync(new LocatorClickOptions { Force = true });
-                                await Task.Delay(5000);
-                                if (await page.Locator("#txtUsername, #email").First.CountAsync() > 0) {
-                                    foundForm = true;
-                                    break;
-                                }
-                            }
-                        }
-                    } catch { }
+                _logger.LogInformation("Opening login popup...");
+                var loginTrigger = page.Locator("a.btnlogin-link:has-text('Đăng nhập'), a:has-text('Đăng nhập'), #login-link").First;
+                if (await loginTrigger.CountAsync() > 0) {
+                    await loginTrigger.ClickAsync(new LocatorClickOptions { Force = true });
+                } else {
+                    _logger.LogWarning("Login link with class btnlogin-link not found, trying common selectors...");
+                    var fallbackTrigger = page.Locator("a:has-text('Đăng nhập'), a[href*='dang-nhap']").First;
+                    if (await fallbackTrigger.CountAsync() > 0) {
+                        await fallbackTrigger.ClickAsync(new LocatorClickOptions { Force = true });
+                    } else {
+                        _logger.LogWarning("Login link not found on homepage, navigating directly to id.vietstock.vn");
+                        await page.GotoAsync("https://id.vietstock.vn/dang-nhap", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+                    }
                 }
 
-                if (!foundForm) throw new Exception("Login form not found on any URL.");
+                // Đợi form xuất hiện - Chuyển sang Attached để tránh lỗi Visibility nếu popup animation chậm
+                var userSel = "#txtEmailLogin";
+                var passSel = "#txtPassword"; // Theo thông tin ban đầu của bạn
+                var btnSel = "#btnLoginAccount";
 
-                // Xác định bộ SELECTOR chính xác
-                string userSel = await page.Locator("#txtUsername").CountAsync() > 0 ? "#txtUsername" : "#email";
-                string passSel = await page.Locator("#txtPassword").CountAsync() > 0 ? "#txtPassword" : "#password";
+                _logger.LogInformation("Waiting for login form (Attached)...");
+                try {
+                    await page.WaitForSelectorAsync(userSel, new PageWaitForSelectorOptions { State = WaitForSelectorState.Attached, Timeout = 15000 });
+                    
+                    // Cưỡng bức xóa bỏ các lớp phủ (backdrop) có thể chặn tương tác
+                    await page.EvaluateAsync(@"() => {
+                        document.querySelectorAll('.modal-backdrop, .modal-stack, .loading-backdrop').forEach(el => el.remove());
+                        document.body.classList.remove('modal-open');
+                        const el = document.querySelector('#txtEmailLogin');
+                        if(el) el.scrollIntoView();
+                    }");
+                } catch {
+                    _logger.LogWarning("Selector #txtEmailLogin not attached, trying fallback...");
+                    userSel = await page.Locator("#txtEmailLogin").CountAsync() > 0 ? "#txtEmailLogin" : "#email";
+                    passSel = await page.Locator("#txtPassword").CountAsync() > 0 ? "#txtPassword" : "#password";
+                    btnSel = await page.Locator("#btnLoginAccount").CountAsync() > 0 ? "#btnLoginAccount" : "#btnLogin";
+                }
+
+                _logger.LogInformation("Performing login via direct Fetch to bypass UI/Timeout issues...");
                 
-                // Cải tiến: Tìm nút submit thông minh hơn
-                var submitBtn = page.Locator("#btnLogin, #btnSubmit, button[type='submit'], input[type='submit']").First;
-                string btnSel = await submitBtn.CountAsync() > 0 ? await submitBtn.EvaluateAsync<string>("el => { if(el.id) return '#' + el.id; return el.className ? '.' + el.className.split(' ')[0] : 'button[type=submit]'; }") : "#btnLogin";
+                var fetchSuccess = await page.EvaluateAsync<bool>($@"(data) => {{
+                    return new Promise(async (resolve) => {{
+                        try {{
+                            let token = document.querySelector('input[name=""__RequestVerificationToken""]')?.value;
+                            if (!token) {{
+                                // Thử tìm trong toàn bộ document nếu popup chưa render hẳn
+                                token = document.querySelector('[name=""__RequestVerificationToken""]')?.value;
+                            }}
+                            
+                            if (!token) {{
+                                console.error('CSRF Token not found');
+                                return resolve(false);
+                            }}
 
-                _logger.LogInformation($"Using selectors: User={userSel}, Pass={passSel}, Btn={btnSel}");
+                            const formData = new URLSearchParams();
+                            formData.append('__RequestVerificationToken', token);
+                            formData.append('Email', data.user);
+                            formData.append('Password', data.pass);
+                            formData.append('responseCaptchaLoginPopup', '');
+                            formData.append('g-recaptcha-response', '');
+                            formData.append('Remember', 'false');
+                            formData.append('X-Requested-With', 'XMLHttpRequest');
 
-                // Điền thông tin bằng JS để vượt qua mọi rào cản Visibility
-                await page.EvaluateAsync($@"(data) => {{
-                    const u = document.querySelector('{userSel}');
-                    const p = document.querySelector('{passSel}');
-                    if (u) {{ u.value = data.user; u.dispatchEvent(new Event('input', {{bubbles:true}})); }}
-                    if (p) {{ p.value = data.pass; p.dispatchEvent(new Event('input', {{bubbles:true}})); }}
+                            const response = await fetch('/Account/Login', {{
+                                method: 'POST',
+                                headers: {{
+                                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }},
+                                body: formData.toString()
+                            }});
+                            
+                            const result = await response.text();
+                            console.log('Login response:', result);
+                            resolve(response.ok);
+                        }} catch (e) {{
+                            console.error('Fetch error:', e);
+                            resolve(false);
+                        }}
+                    }});
                 }}", new { user = _opt.Username, pass = _opt.Password });
 
-                _logger.LogInformation("Clicking the login button...");
-                try {
-                    // Thử click bằng Playwright trước
-                    await submitBtn.ClickAsync(new LocatorClickOptions { Force = true, Timeout = 5000 });
-                } catch {
-                    // Nếu Playwright click lỗi, dùng JS click cưỡng bức
-                    _logger.LogWarning("Playwright click failed, trying JavaScript forced click...");
-                    await page.EvaluateAsync($@"() => {{
-                        const btn = document.querySelector('{btnSel}') || document.querySelector('button[type=""submit""]') || document.querySelector('#btnLogin') || document.querySelector('#btnSubmit');
-                        if (btn) btn.click();
-                    }}");
+                if (fetchSuccess) {
+                    _logger.LogInformation("Login fetch request executed. Waiting for cookies to update...");
+                    await Task.Delay(3000); 
+                } else {
+                    _logger.LogWarning("Login fetch failed or token was missing. Trying UI fallback...");
+                    // Fallback click just in case
+                    try { await page.ClickAsync(btnSel, new PageClickOptions { Force = true, Timeout = 5000 }); } catch { }
                 }
 
-                _logger.LogInformation("Waiting for authentication to complete...");
-                await Task.Delay(5000); // Chờ redirect
+                // Đợi redirect hoặc xuất hiện dấu hiệu đã đăng nhập
+                _logger.LogInformation("Waiting for authentication success sign...");
+                bool loginSuccess = false;
+                
+                // Thử đợi trong 10 giây để thấy dấu hiệu đăng nhập thành công
+                for (int i = 0; i < 10; i++)
+                {
+                    var cookiesCheck = await context.CookiesAsync();
+                    if (cookiesCheck.Any(c => c.Name.Contains("CookieLogin") || c.Name.Contains("vts_usr_lg")))
+                    {
+                        loginSuccess = true;
+                        _logger.LogInformation("Login verified via Cookies.");
+                        break;
+                    }
+                    
+                    var logoutExists = await page.Locator("a:has-text('Thoát'), .user-profile, .logout-link, a[href*='dang-xuat']").CountAsync();
+                    if (logoutExists > 0)
+                    {
+                        loginSuccess = true;
+                        _logger.LogInformation("Login verified via 'Logout' button.");
+                        break;
+                    }
+                    await Task.Delay(1000);
+                }
 
-                var cookies = await context.CookiesAsync();
+                if (!loginSuccess) {
+                    _logger.LogWarning("Login indicators not found after 10s. Proceeding with current session data.");
+                }
+
+                var finalCookies = await context.CookiesAsync();
                 var csrfToken = "";
                 try {
                     csrfToken = await page.EvalOnSelectorAsync<string>("input[name='__RequestVerificationToken']", "el => el.value");
-                } catch { }
+                } catch { 
+                    _logger.LogWarning("Could not find __RequestVerificationToken on final page.");
+                }
 
                 _logger.LogInformation("Session data retrieved successfully.");
 
                 return new AuthSession
                 {
-                    Cookies = cookies,
+                    Cookies = finalCookies,
                     CsrfToken = csrfToken,
-                    ExpiredAt = DateTime.UtcNow.AddMinutes(60)
+                    ExpiredAt = DateTime.UtcNow.AddMinutes(120)
                 };
             }
             catch (Exception ex)

@@ -1801,7 +1801,7 @@ namespace StockPr.Service
 
         public async Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page)
         {
-            var body = $"code={code}&page={page}&type=1&__RequestVerificationToken=9a3VgzLV-OF13vpUO4ZZZaYuc9nMSuYJluPAgu7mU-Rpn-c0c8j4tKvFHA1btqPWUexg4pMMYqLIU3bggz-O0xZkdR9thlg1ZwqGcU4ObPhTz8sh97k6mpGzwmeSdqHQ0";
+            var body = $"code={code}&page={page}&type=1&__RequestVerificationToken={StaticVal._VietStock_Token}";
             try
             {
                 var url = "https://finance.vietstock.vn/data/getdocument";
@@ -1809,14 +1809,16 @@ namespace StockPr.Service
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
-                //requestMessage.Headers.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-                requestMessage.Headers.Add("Cookie", "ASP.NET_SessionId=kez23nkspuoomciouahd1xqp; __RequestVerificationToken=5t0qgD3M2IWZKLXukNsWaFE2ZCWl_cKVOn2SDHUDDw6NIEfBM1FC1HWEnrE9BzsrKeZrRWbGyYItV21WS4E6t-CTsKZqRvQIv6Ma5qAegwU1; language=vi-VN; _ga=GA1.1.1323687995.1720524498; _ga_EXMM0DKVEX=GS1.1.1720524497.1.0.1720524497.60.0.0; vts_usr_lg=A48AA659415FEE16F7CD0976F49923629A486E7AD4073A0F7F92268AEC798D2599F993737255E9990209E28582ABC797C68C46C2209B505875B2542FB92A23DCEFB76C9610DA504D7C120024CAB560DA51EC06B2D17034BFA7F517529B3FF3340438A76004E762194D4CAC1C45600B90CF3FF9475AB984756A4F22DC52765B59; finance_viewedstock=ACB,; Theme=Light");
+                requestMessage.Headers.Add("Cookie", StaticVal._VietStock_Cookie);
                 requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
                 requestMessage.Method = HttpMethod.Post;
                 requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
                 var responseMessage = await client.SendAsync(requestMessage);
                 var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                
+                if (resultArray.Contains("<!DOCTYPE")) return null;
+
                 var responseModel = JsonConvert.DeserializeObject<IEnumerable<BCTCAPIResponse>>(resultArray);
                 return responseModel;
             }
@@ -1958,34 +1960,42 @@ namespace StockPr.Service
 
                 using var client = new HttpClient(handler);
 
-                var cookieHeader = string.Join("; ",
-                    StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
+                //var cookieHeader = string.Join("; ", StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
+                var tmp1 = StaticVal._session.Cookies.FirstOrDefault(x => x.Name == "__RequestVerificationToken");
+                var tmp2 = StaticVal._session.Cookies.FirstOrDefault(x => x.Name == "CookieLogin");
+                var cookieHeader = $"__RequestVerificationToken={tmp1.Value};CookieLogin={tmp2.Value}";
 
-                var request = new HttpRequestMessage(
-                    HttpMethod.Post,
-                    "https://finance.vietstock.vn/dataapi/market");
+                //var cookieHeader = "__RequestVerificationToken=2O0zGOoS09gFWSCtoNPLFyFUuVhjZ2AKiQZO9u1T-fMFYUu4fvUAC8VeVR9PlrO90VjWSK6FMwNIFMZxOD1sheJhDymJwfVEf7fIAaSvC7E1;CookieLogin=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYXN1dGFrYTEzMTJAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvaGFzaCI6InNrLTNleFprS2F5OHV4MlMyUXlia0ZEVEEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImFzdXRha2ExMzEyQGdtYWlsLmNvbSIsImV4cCI6MTc3MjM3MTk0NywiaXNzIjoiLnZpZXRzdG9jay52biIsImF1ZCI6Ii52aWV0c3RvY2sudm4ifQ.BCA8IRl4sgzK4vQK6SRFYPMjHRZgVQh3qDTQK5mSfww";
+
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
 
                 request.Headers.Add("Cookie", cookieHeader);
+                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36");
                 request.Headers.Add("X-Requested-With", "XMLHttpRequest");
 
                 request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     ["__RequestVerificationToken"] = StaticVal._session.CsrfToken,
-                    ["param1"] = "value1"
+                    //["__RequestVerificationToken"] = "b9VNYnuaaOLgzqWSgwd_JMj86ML83ExyqC0hBELVOQWUXar-w7ZXhzvxmkjABytBsnykhQrJC7VoW1CND3QQfcPjRk5iI87GZQduSEEg8hCDdjdcwMuYTkKdx4sEEPvUW0GrCzey30sXoiVv_eB1RQ2",
+                    ["StockCode"] = "ACB"
                 });
-
+                
                 var response = await client.SendAsync(request);
+                var tmp = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
-                    throw new Exception($"API error {response.StatusCode}");
+                {
+                    _logger.LogWarning($"API error {response.StatusCode} for URL {url}. Response: {tmp}");
+                    return null;
+                }
 
-                return await response.Content.ReadAsStringAsync();
+                return tmp;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError($"APIService.VietStock_Login|EXCEPTION| {ex.Message}");
+                _logger.LogError($"APIService.VietStock_CallAPI|EXCEPTION| {ex.Message}");
             }
-            return null;   
+            return null;
         }
         #endregion
 

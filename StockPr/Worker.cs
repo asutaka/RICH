@@ -6,6 +6,7 @@ using StockPr.Research;
 using StockPr.Service;
 using StockPr.Settings;
 using StockPr.Utils;
+using System.Threading.Tasks;
 
 namespace StockPr
 {
@@ -29,6 +30,7 @@ namespace StockPr
         private readonly ICommonService _commonService;
         private readonly IVietstockAuthService _authService;
         private readonly IBacktestService _backtestService; // ✨ For research/testing
+        private readonly IAPIService _APIService;
 
         private readonly long _idGroup;
         private readonly long _idGroupF319;
@@ -42,7 +44,8 @@ namespace StockPr
                     IPortfolioService portfolioService, IEPSRankService epsService, IF319Service f319Service, 
                     ICommonService commonService, INewsService newsService, IChartService chartService, IVietstockAuthService authService,
                     IBacktestService backtestService, // ✨ Inject backtest service
-                    IOptions<TelegramSettings> telegramSettings)
+                    IOptions<TelegramSettings> telegramSettings,
+                    IAPIService apiService)
         {
             _logger = logger;
             _bcptService = bcptService;
@@ -70,6 +73,7 @@ namespace StockPr
             _idChannel = telegramSettings.Value.ChannelId;
             _idChannelNews = telegramSettings.Value.ChannelNewsId;
             _idUser = telegramSettings.Value.UserId;
+            _APIService = apiService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -115,12 +119,21 @@ namespace StockPr
                         try
                         {
                             StaticVal._session = await _authService.LoginAsync();
+                            if (StaticVal._session != null)
+                            {
+                                StaticVal._VietStock_Cookie = string.Join("; ", StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
+                                StaticVal._VietStock_Token = StaticVal._session.CsrfToken;
+                                _logger.LogInformation("Vietstock Session synced to legacy static variables.");
+                            }
                         }
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "Login retry failed in main loop.");
                         }
                     }
+
+                    var tmp = await _APIService.VietStock_CallAPI("https://finance.vietstock.vn/data/GetListReportNormByStockCode");
+
                     var dt = DateTime.Now;
                     var isDayOfWork = dt.DayOfWeek >= DayOfWeek.Monday && dt.DayOfWeek <= DayOfWeek.Friday;
                     var isPreTrade = dt.Hour < 9;
