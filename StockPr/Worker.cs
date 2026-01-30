@@ -114,25 +114,6 @@ namespace StockPr
             {
                 try
                 {
-                    if (StaticVal._session == null || StaticVal._session.IsExpired)
-                    {
-                        try
-                        {
-                            StaticVal._session = await _authService.LoginAsync();
-                            if (StaticVal._session != null)
-                            {
-                                StaticVal._VietStock_Cookie = string.Join("; ", StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
-                                StaticVal._VietStock_Token = StaticVal._session.CsrfToken;
-                                _logger.LogInformation("Vietstock Session synced to legacy static variables.");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Login retry failed in main loop.");
-                        }
-                    }
-
-                    var tmp = await _APIService.VietStock_CallAPI("https://finance.vietstock.vn/data/GetListReportNormByStockCode");
 
                     var dt = DateTime.Now;
                     var isDayOfWork = dt.DayOfWeek >= DayOfWeek.Monday && dt.DayOfWeek <= DayOfWeek.Friday;

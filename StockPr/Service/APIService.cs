@@ -64,7 +64,6 @@ namespace StockPr.Service
         Task<ReportDataIDResponse> VietStock_TM_GetListReportData(string code);
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body);
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
-        Task<string> VietStock_CallAPI(string url);
 
         Task<List<F319Model>> F319_Scout(string acc);
 
@@ -77,11 +76,14 @@ namespace StockPr.Service
     {
         private readonly ILogger<APIService> _logger;
         private readonly IHttpClientFactory _client;
+        private readonly IVietstockAuthService _authService;
         public APIService(ILogger<APIService> logger,
-                        IHttpClientFactory httpClientFactory)
+                        IHttpClientFactory httpClientFactory,
+                        IVietstockAuthService authService)
         {
             _logger = logger;
             _client = httpClientFactory;
+            _authService = authService;
         }
         public async Task<Stream> GetChartImage(string body)
         {
@@ -1801,26 +1803,20 @@ namespace StockPr.Service
 
         public async Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page)
         {
-            var body = $"code={code}&page={page}&type=1&__RequestVerificationToken={StaticVal._VietStock_Token}";
             try
             {
                 var url = "https://finance.vietstock.vn/data/getdocument";
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(15);
-                var requestMessage = new HttpRequestMessage();
-                requestMessage.Headers.Add("Cookie", StaticVal._VietStock_Cookie);
-                requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
-                requestMessage.Method = HttpMethod.Post;
-                requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
+                var body = new Dictionary<string, string>
+                {
+                    ["code"] = code,
+                    ["page"] = page.ToString(),
+                    ["type"] = "1"
+                };
 
-                var responseMessage = await client.SendAsync(requestMessage);
-                var resultArray = await responseMessage.Content.ReadAsStringAsync();
-                
-                if (resultArray.Contains("<!DOCTYPE")) return null;
+                var responseStr = await _authService.PostAsync(url, body);
+                if (string.IsNullOrEmpty(responseStr) || responseStr.Contains("<!DOCTYPE")) return null;
 
-                var responseModel = JsonConvert.DeserializeObject<IEnumerable<BCTCAPIResponse>>(resultArray);
-                return responseModel;
+                return JsonConvert.DeserializeObject<IEnumerable<BCTCAPIResponse>>(responseStr);
             }
             catch (Exception ex)
             {
@@ -1833,25 +1829,21 @@ namespace StockPr.Service
         {
             try
             {
-                var body = $"StockCode={code}&UnitedId=-1&AuditedStatusId=-1&Unit=1000000000&IsNamDuongLich=false&PeriodType=QUY&SortTimeType=Time_ASC&__RequestVerificationToken={StaticVal._VietStock_Token}";
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(5);
-                client.DefaultRequestHeaders.Add("Cookie", StaticVal._VietStock_Cookie);
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36");
-                var requestMessage = new HttpRequestMessage();
-                requestMessage.Method = HttpMethod.Post;
-                requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-                var responseMessage = await client.SendAsync(requestMessage);
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                var body = new Dictionary<string, string>
                 {
-                    var responseStr = await responseMessage.Content.ReadAsStringAsync();
-                    if (responseStr.Contains("<!DOCTYPE"))
-                        return null;
+                    ["StockCode"] = code,
+                    ["UnitedId"] = "-1",
+                    ["AuditedStatusId"] = "-1",
+                    ["Unit"] = "1000000000",
+                    ["IsNamDuongLich"] = "false",
+                    ["PeriodType"] = "QUY",
+                    ["SortTimeType"] = "Time_ASC"
+                };
 
-                    var responseModel = JsonConvert.DeserializeObject<ReportDataIDResponse>(responseStr);
-                    return responseModel;
-                }
+                var responseStr = await _authService.PostAsync(url, body);
+                if (string.IsNullOrEmpty(responseStr)) return null;
+
+                return JsonConvert.DeserializeObject<ReportDataIDResponse>(responseStr);
             }
             catch (Exception ex)
             {
@@ -1864,22 +1856,21 @@ namespace StockPr.Service
         {
             try
             {
-                var body = $"StockCode={code}&UnitedId=-1&AuditedStatusId=-1&Unit=1000000000&IsNamDuongLich=false&PeriodType=QUY&SortTimeType=Time_ASC&__RequestVerificationToken={StaticVal._VietStock_Token}";
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(5);
-                client.DefaultRequestHeaders.Add("Cookie", StaticVal._VietStock_Cookie);
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36");
-                var requestMessage = new HttpRequestMessage();
-                requestMessage.Method = HttpMethod.Post;
-                requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-                var responseMessage = await client.SendAsync(requestMessage);
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                var body = new Dictionary<string, string>
                 {
-                    var responseStr = await responseMessage.Content.ReadAsStringAsync();
-                    var responseModel = JsonConvert.DeserializeObject<ReportTempIDResponse>(responseStr);
-                    return responseModel;
-                }
+                    ["StockCode"] = code,
+                    ["UnitedId"] = "-1",
+                    ["AuditedStatusId"] = "-1",
+                    ["Unit"] = "1000000000",
+                    ["IsNamDuongLich"] = "false",
+                    ["PeriodType"] = "QUY",
+                    ["SortTimeType"] = "Time_ASC"
+                };
+
+                var responseStr = await _authService.PostAsync(url, body);
+                if (string.IsNullOrEmpty(responseStr)) return null;
+
+                return JsonConvert.DeserializeObject<ReportTempIDResponse>(responseStr);
             }
             catch (Exception ex)
             {
@@ -1892,23 +1883,10 @@ namespace StockPr.Service
         {
             try
             {
+                var responseStr = await _authService.PostAsync(url, body);
+                if (string.IsNullOrEmpty(responseStr)) return null;
 
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(5);
-                client.DefaultRequestHeaders.Add("Cookie", StaticVal._VietStock_Cookie);
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36");
-                var requestMessage = new HttpRequestMessage();
-                requestMessage.Method = HttpMethod.Post;
-                requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-
-                var responseMessage = await client.SendAsync(requestMessage);
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
-                {
-                    var responseStr = await responseMessage.Content.ReadAsStringAsync();
-                    var responseModel = JsonConvert.DeserializeObject<ReportDataDetailValue_BCTTResponse>(responseStr);
-                    return responseModel;
-                }
+                return JsonConvert.DeserializeObject<ReportDataDetailValue_BCTTResponse>(responseStr);
             }
             catch (Exception ex)
             {
@@ -1921,126 +1899,14 @@ namespace StockPr.Service
         {
             try
             {
+                var responseStr = await _authService.PostAsync(url, body);
+                if (string.IsNullOrEmpty(responseStr)) return null;
 
-                var client = _client.CreateClient();
-                client.BaseAddress = new Uri(url);
-                client.Timeout = TimeSpan.FromSeconds(5);
-                client.DefaultRequestHeaders.Add("Cookie", StaticVal._VietStock_Cookie);
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36");
-                var requestMessage = new HttpRequestMessage();
-                requestMessage.Method = HttpMethod.Post;
-                requestMessage.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-
-                var responseMessage = await client.SendAsync(requestMessage);
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    var responseStr = await responseMessage.Content.ReadAsStringAsync();
-                    var responseModel = JsonConvert.DeserializeObject<TempDetailValue_CSTCResponse>(responseStr);
-                    return responseModel;
-                }
+                return JsonConvert.DeserializeObject<TempDetailValue_CSTCResponse>(responseStr);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"APIService.GetFinanceIndexDataValue|EXCEPTION| {ex.Message}");
-            }
-            return null;
-        }
-
-        public async Task<string> VietStock_CallAPI(string url)
-        {
-            try
-            {
-                if (StaticVal._session == null || StaticVal._session.IsExpired)
-                {
-                    _logger.LogWarning("Vietstock session is null or expired. Please re-login.");
-                    return null;
-                }
-                using var handler = new HttpClientHandler { UseCookies = false };
-                using var client = new HttpClient(handler);
-                // 1. Trích xuất các Cookie cần thiết một cách an toàn
-                var cookies = StaticVal._session.Cookies;
-                var tokenCookie = cookies.FirstOrDefault(x => x.Name == "__RequestVerificationToken")?.Value;
-                var loginCookie = cookies.FirstOrDefault(x => x.Name == "CookieLogin")?.Value;
-                // Xây dựng chuỗi Cookie header (bao gồm SessionId và Language để tăng tính ổn định)
-                var cookieParts = new List<string>();
-                if (!string.IsNullOrEmpty(tokenCookie)) cookieParts.Add($"__RequestVerificationToken={tokenCookie}");
-                if (!string.IsNullOrEmpty(loginCookie)) cookieParts.Add($"CookieLogin={loginCookie}");
-                var cookieHeader = string.Join("; ", cookieParts);
-                // 2. Tạo Request
-                var request = new HttpRequestMessage(HttpMethod.Post, url);
-                request.Headers.Add("Cookie", cookieHeader);
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36");
-                
-                // 3. Chuẩn bị Body (Sử dụng CSRF Token từ Form input mà Playwright đã lấy được)
-                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    ["stockCode"] = "ACB", 
-                    ["__RequestVerificationToken"] = StaticVal._session.CsrfToken
-                });
-                var response = await client.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning($"Vietstock API Error: {response.StatusCode}. Content: {content}");
-                    return null;
-                }
-                return content;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"APIService.VietStock_CallAPI|EXCEPTION| {ex.Message}");
-                return null;
-            }
-        }
-
-        public async Task<string> VietStock_CallAPI_zzz(string url)
-        {
-            try
-            {
-                if (StaticVal._session == null || StaticVal._session.IsExpired)
-                    return null;
-
-                using var handler = new HttpClientHandler
-                {
-                    UseCookies = false
-                };
-
-                using var client = new HttpClient(handler);
-
-                //var cookieHeader = string.Join("; ", StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
-                var tmp1 = StaticVal._session.Cookies.FirstOrDefault(x => x.Name == "__RequestVerificationToken");
-                var tmp2 = StaticVal._session.Cookies.FirstOrDefault(x => x.Name == "CookieLogin");
-                var cookieHeader = $"__RequestVerificationToken={tmp1.Value};CookieLogin={tmp2.Value}";
-
-                //var cookieHeader = "__RequestVerificationToken=2O0zGOoS09gFWSCtoNPLFyFUuVhjZ2AKiQZO9u1T-fMFYUu4fvUAC8VeVR9PlrO90VjWSK6FMwNIFMZxOD1sheJhDymJwfVEf7fIAaSvC7E1;CookieLogin=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYXN1dGFrYTEzMTJAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvaGFzaCI6InNrLTNleFprS2F5OHV4MlMyUXlia0ZEVEEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImFzdXRha2ExMzEyQGdtYWlsLmNvbSIsImV4cCI6MTc3MjM3MTk0NywiaXNzIjoiLnZpZXRzdG9jay52biIsImF1ZCI6Ii52aWV0c3RvY2sudm4ifQ.BCA8IRl4sgzK4vQK6SRFYPMjHRZgVQh3qDTQK5mSfww";
-
-                var request = new HttpRequestMessage(HttpMethod.Post, url);
-
-                request.Headers.Add("Cookie", cookieHeader);
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36");
-                request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-
-                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    ["__RequestVerificationToken"] = StaticVal._session.CsrfToken,
-                    //["__RequestVerificationToken"] = "b9VNYnuaaOLgzqWSgwd_JMj86ML83ExyqC0hBELVOQWUXar-w7ZXhzvxmkjABytBsnykhQrJC7VoW1CND3QQfcPjRk5iI87GZQduSEEg8hCDdjdcwMuYTkKdx4sEEPvUW0GrCzey30sXoiVv_eB1RQ2",
-                    ["StockCode"] = "ACB"
-                });
-                
-                var response = await client.SendAsync(request);
-                var tmp = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning($"API error {response.StatusCode} for URL {url}. Response: {tmp}");
-                    return null;
-                }
-
-                return tmp;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"APIService.VietStock_CallAPI|EXCEPTION| {ex.Message}");
             }
             return null;
         }

@@ -1,12 +1,15 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
 using StockPr.Config;
+using StockPr.Utils;
 
 namespace StockPr.Service
 {
     public interface IVietstockAuthService
     {
         Task<AuthSession> LoginAsync();
+        Task<string> PostAsync(string url, Dictionary<string, string> body);
+        Task<string> PostAsync(string url, string body);
     }
     public class VietstockAuthService : IVietstockAuthService
     {
@@ -208,6 +211,108 @@ namespace StockPr.Service
                 _logger.LogError(ex, "VietstockAuthService Error.");
                 throw;
             }
+        }
+
+        public async Task<string> PostAsync(string url, Dictionary<string, string> body)
+        {
+            try
+            {
+                // 1. Tự động kiểm tra và làm mới session
+                if (StaticVal._session == null || StaticVal._session.IsExpired)
+                {
+                    _logger.LogInformation("Vietstock session invalid/expired. Refreshing before API call...");
+                    StaticVal._session = await LoginAsync();
+                    
+                    if (StaticVal._session != null)
+                    {
+                        // Đồng bộ biến static cũ cho các logic legacy
+                        StaticVal._VietStock_Cookie = string.Join("; ", StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
+                        StaticVal._VietStock_Token = StaticVal._session.CsrfToken;
+                    }
+                }
+
+                if (StaticVal._session == null) return null;
+
+                // 2. Thiết lập HttpClient
+                using var handler = new HttpClientHandler { UseCookies = false };
+                using var client = new HttpClient(handler);
+
+                // 3. Xây dựng Cookie Header
+                var cookies = StaticVal._session.Cookies;
+                var cookieParts = new List<string>();
+                
+                var tokenCookie = cookies.FirstOrDefault(x => x.Name == "__RequestVerificationToken")?.Value;
+                var loginCookie = cookies.FirstOrDefault(x => x.Name == "CookieLogin")?.Value;
+                var sessionId = cookies.FirstOrDefault(x => x.Name == "ASP.NET_SessionId")?.Value;
+
+                if (!string.IsNullOrEmpty(tokenCookie)) cookieParts.Add($"__RequestVerificationToken={tokenCookie}");
+                if (!string.IsNullOrEmpty(loginCookie)) cookieParts.Add($"CookieLogin={loginCookie}");
+                if (!string.IsNullOrEmpty(sessionId))   cookieParts.Add($"ASP.NET_SessionId={sessionId}");
+                cookieParts.Add("language=vi-VN");
+
+                var cookieHeader = string.Join("; ", cookieParts);
+
+                // 4. Tạo Request
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Add("Cookie", cookieHeader);
+                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36");
+                request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                request.Headers.Add("Accept", "*/*");
+                request.Headers.Add("Origin", "https://finance.vietstock.vn");
+                
+                // Đảm bảo có Referer hợp lệ (Vietstock kiểm tra cái này khá kỹ)
+                if (!request.Headers.Contains("Referer"))
+                {
+                    request.Headers.Add("Referer", "https://finance.vietstock.vn/ACB/tai-chinh.htm");
+                }
+
+                // 5. Chuẩn bị Body (Tự động thêm CSRF Token nếu chưa có)
+                var finalBody = new Dictionary<string, string>(body);
+                if (!finalBody.ContainsKey("__RequestVerificationToken"))
+                {
+                    finalBody["__RequestVerificationToken"] = StaticVal._session.CsrfToken;
+                }
+
+                request.Content = new FormUrlEncodedContent(finalBody);
+
+                // 6. Thực thi
+                var response = await client.SendAsync(request);
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning($"Vietstock PostAsync Error: {response.StatusCode} for {url}. Content: {content}");
+                    
+                    if (content.Contains("<!DOCTYPE"))
+                    {
+                        _logger.LogWarning("Session likely invalidated by server (HTML response). Clearing local session.");
+                        StaticVal._session = null;
+                    }
+                    return null;
+                }
+
+                return content;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"VietstockAuthService.PostAsync Exception for {url}");
+                return null;
+            }
+        }
+
+        public async Task<string> PostAsync(string url, string body)
+        {
+            // Chuyển đổi body string thành Dictionary để dùng chung logic và inject Token
+            var dict = new Dictionary<string, string>();
+            if (!string.IsNullOrEmpty(body))
+            {
+                foreach (var part in body.Split('&'))
+                {
+                    var kv = part.Split('=');
+                    if (kv.Length == 2) dict[kv[0]] = System.Web.HttpUtility.UrlDecode(kv[1]);
+                }
+            }
+            return await PostAsync(url, dict);
         }
     }
 
