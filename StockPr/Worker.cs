@@ -114,7 +114,6 @@ namespace StockPr
             {
                 try
                 {
-
                     var dt = DateTime.Now;
                     var isDayOfWork = dt.DayOfWeek >= DayOfWeek.Monday && dt.DayOfWeek <= DayOfWeek.Friday;
                     var isPreTrade = dt.Hour < 9;

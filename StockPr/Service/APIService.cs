@@ -37,7 +37,7 @@ namespace StockPr.Service
         Task<Stream> TongCucThongKeGetFile(string url);
 
         Task<Stream> TuDoanhHSX(DateTime dt);
-
+        Task<List<Quote>> Vietstock_GetDataStock(string code);
         Task<List<Quote>> SSI_GetDataStock(string code);
         Task<List<QuoteT>> SSI_GetDataStockT(string code);
         Task<List<Quote>> SSI_GetDataStock_HOUR(string code);
@@ -1315,6 +1315,54 @@ namespace StockPr.Service
                 _logger.LogError($"APIService.Money24h_GetThongke|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        public async Task<List<Quote>> Vietstock_GetDataStock(string code)
+        {
+            var lOutput = new List<Quote>();
+            var now = DateTimeOffset.Now;
+            var from = now.AddYears(-1).ToUnixTimeSeconds();
+            var to = now.AddDays(1).ToUnixTimeSeconds();
+            var url = $"https://api.vietstock.vn/tvnew/history?symbol={code}&resolution=1D&from={from}&to={to}";
+            
+            try
+            {
+                var client = _client.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("Origin", "https://stockchart.vietstock.vn");
+                request.Headers.Add("Referer", "https://stockchart.vietstock.vn/");
+                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36");
+
+                var responseMessage = await client.SendAsync(request);
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    var resultArray = await responseMessage.Content.ReadAsStringAsync();
+                    var responseModel = JsonConvert.DeserializeObject<SSI_DataTradingDetailResponse>(resultArray);
+                    
+                    if (responseModel != null && responseModel.t != null && responseModel.t.Any())
+                    {
+                        var count = responseModel.t.Count();
+                        for (int i = 0; i < count; i++)
+                        {
+                            lOutput.Add(new Quote
+                            {
+                                Date = responseModel.t.ElementAt(i).UnixTimeStampToDateTime(),
+                                Open = responseModel.o.ElementAt(i),
+                                High = responseModel.h.ElementAt(i),
+                                Low = responseModel.l.ElementAt(i),
+                                Close = responseModel.c.ElementAt(i),
+                                Volume = responseModel.v.ElementAt(i)
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.Vietstock_GetDataStock|EXCEPTION| {ex.Message}");
+            }
+            return lOutput;
         }
 
         public async Task<List<Quote>> SSI_GetDataStock(string code)
