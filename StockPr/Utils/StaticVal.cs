@@ -1,4 +1,5 @@
 ﻿using StockPr.DAL.Entity;
+using StockPr.Service;
 
 namespace StockPr.Utils
 {
@@ -8,7 +9,8 @@ namespace StockPr.Utils
         public static int _MaxRate = 500;
         public static int _TAKE = 15;
         public static (long, long, long, long) _currentTime;//yearquarter + year + quarter + flag
-        
+        public static AuthSession? _session;
+
         // VietStock credentials - will be set from configuration
         public static string _VietStock_Cookie = string.Empty;
         public static string _VietStock_Token = string.Empty;

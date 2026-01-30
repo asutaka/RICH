@@ -35,7 +35,6 @@ namespace StockPr
         private readonly long _idChannel;
         private readonly long _idChannelNews;
         private readonly long _idUser;
-        private AuthSession? _session;
 
         public Worker(ILogger<Worker> logger, 
                     ITeleService teleService, IBaoCaoPhanTichService bcptService, IGiaNganhHangService giaService, ITongCucThongKeService tongcucService, 
@@ -77,16 +76,6 @@ namespace StockPr
         {
             StockInstance();
 
-            try
-            {
-                if (_session == null || _session.IsExpired)
-                    _session = await _authService.LoginAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Initial login failed. Worker will continue and retry in main loop.");
-            }
-
             //// ==================== BACKTEST RUNNER ====================
             //// ⚠️ UNCOMMENT PHẦN NÀY ĐỂ CHẠY BACKTEST
             //// Nhớ COMMENT LẠI sau khi test xong!
@@ -121,11 +110,11 @@ namespace StockPr
             {
                 try
                 {
-                    if (_session == null || _session.IsExpired)
+                    if (StaticVal._session == null || StaticVal._session.IsExpired)
                     {
                         try
                         {
-                            _session = await _authService.LoginAsync();
+                            StaticVal._session = await _authService.LoginAsync();
                         }
                         catch (Exception ex)
                         {

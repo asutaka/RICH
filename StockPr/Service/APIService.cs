@@ -64,7 +64,7 @@ namespace StockPr.Service
         Task<ReportDataIDResponse> VietStock_TM_GetListReportData(string code);
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body);
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
-        Task<string> VietStock_CallAPI(AuthSession session);
+        Task<string> VietStock_CallAPI(string url);
 
         Task<List<F319Model>> F319_Scout(string acc);
 
@@ -1944,10 +1944,13 @@ namespace StockPr.Service
             return null;
         }
 
-        public async Task<string> VietStock_CallAPI(AuthSession session)
+        public async Task<string> VietStock_CallAPI(string url)
         {
             try
             {
+                if (StaticVal._session == null || StaticVal._session.IsExpired)
+                    return null;
+
                 using var handler = new HttpClientHandler
                 {
                     UseCookies = false
@@ -1956,7 +1959,7 @@ namespace StockPr.Service
                 using var client = new HttpClient(handler);
 
                 var cookieHeader = string.Join("; ",
-                    session.Cookies.Select(c => $"{c.Name}={c.Value}"));
+                    StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
 
                 var request = new HttpRequestMessage(
                     HttpMethod.Post,
@@ -1967,7 +1970,7 @@ namespace StockPr.Service
 
                 request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-                    ["__RequestVerificationToken"] = session.CsrfToken,
+                    ["__RequestVerificationToken"] = StaticVal._session.CsrfToken,
                     ["param1"] = "value1"
                 });
 
