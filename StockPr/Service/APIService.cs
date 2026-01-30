@@ -1951,6 +1951,53 @@ namespace StockPr.Service
             try
             {
                 if (StaticVal._session == null || StaticVal._session.IsExpired)
+                {
+                    _logger.LogWarning("Vietstock session is null or expired. Please re-login.");
+                    return null;
+                }
+                using var handler = new HttpClientHandler { UseCookies = false };
+                using var client = new HttpClient(handler);
+                // 1. Trích xuất các Cookie cần thiết một cách an toàn
+                var cookies = StaticVal._session.Cookies;
+                var tokenCookie = cookies.FirstOrDefault(x => x.Name == "__RequestVerificationToken")?.Value;
+                var loginCookie = cookies.FirstOrDefault(x => x.Name == "CookieLogin")?.Value;
+                // Xây dựng chuỗi Cookie header (bao gồm SessionId và Language để tăng tính ổn định)
+                var cookieParts = new List<string>();
+                if (!string.IsNullOrEmpty(tokenCookie)) cookieParts.Add($"__RequestVerificationToken={tokenCookie}");
+                if (!string.IsNullOrEmpty(loginCookie)) cookieParts.Add($"CookieLogin={loginCookie}");
+                var cookieHeader = string.Join("; ", cookieParts);
+                // 2. Tạo Request
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Add("Cookie", cookieHeader);
+                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36");
+                
+                // 3. Chuẩn bị Body (Sử dụng CSRF Token từ Form input mà Playwright đã lấy được)
+                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["stockCode"] = "ACB", 
+                    ["__RequestVerificationToken"] = StaticVal._session.CsrfToken
+                });
+                var response = await client.SendAsync(request);
+                var content = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning($"Vietstock API Error: {response.StatusCode}. Content: {content}");
+                    return null;
+                }
+                return content;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.VietStock_CallAPI|EXCEPTION| {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<string> VietStock_CallAPI_zzz(string url)
+        {
+            try
+            {
+                if (StaticVal._session == null || StaticVal._session.IsExpired)
                     return null;
 
                 using var handler = new HttpClientHandler

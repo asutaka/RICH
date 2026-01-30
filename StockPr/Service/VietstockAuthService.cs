@@ -145,7 +145,11 @@ namespace StockPr.Service
                 }}", new { user = _opt.Username, pass = _opt.Password });
 
                 if (fetchSuccess) {
-                    _logger.LogInformation("Login fetch request executed. Waiting for cookies to update...");
+                    _logger.LogInformation("Login success. Reloading page to synchronize CSRF tokens...");
+                    // Điều hướng đến trang tài chính để lấy Token chuẩn nhất cho các API data
+                    try {
+                        await page.GotoAsync("https://finance.vietstock.vn/ACB/tai-chinh.htm", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 20000 });
+                    } catch { }
                     await Task.Delay(3000); 
                 } else {
                     _logger.LogWarning("Login fetch failed or token was missing. Trying UI fallback...");
