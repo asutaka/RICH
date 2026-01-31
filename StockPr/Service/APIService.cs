@@ -64,6 +64,7 @@ namespace StockPr.Service
         Task<ReportDataIDResponse> VietStock_TM_GetListReportData(string code);
         Task<ReportDataDetailValue_BCTTResponse> VietStock_GetReportDataDetailValue_TM_ByReportDataIds(string body);
         Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page);
+        Task<List<Vietstock_GICSProportionResponse>> VietStock_GetGICSProportion();
 
         Task<List<F319Model>> F319_Scout(string acc);
 
@@ -1847,6 +1848,29 @@ namespace StockPr.Service
         {
             var url = "https://finance.vietstock.vn/data/GetReportDataDetailValue_TM_ByReportDataIds";
             return await VietStock_GetReportDataDetailValue(body, url);
+        }
+
+        public async Task<List<Vietstock_GICSProportionResponse>> VietStock_GetGICSProportion()
+        {
+            try
+            {
+                var url = "https://finance.vietstock.vn/Data/GetGICSProportion";
+                var body = new Dictionary<string, string>
+                {
+                    ["level"] = "2",
+                    ["duration"] = "D"
+                };
+
+                var responseStr = await _authService.PostAsync(url, body);
+                if (string.IsNullOrEmpty(responseStr) || responseStr.Contains("<!DOCTYPE")) return null;
+
+                return JsonConvert.DeserializeObject<List<Vietstock_GICSProportionResponse>>(responseStr);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"APIService.VietStock_GetGICSProportion|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
 
         public async Task<IEnumerable<BCTCAPIResponse>> VietStock_GetDanhSachBCTC(string code, int page)
