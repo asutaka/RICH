@@ -4,6 +4,8 @@ using StockPr.DAL.Settings;
 using StockPr.Service.Settings;
 using StockPr.Settings;
 using StockPr.Utils;
+using StockPr.Service;
+using System.Net.Http;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
@@ -17,18 +19,24 @@ IHost host = Host.CreateDefaultBuilder(args)
             context.Configuration.GetSection("MongoDB"));
         
         services.AddHostedService<Worker>();
-        services.AddHttpClient();
+        services.AddHttpClient("ResilientClient")
+            .AddPolicyHandler((services, request) => 
+                HttpPolicies.GetRetryPolicy(services.GetRequiredService<ILogger<HttpClient>>()))
+            .AddPolicyHandler((services, request) => 
+                HttpPolicies.GetCircuitBreakerPolicy(services.GetRequiredService<ILogger<HttpClient>>()));
+
+        services.AddHttpClient("VietstockClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseCookies = false })
+            .AddPolicyHandler((services, request) => 
+                HttpPolicies.GetRetryPolicy(services.GetRequiredService<ILogger<HttpClient>>()))
+            .AddPolicyHandler((services, request) => 
+                HttpPolicies.GetCircuitBreakerPolicy(services.GetRequiredService<ILogger<HttpClient>>()));
+
+        services.AddHttpClient(); // Keep default one for simple calls
         services.Configure<VietstockOptions>(context.Configuration.GetSection("VietStock"));
+        services.AddSingleton<IVietstockSessionManager, VietstockSessionManager>();
         services.ServiceDependencies();
         services.DALDependencies(context.Configuration);
-        
-        // Initialize StaticVal with VietStock credentials from configuration
-        var vietStockSettings = context.Configuration.GetSection("VietStock").Get<VietStockSettings>();
-        if (vietStockSettings != null)
-        {
-            StaticVal._VietStock_Cookie = vietStockSettings.Cookie;
-            StaticVal._VietStock_Token = vietStockSettings.Token;
-        }
     })
     .UseWindowsService()
     .Build();

@@ -15,15 +15,24 @@ namespace StockPr.Service
     {
         private readonly VietstockOptions _opt;
         private readonly ILogger<VietstockAuthService> _logger;
+        private readonly IVietstockSessionManager _sessionManager;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public VietstockAuthService(IOptions<VietstockOptions> opt, ILogger<VietstockAuthService> logger)
+        public VietstockAuthService(
+            IOptions<VietstockOptions> opt, 
+            ILogger<VietstockAuthService> logger,
+            IVietstockSessionManager sessionManager,
+            IHttpClientFactory clientFactory)
         {
             _opt = opt.Value;
             _logger = logger;
+            _sessionManager = sessionManager;
+            _clientFactory = clientFactory;
         }
 
         public async Task<AuthSession> LoginAsync()
         {
+            // ... (rest of LoginAsync remains same as before)
             try
             {
                 _logger.LogInformation("Starting Robust Vietstock Login...");
@@ -218,27 +227,19 @@ namespace StockPr.Service
             try
             {
                 // 1. Tự động kiểm tra và làm mới session
-                if (StaticVal._session == null || StaticVal._session.IsExpired)
+                if (_sessionManager.Session == null || _sessionManager.Session.IsExpired)
                 {
                     _logger.LogInformation("Vietstock session invalid/expired. Refreshing before API call...");
-                    StaticVal._session = await LoginAsync();
-                    
-                    if (StaticVal._session != null)
-                    {
-                        // Đồng bộ biến static cũ cho các logic legacy
-                        StaticVal._VietStock_Cookie = string.Join("; ", StaticVal._session.Cookies.Select(c => $"{c.Name}={c.Value}"));
-                        StaticVal._VietStock_Token = StaticVal._session.CsrfToken;
-                    }
+                    _sessionManager.Session = await LoginAsync();
                 }
 
-                if (StaticVal._session == null) return null;
+                if (_sessionManager.Session == null) return null;
 
-                // 2. Thiết lập HttpClient
-                using var handler = new HttpClientHandler { UseCookies = false };
-                using var client = new HttpClient(handler);
+                // 2. Thiết lập HttpClient bằng Factory
+                var client = _clientFactory.CreateClient("VietstockClient");
 
                 // 3. Xây dựng Cookie Header
-                var cookies = StaticVal._session.Cookies;
+                var cookies = _sessionManager.Session.Cookies;
                 var cookieParts = new List<string>();
                 
                 var tokenCookie = cookies.FirstOrDefault(x => x.Name == "__RequestVerificationToken")?.Value;
@@ -270,7 +271,7 @@ namespace StockPr.Service
                 var finalBody = new Dictionary<string, string>(body);
                 if (!finalBody.ContainsKey("__RequestVerificationToken"))
                 {
-                    finalBody["__RequestVerificationToken"] = StaticVal._session.CsrfToken;
+                    finalBody["__RequestVerificationToken"] = _sessionManager.Session.CsrfToken;
                 }
 
                 request.Content = new FormUrlEncodedContent(finalBody);
@@ -286,7 +287,7 @@ namespace StockPr.Service
                     if (content.Contains("<!DOCTYPE"))
                     {
                         _logger.LogWarning("Session likely invalidated by server (HTML response). Clearing local session.");
-                        StaticVal._session = null;
+                        _sessionManager.Session = null;
                     }
                     return null;
                 }

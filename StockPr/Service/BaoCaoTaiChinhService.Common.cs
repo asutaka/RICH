@@ -140,7 +140,6 @@ namespace StockPr.Service
                 var strBuilder = new StringBuilder();
                 strBuilder.Append($"StockCode={code}&");
                 strBuilder.Append($"Unit=1000000000&");
-                strBuilder.Append($"__RequestVerificationToken={StaticVal._VietStock_Token}&");
                 strBuilder.Append($"listReportDataIds[0][ReportDataId]={last.ReportDataID}&");
                 strBuilder.Append($"listReportDataIds[0][YearPeriod]={last.BasePeriodBegin / 100}");
                 var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
@@ -219,7 +218,6 @@ namespace StockPr.Service
                 strBuilder.Append($"Unit=1000000000&");
                 strBuilder.Append($"listReportDataIds[0][ReportDataId]={last.ReportDataID}&");
                 strBuilder.Append($"listReportDataIds[0][YearPeriod]={last.BasePeriodBegin / 100}&");
-                strBuilder.Append($"__RequestVerificationToken={StaticVal._VietStock_Token}");
                 var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
                 var lData = await _apiService.VietStock_GetReportDataDetailValue_CDKT_ByReportDataIds(txt);
                 Thread.Sleep(1000);

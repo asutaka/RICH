@@ -92,7 +92,7 @@ namespace StockPr.Service
             {
                 var url = "http://127.0.0.1:7801";//Local
                 //var url = "https://export.highcharts.com";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(10);
                 var requestMessage = new HttpRequestMessage();
@@ -119,7 +119,7 @@ namespace StockPr.Service
                 var lResult = new List<BCPT_Crawl_Data>();
                 var link = string.Empty;
                 var url = $"https://www.dsc.com.vn/bao-cao-phan-tich";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -160,7 +160,7 @@ namespace StockPr.Service
                     return (false, null);
 
                 var url = $"https://www.dsc.com.vn/_next/data/{key}/vi/bao-cao-phan-tich/tat-ca-bao-cao.json?slug=tat-ca-bao-cao";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -187,7 +187,7 @@ namespace StockPr.Service
             }
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
@@ -214,7 +214,7 @@ namespace StockPr.Service
             var url = $"https://masvn.com/api/categories/fe/56/article?paging=1&sort=published_at&direction=desc&active=1&page=1&limit=10";
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
@@ -250,7 +250,7 @@ namespace StockPr.Service
             var url = $"https://agriseco.com.vn/api/Data/Report/SearchReports?categoryID={cat}&sourceID=5&sectorID=null&symbol=&keywords=&startDate={cur}&endDate={next}&startIndex=0&count=10";
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
@@ -283,7 +283,7 @@ namespace StockPr.Service
                 {
                     url = "https://www.ssi.com.vn/khach-hang-ca-nhan/bao-cao-nganh";
                 }
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -353,7 +353,7 @@ namespace StockPr.Service
             var url = $"https://www.vietcap.com.vn/api/cms-service/v1/page/analysis?is-all=true&page=0&size=10&direction=DESC&sortBy=date&language={lang}";
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
@@ -380,7 +380,7 @@ namespace StockPr.Service
             var url = $"https://www.vcbs.com.vn/api/v1/ttpt-reports?limit=15&page=1&keyword=&locale=vi";
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
@@ -413,7 +413,7 @@ namespace StockPr.Service
                 {
                     url = "https://www.bsc.com.vn/bao-cao-phan-tich/danh-muc-bao-cao/2";
                 }
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -473,7 +473,7 @@ namespace StockPr.Service
                 {
                     url = "https://mbs.com.vn/trung-tam-nghien-cuu/bao-cao-phan-tich/bao-cao-phan-tich-nganh/";
                 }
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -533,7 +533,7 @@ namespace StockPr.Service
                 {
                     url = "https://www.psi.vn/vi/trung-tam-phan-tich/bao-cao-nganh";
                 }
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -594,7 +594,7 @@ namespace StockPr.Service
 
                 var lResult = new List<BCPT_Crawl_Data>();
                 var link = string.Empty;
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -672,7 +672,7 @@ namespace StockPr.Service
 
                 var lResult = new List<BCPT_Crawl_Data>();
                 var link = string.Empty;
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -736,7 +736,7 @@ namespace StockPr.Service
                 var lResult = new List<BCPT_Crawl_Data>();
                 var link = string.Empty;
                 var url = $"https://s.cafef.vn/phan-tich-bao-cao.chn";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -791,7 +791,7 @@ namespace StockPr.Service
         {
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://www.pig333.com/markets_and_prices/?accio=cotitzacions");
                 request.Headers.Add("user-agent", "zzz");
                 var content = new StringContent("moneda=VND&unitats=kg&mercats=166", null, "application/x-www-form-urlencoded");
@@ -864,7 +864,7 @@ namespace StockPr.Service
                 //LV1
                 var link = string.Empty;
                 var url = $"https://tradingeconomics.com/commodities";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -998,7 +998,7 @@ namespace StockPr.Service
                     || string.IsNullOrWhiteSpace(res.Item2))
                     return null;
 
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 var request = new HttpRequestMessage(HttpMethod.Get, $"https://en.macromicro.me/charts/data/{key}");
                 request.Headers.Add("authorization", $"Bearer {res.Item1}");
                 request.Headers.Add("cookie", res.Item2);
@@ -1035,7 +1035,7 @@ namespace StockPr.Service
                 var start = $"{dtStart.Year}-{dtStart.Month.To2Digit()}-{dtStart.Day.To2Digit()}";
 
                 var url = $"https://www.metal.com/api/spotcenter/get_history_prices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjZWxscGhvbmUiOiIiLCJjb21wYW55X2lkIjowLCJjb21wYW55X3N0YXR1cyI6MCwiY3JlYXRlX2F0IjoxNzI4ODE0NDE2LCJlbWFpbCI6Im5ndXllbnBodTEzMTJAZ21haWwuY29tIiwiZW5fZW5kX3RpbWUiOjAsImVuX3JlZ2lzdGVyX3N0ZXAiOjIsImVuX3JlZ2lzdGVyX3RpbWUiOjE3MjY5MzExMjUsImVuX3N0YXJ0X3RpbWUiOjAsImVuX3VzZXJfdHlwZSI6MCwiZW5kX3RpbWUiOjAsImlzX21haWwiOjAsImlzX3Bob25lIjowLCJsYW5ndWFnZSI6IiIsImx5X2VuZF90aW1lIjowLCJseV9zdGFydF90aW1lIjowLCJseV91c2VyX3R5cGUiOjAsInJlZ2lzdGVyX3RpbWUiOjE3MjY5MzExMjQsInN0YXJ0X3RpbWUiOjAsInVuaXF1ZV9pZCI6ImZiNzA2MWY5MTY3OGRiMWVmMmE0MDhiNzZhM2JmZGI1IiwidXNlcl9pZCI6Mzg2Mzk0MywidXNlcl9sYW5ndWFnZSI6ImNuIiwidXNlcl9uYW1lIjoiU01NMTcyNjkzMTEyNUd3IiwidXNlcl90eXBlIjowLCJ6eF9lbmRfdGltZSI6MCwienhfc3RhcnRfdGltZSI6MCwienhfdXNlcl90eXBlIjowfQ.Cto8fQMsanSaEDjBWPNPSMMSX68AaQp8_5uLgnVUYXE&id=202005210065&beginDate={start}&endDate={end}&needQuote=0";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
                 var response = await client.SendAsync(request);
@@ -1060,7 +1060,7 @@ namespace StockPr.Service
                 for (int i = 1; i <= 1; i++)
                 {
                     var url = $"https://www.nso.gov.vn/bao-cao-tinh-hinh-kinh-te-xa-hoi-hang-thang/?paged={i}";
-                    var client = _client.CreateClient();
+                    var client = _client.CreateClient("ResilientClient");
                     client.BaseAddress = new Uri(url);
                     client.Timeout = TimeSpan.FromSeconds(15);
                     var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1105,7 +1105,7 @@ namespace StockPr.Service
         {
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1127,7 +1127,7 @@ namespace StockPr.Service
                 //LV1
                 var link = string.Empty;
                 var url = "https://www.hsx.vn";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1167,7 +1167,7 @@ namespace StockPr.Service
             {
                 var body = "{\"floor_codes\":[\"10\",\"11\",\"02\",\"03\"],\"group_ids\":[\"0001\",\"1000\",\"2000\",\"3000\",\"4000\",\"5000\",\"6000\",\"7000\",\"8000\",\"8301\",\"9000\"],\"signals\":[{\"" + chibao + "\":\"up\"}]}";
                 var url = "https://api-finance-t19.24hmoney.vn/v2/web/indices/technical-signal-filter?sort=asc&page=1&per_page=50";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(5);
                 var requestMessage = new HttpRequestMessage();
@@ -1198,7 +1198,7 @@ namespace StockPr.Service
             {
                 var urlBase = "https://api-finance-t19.24hmoney.vn/v2/web/indices/foreign-trading-all-stock-by-time?code={0}&type={1}";
                 var url = string.Format(urlBase, mode.GetDisplayName(), type.GetDisplayName());
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1239,7 +1239,7 @@ namespace StockPr.Service
             {
                 var urlBase = "https://api-finance-t19.24hmoney.vn/v2/web/indices/proprietary-trading-all-stock-by-time?code={0}&type={1}";
                 var url = string.Format(urlBase, mode.GetDisplayName(), type.GetDisplayName());
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1277,7 +1277,7 @@ namespace StockPr.Service
             {
                 var urlBase = "https://api-finance-t19.24hmoney.vn/v2/ios/company-group/all-level-with-summary?type={0}";
                 var url = string.Format(urlBase, type.GetDisplayName());
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1300,7 +1300,7 @@ namespace StockPr.Service
             try
             {
                 var url = $"https://api-finance-t19.24hmoney.vn/v1/ios/stock/statistic-investor-history?symbol={sym}";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1328,7 +1328,7 @@ namespace StockPr.Service
             
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Add("Origin", "https://stockchart.vietstock.vn");
@@ -1373,7 +1373,7 @@ namespace StockPr.Service
             try
             {
                 var url = string.Format(urlBase, code, "1D", DateTimeOffset.Now.AddYears(-2).ToUnixTimeSeconds(), DateTimeOffset.Now.ToUnixTimeSeconds());
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1411,7 +1411,7 @@ namespace StockPr.Service
             try
             {
                 var url = string.Format(urlBase, code, "1D", DateTimeOffset.Now.AddYears(-2).ToUnixTimeSeconds(), DateTimeOffset.Now.ToUnixTimeSeconds());
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1450,7 +1450,7 @@ namespace StockPr.Service
             try
             {
                 var url = string.Format(urlBase, code, "60", DateTimeOffset.Now.AddMonths(-1).ToUnixTimeSeconds(), DateTimeOffset.Now.ToUnixTimeSeconds());
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1488,7 +1488,7 @@ namespace StockPr.Service
             try
             {
                 var url = string.Format(urlBase, code);
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1514,7 +1514,7 @@ namespace StockPr.Service
             try
             {
                 var url = string.Format(urlBase, code);
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1542,7 +1542,7 @@ namespace StockPr.Service
             try
             {
                 var url = urlBase;
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1600,7 +1600,7 @@ namespace StockPr.Service
             try
             {
                 var url = urlBase;
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -1629,7 +1629,7 @@ namespace StockPr.Service
             try
             {
                 var url = urlBase;
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
@@ -1653,7 +1653,7 @@ namespace StockPr.Service
             var url = $"https://f319.com/members/{acc}/recent-content?_xfNoRedirect=1&_xfResponseType=json";
             try
             {
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(15);
                 var requestMessage = new HttpRequestMessage();
@@ -1990,7 +1990,7 @@ namespace StockPr.Service
             try
             {
                 var url = $"https://dulieu.nguoiquansat.vn/home/GetHeaderNews?_={DateTimeOffset.Now.ToUnixTimeMilliseconds()}";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(5);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -2013,7 +2013,7 @@ namespace StockPr.Service
             try
             {
                 var url = $"https://kinhtechungkhoan.vn/home/channel/970";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(5);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);
@@ -2035,7 +2035,7 @@ namespace StockPr.Service
             try
             {
                 var url = $"https://antt.nguoiduatin.vn/ajax/detail-box/205223.htm";
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 client.BaseAddress = new Uri(url);
                 client.Timeout = TimeSpan.FromSeconds(5);
                 var responseMessage = await client.GetAsync("", HttpCompletionOption.ResponseContentRead);

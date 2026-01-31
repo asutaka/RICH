@@ -61,7 +61,7 @@ namespace StockPr.Service
                     }
                 };
 
-                var client = _client.CreateClient();
+                var client = _client.CreateClient("ResilientClient");
                 var json = JsonConvert.SerializeObject(body);
                 var content = new StringContent(json);
                 var response = await client.PostAsync(url, content);
