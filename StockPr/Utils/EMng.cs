@@ -31,6 +31,7 @@ namespace StockPr.Utils
         ThongKeKhopLenh = 64,
         ForUser = 65,
         Entry = 68,
+        Heatmap = 69,
     }
 
     public enum EStockType

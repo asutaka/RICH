@@ -1281,7 +1281,7 @@ sym);
             {
                 var dt = DateTime.Now;
                 var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
-                var mode = (int)EConfigDataType.ThongKeKhopLenh + 5; // Chọn mode 69 (64+5) cho GICS Heatmap
+                var mode = (int)EConfigDataType.Heatmap; // Chọn mode 69 (64+5) cho GICS Heatmap
                 var builder = Builders<ConfigData>.Filter;
                 FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
                 var lConfig = _configRepo.GetByFilter(filter);
