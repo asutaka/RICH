@@ -13,6 +13,7 @@ namespace StockPr.Service
         Task SendMessage(long id, string mes, Dictionary<string, string> dLink);
         Task SendMessage(long id, string mes, string link);
         Task SendPhoto(long id, InputFileStream stream);
+        Task SendMessages(long id, IEnumerable<string> messages, bool isMark = false);
 
     }
     public class TeleService : ITeleService
@@ -134,6 +135,15 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"TeleService.SendPhoto|EXCEPTION| {ex.Message}");
+            }
+        }
+
+        public async Task SendMessages(long id, IEnumerable<string> messages, bool isMark = false)
+        {
+            foreach (var message in messages)
+            {
+                await SendMessage(id, message, isMark);
+                await Task.Delay(200); // Rate limit: 5 msg/second
             }
         }
     }

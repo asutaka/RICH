@@ -6,8 +6,13 @@ using StockPr.Settings;
 using StockPr.Utils;
 using StockPr.Service;
 using System.Net.Http;
+using Serilog;
 
 IHost host = Host.CreateDefaultBuilder(args)
+    .UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext())
     .ConfigureServices((context, services) =>
     {
         // Configure settings from appsettings.json
@@ -37,6 +42,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IVietstockSessionManager, VietstockSessionManager>();
         services.ServiceDependencies();
         services.DALDependencies(context.Configuration);
+        services.AddQuartzJobs();
     })
     .UseWindowsService()
     .Build();

@@ -7,7 +7,7 @@ Tài liệu này dùng để theo dõi tiến độ và chi tiết kỹ thuật 
 ## 📊 Trạng thái Tổng quát
 - **Phiên bản hiện tại:** 1.0.0 (Legacy Worker)
 - **Phiên bản mục tiêu:** 2.0.0 (Modular Jobs & Resilience)
-- **Tiến độ:** 0%
+- **Tiến độ:** 90%
 
 ---
 
@@ -52,25 +52,35 @@ Tài liệu này dùng để theo dõi tiến độ và chi tiết kỹ thuật 
 ### Giai đoạn 3: Hiện đại hóa Điều phối Tác vụ (Job Scheduler)
 *Mục tiêu: Xóa bỏ vòng lặp `while(true)` và `if-else` thời gian phức tạp trong Worker.cs.*
 
-- [ ] **3.1. Tích hợp Quartz.NET**
-    - [ ] Cài đặt NuGet: `Quartz.Extensions.Hosting`.
-    - [ ] Cấu hình Quartz trong `Program.cs` để hỗ trợ Dependency Injection cho các Job.
-- [ ] **3.2. Định nghĩa danh mục Job** (Mỗi job là một class riêng):
-    - [ ] `AnalysisRealtimeJob`: Chạy 15p/lần (9h-11h30, 13h-15h).
-    - [ ] `NewsCrawlerJob`: Chạy 30p/lần (Cào tin tức Nguoiquansat, CafeF).
-    - [ ] `EODStatsJob`: Chạy 15:30 (Thống kê GDNN, Tự doanh, Chỉ báo kỹ thuật ngày).
-    - [ ] `MorningSetupJob`: Chạy 8:00 (Check điểm Entry, danh mục Watchlist).
-    - [ ] `DataCleanupJob`: Chạy 23:00 (Dọn dẹp log, backup dữ liệu nhẹ).
-- [ ] **3.3. Chuyển đổi Worker.cs**
-    - [ ] Di chuyển logic từ các phương thức `Process...` trong `Worker.cs` sang các Class Job tương ứng.
-    - [ ] Xóa bỏ hoàn toàn vòng lặp thời gian thủ công.
+- [x] **3.1. Tích hợp Quartz.NET**
+    - [x] Cài đặt NuGet: `Quartz.Extensions.Hosting`.
+    - [x] Cấu hình Quartz trong `Program.cs` để hỗ trợ Dependency Injection cho các Job.
+- [x] **3.2. Định nghĩa danh mục Job** (Mỗi job là một class riêng):
+    - [x] `AnalysisRealtimeJob`
+    - [x] `NewsCrawlerJob`
+    - [x] `EODStatsJob`
+    - [x] `MorningSetupJob`
+    - [x] `EPSRankJob`
+    - [x] `BaoCaoPhanTichJob`
+    - [x] `F319ScoutJob`
+    - [x] `PortfolioJob`
+    - [x] `TraceGiaJob`
+    - [x] `TongCucThongKeJob`
+    - [x] `TuDoanhJob`
+    - [x] `ChartStatsJob`
+    - [x] `Chart4UJob`
+    - [x] `ForexMorningJob`
+- [x] **3.3. Chuyển đổi Worker.cs**
+    - [x] Di chuyển logic từ các phương thức `Process...` trong `Worker.cs` sang các Class Job tương ứng.
+    - [x] Xóa bỏ hoàn toàn vòng lặp thời gian thủ công.
 
 ### Giai đoạn 4: Giám sát và Kiểm thử (Monitoring & Tests)
 *Mục tiêu: Đảm bảo hệ thống chạy đúng mục đích và dễ dàng debug.*
 
-- [ ] **4.1. Structured Logging**
-    - [ ] Tích hợp Serilog để ghi log theo Format JSON.
-    - [ ] Ghi log riêng biệt cho kết quả của từng Job (Thành công/Thất bại/Thời gian thực thi).
+- [x] **4.1. Structured Logging**
+    - [x] Tích hợp Serilog (NuGet: `Serilog.AspNetCore`, `Serilog.Sinks.File`).
+    - [x] Cấu hình ghi log ra file JSON (`Logs/log-*.txt`) để phục vụ phân tích.
+    - [x] Tách biệt log level (Microsoft -> Warning, Quartz -> Information).
 - [ ] **4.2. Kiểm thử Windows Service**
     - [ ] Kiểm tra khả năng tự khởi động lại (Self-healing) của Service khi gặp lỗi nghiêm trọng.
     - [ ] Kiểm tra việc giải phóng bộ nhớ (Memory management) của các Job chạy định kỳ.
@@ -86,7 +96,9 @@ Tài liệu này dùng để theo dõi tiến độ và chi tiết kỹ thuật 
 | 01/02/2026 | Giai đoạn 2.1: Tách Scraper Service | ✅ Hoàn thành | Đã tách logic scraping báo cáo/tin tức ra service riêng |
 | 2025-02-01 | Giai đoạn 2.4: Tách Macro Data Service | ✅ Hoàn thành | Đã tách logic dữ liệu vĩ mô và hàng hóa |
 | 2025-02-01 | Giai đoạn 2.3: Tách Vietstock Service | ✅ Hoàn thành | Đã tách logic báo cáo tài chính từ Vietstock |
-| 2025-05-24 | Giai đoạn 2.2: Tách Market Data Service | ✅ Hoàn thành | Đã tách logic lấy dữ liệu thị trường ra service riêng |
+| 01/02/2026 | Giai đoạn 2.2: Tách Market Data Service | ✅ Hoàn thành | Đã tách logic lấy dữ liệu thị trường ra service riêng |
+| 01/02/2026 | Giai đoạn 3: Hiện đại hóa Tác vụ | ✅ Hoàn thành | Đã chuyển đổi hoàn toàn sang Quartz.NET |
+| 01/02/2026 | Giai đoạn 4.1: Structured Logging | ✅ Hoàn thành | Tích hợp Serilog ghi log JSON |
 
 ---
 *Lưu ý: Bạn có thể yêu cầu tôi thực hiện bất kỳ mục nào trong checklist này bằng cách nêu tên Step hoặc Giai đoạn.*
