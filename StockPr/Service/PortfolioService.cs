@@ -25,64 +25,49 @@ namespace StockPr.Service
             var dic = new Dictionary<string, string>();
             try
             {
-                var dt = DateTime.Now;
-                if (dt.Day == 1 && dt.Hour == 8)
-                {
-                    mes = "*Quỹ đầu tư nước ngoài*";
+                mes = "*Quỹ đầu tư*";
 
-                    var dc = await DragonCapital();
-                    if (!string.IsNullOrWhiteSpace(dc))
-                    {
-                        dic.Add("Dragon Capital", dc);
-                    }
-                    var pyn = PynElite();
-                    if (!string.IsNullOrWhiteSpace(pyn))
-                    {
-                        dic.Add("Pyn Elite", pyn);
-                    }
-                    if (dic.Any())
-                    {
-                        return (mes, dic);
-                    }
+                var dc = await DragonCapital();
+                if (!string.IsNullOrWhiteSpace(dc))
+                {
+                    dic.Add("Dragon Capital", dc);
+                }
+                var pyn = PynElite();
+                if (!string.IsNullOrWhiteSpace(pyn))
+                {
+                    dic.Add("Pyn Elite", pyn);
+                }
+                //Vinacapital 
+                var vmeef = Vinacapital(ESource.VinaCapital_VMEEF);
+                if (!string.IsNullOrWhiteSpace(vmeef))
+                {
+                    dic.Add("VMEEF", vmeef);
+                }
+                var veof = Vinacapital(ESource.VinaCapital_VEOF);
+                if (!string.IsNullOrWhiteSpace(veof))
+                {
+                    dic.Add("VEOF", veof);
+                }
+                var vesaf = Vinacapital(ESource.VinaCapital_VESAF);
+                if (!string.IsNullOrWhiteSpace(vesaf))
+                {
+                    dic.Add("VESAF", vesaf);
                 }
 
-                if (dt.DayOfWeek == DayOfWeek.Monday && dt.Hour == 8)
+                var vcbf = VCBF();
+                if (!string.IsNullOrWhiteSpace(vcbf))
                 {
-                    mes = "*Quỹ đầu tư trong nước*";
+                    dic.Add("VCBF", vcbf);
+                }
 
-                    //Vinacapital 
-                    var vmeef = Vinacapital(ESource.VinaCapital_VMEEF);
-                    if (!string.IsNullOrWhiteSpace(vmeef))
-                    {
-                        dic.Add("VMEEF", vmeef);
-                    }
-                    var veof = Vinacapital(ESource.VinaCapital_VEOF);
-                    if (!string.IsNullOrWhiteSpace(veof))
-                    {
-                        dic.Add("VEOF", veof);
-                    }
-                    var vesaf = Vinacapital(ESource.VinaCapital_VESAF);
-                    if (!string.IsNullOrWhiteSpace(vesaf))
-                    {
-                        dic.Add("VESAF", vesaf);
-                    }
-
-                    var vcbf = VCBF();
-                    if (!string.IsNullOrWhiteSpace(vcbf))
-                    {
-                        dic.Add("VCBF", vcbf);
-                    }
-
-                    var sgi = SGI();
-                    if (!string.IsNullOrWhiteSpace(sgi))
-                    {
-                        dic.Add("SGI", sgi);
-                    }
-
-                    if(dic.Any())
-                    {
-                        return (mes, dic);
-                    }    
+                var sgi = SGI();
+                if (!string.IsNullOrWhiteSpace(sgi))
+                {
+                    dic.Add("SGI", sgi);
+                }
+                if (dic.Any())
+                {
+                    return (mes, dic);
                 }
             }
             catch (Exception ex)

@@ -11,13 +11,13 @@ namespace StockPr.Service.Settings
             {
                 q.UseMicrosoftDependencyInjectionJobFactory();
 
-                //// 1. BaoCaoPhanTichJob: Every 30 minutes
-                //var bcptKey = new JobKey("BaoCaoPhanTichJob");
-                //q.AddJob<BaoCaoPhanTichJob>(opts => opts.WithIdentity(bcptKey));
-                //q.AddTrigger(opts => opts
-                //    .ForJob(bcptKey)
-                //    .WithIdentity("BaoCaoPhanTichJob-trigger")
-                //    .WithCronSchedule("0 0/30 * * * ?"));
+                // 1. BaoCaoPhanTichJob: Every 15 minutes
+                var bcptKey = new JobKey("BaoCaoPhanTichJob");
+                q.AddJob<BaoCaoPhanTichJob>(opts => opts.WithIdentity(bcptKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(bcptKey)
+                    .WithIdentity("BaoCaoPhanTichJob-trigger")
+                    .WithCronSchedule("0 0/15 * * * ?"));
 
                 // 2. F319ScoutJob: Every 5 minutes (shifted)
                 var f319Key = new JobKey("F319ScoutJob");
@@ -27,21 +27,21 @@ namespace StockPr.Service.Settings
                     .WithIdentity("F319ScoutJob-trigger")
                     .WithCronSchedule("0 5/5 * * * ?"));
 
-                //// 3. NewsCrawlerJob: Every 30 minutes (shifted)
-                //var newsKey = new JobKey("NewsCrawlerJob");
-                //q.AddJob<NewsCrawlerJob>(opts => opts.WithIdentity(newsKey));
-                //q.AddTrigger(opts => opts
-                //    .ForJob(newsKey)
-                //    .WithIdentity("NewsCrawlerJob-trigger")
-                //    .WithCronSchedule("0 10/30 * * * ?"));
+                // 3. NewsCrawlerJob: Every 30 minutes (shifted)
+                var newsKey = new JobKey("NewsCrawlerJob");
+                q.AddJob<NewsCrawlerJob>(opts => opts.WithIdentity(newsKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(newsKey)
+                    .WithIdentity("NewsCrawlerJob-trigger")
+                    .WithCronSchedule("0 10/15 * * * ?"));
 
-                //// 4. PortfolioJob: Daily at 8:00
-                //var portfolioKey = new JobKey("PortfolioJob");
-                //q.AddJob<PortfolioJob>(opts => opts.WithIdentity(portfolioKey));
-                //q.AddTrigger(opts => opts
-                //    .ForJob(portfolioKey)
-                //    .WithIdentity("PortfolioJob-trigger")
-                //    .WithCronSchedule("0 0 8 * * ?"));
+                // 4. PortfolioJob: Monthly 1, at 8:00
+                var portfolioKey = new JobKey("PortfolioJob");
+                q.AddJob<PortfolioJob>(opts => opts.WithIdentity(portfolioKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(portfolioKey)
+                    .WithIdentity("PortfolioJob-trigger")
+                    .WithCronSchedule("0 0 8 1 * ?"));
 
                 //// 5. AnalysisRealtimeJob: 9:15-11:30, 13:15-14:30 (Every 15m)
                 //var realtimeKey = new JobKey("AnalysisRealtimeJob");
