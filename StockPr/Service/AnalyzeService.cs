@@ -1193,7 +1193,7 @@ sym);
                 strOutput.AppendLine($"> Ngày: {DateTime.Now:dd/MM/yyyy}");
                 strOutput.AppendLine();
 
-                var lSectorRank = new List<(string Name, string value, decimal Change, decimal RSI, bool IsAboveMA20, bool IsWyckoff)>();
+                var lSectorRank = new List<(string Name, string value, decimal Change, bool IsAboveMA20, bool IsWyckoff, bool IsRSI)>();
 
                 foreach (var sector in StaticVal._dicSectorIndex)
                 {
@@ -1220,8 +1220,6 @@ sym);
                         // Wyckoff
                         var (isWyckoff, _) = lData.IsWyckoff();
 
-                        // Pressure
-
                         var lDataT = lData.Select(x => new QuoteT
                         {
                             Date = x.Date,
@@ -1233,7 +1231,15 @@ sym);
                             TimeStamp = new DateTimeOffset(x.Date).ToUnixTimeSeconds()
                         }).ToList();
 
-                        lSectorRank.Add((sector.Key, sector.Value, (decimal)change, (decimal)rsi, isAboveMA20, isWyckoff));
+                        var res = lDataT.CheckEntry(null, null);
+                        var isRSI = false;
+                        if ((res.Response & EEntry.RSI) == EEntry.RSI)
+                        {
+                            // Có RSI
+                            isRSI = true;
+                        }
+
+                        lSectorRank.Add((sector.Key, sector.Value, (decimal)change, isAboveMA20, isWyckoff, isRSI));
                     }
                     catch (Exception ex)
                     {
@@ -1252,9 +1258,10 @@ sym);
                     var status = item.IsAboveMA20 ? "🚀" : "☁️";
                     var signals = new List<string>();
                     if (item.IsWyckoff) signals.Add("Wyckoff");
+                    if (item.IsRSI) signals.Add("RSI Signal");
                     var signalStr = signals.Any() ? $" - *{string.Join(", ", signals)}*" : "";
                     
-                    strOutput.AppendLine($"{status} *[{item.Name}](https://finance.vietstock.vn/nganh/{item.value}.htm)*: {item.Change}% | RSI: {Math.Round(item.RSI, 1)}{signalStr}");
+                    strOutput.AppendLine($"{status} *[{item.Name}](https://finance.vietstock.vn/nganh/{item.value}.htm)*: {item.Change}% {signalStr}");
                 }
 
                 return (1, strOutput.ToString());

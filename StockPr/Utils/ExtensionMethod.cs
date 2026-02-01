@@ -522,6 +522,14 @@ namespace StockPr.Utils
                     preEntry = new PreEntry();
                 }
 
+                if (lInfo is null) 
+                {
+                    lInfo = new SSI_DataStockInfoResponse
+                    {
+                        data = new List<SSI_DataStockInfoDetailResponse>()
+                    };
+                }    
+
                 var cur = lData[^1];
                 // Filter 1: Minimum Price (≥ 5,000 VND)
                 if (cur.Close < 5) return output;
