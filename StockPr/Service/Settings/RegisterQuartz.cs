@@ -1,4 +1,4 @@
-using Quartz;
+﻿using Quartz;
 using StockPr.Jobs;
 
 namespace StockPr.Service.Settings
@@ -11,51 +11,47 @@ namespace StockPr.Service.Settings
             {
                 q.UseMicrosoftDependencyInjectionJobFactory();
 
-                // 1. BaoCaoPhanTichJob: Every 15 minutes
-                var bcptKey = new JobKey("BaoCaoPhanTichJob");
-                q.AddJob<BaoCaoPhanTichJob>(opts => opts.WithIdentity(bcptKey));
-                q.AddTrigger(opts => opts
-                    .ForJob(bcptKey)
-                    .WithIdentity("BaoCaoPhanTichJob-trigger")
-                    .WithCronSchedule("0 0/15 * * * ?"));
+                //// 1. BaoCaoPhanTichJob: Every 15 minutes
+                //var bcptKey = new JobKey("BaoCaoPhanTichJob");
+                //q.AddJob<BaoCaoPhanTichJob>(opts => opts.WithIdentity(bcptKey));
+                //q.AddTrigger(opts => opts
+                //    .ForJob(bcptKey)
+                //    .WithIdentity("BaoCaoPhanTichJob-trigger")
+                //    .WithCronSchedule("0 0/15 * * * ?"));
 
-                // 2. F319ScoutJob: Every 5 minutes (shifted)
-                var f319Key = new JobKey("F319ScoutJob");
-                q.AddJob<F319ScoutJob>(opts => opts.WithIdentity(f319Key));
-                q.AddTrigger(opts => opts
-                    .ForJob(f319Key)
-                    .WithIdentity("F319ScoutJob-trigger")
-                    .WithCronSchedule("0 5/5 * * * ?"));
+                //// 2. F319ScoutJob: Every 5 minutes (shifted)
+                //var f319Key = new JobKey("F319ScoutJob");
+                //q.AddJob<F319ScoutJob>(opts => opts.WithIdentity(f319Key));
+                //q.AddTrigger(opts => opts
+                //    .ForJob(f319Key)
+                //    .WithIdentity("F319ScoutJob-trigger")
+                //    .WithCronSchedule("0 5/5 * * * ?"));
 
-                // 3. NewsCrawlerJob: Every 30 minutes (shifted)
-                var newsKey = new JobKey("NewsCrawlerJob");
-                q.AddJob<NewsCrawlerJob>(opts => opts.WithIdentity(newsKey));
-                q.AddTrigger(opts => opts
-                    .ForJob(newsKey)
-                    .WithIdentity("NewsCrawlerJob-trigger")
-                    .WithCronSchedule("0 10/15 * * * ?"));
+                //// 3. NewsCrawlerJob: Every 30 minutes (shifted)
+                //var newsKey = new JobKey("NewsCrawlerJob");
+                //q.AddJob<NewsCrawlerJob>(opts => opts.WithIdentity(newsKey));
+                //q.AddTrigger(opts => opts
+                //    .ForJob(newsKey)
+                //    .WithIdentity("NewsCrawlerJob-trigger")
+                //    .WithCronSchedule("0 10/15 * * * ?"));
 
-                // 4. PortfolioJob: Monthly 1, at 8:00
-                var portfolioKey = new JobKey("PortfolioJob");
-                q.AddJob<PortfolioJob>(opts => opts.WithIdentity(portfolioKey));
-                q.AddTrigger(opts => opts
-                    .ForJob(portfolioKey)
-                    .WithIdentity("PortfolioJob-trigger")
-                    .WithCronSchedule("0 0 8 1 * ?"));
+                //// 4. PortfolioJob: Monthly 1, at 8:00
+                //var portfolioKey = new JobKey("PortfolioJob");
+                //q.AddJob<PortfolioJob>(opts => opts.WithIdentity(portfolioKey));
+                //q.AddTrigger(opts => opts
+                //    .ForJob(portfolioKey)
+                //    .WithIdentity("PortfolioJob-trigger")
+                //    .WithCronSchedule("0 0 8 1 * ?"));
 
-                //// 5. AnalysisRealtimeJob: 9:15-11:30, 13:15-14:30 (Every 15m)
+                //// 5. Trace 52W,MA20: (Every 1h)
                 //var realtimeKey = new JobKey("AnalysisRealtimeJob");
                 //q.AddJob<AnalysisRealtimeJob>(opts => opts.WithIdentity(realtimeKey));
                 //q.AddTrigger(opts => opts
                 //    .ForJob(realtimeKey)
                 //    .WithIdentity("AnalysisRealtimeJob-trigger")
-                //    .WithCronSchedule("0 15,30,45 9,10,13,14 ? * MON-FRI"));
-                //q.AddTrigger(opts => opts
-                //    .ForJob(realtimeKey)
-                //    .WithIdentity("AnalysisRealtimeJob-morning-trigger")
-                //    .WithCronSchedule("0 0,15,30 11 ? * MON-FRI"));
+                //    .WithCronSchedule("0 16 9,10,11,13,14 ? * MON-FRI"));
 
-                //// 6. EODStatsJob: 15:00
+                //// 6. EndOfDay EODStatsJob: 15:00
                 //var eodKey = new JobKey("EODStatsJob");
                 //q.AddJob<EODStatsJob>(opts => opts.WithIdentity(eodKey));
                 //q.AddTrigger(opts => opts
@@ -63,28 +59,28 @@ namespace StockPr.Service.Settings
                 //    .WithIdentity("EODStatsJob-trigger")
                 //    .WithCronSchedule("0 0 15 ? * MON-FRI"));
 
-                //// 7. MorningSetupJob: 8:00 (Trade days)
-                //var morningKey = new JobKey("MorningSetupJob");
-                //q.AddJob<MorningSetupJob>(opts => opts.WithIdentity(morningKey));
-                //q.AddTrigger(opts => opts
-                //    .ForJob(morningKey)
-                //    .WithIdentity("MorningSetupJob-trigger")
-                //    .WithCronSchedule("0 0 8 ? * MON-FRI"));
+                // 7. Tín hiệu đầu ngày: 8:00 (Trade days)
+                var morningKey = new JobKey("MorningSetupJob");
+                q.AddJob<MorningSetupJob>(opts => opts.WithIdentity(morningKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(morningKey)
+                    .WithIdentity("MorningSetupJob-trigger")
+                    .WithCronSchedule("0 0 8 ? * MON-FRI"));
 
-                //// 8. EPSRankJob: 23:00
-                //var epsKey = new JobKey("EPSRankJob");
-                //q.AddJob<EPSRankJob>(opts => opts.WithIdentity(epsKey));
-                //q.AddTrigger(opts => opts
-                //    .ForJob(epsKey)
-                //    .WithIdentity("EPSRankJob-trigger")
-                //    .WithCronSchedule("0 0 23 * * ?"));
+                // 8. Lưu dữ liệu data vào database: 23:00
+                var epsKey = new JobKey("EPSRankJob");
+                q.AddJob<EPSRankJob>(opts => opts.WithIdentity(epsKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(epsKey)
+                    .WithIdentity("EPSRankJob-trigger")
+                    .WithCronSchedule("0 0 23 * * ?"));
 
-                //// 9. TraceGiaJob: 9h, 13h, 17h
-                //var traceKey = new JobKey("TraceGiaJob");
-                //q.AddJob<TraceGiaJob>(opts => opts.WithIdentity(traceKey).StoreDurably());
-                //q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-9h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 9 * * ?"));
-                //q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-13h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 13 * * ?"));
-                //q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-17h-trigger").UsingJobData("IsEndOfDay", true).WithCronSchedule("0 0 17 * * ?"));
+                // 9. Giá ngành hàng: 9h, 13h, 17h
+                var traceKey = new JobKey("TraceGiaJob");
+                q.AddJob<TraceGiaJob>(opts => opts.WithIdentity(traceKey).StoreDurably());
+                q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-9h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 9 * * ?"));
+                q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-13h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 13 * * ?"));
+                q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-17h-trigger").UsingJobData("IsEndOfDay", true).WithCronSchedule("0 0 17 * * ?"));
 
                 //// 10. TongCucThongKeJob: Weekly Saturday 9:00
                 //var tctkKey = new JobKey("TongCucThongKeJob");

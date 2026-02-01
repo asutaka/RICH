@@ -312,8 +312,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var lInfo = await _marketDataService.SSI_GetStockInfo(
-symbol, dt.AddDays(-30), dt);
+                        var lInfo = await _marketDataService.SSI_GetStockInfo(symbol, dt.AddDays(-30), dt);
                         if(lInfo.data.Count < 5)
                             continue;
                         foreach (var item in lInfo.data)
@@ -323,8 +322,7 @@ symbol, dt.AddDays(-30), dt);
                         }
                         var filter = Builders<PreEntry>.Filter.Eq(x => x.s, symbol);
                         var pre = _preEntryRepo.GetEntityByFilter(filter);
-                        var lData = (await _marketDataService.SSI_GetDataStockT(
-symbol)).DistinctBy(x => x.Date).ToList();
+                        var lData = (await _marketDataService.SSI_GetDataStockT(symbol)).DistinctBy(x => x.Date).ToList();
                         lData.Remove(lData.Last());
                         if(lData.Count < 50)
                             continue;
@@ -399,18 +397,18 @@ symbol)).DistinctBy(x => x.Date).ToList();
                     if ((res.Response & EEntry.NN1) == EEntry.NN1)
                     {
                         // Có NN1
-                        signal += "NN1|";
+                        signal += "NN1(Revert)|";
                     }
 
                     if ((res.Response & EEntry.NN2) == EEntry.NN2)
                     {
                         // Có NN1
-                        signal += "NN2|";
+                        signal += "NN2(Green)|";
                     }
                     if ((res.Response & EEntry.NN3) == EEntry.NN3)
                     {
                         // Có NN1
-                        signal += "NN3|";
+                        signal += "NN3(Red)|";
                     }
                     if ((res.Response & EEntry.WYCKOFF) == EEntry.WYCKOFF)
                     {
@@ -798,8 +796,7 @@ symbol)).DistinctBy(x => x.Date).ToList();
 
                 var strOutput = new StringBuilder();
 
-                var res = await _marketDataService.Money24h_GetNhomNganh(
-type);
+                var res = await _marketDataService.Money24h_GetNhomNganh(type);
                 if (res is null
                     || !res.data.groups.Any()
                     || res.data.last_update < dTime)
