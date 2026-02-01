@@ -141,6 +141,76 @@
         public HighChartCredits credits { get; set; }
     }
 
+    public class HighchartHeatmap
+    {
+        public HighchartHeatmap(string titl, List<string> xCat, List<string> yCat, List<List<object>> lData)
+        {
+            chart = new HighChartType { type = "heatmap" };
+            title = new HighChartTitle { text = titl };
+            xAxis = new HighChartXAxis { categories = xCat };
+            yAxis = new HighChartYAxis { categories = yCat, title = null, reversed = true };
+            colorAxis = new HighChartColorAxis
+            {
+                min = -2,
+                max = 2,
+                stops = new List<List<object>>
+                {
+                    new List<object> { 0, "#ff0000" },   // Red for negative
+                    new List<object> { 0.5, "#ffffff" }, // White for zero
+                    new List<object> { 1, "#00ff00" }    // Green for positive
+                }
+            };
+            legend = new HighChartLegend
+            {
+                enabled = true,
+                align = "right",
+                layout = "vertical",
+                margin = 0,
+                verticalAlign = "top",
+                y = 25,
+                symbolHeight = 280
+            };
+            series = new List<HighChartSeries_Heatmap>
+            {
+                new HighChartSeries_Heatmap
+                {
+                    name = titl,
+                    data = lData,
+                    borderWidth = 1,
+                    dataLabels = new HighChartDataLabel { enabled = true }
+                }
+            };
+            credits = new HighChartCredits { enabled = false };
+        }
+        public HighChartType chart { get; set; }
+        public HighChartTitle title { get; set; }
+        public HighChartXAxis xAxis { get; set; }
+        public HighChartYAxis yAxis { get; set; }
+        public HighChartColorAxis colorAxis { get; set; }
+        public HighChartLegend legend { get; set; }
+        public List<HighChartSeries_Heatmap> series { get; set; }
+        public HighChartCredits credits { get; set; }
+    }
+
+    public class HighChartColorAxis
+    {
+        public double? min { get; set; }
+        public double? max { get; set; }
+        public string minColor { get; set; }
+        public string maxColor { get; set; }
+        public List<List<object>> stops { get; set; }
+    }
+
+    public class HighChartSeries_Heatmap : HighChartSeries
+    {
+        public HighChartSeries_Heatmap()
+        {
+            type = "heatmap";
+        }
+        public List<List<object>> data { get; set; }
+        public int borderWidth { get; set; }
+    }
+
     #region ChienLuocDauTu
     public class HighChartChienLuocDauTu
     {
@@ -211,6 +281,7 @@
     {
         public string type { get; set; }
         public IEnumerable<string> categories { get; set; }
+        public bool reversed { get; set; }
     }
 
     public class HighChartYAxis
@@ -218,6 +289,8 @@
         public HighChartTitle title { get; set; }
         public HighChartLabel labels { get; set; }
         public bool opposite { get; set; }
+        public bool reversed { get; set; }
+        public IEnumerable<string> categories { get; set; }
     }
 
     public class HighChartSeries
@@ -295,7 +368,13 @@
 
     public class HighChartLegend
     {
-        public bool enabled { get; set; }
+        public bool? enabled { get; set; }
+        public string align { get; set; }
+        public string layout { get; set; }
+        public int? margin { get; set; }
+        public string verticalAlign { get; set; }
+        public int? y { get; set; }
+        public int? symbolHeight { get; set; }
     }
 
     public class HighChartDataLabel

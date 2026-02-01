@@ -19,6 +19,7 @@ namespace StockPr.Service
         Task<string> DetectEntry();
         bool Chart_4U();
         Task<(int, string)> AnalyzeSectorIndex();
+        Task<Stream> Chart_Heatmap();
     }
     public class AnalyzeService : IAnalyzeService
     {
@@ -1270,7 +1271,46 @@ sym);
             {
                 _logger.LogError($"AnalyzeService.AnalyzeSectorIndex|EXCEPTION| {ex.Message}");
             }
+
             return (0, null);
+        }
+
+        public async Task<Stream> Chart_Heatmap()
+        {
+            try
+            {
+                var dt = DateTime.Now;
+                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                var mode = (int)EConfigDataType.ThongKeKhopLenh + 5; // Chọn mode 69 (64+5) cho GICS Heatmap
+                var builder = Builders<ConfigData>.Filter;
+                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
+                var lConfig = _configRepo.GetByFilter(filter);
+
+                if (lConfig.Any())
+                {
+                    if (lConfig.Any(x => x.t >= t))
+                        return null;
+
+                    _configRepo.DeleteMany(filter);
+                }
+
+                var chartStream = await _chartService.Chart_VietStock_GICSProportion();
+                if (chartStream != null)
+                {
+                    _configRepo.InsertOne(new ConfigData
+                    {
+                        ty = mode,
+                        t = t
+                    });
+                }
+
+                return chartStream;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"AnalyzeService.Chart_VietStock_GICSProportion|EXCEPTION| {ex.Message}");
+            }
+            return null;
         }
     }
 

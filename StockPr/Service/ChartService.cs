@@ -15,6 +15,7 @@ namespace StockPr.Service
         Task<Stream> Chart_ThongKeKhopLenh(string sym = "10");
         Task<Stream> Chart_ThongKeKhopLenh(string sym, Money24h_StatisticResponse dat);
         Task<Stream> Chart_ThongKeKhopLenh_Long(string sym);
+        Task<Stream> Chart_VietStock_GICSProportion();
     }
     public class ChartService : IChartService
     {
@@ -1177,6 +1178,47 @@ namespace StockPr.Service
             catch (Exception ex)
             {
                 _logger.LogError($"ChartService.Chart_BasicBase|EXCEPTION| {ex.Message}");
+            }
+            return null;
+        }
+        public async Task<Stream> Chart_VietStock_GICSProportion()
+        {
+            try
+            {
+                var listData = await _vietstockService.VietStock_GetGICSProportion();
+                if (listData == null || !listData.Any())
+                    return null;
+
+                // Chuẩn bị categories: X là tên ngành, Y là nhãn chung "Biến động %"
+                var xCategories = listData.Select(x => x.IndustryName).ToList();
+                var yCategories = new List<string> { "Biến động (%)" };
+
+                // Chuẩn bị data cho heatmap: [[x, y, value]]
+                // Trong đó x là chỉ số ngành, y là 0 (vì chỉ có 1 dòng Y), value là biến động % (Change)
+                var heatmapData = listData.Select((item, index) =>
+                    new List<object> { index, 0, (double)Math.Round(item.Change, 2) }
+                ).ToList();
+
+                var title = "Biến động các nhóm ngành GICS (VietStock)";
+                var heatmapModel = new HighchartHeatmap(title, xCategories, yCategories, heatmapData);
+
+                // Tùy chỉnh màu sắc: Tự động scale dựa trên giá trị min/max thực tế hoặc cố định dải màu
+                var minVal = (double)listData.Min(x => x.Change);
+                var maxVal = (double)listData.Max(x => x.Change);
+                
+                // Đảm bảo dải màu cân bằng quanh điểm 0
+                var absoluteMax = Math.Max(Math.Abs(minVal), Math.Abs(maxVal));
+                
+                heatmapModel.colorAxis.min = -Math.Max(absoluteMax, 1); // Tối thiểu là -1 đến 1 để dải màu đẹp
+                heatmapModel.colorAxis.max = Math.Max(absoluteMax, 1);
+
+                var chartParams = new HighChartModel(JsonConvert.SerializeObject(heatmapModel));
+                var body = JsonConvert.SerializeObject(chartParams);
+                return await _highChartService.GetChartImage(body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ChartService.Chart_VietStock_GICSProportion|EXCEPTION| {ex.Message}");
             }
             return null;
         }

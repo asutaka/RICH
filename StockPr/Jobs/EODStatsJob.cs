@@ -52,6 +52,13 @@ namespace StockPr.Jobs
                     await _teleService.SendMessage(_telegramSettings.UserId, sectorMsg.Item2, true);
                 }
 
+                // 4. Heatmap biến động ngành (VietStock GICS)
+                var heatmapStream = await _analyzeService.Chart_Heatmap();
+                if (heatmapStream != null)
+                {
+                    await _teleService.SendPhoto(_telegramSettings.UserId, heatmapStream);
+                }
+
                 _logger.LogInformation("Job EODStatsJob completed.");
             }
             catch (Exception ex)
