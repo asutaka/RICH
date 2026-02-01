@@ -240,7 +240,9 @@ namespace StockPr.Utils
         {
             {"Ngân hàng", "4010"},
             {"Chứng khoán", "4020"},
-            {"Bất động sản", "60"},
+            {"BDS tập đoàn", "60201040"},
+            {"BDS nhà ở", "60201010"},
+            {"Khu công nghiệp", "60201030"},
             {"Thép,cao su, phân bón", "1510"},
             {"Bảo hiểm", "4030"},
             {"Điện nước", "5510"},

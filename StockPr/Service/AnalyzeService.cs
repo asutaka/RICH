@@ -1193,7 +1193,7 @@ sym);
                 strOutput.AppendLine($"> Ngày: {DateTime.Now:dd/MM/yyyy}");
                 strOutput.AppendLine();
 
-                var lSectorRank = new List<(string Name, decimal Change, decimal RSI, bool IsAboveMA20)>();
+                var lSectorRank = new List<(string Name, decimal Change, decimal RSI, bool IsAboveMA20, bool IsWyckoff)>();
 
                 foreach (var sector in StaticVal._dicSectorIndex)
                 {
@@ -1217,7 +1217,23 @@ sym);
                         var ma20 = ma20List.Last()?.Sma ?? 0;
                         var isAboveMA20 = current.Close >= (decimal)ma20;
 
-                        lSectorRank.Add((sector.Key, (decimal)change, (decimal)rsi, isAboveMA20));
+                        // Wyckoff
+                        var (isWyckoff, _) = lData.IsWyckoff();
+
+                        // Pressure
+
+                        var lDataT = lData.Select(x => new QuoteT
+                        {
+                            Date = x.Date,
+                            Open = x.Open,
+                            High = x.High,
+                            Low = x.Low,
+                            Close = x.Close,
+                            Volume = x.Volume,
+                            TimeStamp = new DateTimeOffset(x.Date).ToUnixTimeSeconds()
+                        }).ToList();
+
+                        lSectorRank.Add((sector.Key, (decimal)change, (decimal)rsi, isAboveMA20, isWyckoff));
                     }
                     catch (Exception ex)
                     {
@@ -1227,14 +1243,18 @@ sym);
 
                 if (!lSectorRank.Any()) return (0, null);
 
-                // Sắp xếp theo RSI hoặc % Thay đổi
+                // Sắp xếp theo % Thay đổi
                 var sorted = lSectorRank.OrderByDescending(x => x.Change).ToList();
 
                 strOutput.AppendLine(">> Xếp hạng theo % thay đổi:");
                 foreach (var item in sorted)
                 {
                     var status = item.IsAboveMA20 ? "🚀" : "☁️";
-                    strOutput.AppendLine($"{status} *{item.Name}*: {item.Change}% | RSI: {Math.Round(item.RSI, 1)}");
+                    var signals = new List<string>();
+                    if (item.IsWyckoff) signals.Add("Wyckoff");
+                    var signalStr = signals.Any() ? $" - *{string.Join(", ", signals)}*" : "";
+                    
+                    strOutput.AppendLine($"{status} *{item.Name}*: {item.Change}% | RSI: {Math.Round(item.RSI, 1)}{signalStr}");
                 }
 
                 return (1, strOutput.ToString());
