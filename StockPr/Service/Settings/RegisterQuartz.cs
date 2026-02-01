@@ -1,5 +1,7 @@
 ﻿using Quartz;
 using StockPr.Jobs;
+using Quartz.Impl.Calendar;
+using StockPr.Utils;
 
 namespace StockPr.Service.Settings
 {
@@ -10,6 +12,14 @@ namespace StockPr.Service.Settings
             services.AddQuartz(q =>
             {
                 q.UseMicrosoftDependencyInjectionJobFactory();
+                // --- CẤU HÌNH CALENDAR NGHỈ LỄ ---
+                var holidayCalendar = new HolidayCalendar();
+                foreach (var date in StaticVal._lNghiLe)
+                {
+                    holidayCalendar.AddExcludedDate(date);
+                }
+                // Đăng ký calendar với tên "VN_Holidays"
+                q.AddCalendar("VN_Holidays", holidayCalendar, replace: true, updateTriggers: true);
 
                 // 1. BaoCaoPhanTichJob: Every 15 minutes
                 var bcptKey = new JobKey("BaoCaoPhanTichJob");
@@ -49,7 +59,8 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(realtimeKey)
                     .WithIdentity("AnalysisRealtimeJob-trigger")
-                    .WithCronSchedule("0 16 9,10,11,13,14 ? * MON-FRI"));
+                    .WithCronSchedule("0 16 9,10,11,13,14 ? * MON-FRI")
+                    .ModifiedByCalendar("VN_Holidays"));
 
                 // 6. EndOfDay EODStatsJob: 15:00
                 var eodKey = new JobKey("EODStatsJob");
@@ -57,7 +68,8 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(eodKey)
                     .WithIdentity("EODStatsJob-trigger")
-                    .WithCronSchedule("0 0 15 ? * MON-FRI"));
+                    .WithCronSchedule("0 0 15 ? * MON-FRI")
+                    .ModifiedByCalendar("VN_Holidays"));
 
                 // 7. Tín hiệu đầu ngày: 8:00 (Trade days)
                 var morningKey = new JobKey("MorningSetupJob");
@@ -65,7 +77,8 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(morningKey)
                     .WithIdentity("MorningSetupJob-trigger")
-                    .WithCronSchedule("0 0 8 ? * MON-FRI"));
+                    .WithCronSchedule("0 0 8 ? * MON-FRI")
+                    .ModifiedByCalendar("VN_Holidays"));
 
                 // 8. Lưu dữ liệu data vào database: 23:00
                 var epsKey = new JobKey("EPSRankJob");
@@ -73,13 +86,14 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(epsKey)
                     .WithIdentity("EPSRankJob-trigger")
-                    .WithCronSchedule("0 0 23 * * ?"));
+                    .WithCronSchedule("0 0 23 * * ?")
+                    .ModifiedByCalendar("VN_Holidays"));
 
                 // 9. Giá ngành hàng: 9h, 13h, 17h
                 var traceKey = new JobKey("TraceGiaJob");
                 q.AddJob<TraceGiaJob>(opts => opts.WithIdentity(traceKey).StoreDurably());
-                q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-9h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 9 * * ?"));
-                q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-13h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 13 * * ?"));
+                q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-9h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 9 * * ?").ModifiedByCalendar("VN_Holidays"));
+                q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-13h-trigger").UsingJobData("IsEndOfDay", false).WithCronSchedule("0 0 13 * * ?").ModifiedByCalendar("VN_Holidays"));
                 q.AddTrigger(opts => opts.ForJob(traceKey).WithIdentity("TraceGiaJob-17h-trigger").UsingJobData("IsEndOfDay", true).WithCronSchedule("0 0 17 * * ?"));
 
                 // 10. TongCucThongKeJob
@@ -96,7 +110,8 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(tudoanhKey)
                     .WithIdentity("TuDoanhJob-trigger")
-                    .WithCronSchedule("0 0/30 19-23 ? * MON-FRI"));
+                    .WithCronSchedule("0 0/30 19-23 ? * MON-FRI")
+                    .ModifiedByCalendar("VN_Holidays"));
 
                 // 12. ChartStatsJob: Evening stats every 15m
                 var chartStatsKey = new JobKey("ChartStatsJob");
@@ -104,7 +119,8 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(chartStatsKey)
                     .WithIdentity("ChartStatsJob-trigger")
-                    .WithCronSchedule("0 10/15 19-23 ? * MON-FRI"));
+                    .WithCronSchedule("0 10/15 19-23 ? * MON-FRI")
+                    .ModifiedByCalendar("VN_Holidays"));
 
                 // 13. Chart4UJob: Evening stats every 30m
                 var chart4uKey = new JobKey("Chart4UJob");
@@ -112,7 +128,8 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(chart4uKey)
                     .WithIdentity("Chart4UJob-trigger")
-                    .WithCronSchedule("0 20/30 19-23 ? * MON-FRI"));
+                    .WithCronSchedule("0 20/30 19-23 ? * MON-FRI")
+                    .ModifiedByCalendar("VN_Holidays"));
 
                 // 14. ForexMorningJob: 11:30 Trade days
                 var forexKey = new JobKey("ForexMorningJob");
@@ -120,7 +137,8 @@ namespace StockPr.Service.Settings
                 q.AddTrigger(opts => opts
                     .ForJob(forexKey)
                     .WithIdentity("ForexMorningJob-trigger")
-                    .WithCronSchedule("0 30 11 ? * MON-FRI"));
+                    .WithCronSchedule("0 30 11 ? * MON-FRI")
+                    .ModifiedByCalendar("VN_Holidays"));
             });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
