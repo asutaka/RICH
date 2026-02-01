@@ -256,5 +256,24 @@ namespace StockPr.Utils
             {"Công nghệ", "4510"},
             {"Viễn thông", "5010"},
         };
+
+        public static Dictionary<string, string> _dicSectorChartIndex = new Dictionary<string, string>
+        {
+            {"Ngân hàng", "4010"},
+            {"Chứng khoán", "4020"},
+            {"Bất động sản", "6020"},
+            {"Thép,cao su, phân bón", "1510"},
+            {"Bảo hiểm", "4030"},
+            {"Điện nước", "5510"},
+            {"Bán lẻ", "3020"},
+            {"Dầu khí", "1010"},
+            {"Xây dựng", "2010"},
+            {"Thực phẩm", "2550"},
+            {"Dệt may", "2520"},
+            {"Cảng, Hàng không", "2030"},
+            {"Dược phẩm", "3520"},
+            {"Công nghệ", "4510"},
+            {"Viễn thông", "5010"},
+        };
     }
 }
