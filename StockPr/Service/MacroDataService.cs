@@ -68,13 +68,18 @@ namespace StockPr.Service
                 };
 
                 var lResult = new List<TradingEconomics_Data>();
-                var url = "https://tradingeconomics.com/commodities";
+                var url = "https://www.tradingeconomics.com/commodities";
                 var client = _client.CreateClient("ResilientClient");
                 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
                 requestMessage.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                requestMessage.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+                requestMessage.Headers.Add("Accept-Language", "en-US,en;q=0.9,vi;q=0.8");
+                requestMessage.Headers.Add("Referer", "https://tradingeconomics.com/");
+                requestMessage.Headers.Add("Upgrade-Insecure-Requests", "1");
                 
                 var responseMessage = await client.SendAsync(requestMessage);
+                responseMessage.EnsureSuccessStatusCode();
                 var html = await responseMessage.Content.ReadAsStringAsync();
                 return _parser.ParseCommodities(html, lCode);
             }

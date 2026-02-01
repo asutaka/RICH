@@ -1,0 +1,58 @@
+{"@t":"2026-02-01T17:35:40.5638216Z","@mt":"StockPr Worker starting at: {time}","time":"2026-02-02T00:35:40.5524542+07:00","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T17:35:40.6264893Z","@mt":"Initializing Stock list from database...","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T17:35:52.4186770Z","@mt":"Start processing HTTP request {HttpMethod} {Uri}","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","EventId":{"Id":100,"Name":"RequestPipelineStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
+{"@t":"2026-02-01T17:35:52.4699637Z","@mt":"Sending HTTP request {HttpMethod} {Uri}","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","EventId":{"Id":100,"Name":"RequestStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
+{"@t":"2026-02-01T17:35:52.5432105Z","@mt":"Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl","SourceContext":"Quartz.Core.SchedulerSignalerImpl"}
+{"@t":"2026-02-01T17:35:52.5495219Z","@mt":"Quartz Scheduler created","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T17:35:52.5507134Z","@mt":"JobFactory set to: Quartz.Simpl.MicrosoftDependencyInjectionJobFactory","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T17:35:52.5516475Z","@mt":"RAMJobStore initialized.","SourceContext":"Quartz.Simpl.RAMJobStore"}
+{"@t":"2026-02-01T17:35:52.5531010Z","@mt":"Quartz Scheduler 3.13.1.0 - 'QuartzScheduler' with instanceId 'NON_CLUSTERED' initialized","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T17:35:52.5541655Z","@mt":"Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T17:35:52.5551943Z","@mt":"Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T17:35:52.5664744Z","@mt":"Adding 14 jobs, 16 triggers.","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5696626Z","@mt":"Adding job: DEFAULT.BaoCaoPhanTichJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5813105Z","@mt":"Adding job: DEFAULT.F319ScoutJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5844135Z","@mt":"Adding job: DEFAULT.NewsCrawlerJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5855624Z","@mt":"Adding job: DEFAULT.PortfolioJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5864437Z","@mt":"Adding job: DEFAULT.AnalysisRealtimeJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5880740Z","@mt":"Adding job: DEFAULT.EODStatsJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5890001Z","@mt":"Adding job: DEFAULT.MorningSetupJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5899926Z","@mt":"Adding job: DEFAULT.EPSRankJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5908400Z","@mt":"Adding job: DEFAULT.TraceGiaJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5925500Z","@mt":"Adding job: DEFAULT.TongCucThongKeJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5934948Z","@mt":"Adding job: DEFAULT.TuDoanhJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5942889Z","@mt":"Adding job: DEFAULT.ChartStatsJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5950462Z","@mt":"Adding job: DEFAULT.Chart4UJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.5958513Z","@mt":"Adding job: DEFAULT.ForexMorningJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:35:52.6160236Z","@mt":"Scheduler QuartzScheduler_$_NON_CLUSTERED started.","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T17:35:55.0637727Z","@mt":"Received HTTP response headers after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":2590.3259,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
+{"@t":"2026-02-01T17:35:55.0693059Z","@mt":"End processing HTTP request after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":2661.6943,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestPipelineEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
+{"@t":"2026-02-01T17:36:20.1053848Z","@mt":"StockPr Worker starting at: {time}","time":"2026-02-02T00:36:20.0939952+07:00","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T17:36:20.1408518Z","@mt":"Initializing Stock list from database...","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T17:36:23.7672172Z","@mt":"Start processing HTTP request {HttpMethod} {Uri}","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","EventId":{"Id":100,"Name":"RequestPipelineStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
+{"@t":"2026-02-01T17:36:23.7951223Z","@mt":"Sending HTTP request {HttpMethod} {Uri}","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","EventId":{"Id":100,"Name":"RequestStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
+{"@t":"2026-02-01T17:36:23.8682715Z","@mt":"Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl","SourceContext":"Quartz.Core.SchedulerSignalerImpl"}
+{"@t":"2026-02-01T17:36:23.8739065Z","@mt":"Quartz Scheduler created","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T17:36:23.8748778Z","@mt":"JobFactory set to: Quartz.Simpl.MicrosoftDependencyInjectionJobFactory","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T17:36:23.8757198Z","@mt":"RAMJobStore initialized.","SourceContext":"Quartz.Simpl.RAMJobStore"}
+{"@t":"2026-02-01T17:36:23.8770902Z","@mt":"Quartz Scheduler 3.13.1.0 - 'QuartzScheduler' with instanceId 'NON_CLUSTERED' initialized","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T17:36:23.8778553Z","@mt":"Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T17:36:23.8786407Z","@mt":"Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T17:36:23.8895178Z","@mt":"Adding 14 jobs, 16 triggers.","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.8920607Z","@mt":"Adding job: DEFAULT.BaoCaoPhanTichJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9021188Z","@mt":"Adding job: DEFAULT.F319ScoutJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9036293Z","@mt":"Adding job: DEFAULT.NewsCrawlerJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9048681Z","@mt":"Adding job: DEFAULT.PortfolioJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9055985Z","@mt":"Adding job: DEFAULT.AnalysisRealtimeJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9070871Z","@mt":"Adding job: DEFAULT.EODStatsJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9079833Z","@mt":"Adding job: DEFAULT.MorningSetupJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9088025Z","@mt":"Adding job: DEFAULT.EPSRankJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9095217Z","@mt":"Adding job: DEFAULT.TraceGiaJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9107973Z","@mt":"Adding job: DEFAULT.TongCucThongKeJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9115809Z","@mt":"Adding job: DEFAULT.TuDoanhJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9123264Z","@mt":"Adding job: DEFAULT.ChartStatsJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9129922Z","@mt":"Adding job: DEFAULT.Chart4UJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9136280Z","@mt":"Adding job: DEFAULT.ForexMorningJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T17:36:23.9331899Z","@mt":"Scheduler QuartzScheduler_$_NON_CLUSTERED started.","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T17:36:25.6909300Z","@mt":"Received HTTP response headers after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":1893.0271,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
+{"@t":"2026-02-01T17:36:25.6955073Z","@mt":"End processing HTTP request after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":1933.9267,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestPipelineEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","HttpMethod":"GET","Uri":"https://www.tradingeconomics.com/commodities","Scope":["HTTP GET https://www.tradingeconomics.com/commodities"]}
