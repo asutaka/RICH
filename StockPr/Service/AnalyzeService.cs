@@ -1193,7 +1193,7 @@ sym);
                 strOutput.AppendLine($"> Ngày: {DateTime.Now:dd/MM/yyyy}");
                 strOutput.AppendLine();
 
-                var lSectorRank = new List<(string Name, decimal Change, decimal RSI, bool IsAboveMA20, bool IsWyckoff)>();
+                var lSectorRank = new List<(string Name, string value, decimal Change, decimal RSI, bool IsAboveMA20, bool IsWyckoff)>();
 
                 foreach (var sector in StaticVal._dicSectorIndex)
                 {
@@ -1233,7 +1233,7 @@ sym);
                             TimeStamp = new DateTimeOffset(x.Date).ToUnixTimeSeconds()
                         }).ToList();
 
-                        lSectorRank.Add((sector.Key, (decimal)change, (decimal)rsi, isAboveMA20, isWyckoff));
+                        lSectorRank.Add((sector.Key, sector.Value, (decimal)change, (decimal)rsi, isAboveMA20, isWyckoff));
                     }
                     catch (Exception ex)
                     {
@@ -1254,7 +1254,7 @@ sym);
                     if (item.IsWyckoff) signals.Add("Wyckoff");
                     var signalStr = signals.Any() ? $" - *{string.Join(", ", signals)}*" : "";
                     
-                    strOutput.AppendLine($"{status} *{item.Name}*: {item.Change}% | RSI: {Math.Round(item.RSI, 1)}{signalStr}");
+                    strOutput.AppendLine($"{status} *[{item.Name}](https://finance.vietstock.vn/nganh/{item.value}.htm)*: {item.Change}% | RSI: {Math.Round(item.RSI, 1)}{signalStr}");
                 }
 
                 return (1, strOutput.ToString());
