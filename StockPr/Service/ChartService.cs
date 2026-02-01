@@ -1185,32 +1185,84 @@ namespace StockPr.Service
         {
             try
             {
-                var listData = await _vietstockService.VietStock_GetGICSProportion();
-                if (listData == null || !listData.Any())
+                var listDataRaw = await _vietstockService.VietStock_GetGICSProportion();
+                if (listDataRaw == null || !listDataRaw.Any())
                     return null;
 
-                // Chuẩn bị categories: X là tên ngành, Y là nhãn chung "Biến động %"
-                var xCategories = listData.Select(x => x.IndustryName).ToList();
-                var yCategories = new List<string> { "Biến động (%)" };
+                // 1. Lọc theo IndustryCode trong _dicSectorChartIndex
+                var validIndustryCodes = StaticVal._dicSectorChartIndex.Values
+                    .Select(v => int.TryParse(v, out var code) ? code : -1)
+                    .Where(c => c != -1)
+                    .ToHashSet();
 
-                // Chuẩn bị data cho heatmap: [[x, y, value]]
-                // Trong đó x là chỉ số ngành, y là 0 (vì chỉ có 1 dòng Y), value là biến động % (Change)
-                var heatmapData = listData.Select((item, index) =>
-                    new List<object> { index, 0, (double)Math.Round(item.Change, 2) }
-                ).ToList();
+                var filteredData = listDataRaw
+                    .Where(x => x.IndustryCode > 0 && validIndustryCodes.Contains(x.IndustryCode))
+                    .ToList();
 
-                var title = "Biến động các nhóm ngành GICS (VietStock)";
+                if (!filteredData.Any())
+                    return null;
+
+                // 2. Lọc 7 ngày gần nhất
+                var last7Dates = filteredData
+                    .Where(x => x.TradingDate.HasValue)
+                    .Select(x => x.TradingDate.Value.Date)
+                    .Distinct()
+                    .OrderByDescending(d => d)
+                    .Take(7)
+                    .OrderBy(d => d) // Sắp xếp tăng dần để hiển thị trên chart
+                    .ToList();
+
+                if (!last7Dates.Any())
+                    return null;
+
+                var finalData = filteredData
+                    .Where(x => x.TradingDate.HasValue && last7Dates.Contains(x.TradingDate.Value.Date))
+                    .ToList();
+
+                // 3. Chuẩn bị categories
+                // X Categories: Tên các ngành theo đúng thứ tự trong dictionary
+                var xCategories = StaticVal._dicSectorChartIndex.Keys.ToList();
+                var industryCodeToIndex = new Dictionary<int, int>();
+                var index = 0;
+                foreach (var codeStr in StaticVal._dicSectorChartIndex.Values)
+                {
+                    if (int.TryParse(codeStr, out var c))
+                    {
+                        industryCodeToIndex[c] = index;
+                    }
+                    index++;
+                }
+
+                // Y Categories: Các ngày định dạng dd/MM
+                var yCategories = last7Dates.Select(d => d.ToString("dd/MM")).ToList();
+                var dateToIndex = last7Dates.Select((d, i) => new { d, i }).ToDictionary(x => x.d, x => x.i);
+
+                // 4. Chuẩn bị data cho heatmap: [[x, y, value]]
+                var heatmapData = new List<List<object>>();
+                foreach (var item in finalData)
+                {
+                    if (item.TradingDate.HasValue && industryCodeToIndex.ContainsKey(item.IndustryCode))
+                    {
+                        var xIdx = industryCodeToIndex[item.IndustryCode];
+                        var yIdx = dateToIndex[item.TradingDate.Value.Date];
+                        heatmapData.Add(new List<object> { xIdx, yIdx, (double)Math.Round(item.Change, 2) });
+                    }
+                }
+
+                var title = "Biến động nhóm ngành GICS (7 ngày gần nhất)";
                 var heatmapModel = new HighchartHeatmap(title, xCategories, yCategories, heatmapData);
 
-                // Tùy chỉnh màu sắc: Tự động scale dựa trên giá trị min/max thực tế hoặc cố định dải màu
-                var minVal = (double)listData.Min(x => x.Change);
-                var maxVal = (double)listData.Max(x => x.Change);
+                // Tùy chỉnh màu sắc
+                var changes = heatmapData.Select(d => (double)d[2]).ToList();
+                var minVal = changes.Any() ? changes.Min() : -2;
+                var maxVal = changes.Any() ? changes.Max() : 2;
+                var absoluteMax = Math.Max(Math.Max(Math.Abs(minVal), Math.Abs(maxVal)), 1);
+
+                heatmapModel.colorAxis.min = -absoluteMax;
+                heatmapModel.colorAxis.max = absoluteMax;
                 
-                // Đảm bảo dải màu cân bằng quanh điểm 0
-                var absoluteMax = Math.Max(Math.Abs(minVal), Math.Abs(maxVal));
-                
-                heatmapModel.colorAxis.min = -Math.Max(absoluteMax, 1); // Tối thiểu là -1 đến 1 để dải màu đẹp
-                heatmapModel.colorAxis.max = Math.Max(absoluteMax, 1);
+                // Heatmap thường hiển thị đẹp khi reversed Y để ngày mới nhất ở trên
+                heatmapModel.yAxis.reversed = true;
 
                 var chartParams = new HighChartModel(JsonConvert.SerializeObject(heatmapModel));
                 var body = JsonConvert.SerializeObject(chartParams);
