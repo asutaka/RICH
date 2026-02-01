@@ -1,4 +1,4 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using SharpCompress.Common;
 using Skender.Stock.Indicators;
 using StockPr.DAL;
@@ -27,15 +27,15 @@ namespace StockPr.Research
     public class BacktestService : IBacktestService
     {
         private readonly ILogger<BacktestService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IMarketDataService _marketDataService;
         private readonly ISymbolRepo _symbolRepo;
         private readonly IPhanLoaiNDTRepo _phanLoaiNDTRepo;
         private readonly IPreEntryRepo _preEntryRepo;
 
-        public BacktestService(ILogger<BacktestService> logger, IAPIService apiService, ISymbolRepo symbolRepo, IPhanLoaiNDTRepo phanLoaiNDTRepo, IPreEntryRepo preEntryRepo)
+        public BacktestService(ILogger<BacktestService> logger, IMarketDataService marketDataService, ISymbolRepo symbolRepo, IPhanLoaiNDTRepo phanLoaiNDTRepo, IPreEntryRepo preEntryRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _marketDataService = marketDataService;
             _symbolRepo = symbolRepo;
             _phanLoaiNDTRepo = phanLoaiNDTRepo;
             _preEntryRepo = preEntryRepo;
@@ -64,7 +64,7 @@ namespace StockPr.Research
                         //    continue;
 
                         var lMes = new List<string>();
-                        var lData = await _apiService.SSI_GetDataStock(item);
+                        var lData = await _marketDataService.SSI_GetDataStock(item);
                         var lbb_Total = lData.GetBollingerBands();
                         var lMaVol_Total = lData.Select(x => new Quote
                         {
@@ -381,7 +381,7 @@ namespace StockPr.Research
                     {
                         var lMes = new List<string>();
 
-                        var lData = await _apiService.SSI_GetDataStock(item);
+                        var lData = await _marketDataService.SSI_GetDataStock(item);
                         var lbbGlobal = lData.GetBollingerBands();
                         Thread.Sleep(200);
                         if (lData == null || !lData.Any() || lData.Count() < 250 || lData.Last().Volume < 50000)
@@ -548,9 +548,9 @@ namespace StockPr.Research
                     if (sym == "VNINDEX")
                         continue;
 
-                    var dat = await _apiService.SSI_GetStockInfo(sym, dtPrev, dt);
+                    var dat = await _marketDataService.SSI_GetStockInfo(sym, dtPrev, dt);
                     Thread.Sleep(500);
-                    var lData = await _apiService.SSI_GetDataStock(sym);
+                    var lData = await _marketDataService.SSI_GetDataStock(sym);
                     var lbb = lData.GetBollingerBands();
                     var count = dat.data.Count;
                     var lDat = dat.data;
@@ -647,14 +647,14 @@ namespace StockPr.Research
                         //if (sym != "PVT")
                         //    continue;
 
-                        var dat = await _apiService.SSI_GetStockInfo(sym, from, dt);
+                        var dat = await _marketDataService.SSI_GetStockInfo(sym, from, dt);
                         dat.data.Reverse();
                         var count = dat.data.Count;
                         var avgNet = dat.data.Sum(x => Math.Abs(x.netBuySellVal ?? 0));
                         var countNet = dat.data.Count(x => x.netBuySellVal != null && x.netBuySellVal != 0);
                         var avg = avgNet / countNet;
                         //Console.WriteLine($"AVG: {avg}");
-                        var lData = await _apiService.SSI_GetDataStock(sym);
+                        var lData = await _marketDataService.SSI_GetDataStock(sym);
                         var lbb = lData.GetBollingerBands();
                         for (int i = 1; i < count - 1; i++)
                         {
@@ -796,7 +796,7 @@ namespace StockPr.Research
                         //    continue;
 
                         var lMes = new List<string>();
-                        var lData = await _apiService.SSI_GetDataStock(item);
+                        var lData = await _marketDataService.SSI_GetDataStock(item);
                         var lbb_Total = lData.GetBollingerBands();
                         var lMaVol_Total = lData.Select(x => new Quote
                         {
@@ -962,7 +962,7 @@ namespace StockPr.Research
                         //    continue;
 
                         var lMes = new List<string>();
-                        var lData = await _apiService.SSI_GetDataStock(item);
+                        var lData = await _marketDataService.SSI_GetDataStock(item);
                         var res = lData.IsWyckoff();
                         if(res.Item1)
                         {
@@ -1030,7 +1030,7 @@ namespace StockPr.Research
                         var symbol = stock.s;
 
                         // Lấy dữ liệu từ API
-                        var lData = await _apiService.SSI_GetDataStock(symbol);
+                        var lData = await _marketDataService.SSI_GetDataStock(symbol);
 
                         if (lData == null || !lData.Any() || lData.Count() < 50)
                         {
@@ -1249,7 +1249,8 @@ namespace StockPr.Research
                         {
                             var now = DateTime.Now;
                             var from = now.AddDays(-10); // Lấy 10 ngày gần nhất
-                            var stockInfo = await _apiService.SSI_GetStockInfo_Extend(symbol, from, now);
+                            var stockInfo = await _marketDataService.SSI_GetStockInfo_Extend(
+symbol, from, now);
                             
                             if (stockInfo?.data != null && stockInfo.data.Count >= 2)
                             {
@@ -1387,7 +1388,7 @@ namespace StockPr.Research
                         Console.WriteLine($"Processing {symbol}...");
 
                         // Lấy dữ liệu
-                        var lData = await _apiService.SSI_GetDataStock(symbol);
+                        var lData = await _marketDataService.SSI_GetDataStock(symbol);
                         if (lData == null || lData.Count() < 100)
                         {
                             Console.WriteLine($"  Không đủ dữ liệu");
@@ -1647,7 +1648,7 @@ namespace StockPr.Research
             {
                 try
                 {
-                    var lData = await _apiService.SSI_GetDataStock(symbol);
+                    var lData = await _marketDataService.SSI_GetDataStock(symbol);
                     if (lData == null || lData.Count() < 100) continue;
 
                     var bb = lData.GetBollingerBands(20, 2);
@@ -1842,7 +1843,7 @@ namespace StockPr.Research
                         var symbol = stock.s;
                         
                         // Lấy dữ liệu
-                        var lData = await _apiService.SSI_GetDataStock(symbol);
+                        var lData = await _marketDataService.SSI_GetDataStock(symbol);
                         if (lData == null || lData.Count() < 100) continue;
 
                         // ✨ QUALITY FILTERS
@@ -2013,7 +2014,8 @@ namespace StockPr.Research
                         var symbol = stock.s;
 
                         // Lấy dữ liệu
-                        var lData = (await _apiService.SSI_GetDataStockT(symbol)).DistinctBy(x => x.Date).ToList();
+                        var lData = (await _marketDataService.SSI_GetDataStockT(
+symbol)).DistinctBy(x => x.Date).ToList();
                         if (lData == null || lData.Count() < 100) continue;
 
                         // ✨ QUALITY FILTERS
@@ -2039,10 +2041,10 @@ namespace StockPr.Research
                         var now = DateTime.Now;
                         var from = now.AddYears(-1);
 
-                        var lInfo = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-30), now);
-                        var lPrev_1 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-60), now.AddDays(-31));
-                        var lPrev_2 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-90), now.AddDays(-61));
-                        var lPrev_3 = await _apiService.SSI_GetStockInfo(symbol, now.AddDays(-120), now.AddDays(-91));
+                        var lInfo = await _marketDataService.SSI_GetStockInfo(symbol, now.AddDays(-30), now);
+                        var lPrev_1 = await _marketDataService.SSI_GetStockInfo(symbol, now.AddDays(-60), now.AddDays(-31));
+                        var lPrev_2 = await _marketDataService.SSI_GetStockInfo(symbol, now.AddDays(-90), now.AddDays(-61));
+                        var lPrev_3 = await _marketDataService.SSI_GetStockInfo(symbol, now.AddDays(-120), now.AddDays(-91));
                         lInfo.data.AddRange(lPrev_1.data);
                         lInfo.data.AddRange(lPrev_2.data);
                         lInfo.data.AddRange(lPrev_3.data);

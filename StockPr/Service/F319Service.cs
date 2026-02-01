@@ -18,13 +18,13 @@ namespace StockPr.Service
     public class F319Service : IF319Service
     {
         private readonly ILogger<F319Service> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IScraperService _scraperService;
         private readonly IConfigF319Repo _f319Repo;
         private readonly IF319AccountRepo _accRepo;
-        public F319Service(ILogger<F319Service> logger, IAPIService apiService, IConfigF319Repo f319Repo, IF319AccountRepo accRepo)
+        public F319Service(ILogger<F319Service> logger, IScraperService scraperService, IConfigF319Repo f319Repo, IF319AccountRepo accRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _scraperService = scraperService;
             _f319Repo = f319Repo;
             _accRepo = accRepo;
         }
@@ -40,7 +40,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var lDat = await _apiService.F319_Scout(acc.url);
+                        var lDat = await _scraperService.F319_Scout(acc.url);
                         var lDatClean = Handle(lDat, acc.name);
                         if (lDatClean.Any())
                         {

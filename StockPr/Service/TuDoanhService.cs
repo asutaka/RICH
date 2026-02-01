@@ -14,16 +14,16 @@ namespace StockPr.Service
     public class TuDoanhService : ITuDoanhService
     {
         private readonly ILogger<TuDoanhService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IMarketDataService _marketDataService;
         private readonly IFileService _fileService;
         private readonly IConfigDataRepo _configRepo;
         public TuDoanhService(ILogger<TuDoanhService> logger,
-                                    IAPIService apiService,
+                                    IMarketDataService marketDataService,
                                     IFileService fileService,
                                     IConfigDataRepo configRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _marketDataService = marketDataService;
             _fileService = fileService;
             _configRepo = configRepo;
         }
@@ -46,7 +46,7 @@ namespace StockPr.Service
                 }
 
                 var strOutput = new StringBuilder();
-                var stream = await _apiService.TuDoanhHSX(dt);
+                var stream = await _marketDataService.TuDoanhHSX(dt);
                 if (stream is null
                     || stream.Length < 1000)
                     return (0, null);

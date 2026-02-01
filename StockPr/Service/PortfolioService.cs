@@ -12,12 +12,10 @@ namespace StockPr.Service
     public class PortfolioService : IPortfolioService
     {
         private readonly ILogger<PortfolioService> _logger;
-        private readonly IAPIService _apiService;
         private readonly IConfigPortfolioRepo _configRepo;
-        public PortfolioService(ILogger<PortfolioService> logger, IAPIService apiService, IConfigPortfolioRepo configRepo)
+        public PortfolioService(ILogger<PortfolioService> logger, IConfigPortfolioRepo configRepo)
         {
             _logger = logger;
-            _apiService = apiService;
             _configRepo = configRepo;
         }
 

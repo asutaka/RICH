@@ -1,4 +1,5 @@
 ﻿using StockPr.Research;
+using StockPr.Parser;
 
 namespace StockPr.Service.Settings
 {
@@ -24,6 +25,16 @@ namespace StockPr.Service.Settings
             services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IAIService, AIService>();
             services.AddSingleton<IVietstockAuthService, VietstockAuthService>();
+            services.AddSingleton<IScraperService, ScraperService>();
+            services.AddSingleton<IMarketDataService, MarketDataService>();
+            services.AddSingleton<IVietstockService, VietstockService>();
+            services.AddSingleton<IMacroDataService, MacroDataService>();
+            services.AddSingleton<IHighChartService, HighChartService>();
+
+            // Parsers
+            services.AddSingleton<IScraperParser, ScraperParser>();
+            services.AddSingleton<IMacroParser, MacroParser>();
+            services.AddSingleton<IMarketDataParser, MarketDataParser>();
             
             // Research services (for backtesting)
             services.AddSingleton<IBacktestService, BacktestService>();

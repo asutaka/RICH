@@ -1,4 +1,4 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using Skender.Stock.Indicators;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
@@ -23,7 +23,7 @@ namespace StockPr.Service
     public class AnalyzeService : IAnalyzeService
     {
         private readonly ILogger<AnalyzeService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IMarketDataService _marketDataService;
         private readonly IChartService _chartService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IStockRepo _stockRepo;
@@ -32,7 +32,7 @@ namespace StockPr.Service
         private readonly IPreEntryRepo _preEntryRepo;
         
         public AnalyzeService(ILogger<AnalyzeService> logger,
-                                    IAPIService apiService,
+                                    IMarketDataService marketDataService,
                                     IChartService chartService,
                                     IConfigDataRepo configRepo,
                                     IStockRepo stockRepo,
@@ -41,7 +41,7 @@ namespace StockPr.Service
                                     IPreEntryRepo preEntryRepo) 
         {
             _logger = logger;
-            _apiService = apiService;
+            _marketDataService = marketDataService;
             _chartService = chartService;
             _configRepo = configRepo;
             _stockRepo = stockRepo;
@@ -90,7 +90,7 @@ namespace StockPr.Service
             {
                 var strOutput = new StringBuilder();
 
-                var lMa = await _apiService.Money24h_GetMaTheoChiBao("ma20");
+                var lMa = await _marketDataService.Money24h_GetMaTheoChiBao("ma20");
                 if (lMa is null
                     || !lMa.Any())
                     return (0, null);
@@ -111,7 +111,7 @@ namespace StockPr.Service
                 var lOut = new List<MaTheoPTKT24H_MA20>();
                 foreach (var item in lStockClean)
                 {
-                    var lData = await _apiService.SSI_GetDataStock(item.s);
+                    var lData = await _marketDataService.SSI_GetDataStock(item.s);
                     if (lData.Count() < 250
                         || lData.Last().Volume < 50000)
                         continue;
@@ -199,7 +199,7 @@ namespace StockPr.Service
             {
                 var strOutput = new StringBuilder();
 
-                var lMa = await _apiService.Money24h_GetMaTheoChiBao("break_1y");
+                var lMa = await _marketDataService.Money24h_GetMaTheoChiBao("break_1y");
                 if (lMa is null
                     || !lMa.Any())
                     return (0, null);
@@ -312,7 +312,8 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var lInfo = await _apiService.SSI_GetStockInfo(symbol, dt.AddDays(-30), dt);
+                        var lInfo = await _marketDataService.SSI_GetStockInfo(
+symbol, dt.AddDays(-30), dt);
                         if(lInfo.data.Count < 5)
                             continue;
                         foreach (var item in lInfo.data)
@@ -322,7 +323,8 @@ namespace StockPr.Service
                         }
                         var filter = Builders<PreEntry>.Filter.Eq(x => x.s, symbol);
                         var pre = _preEntryRepo.GetEntityByFilter(filter);
-                        var lData = (await _apiService.SSI_GetDataStockT(symbol)).DistinctBy(x => x.Date).ToList();
+                        var lData = (await _marketDataService.SSI_GetDataStockT(
+symbol)).DistinctBy(x => x.Date).ToList();
                         lData.Remove(lData.Last());
                         if(lData.Count < 50)
                             continue;
@@ -450,9 +452,9 @@ namespace StockPr.Service
 
                 var strOutput = new StringBuilder();
                 var lData = new List<Money24h_ForeignResponse>();
-                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HSX, type));
-                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HNX, type));
-                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.UPCOM, type));
+                lData.AddRange(await _marketDataService.Money24h_GetForeign(EExchange.HSX, type));
+                lData.AddRange(await _marketDataService.Money24h_GetForeign(EExchange.HNX, type));
+                lData.AddRange(await _marketDataService.Money24h_GetForeign(EExchange.UPCOM, type));
                 if (!lData.Any())
                     return (0, null);
 
@@ -517,7 +519,7 @@ namespace StockPr.Service
 
                 var strOutput = new StringBuilder();
                 var lData = new List<Money24h_ForeignResponse>();
-                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HSX, type));
+                lData.AddRange(await _marketDataService.Money24h_GetForeign(EExchange.HSX, type));
                 if (!lData.Any())
                     return (0, null);
 
@@ -568,9 +570,9 @@ namespace StockPr.Service
                 var type = EMoney24hTimeType.today;
                 var strOutput = new StringBuilder();
                 var lData = new List<Money24h_ForeignResponse>();
-                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HSX, type));
-                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.HNX, type));
-                lData.AddRange(await _apiService.Money24h_GetForeign(EExchange.UPCOM, type));
+                lData.AddRange(await _marketDataService.Money24h_GetForeign(EExchange.HSX, type));
+                lData.AddRange(await _marketDataService.Money24h_GetForeign(EExchange.HNX, type));
+                lData.AddRange(await _marketDataService.Money24h_GetForeign(EExchange.UPCOM, type));
                 if (!lData.Any())
                     return (0, null);
 
@@ -629,7 +631,7 @@ namespace StockPr.Service
 
                 var strOutput = new StringBuilder();
                 var lData = new List<Money24h_TuDoanhResponse>();
-                lData.AddRange(await _apiService.Money24h_GetTuDoanh(EExchange.HSX, type));
+                lData.AddRange(await _marketDataService.Money24h_GetTuDoanh(EExchange.HSX, type));
                 if (!lData.Any())
                     return (0, null);
                 var first = lData.First();
@@ -715,7 +717,7 @@ namespace StockPr.Service
 
                 var strOutput = new StringBuilder();
                 var lData = new List<Money24h_TuDoanhResponse>();
-                lData.AddRange(await _apiService.Money24h_GetTuDoanh(EExchange.HSX, type));
+                lData.AddRange(await _marketDataService.Money24h_GetTuDoanh(EExchange.HSX, type));
                 if (!lData.Any())
                     return (0, null);
 
@@ -796,7 +798,8 @@ namespace StockPr.Service
 
                 var strOutput = new StringBuilder();
 
-                var res = await _apiService.Money24h_GetNhomNganh(type);
+                var res = await _marketDataService.Money24h_GetNhomNganh(
+type);
                 if (res is null
                     || !res.data.groups.Any()
                     || res.data.last_update < dTime)
@@ -984,7 +987,8 @@ namespace StockPr.Service
                     _configRepo.DeleteMany(filter);
                 }
 
-                var dat = await _apiService.Money24h_GetThongke(sym);
+                var dat = await _marketDataService.Money24h_GetThongke(
+sym);
                 Thread.Sleep(200);
                 if (dat.data.Count() < 10)
                     return null;
@@ -1051,7 +1055,7 @@ namespace StockPr.Service
         {
             try
             {
-                var lData = await _apiService.SSI_GetDataStock(code);
+                var lData = await _marketDataService.SSI_GetDataStock(code);
                 if (lData.Count() < 250)
                     return null;
 
@@ -1123,7 +1127,7 @@ namespace StockPr.Service
                 var now = DateTime.Now;
                 if(code != "VNINDEX")
                 {
-                    var info = await _apiService.SSI_GetStockInfo_Extend(code, now.AddYears(-1), now);
+                    var info = await _marketDataService.SSI_GetStockInfo_Extend(code, now.AddYears(-1), now);
                     var res = model.IsForeign(lData, info.data);
                     if (res == EOrderType.BUY)
                     {
@@ -1198,7 +1202,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var lData = await _apiService.Vietstock_GetDataStock(sector.Value);
+                        var lData = await _marketDataService.Vietstock_GetDataStock(sector.Value);
                         if (lData == null || lData.Count < 50) continue;
 
                         var current = lData.Last();

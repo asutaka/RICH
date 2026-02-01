@@ -1,4 +1,4 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
 using StockPr.Model.BCPT;
@@ -15,13 +15,16 @@ namespace StockPr.Service
     {
         private readonly ILogger<BaoCaoPhanTichService> _logger;
         private readonly IConfigBaoCaoPhanTichRepo _bcptRepo;
-        private readonly IAPIService _apiService;
+        private readonly IScraperService _scraperService;
+        private readonly IVietstockService _vietstockService;
         public BaoCaoPhanTichService(ILogger<BaoCaoPhanTichService> logger,
-                                IAPIService apiService,
+                                IScraperService scraperService,
+                                IVietstockService vietstockService,
                                 IConfigBaoCaoPhanTichRepo bcptRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _scraperService = scraperService;
+            _vietstockService = vietstockService;
             _bcptRepo = bcptRepo;
         }
 
@@ -227,7 +230,7 @@ namespace StockPr.Service
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
 
-                var res = await _apiService.DSC_GetPost();
+                var res = await _scraperService.DSC_GetPost();
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -301,7 +304,7 @@ namespace StockPr.Service
             var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
-                var res = await _apiService.VNDirect_GetPost(mode);
+                var res = await _scraperService.VNDirect_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -370,7 +373,7 @@ namespace StockPr.Service
             var lMes = new List<BaoCaoPhanTichModel>();
             try
             {
-                var res = await _apiService.MigrateAsset_GetPost();
+                var res = await _scraperService.MigrateAsset_GetPost();
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -443,7 +446,7 @@ namespace StockPr.Service
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
                 var title = mode ? "|Agribank - Báo cáo ngành|" : "|Agribank - Phân tích cổ phiếu|";
 
-                var res = await _apiService.Agribank_GetPost(mode);
+                var res = await _scraperService.Agribank_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -513,7 +516,7 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://www.ssi.com.vn/khach-hang-ca-nhan/bao-cao-nganh"
                                     : "https://www.ssi.com.vn/khach-hang-ca-nhan/bao-cao-cong-ty";
 
-                var res = await _apiService.SSI_GetPost(mode);
+                var res = await _scraperService.SSI_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -576,7 +579,7 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var res = await _apiService.VCI_GetPost();
+                var res = await _scraperService.VCI_GetPost();
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -653,7 +656,7 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var res = await _apiService.VCBS_GetPost();
+                var res = await _scraperService.VCBS_GetPost();
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -740,7 +743,7 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://www.bsc.com.vn/bao-cao-phan-tich/danh-muc-bao-cao/2"
                                     : "https://www.bsc.com.vn/bao-cao-phan-tich/danh-muc-bao-cao/1";
 
-                var res = await _apiService.BSC_GetPost(mode);
+                var res = await _scraperService.BSC_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -808,7 +811,7 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://mbs.com.vn/trung-tam-nghien-cuu/bao-cao-phan-tich/bao-cao-phan-tich-nganh/"
                                     : "https://mbs.com.vn/trung-tam-nghien-cuu/bao-cao-phan-tich/nghien-cuu-co-phieu/";
 
-                var res = await _apiService.MBS_GetPost(mode);
+                var res = await _scraperService.MBS_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -876,7 +879,7 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://www.psi.vn/vi/trung-tam-phan-tich/bao-cao-nganh"
                                     : "https://www.psi.vn/vi/trung-tam-phan-tich/bao-cao-phan-tich-doanh-nghiep";
 
-                var res = await _apiService.PSI_GetPost(mode);
+                var res = await _scraperService.PSI_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -943,7 +946,7 @@ namespace StockPr.Service
                 var commonlink = mode ? "https://ezsearch.fpts.com.vn/Services/EzReport/?tabid=174"
                                     : "https://ezsearch.fpts.com.vn/Services/EzReport/?tabid=179";
 
-                var res = await _apiService.FPTS_GetPost(mode);
+                var res = await _scraperService.FPTS_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -1009,7 +1012,7 @@ namespace StockPr.Service
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
                 var title = mode ? "|KBS - Báo cáo ngành|" : "|KBS - Cổ phiếu|";
 
-                var res = await _apiService.KBS_GetPost(mode);
+                var res = await _scraperService.KBS_GetPost(mode);
                 if (!res.Item1)
                 {
                     return (false, null);
@@ -1072,7 +1075,7 @@ namespace StockPr.Service
                 var dt = DateTime.Now;
                 var time = new DateTime(dt.Year, dt.Month, dt.Day);
                 var d = int.Parse($"{time.Year}{time.Month.To2Digit()}{time.Day.To2Digit()}");
-                var res = await _apiService.CafeF_GetPost();
+                var res = await _scraperService.CafeF_GetPost();
                 if (!res.Item1)
                 {
                     return (false, null);

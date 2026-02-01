@@ -1,4 +1,4 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
@@ -84,7 +84,7 @@ namespace StockPr.Service
             try
             {
                 var time = GetCurrentTime();
-                var lReportID = await _apiService.VietStock_KQKD_GetListReportData(code);
+                var lReportID = await _vietstockService.VietStock_KQKD_GetListReportData(code);
                 Thread.Sleep(1000);
                 if (!lReportID.data.Any())
                     return;
@@ -129,7 +129,7 @@ namespace StockPr.Service
                 strBuilder.Append($"listReportDataIds[0][ReportDataId]={last.ReportDataID}&");
                 strBuilder.Append($"listReportDataIds[0][YearPeriod]={last.BasePeriodBegin / 100}");
                 var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
-                var lData = await _apiService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
+                var lData = await _vietstockService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
                 Thread.Sleep(1000);
                 if (!(lData?.data?.Any() ?? false))
                     return;
@@ -165,7 +165,7 @@ namespace StockPr.Service
             try
             {
                 var batchCount = 8;
-                var lReportID = await _apiService.VietStock_CSTC_GetListTempID(code);
+                var lReportID = await _vietstockService.VietStock_CSTC_GetListTempID(code);
                 Thread.Sleep(1000);
                 if (!lReportID.data.Any())
                     return;
@@ -196,7 +196,7 @@ namespace StockPr.Service
                 strBuilder.Append($"ListTerms[0][ItemId]={last.IdTemp}&");
                 strBuilder.Append($"ListTerms[0][YearPeriod]={last.YearPeriod}");
                 var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
-                var lData = await _apiService.VietStock_GetFinanceIndexDataValue_CSTC_ByListTerms(txt);
+                var lData = await _vietstockService.VietStock_GetFinanceIndexDataValue_CSTC_ByListTerms(txt);
                 Thread.Sleep(1000);
 
                 var builder = Builders<Financial>.Filter;
@@ -233,7 +233,7 @@ namespace StockPr.Service
         {
             try
             {
-                var lReportID = await _apiService.VietStock_TM_GetListReportData(code);
+                var lReportID = await _vietstockService.VietStock_TM_GetListReportData(code);
                 Thread.Sleep(1000);
                 if (!lReportID.data.Any())
                     return;
@@ -265,7 +265,7 @@ namespace StockPr.Service
                 strBuilder.Append($"listReportDataIds[0][ReportDataId]={last.ReportDataID}&");
                 strBuilder.Append($"listReportDataIds[0][YearPeriod]={last.BasePeriodBegin / 100}");
                 var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
-                var lData = await _apiService.VietStock_GetReportDataDetailValue_TM_ByReportDataIds(txt);
+                var lData = await _vietstockService.VietStock_GetReportDataDetailValue_TM_ByReportDataIds(txt);
                 Thread.Sleep(1000);
 
                 var builder = Builders<Financial>.Filter;
@@ -389,7 +389,7 @@ namespace StockPr.Service
             {
                 _lSubKQKD.Clear();
                 var batchCount = 8;
-                var lReportID = await _apiService.VietStock_KQKD_GetListReportData(code);
+                var lReportID = await _vietstockService.VietStock_KQKD_GetListReportData(code);
                 if (lReportID is null)
                 {
                     return;
@@ -469,7 +469,7 @@ namespace StockPr.Service
                         strBuilder.Append($"listReportDataIds[{i}][YearPeriod]={element.BasePeriodBegin / 100}");
                     }
                     var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
-                    var lData = await _apiService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
+                    var lData = await _vietstockService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
                     Thread.Sleep(1000);
                     if (lData is null || lData.data is null)
                         continue;
@@ -521,7 +521,7 @@ namespace StockPr.Service
             {
                 _lSubCDKT.Clear();
                 var batchCount = 8;
-                var lReportID = await _apiService.VietStock_CDKT_GetListReportData(code);
+                var lReportID = await _vietstockService.VietStock_CDKT_GetListReportData(code);
                 lReportID.data = lReportID.data.TakeLast(5).ToList();
                 Thread.Sleep(1000);
                 if (!lReportID.data.Any())
@@ -597,7 +597,7 @@ namespace StockPr.Service
                         strBuilder.Append($"listReportDataIds[{i}][YearPeriod]={element.BasePeriodBegin / 100}");
                     }
                     var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
-                    var lData = await _apiService.VietStock_GetReportDataDetailValue_CDKT_ByReportDataIds(txt);
+                    var lData = await _vietstockService.VietStock_GetReportDataDetailValue_CDKT_ByReportDataIds(txt);
                     Thread.Sleep(1000);
                     if (lData is null || lData.data is null)
                         continue;

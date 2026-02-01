@@ -1,4 +1,4 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using Skender.Stock.Indicators;
 using StockPr.DAL;
 using StockPr.DAL.Entity;
@@ -19,16 +19,16 @@ namespace StockPr.Service
     public class EPSRankService : IEPSRankService
     {
         private readonly ILogger<EPSRankService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IMarketDataService _marketDataService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IPhanLoaiNDTRepo _phanloaiRepo;
         public EPSRankService(ILogger<EPSRankService> logger,
-                                    IAPIService apiService,
+                                    IMarketDataService marketDataService,
                                     IConfigDataRepo configRepo,
                                     IPhanLoaiNDTRepo phanloaiRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _marketDataService = marketDataService;
             _configRepo = configRepo;
             _phanloaiRepo = phanloaiRepo;
         }
@@ -41,7 +41,7 @@ namespace StockPr.Service
         {
             try
             {
-                var finance = await _apiService.SSI_GetFinanceStock(s);
+                var finance = await _marketDataService.SSI_GetFinanceStock(s);
                 if (finance is null)
                     return (0, 0, 0, 0, 0);
                 if (finance.eps is null)
@@ -53,7 +53,7 @@ namespace StockPr.Service
                 if (finance.debtEquity is null)
                     finance.debtEquity = 0; 
 
-                var freefloat = await _apiService.SSI_GetFreefloatStock(s);
+                var freefloat = await _marketDataService.SSI_GetFreefloatStock(s);
                 return (freefloat, finance.eps.Value, finance.pe.Value, finance.pb.Value, finance.debtEquity.Value);
             }
             catch (Exception ex)
@@ -84,7 +84,7 @@ namespace StockPr.Service
                 {
                     try
                     {
-                        var finance = await _apiService.SSI_GetFinanceStock(item.s);
+                        var finance = await _marketDataService.SSI_GetFinanceStock(item.s);
                         if (finance is null)
                             continue;
 
@@ -103,7 +103,7 @@ namespace StockPr.Service
                 foreach (var item in lEPS)
                 {
                     string mes = string.Empty;
-                    var freefloat = await _apiService.SSI_GetFreefloatStock(item.Item1);
+                    var freefloat = await _marketDataService.SSI_GetFreefloatStock(item.Item1);
                     if(freefloat <= 10)
                     {
                         mes = $"{index++}. [{item.Item1}](https://finance.vietstock.vn/{item.Item1}/phan-tich-ky-thuat.htm) (eps: {item.Item2.ToString("#,##0")})";
@@ -139,7 +139,7 @@ namespace StockPr.Service
                 var dic = new Dictionary<string, Money24h_StatisticResponse>();
                 foreach (var item in lInput)
                 {
-                    var dat = await _apiService.Money24h_GetThongke(item);
+                    var dat = await _marketDataService.Money24h_GetThongke(item);
                     Thread.Sleep(200);
                     if (dat.data.Count() < 10)
                         continue;
@@ -390,7 +390,7 @@ namespace StockPr.Service
                     if (group_DECREASE_15_MIN < min)
                         continue;
 
-                    var lData = await _apiService.SSI_GetDataStock(item.s);
+                    var lData = await _marketDataService.SSI_GetDataStock(item.s);
                     if (lData.Count() < 250
                         || lData.Last().Volume < 50000)
                         continue;
@@ -419,7 +419,7 @@ namespace StockPr.Service
         {
             try
             {
-                var dat = await _apiService.Money24h_GetThongke(sym);
+                var dat = await _marketDataService.Money24h_GetThongke(sym);
                 if (dat is null
                     || !dat.data.Any())
                     return (null, null, null, null, null);

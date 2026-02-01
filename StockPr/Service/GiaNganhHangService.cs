@@ -15,17 +15,23 @@ namespace StockPr.Service
     public class GiaNganhHangService : IGiaNganhHangService
     {
         private readonly ILogger<GiaNganhHangService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IMacroDataService _macroDataService;
+        private readonly IMarketDataService _marketDataService;
+        private readonly IHighChartService _highChartService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IMacroMicroRepo _macroRepo;
         private readonly int _flag = 7;
         public GiaNganhHangService(ILogger<GiaNganhHangService> logger,
-                                    IAPIService apiService,
+                                    IMacroDataService macroDataService,
+                                    IMarketDataService marketDataService,
+                                    IHighChartService highChartService,
                                     IConfigDataRepo configRepo,
                                     IMacroMicroRepo macroRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _macroDataService = macroDataService;
+            _marketDataService = marketDataService;
+            _highChartService = highChartService;
             _configRepo = configRepo;
             _macroRepo = macroRepo;
         }
@@ -35,7 +41,7 @@ namespace StockPr.Service
             try
             {
                 var dt = DateTime.Now;
-                var pig = await _apiService.Pig333_GetPigPrice();
+                var pig = await _macroDataService.Pig333_GetPigPrice();
                 var modelPig = new TraceGiaModel
                 {
                     content = "Giá thịt heo",
@@ -156,7 +162,7 @@ namespace StockPr.Service
             {
                 //44756 946
                 var dt = DateTime.Now;
-                var wci = await _apiService.MacroMicro_WCI(key);
+                var wci = await _macroDataService.MacroMicro_WCI(key);
                 var modelWCI = new TraceGiaModel();
                 if (key.Equals("44756"))
                 {
@@ -240,7 +246,7 @@ namespace StockPr.Service
             try
             {
                 var dt = DateTime.Now;
-                var lPhotpho = await _apiService.Metal_GetYellowPhotpho();
+                var lPhotpho = await _macroDataService.Metal_GetYellowPhotpho();
                 var modelPhotpho = new TraceGiaModel
                 {
                     content = "Phốt pho vàng",
@@ -318,7 +324,7 @@ namespace StockPr.Service
             var lTraceGia = new List<TraceGiaModel>();
             try
             {
-                var lEconomic = await _apiService.Tradingeconimic_Commodities();
+                var lEconomic = await _macroDataService.Tradingeconimic_Commodities();
                 foreach (var item in lEconomic)
                 {
                     if (isAll || item.Weekly >= _flag || item.Weekly <= -_flag)
@@ -675,7 +681,7 @@ namespace StockPr.Service
         {
             try
             {
-                //await _apiService.SBV_OMO();
+                //await _marketDataService.SBV_OMO();
             }
             catch(Exception ex)
             {

@@ -13,18 +13,18 @@ namespace StockPr.Service
     public partial class BaoCaoTaiChinhService : IBaoCaoTaiChinhService
     {
         private readonly ILogger<BaoCaoTaiChinhService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IVietstockService _vietstockService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IFinancialRepo _financialRepo;
         private readonly IStockRepo _stockRepo;
         public BaoCaoTaiChinhService(ILogger<BaoCaoTaiChinhService> logger,
-                                    IAPIService apiService,
+                                    IVietstockService vietstockService,
                                     IConfigDataRepo configRepo,
                                     IFinancialRepo financialRepo,
                                     IStockRepo stockRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _vietstockService = vietstockService;
             _configRepo = configRepo;
             _financialRepo = financialRepo;
             _stockRepo = stockRepo;
@@ -46,7 +46,7 @@ namespace StockPr.Service
                 //        return true;
                 //}
 
-                var lReportID = await _apiService.VietStock_KQKD_GetListReportData("ACB");
+                var lReportID = await _vietstockService.VietStock_KQKD_GetListReportData("ACB");
 
                 //var last = lConfig.LastOrDefault();
                 //if (last is null)

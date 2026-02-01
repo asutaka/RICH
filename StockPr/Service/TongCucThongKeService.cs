@@ -14,16 +14,16 @@ namespace StockPr.Service
     public class TongCucThongKeService : ITongCucThongKeService
     {
         private readonly ILogger<TongCucThongKeService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IMacroDataService _macroDataService;
         private readonly IConfigDataRepo _configRepo;
         private readonly IThongKeRepo _thongkeRepo;
         public TongCucThongKeService(ILogger<TongCucThongKeService> logger,
-                                    IAPIService apiService,
+                                    IMacroDataService macroDataService,
                                     IConfigDataRepo configRepo,
                                     IThongKeRepo thongkeRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _macroDataService = macroDataService;
             _configRepo = configRepo;
             _thongkeRepo = thongkeRepo;
         }
@@ -32,7 +32,7 @@ namespace StockPr.Service
         {
             try
             {
-                var url = await _apiService.TongCucThongKeGetUrl();
+                var url = await _macroDataService.TongCucThongKeGetUrl();
                 var year = dtNow.Year;
                 var index = url.IndexOf($".{year}");
                 if (index == -1)
@@ -125,7 +125,7 @@ namespace StockPr.Service
                     }
                 }
                 var dt = new DateTime(year, month, 28);
-                var stream = await _apiService.TongCucThongKeGetFile(url);
+                var stream = await _macroDataService.TongCucThongKeGetFile(url);
                 if (stream is null
                    || stream.Length < 1000)
                 {

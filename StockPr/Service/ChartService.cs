@@ -21,17 +21,24 @@ namespace StockPr.Service
         private readonly ILogger<ChartService> _logger;
         private readonly IFinancialRepo _financialRepo;
         private readonly ICommonService _commonService;
-        private readonly IAPIService _apiService;
+        private readonly IMarketDataService _marketDataService;
+        private readonly IVietstockService _vietstockService;
+        private readonly IHighChartService _highChartService;
         private readonly IThongKeRepo _thongkeRepo;
         private readonly IPhanLoaiNDTRepo _phanloaiRepo;
         
         public ChartService(ILogger<ChartService> logger, 
-            ICommonService commonService, IAPIService apiService, 
+            ICommonService commonService, 
+            IMarketDataService marketDataService,
+            IVietstockService vietstockService,
+            IHighChartService highChartService,
             IFinancialRepo financialRepo, IThongKeRepo thongKeRepo, IPhanLoaiNDTRepo phanloaiRepo) 
         {
             _logger = logger;
             _commonService = commonService;
-            _apiService = apiService;
+            _marketDataService = marketDataService;
+            _vietstockService = vietstockService;
+            _highChartService = highChartService;
             _financialRepo = financialRepo;
             _thongkeRepo = thongKeRepo;
             _phanloaiRepo = phanloaiRepo;
@@ -213,7 +220,7 @@ namespace StockPr.Service
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(hc));
                 var body = JsonConvert.SerializeObject(chart);
-                return await _apiService.GetChartImage(body);
+                return await _highChartService.GetChartImage(body);
             }
             catch (Exception ex)
             {
@@ -231,7 +238,7 @@ namespace StockPr.Service
                 if (stock == null)
                     return null;
 
-                var info = await _apiService.SSI_GetStockInfo_Extend(input, from, to);
+                var info = await _marketDataService.SSI_GetStockInfo_Extend(input, from, to);
                 if (!info.data.Any())
                     return null;
 
@@ -242,7 +249,7 @@ namespace StockPr.Service
                 }
 
                 var room = string.Empty;
-                var info_VNDirect = await _apiService.VNDirect_GetForeign(input);
+                var info_VNDirect = await _marketDataService.VNDirect_GetForeign(input);
                 if (info_VNDirect != null)
                 {
                     try
@@ -571,7 +578,7 @@ namespace StockPr.Service
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
                 var body = JsonConvert.SerializeObject(chart);
-                return await _apiService.GetChartImage(body);
+                return await _highChartService.GetChartImage(body);
             }
             catch (Exception ex)
             {
@@ -631,7 +638,7 @@ namespace StockPr.Service
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
                 var body = JsonConvert.SerializeObject(chart);
-                return await _apiService.GetChartImage(body);
+                return await _highChartService.GetChartImage(body);
             }
             catch (Exception ex)
             {
@@ -899,7 +906,7 @@ namespace StockPr.Service
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
                 var body = JsonConvert.SerializeObject(chart);
-                return await _apiService.GetChartImage(body);
+                return await _highChartService.GetChartImage(body);
             }
             catch (Exception ex)
             {
@@ -1034,7 +1041,7 @@ namespace StockPr.Service
         {
             try
             {
-                var dat = await _apiService.Money24h_GetThongke(sym);
+                var dat = await _marketDataService.Money24h_GetThongke(sym);
                 if (dat is null
                     || !dat.data.Any())
                     return null;
@@ -1072,7 +1079,7 @@ namespace StockPr.Service
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
                 var body = JsonConvert.SerializeObject(chart);
-                return await _apiService.GetChartImage(body);
+                return await _highChartService.GetChartImage(body);
             }
             catch (Exception ex)
             {
@@ -1118,7 +1125,7 @@ namespace StockPr.Service
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
                 var body = JsonConvert.SerializeObject(chart);
-                return await _apiService.GetChartImage(body);
+                return await _highChartService.GetChartImage(body);
             }
             catch (Exception ex)
             {
@@ -1165,7 +1172,7 @@ namespace StockPr.Service
 
                 var chart = new HighChartModel(JsonConvert.SerializeObject(basicColumn));
                 var body = JsonConvert.SerializeObject(chart);
-                return await _apiService.GetChartImage(body);
+                return await _highChartService.GetChartImage(body);
             }
             catch (Exception ex)
             {

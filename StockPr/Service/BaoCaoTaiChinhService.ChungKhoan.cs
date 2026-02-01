@@ -1,4 +1,4 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using StockPr.DAL.Entity;
 using StockPr.Model;
 using StockPr.Utils;
@@ -50,7 +50,7 @@ namespace StockPr.Service
             try
             {
                 var time = GetCurrentTime();
-                var lReportID = await _apiService.VietStock_KQKD_GetListReportData(code);
+                var lReportID = await _vietstockService.VietStock_KQKD_GetListReportData(code);
                 Thread.Sleep(1000);
                 lReportID.data.Reverse();
                 var d = 0;
@@ -94,7 +94,7 @@ namespace StockPr.Service
                 strBuilder.Append($"listReportDataIds[0][ReportDataId]={last.ReportDataID}&");
                 strBuilder.Append($"listReportDataIds[0][YearPeriod]={last.BasePeriodBegin / 100}");
                 var txt = strBuilder.ToString().Replace("]", "%5D").Replace("[", "%5B");
-                var lData = await _apiService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
+                var lData = await _vietstockService.VietStock_GetReportDataDetailValue_KQKD_ByReportDataIds(txt);
                 Thread.Sleep(1000);
                 if (!(lData?.data?.Any() ?? false))
                     return;

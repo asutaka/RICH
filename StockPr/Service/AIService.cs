@@ -17,12 +17,14 @@ namespace StockPr.Service
     public class AIService : IAIService
     {
         private readonly ILogger<AIService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IMarketDataService _marketDataService;
+        private readonly IHighChartService _highChartService;
         private readonly IHttpClientFactory _client;
-        public AIService(ILogger<AIService> logger, IAPIService api, IHttpClientFactory httpClientFactory)
+        public AIService(ILogger<AIService> logger, IMarketDataService marketDataService, IHighChartService highChartService, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
-            _apiService = api;
+            _marketDataService = marketDataService;
+            _highChartService = highChartService;
             _client = httpClientFactory;
         }
         #region AI
@@ -82,7 +84,7 @@ namespace StockPr.Service
         {
             try
             {
-                var dat = await _apiService.SSI_GetDataStock(code);
+                var dat = await _marketDataService.SSI_GetDataStock(code);
                 if (!dat.Any())
                     return null;
 

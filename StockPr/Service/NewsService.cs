@@ -19,12 +19,12 @@ namespace StockPr.Service
     public class NewsService : INewsService
     {
         private readonly ILogger<NewsService> _logger;
-        private readonly IAPIService _apiService;
+        private readonly IScraperService _scraperService;
         private readonly IConfigNewsRepo _configRepo;
-        public NewsService(ILogger<NewsService> logger, IAPIService apiService, IConfigNewsRepo configRepo)
+        public NewsService(ILogger<NewsService> logger, IScraperService scraperService, IConfigNewsRepo configRepo)
         {
             _logger = logger;
-            _apiService = apiService;
+            _scraperService = scraperService;
             _configRepo = configRepo;
         }
 
@@ -36,7 +36,7 @@ namespace StockPr.Service
                 var now = DateTime.Now;
                 var time = int.Parse($"{now.Year}{now.Month.To2Digit()}{now.Day.To2Digit()}");
 
-                var KinhTeChungKhoan = await _apiService.News_KinhTeChungKhoan();
+                var KinhTeChungKhoan = await _scraperService.News_KinhTeChungKhoan();
                 if(KinhTeChungKhoan != null)
                 {
                     foreach (var item in KinhTeChungKhoan.data.articles)
@@ -59,7 +59,7 @@ namespace StockPr.Service
                     }
                 }
 
-                var lNguoiDuaTin = await _apiService.News_NguoiDuaTin();
+                var lNguoiDuaTin = await _scraperService.News_NguoiDuaTin();
                 if (lNguoiDuaTin.Any())
                 {
                     foreach (var item in lNguoiDuaTin)
@@ -81,7 +81,7 @@ namespace StockPr.Service
                         lNews.Add($"[|Người Đưa Tin|{item.Title}]({item.LinktoMe2})");
                     }
                 }
-                //var lNguoiQuanSat = await _apiService.News_NguoiQuanSat();
+                //var lNguoiQuanSat = await _scraperService.News_NguoiQuanSat();
             }
             catch (Exception ex)
             {
