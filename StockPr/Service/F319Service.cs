@@ -41,7 +41,7 @@ namespace StockPr.Service
                     try
                     {
                         var lDat = await _scraperService.F319_Scout(acc.url);
-                        var lDatClean = Handle(lDat, acc.name);
+                        var lDatClean = Handle(lDat, acc.name, acc.rank);
                         if (lDatClean.Any())
                         {
                             lOutput.AddRange(lDatClean);
@@ -60,7 +60,7 @@ namespace StockPr.Service
             return lOutput;
         }
 
-        private List<F319Model> Handle(List<F319Model> param, string userName)
+        private List<F319Model> Handle(List<F319Model> param, string userName, int rank)
         {
             var lOutput = new List<F319Model>();
             var builder = Builders<ConfigF319>.Filter;
@@ -84,7 +84,9 @@ namespace StockPr.Service
                         user = userName
                     });
 
-                    item.Message = $"[{item.Title.Replace("\"","").Replace("“","").Replace("”","").Replace("[", "").Replace("]","")}](https://f319.com/{item.Url})|{userName}:{item.Content}";
+                    var status = rank == 1 ? "💎" : "";
+
+                    item.Message = $"[{item.Title.Replace("\"","").Replace("“","").Replace("”","").Replace("[", "").Replace("]","")}](https://f319.com/{item.Url})|{status}{userName}:{item.Content}";
                     lOutput.Add(item);
                 }
             }

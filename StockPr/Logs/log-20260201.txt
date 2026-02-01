@@ -1,0 +1,27 @@
+{"@t":"2026-02-01T13:47:18.1229091Z","@mt":"StockPr Worker starting at: {time}","time":"2026-02-01T20:47:18.1140449+07:00","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T13:47:18.1882792Z","@mt":"Initializing Stock list from database...","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T13:47:18.8203131Z","@mt":"StockPr Worker is running. Jobs are managed by Quartz.NET.","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T13:47:18.8589336Z","@mt":"Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl","SourceContext":"Quartz.Core.SchedulerSignalerImpl"}
+{"@t":"2026-02-01T13:47:18.8600393Z","@mt":"Quartz Scheduler created","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T13:47:18.8615034Z","@mt":"JobFactory set to: Quartz.Simpl.MicrosoftDependencyInjectionJobFactory","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T13:47:18.8627746Z","@mt":"RAMJobStore initialized.","SourceContext":"Quartz.Simpl.RAMJobStore"}
+{"@t":"2026-02-01T13:47:18.8713688Z","@mt":"Quartz Scheduler 3.13.1.0 - 'QuartzScheduler' with instanceId 'NON_CLUSTERED' initialized","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T13:47:18.8721759Z","@mt":"Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T13:47:18.8729527Z","@mt":"Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T13:47:18.8816608Z","@mt":"Adding 1 jobs, 1 triggers.","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T13:47:18.8844647Z","@mt":"Adding job: DEFAULT.F319ScoutJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T13:47:18.9043068Z","@mt":"Scheduler QuartzScheduler_$_NON_CLUSTERED started.","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T13:49:43.2089795Z","@mt":"StockPr Worker starting at: {time}","time":"2026-02-01T20:49:43.1987572+07:00","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T13:49:43.3050099Z","@mt":"Initializing Stock list from database...","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T13:49:43.9771280Z","@mt":"StockPr Worker is running. Jobs are managed by Quartz.NET.","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-01T13:49:44.0070324Z","@mt":"Initialized Scheduler Signaller of type: Quartz.Core.SchedulerSignalerImpl","SourceContext":"Quartz.Core.SchedulerSignalerImpl"}
+{"@t":"2026-02-01T13:49:44.0127051Z","@mt":"Quartz Scheduler created","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T13:49:44.0136306Z","@mt":"JobFactory set to: Quartz.Simpl.MicrosoftDependencyInjectionJobFactory","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T13:49:44.0143197Z","@mt":"RAMJobStore initialized.","SourceContext":"Quartz.Simpl.RAMJobStore"}
+{"@t":"2026-02-01T13:49:44.0154889Z","@mt":"Quartz Scheduler 3.13.1.0 - 'QuartzScheduler' with instanceId 'NON_CLUSTERED' initialized","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T13:49:44.0160613Z","@mt":"Using thread pool 'Quartz.Simpl.DefaultThreadPool', size: 10","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T13:49:44.0166764Z","@mt":"Using job store 'Quartz.Simpl.RAMJobStore', supports persistence: False, clustered: False","SourceContext":"Quartz.Impl.StdSchedulerFactory"}
+{"@t":"2026-02-01T13:49:44.0239251Z","@mt":"Adding 1 jobs, 1 triggers.","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T13:49:44.0260790Z","@mt":"Adding job: DEFAULT.F319ScoutJob","SourceContext":"Quartz.ContainerConfigurationProcessor"}
+{"@t":"2026-02-01T13:49:44.0425901Z","@mt":"Scheduler QuartzScheduler_$_NON_CLUSTERED started.","SourceContext":"Quartz.Core.QuartzScheduler"}
+{"@t":"2026-02-01T13:50:06.5333113Z","@mt":"Job F319ScoutJob started.","SourceContext":"StockPr.Jobs.F319ScoutJob"}
