@@ -235,10 +235,7 @@ namespace StockPr.Service
 
                 if (_sessionManager.Session == null) return null;
 
-                // 2. Thiết lập HttpClient bằng Factory
-                var client = _clientFactory.CreateClient("VietstockClient");
-
-                // 3. Xây dựng Cookie Header
+                // 2. Xây dựng Cookie Header
                 var cookies = _sessionManager.Session.Cookies;
                 var cookieParts = new List<string>();
                 
@@ -253,40 +250,49 @@ namespace StockPr.Service
 
                 var cookieHeader = string.Join("; ", cookieParts);
 
-                // 4. Tạo Request
-                var request = new HttpRequestMessage(HttpMethod.Post, url);
-                request.Headers.Add("Cookie", cookieHeader);
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36");
-                request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                request.Headers.Add("Accept", "*/*");
-                request.Headers.Add("Origin", "https://finance.vietstock.vn");
-                
-                // Đảm bảo có Referer hợp lệ (Vietstock kiểm tra cái này khá kỹ)
-                if (!request.Headers.Contains("Referer"))
-                {
-                    request.Headers.Add("Referer", "https://finance.vietstock.vn/ACB/tai-chinh.htm");
-                }
-
-                // 5. Chuẩn bị Body (Tự động thêm CSRF Token nếu chưa có)
+                // 3. Chuẩn bị Body (Tự động thêm CSRF Token nếu chưa có)
                 var finalBody = new Dictionary<string, string>(body);
                 if (!finalBody.ContainsKey("__RequestVerificationToken"))
                 {
                     finalBody["__RequestVerificationToken"] = _sessionManager.Session.CsrfToken;
                 }
 
-                request.Content = new FormUrlEncodedContent(finalBody);
+                var formData = new FormUrlEncodedContent(finalBody);
+                var bodyStr = await formData.ReadAsStringAsync();
 
-                // 6. Thực thi
-                var response = await client.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                // 4. Thực thi qua curl.exe để bypass Cloudflare
+                var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36";
+                var referer = "https://finance.vietstock.vn/ACB/tai-chinh.htm";
 
-                if (!response.IsSuccessStatusCode)
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    _logger.LogWarning($"Vietstock PostAsync Error: {response.StatusCode} for {url}. Content: {content}");
-                    
+                    FileName = "curl.exe",
+                    Arguments = $"-s -L -X POST \"{url}\" " +
+                                $"-H \"Cookie: {cookieHeader}\" " +
+                                $"-H \"User-Agent: {userAgent}\" " +
+                                $"-H \"X-Requested-With: XMLHttpRequest\" " +
+                                $"-H \"Accept: */*\" " +
+                                $"-H \"Origin: https://finance.vietstock.vn\" " +
+                                $"-H \"Referer: {referer}\" " +
+                                $"-H \"Content-Type: application/x-www-form-urlencoded; charset=UTF-8\" " +
+                                $"--data-raw \"{bodyStr}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = System.Text.Encoding.UTF8
+                };
+
+                using var process = System.Diagnostics.Process.Start(psi);
+                if (process == null) return null;
+
+                var content = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (string.IsNullOrEmpty(content) || content.Contains("<!DOCTYPE"))
+                {
+                    _logger.LogWarning($"Vietstock PostAsync Error or HTML received for {url}. Content: {content}");
                     if (content.Contains("<!DOCTYPE"))
                     {
-                        _logger.LogWarning("Session likely invalidated by server (HTML response). Clearing local session.");
                         _sessionManager.Session = null;
                     }
                     return null;
@@ -310,7 +316,12 @@ namespace StockPr.Service
                 foreach (var part in body.Split('&'))
                 {
                     var kv = part.Split('=');
-                    if (kv.Length == 2) dict[kv[0]] = System.Web.HttpUtility.UrlDecode(kv[1]);
+                    if (kv.Length == 2)
+                    {
+                        var key = System.Web.HttpUtility.UrlDecode(kv[0]);
+                        var val = System.Web.HttpUtility.UrlDecode(kv[1]);
+                        dict[key] = val;
+                    }
                 }
             }
             return await PostAsync(url, dict);
