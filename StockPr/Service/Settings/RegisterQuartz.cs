@@ -29,7 +29,7 @@ namespace StockPr.Service.Settings
                     .WithIdentity("BaoCaoPhanTichJob-trigger")
                     .WithCronSchedule("0 0/15 * * * ?"));
 
-                // 2. F319ScoutJob: Every 30 minutes (shifted)
+                // 2. F319ScoutJob: Every 30 minutes (shifted)- Khi nào chạy được sửa xuống 5p
                 var f319Key = new JobKey("F319ScoutJob");
                 q.AddJob<F319ScoutJob>(opts => opts.WithIdentity(f319Key));
                 q.AddTrigger(opts => opts
