@@ -77,7 +77,18 @@ namespace StockPr.Service
                 var responseStr = await _authService.PostAsync(url, body);
                 if (string.IsNullOrEmpty(responseStr) || responseStr.Contains("<!DOCTYPE")) return null;
 
-                return JsonConvert.DeserializeObject<List<Vietstock_GICSProportionResponse>>(responseStr);
+                var res = JsonConvert.DeserializeObject<List<Vietstock_GICSProportionResponse>>(responseStr);
+                if (res != null)
+                {
+                    foreach (var item in res)
+                    {
+                        if (item.TradingDate.HasValue)
+                        {
+                            item.TradingDate = item.TradingDate.Value.AddHours(7);
+                        }
+                    }
+                }
+                return res;
             }
             catch (Exception ex)
             {

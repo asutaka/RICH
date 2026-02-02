@@ -246,10 +246,10 @@ namespace StockPr.Utils
             {"Thép,cao su, phân bón", "1510"},
             {"Bảo hiểm", "4030"},
             {"Điện nước", "5510"},
-            {"Bán lẻ", "3020"},
+            {"Bán lẻ", "2550"},
             {"Dầu khí", "1010"},
             {"Xây dựng", "2010"},
-            {"Thực phẩm", "2550"},
+            {"Thực phẩm", "3020"},
             {"Dệt may", "2520"},
             {"Cảng, Hàng không", "2030"},
             {"Dược phẩm", "3520"},
@@ -262,18 +262,29 @@ namespace StockPr.Utils
             {"Ngân hàng", "4010"},
             {"Chứng khoán", "4020"},
             {"Bất động sản", "6020"},
-            {"Thép,cao su, phân bón", "1510"},
+            {"Nguyên liệu", "1510"},
             {"Bảo hiểm", "4030"},
             {"Điện nước", "5510"},
-            {"Bán lẻ", "3020"},
+            {"Bán lẻ", "2550"},
             {"Dầu khí", "1010"},
             {"Xây dựng", "2010"},
-            {"Thực phẩm", "2550"},
+            {"Thực phẩm", "3020"},
             {"Dệt may", "2520"},
-            {"Cảng, Hàng không", "2030"},
+            {"Vận tải", "2030"},
             {"Dược phẩm", "3520"},
             {"Công nghệ", "4510"},
             {"Viễn thông", "5010"},
+        };
+
+        public static Dictionary<string, string> _dicSectorDescription = new Dictionary<string, string>
+        {
+            {"Nhà ở và Khu công nghiệp", "6020"},
+            {"Thép, Cao su, Khoáng sản, Phân bón", "1510"},
+            {"Xây dựng, Thủy điện, Gex, Nhựa", "2010"},
+            {"Cảng, Hàng không", "2030"},
+            {"Thủy sản, Chăn nuôi, Đường", "3020"},
+            {"GAS,REE,POW,HDG,NT2,GEG,BWE", "5510"},
+            {"Viettel, FOX", "5010"},
         };
     }
 }

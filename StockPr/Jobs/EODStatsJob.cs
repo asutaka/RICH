@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using Quartz;
 using StockPr.Service;
 using StockPr.Settings;
+using StockPr.Utils;
 
 namespace StockPr.Jobs
 {
@@ -57,6 +58,14 @@ namespace StockPr.Jobs
                 if (heatmapStream != null)
                 {
                     await _teleService.SendPhoto(_telegramSettings.UserId, heatmapStream);
+                    var sectorMsgMap = string.Join("\n", StaticVal._dicSectorChartIndex
+                        .Select(s => new { Sector = s.Key, Desc = StaticVal._dicSectorDescription.FirstOrDefault(d => d.Value == s.Value).Key })
+                        .Where(x => !string.IsNullOrEmpty(x.Desc))
+                        .Select(x => $"{x.Sector} : {x.Desc}"));
+                    if (!string.IsNullOrEmpty(sectorMsgMap))
+                    {
+                        await _teleService.SendMessage(_telegramSettings.UserId, sectorMsgMap, true);
+                    }
                 }
 
                 _logger.LogInformation("Job EODStatsJob completed.");

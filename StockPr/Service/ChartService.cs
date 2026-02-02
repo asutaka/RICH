@@ -1202,67 +1202,99 @@ namespace StockPr.Service
                 if (!filteredData.Any())
                     return null;
 
-                // 2. Lọc 7 ngày gần nhất
-                var last7Dates = filteredData
+                // 2. Lấy danh sách ngày (Sắp xếp tăng dần)
+                var allDates = filteredData
                     .Where(x => x.TradingDate.HasValue)
                     .Select(x => x.TradingDate.Value.Date)
                     .Distinct()
-                    .OrderByDescending(d => d)
-                    .Take(7)
-                    .OrderBy(d => d) // Sắp xếp tăng dần để hiển thị trên chart
+                    .OrderBy(d => d)
                     .ToList();
 
-                if (!last7Dates.Any())
-                    return null;
+                // Cần lookback (ví dụ 3 ngày) + số ngày hiển thị (ví dụ 5 ngày) = 8 ngày
+                // Hiện tại listDataRaw thường trả về khoảng 10-20 ngày.
+                var lastDates = allDates.ToList();
+                if (lastDates.Count < 2) return null;
 
-                var finalData = filteredData
-                    .Where(x => x.TradingDate.HasValue && last7Dates.Contains(x.TradingDate.Value.Date))
-                    .ToList();
+                // 3. Chuẩn bị ma trận rawPercent[industryIndex][dateIndex]
+                var industryKeys = StaticVal._dicSectorChartIndex.Keys.ToList();
+                var industryCodes = StaticVal._dicSectorChartIndex.Values.ToList();
+                var numIndustries = industryKeys.Count;
+                var numDates = lastDates.Count;
 
-                // 3. Chuẩn bị categories
-                // X Categories: Tên các ngành theo đúng thứ tự trong dictionary
-                var xCategories = StaticVal._dicSectorChartIndex.Keys.ToList();
-                var industryCodeToIndex = new Dictionary<int, int>();
-                var index = 0;
-                foreach (var codeStr in StaticVal._dicSectorChartIndex.Values)
+                var rawPercent = new double[numIndustries, numDates];
+                for (int i = 0; i < numIndustries; i++)
                 {
-                    if (int.TryParse(codeStr, out var c))
+                    var code = int.Parse(industryCodes[i]);
+                    for (int j = 0; j < numDates; j++)
                     {
-                        industryCodeToIndex[c] = index;
-                    }
-                    index++;
-                }
-
-                // Y Categories: Các ngày định dạng dd/MM
-                var yCategories = last7Dates.Select(d => d.ToString("dd/MM")).ToList();
-                var dateToIndex = last7Dates.Select((d, i) => new { d, i }).ToDictionary(x => x.d, x => x.i);
-
-                // 4. Chuẩn bị data cho heatmap: [[x, y, value]]
-                var heatmapData = new List<List<object>>();
-                foreach (var item in finalData)
-                {
-                    if (item.TradingDate.HasValue && industryCodeToIndex.ContainsKey(item.IndustryCode))
-                    {
-                        var xIdx = industryCodeToIndex[item.IndustryCode];
-                        var yIdx = dateToIndex[item.TradingDate.Value.Date];
-                        heatmapData.Add(new List<object> { xIdx, yIdx, (double)Math.Round(item.Change, 2) });
+                        var item = filteredData.FirstOrDefault(x => x.IndustryCode == code && x.TradingDate.Value.Date == lastDates[j]);
+                        rawPercent[i, j] = item != null ? (double)item.Change : 0;
                     }
                 }
 
-                var title = "Biến động nhóm ngành GICS (7 ngày gần nhất)";
-                var heatmapModel = new HighchartHeatmap(title, xCategories, yCategories, heatmapData);
+                // 4. Tính toán Heatmap Data (logic từ JS)
+                var heatmapPoints = new List<HighChartHeatmapPoint>();
+                int lookback = 3;
 
-                // Tùy chỉnh màu sắc
-                var changes = heatmapData.Select(d => (double)d[2]).ToList();
-                var minVal = changes.Any() ? changes.Min() : -2;
-                var maxVal = changes.Any() ? changes.Max() : 2;
-                var absoluteMax = Math.Max(Math.Max(Math.Abs(minVal), Math.Abs(maxVal)), 1);
+                for (int y = 0; y < numIndustries; y++)
+                {
+                    for (int x = 0; x < numDates; x++)
+                    {
+                        var history = new List<double>();
+                        for (int k = Math.Max(0, x - lookback); k < x; k++)
+                        {
+                            history.Add(rawPercent[y, k]);
+                        }
 
-                heatmapModel.colorAxis.min = -absoluteMax;
-                heatmapModel.colorAxis.max = absoluteMax;
-                
-                // Heatmap thường hiển thị đẹp khi reversed Y để ngày mới nhất ở trên
-                heatmapModel.yAxis.reversed = true;
+                        double value = 0;
+                        bool isBaseline = false;
+                        bool isSpike = false;
+
+                        if (history.Count == 0)
+                        {
+                            isBaseline = true;
+                        }
+                        else
+                        {
+                            double mean = history.Average();
+                            value = rawPercent[y, x] - mean;
+                            double relDelta = mean != 0 ? value / mean : 0;
+
+                            // LOGIC LEAD NGÀNH
+                            double prev = rawPercent[y, x - 1];
+                            var prevHistory = new List<double>();
+                            for (int k = Math.Max(0, x - 1 - lookback); k < x - 1; k++)
+                            {
+                                prevHistory.Add(rawPercent[y, k]);
+                            }
+                            double prevMean = prevHistory.Count > 0 ? prevHistory.Average() : mean;
+                            double prevDelta = prev - prevMean;
+
+                            isSpike = value > 0 &&
+                                      prevDelta <= 0 &&
+                                      Math.Abs(relDelta) >= 0.15 &&
+                                      rawPercent[y, x] <= 22;
+                        }
+
+                        // Chỉ hiển thị từ ngày thứ 2 trở đi (vì ngày 1 là baseline không có delta)
+                        if (x > 0)
+                        {
+                            heatmapPoints.Add(new HighChartHeatmapPoint
+                            {
+                                x = x - 1, // Shift x because we skip index 0
+                                y = y,
+                                value = Math.Round(value, 2),
+                                raw = Math.Round(rawPercent[y, x], 2),
+                                color = GetCellColor(value, isBaseline),
+                                borderColor = isSpike ? "#f7d046" : "#e0e0e0",
+                                borderWidth = isSpike ? 2 : 1
+                            });
+                        }
+                    }
+                }
+
+                var displayDates = lastDates.Skip(1).Select(d => d.ToString("dd/MM")).ToList();
+                var heatmapModel = new HighchartHeatmap(displayDates, industryKeys, heatmapPoints);
 
                 var chartParams = new HighChartModel(JsonConvert.SerializeObject(heatmapModel));
                 var body = JsonConvert.SerializeObject(chartParams);
@@ -1273,6 +1305,34 @@ namespace StockPr.Service
                 _logger.LogError($"ChartService.Chart_VietStock_GICSProportion|EXCEPTION| {ex.Message}");
             }
             return null;
+        }
+
+        private string GetCellColor(double delta, bool isBaseline)
+        {
+            if (isBaseline) return "#f0f0f0";
+
+            double max = 4.0;
+            double v = Math.Max(-max, Math.Min(max, delta));
+            double ratio = Math.Abs(v) / max;
+
+            if (v > 0)
+            {
+                // Green: #e8f8f0 (232, 248, 240) -> #2ecc71 (46, 204, 113)
+                int r = (int)(232 + (46 - 232) * ratio);
+                int g = (int)(248 + (204 - 248) * ratio);
+                int b = (int)(240 + (113 - 240) * ratio);
+                return $"#{r:X2}{g:X2}{b:X2}";
+            }
+            if (v < 0)
+            {
+                // Red: #fdecea (253, 236, 234) -> #e74c3c (231, 76, 60)
+                int r = (int)(253 + (231 - 253) * ratio);
+                int g = (int)(236 + (76 - 236) * ratio);
+                int b = (int)(234 + (60 - 234) * ratio);
+                return $"#{r:X2}{g:X2}{b:X2}";
+            }
+
+            return "#f0f0f0";
         }
     }
 }

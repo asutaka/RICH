@@ -1262,7 +1262,7 @@ sym);
                     if (item.IsRSI) signals.Add("RSI Signal");
                     var signalStr = signals.Any() ? $" - *{string.Join(", ", signals)}*" : "";
                     
-                    strOutput.AppendLine($"{status} *[{item.Name}](https://finance.vietstock.vn/nganh/{item.value}.htm)*: {item.Change}% {signalStr}");
+                    strOutput.AppendLine($"{status} [{item.Name}](https://finance.vietstock.vn/nganh/{item.value}.htm): {item.Change}% {signalStr}");
                 }
 
                 return (1, strOutput.ToString());
