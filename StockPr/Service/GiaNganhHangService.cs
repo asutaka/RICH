@@ -113,6 +113,10 @@ namespace StockPr.Service
         {
             try
             {
+                var dt = DateTime.Now;
+                var macroData = await _macroDataService.MacroMicro_WCI(key);
+                if (macroData == null) return null;
+
                 var model = new TraceGiaModel();
                 if (key.Equals("44756"))
                 {
@@ -127,30 +131,63 @@ namespace StockPr.Service
                     model.link = "https://en.macromicro.me/charts/946/world-baltic-dirty-clean-tanker-index";
                 }
 
-                var builder = Builders<MacroMicro>.Filter;
-                var filter = builder.Eq(x => x.key, key);
-                var entity = _macroRepo.GetEntityByFilter(filter);
-                if (entity is null)
-                    return null;
+                var composite = macroData.series.FirstOrDefault();
+                if (composite != null)
+                {
+                    var lData = composite.Select(x => new MacroMicro_CleanData
+                    {
+                        Date = x[0].ToDateTime("yyyy-MM-dd"),
+                        Value = decimal.Parse(x[1])
+                    });
+                    if (lData.Any())
+                    {
+                        var last = lData.Last();
+                        model.price = last.Value;
+                        //weekly
+                        var dtPrev = dt.AddDays(-2);
+                        if (last.Date >= dtPrev)
+                        {
+                            var lastWeek = lData.SkipLast(1).Last();
+                            var rateWeek = Math.Round(100 * (-1 + last.Value / lastWeek.Value), 1);
+                            model.weekly = rateWeek;
+                        }
+                        //Monthly
+                        var dtMonthly = dt.AddMonths(-1);
+                        var itemMonthly = lData.Where(x => x.Date <= dtMonthly).OrderByDescending(x => x.Date).FirstOrDefault();
+                        if (itemMonthly != null)
+                        {
+                            var rateMonthly = Math.Round(100 * (-1 + last.Value / itemMonthly.Value), 1);
+                            model.monthly = rateMonthly;
+                        }
+                        //yearly
+                        var dtYearly = dt.AddYears(-1);
+                        var itemYearly = lData.Where(x => x.Date <= dtYearly).OrderByDescending(x => x.Date).FirstOrDefault();
+                        if (itemYearly != null)
+                        {
+                            var rateYearly = Math.Round(100 * (-1 + last.Value / itemYearly.Value), 1);
+                            model.yearly = rateYearly;
+                        }
+                        //YTD
+                        var dtYTD = new DateTime(dt.Year, 1, 2);
+                        var itemYTD = lData.Where(x => x.Date <= dtYTD).OrderByDescending(x => x.Date).FirstOrDefault();
+                        if (itemYTD != null)
+                        {
+                            var rateYTD = Math.Round(100 * (-1 + last.Value / itemYTD.Value), 1);
+                            model.YTD = rateYTD;
+                        }
+
+                    }
+                }
 
                 var isPrint = false;
-                model.weekly = (decimal)entity.W;
-                model.monthly = (decimal)entity.M;
-                model.yearly = (decimal)entity.Y;
-                model.YTD = (decimal)entity.YTD;
-                model.price = (decimal)entity.price;
-                if (model.weekly >= _flag || model.weekly <= -_flag)
+                if (isAll || model.weekly >= _flag || model.weekly <= -_flag)
                 {
                     isPrint = true;
                 }
 
-                //Print
-                if (isAll || isPrint)
-                {
-                    return model;
-                }
+                if (isPrint) return model;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError($"GiaNganhHangService.MacroMicroLocal|EXCEPTION| {ex.Message}");
             }
@@ -584,13 +621,13 @@ namespace StockPr.Service
                 var builder = Builders<ConfigData>.Filter;
                 FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
                 var lConfig = _configRepo.GetByFilter(filter);
-                if (lConfig.Any())
-                {
-                    if (lConfig.Any(x => x.t == t))
-                        return (0, null);
+                //if (lConfig.Any())
+                //{
+                //    if (lConfig.Any(x => x.t == t))
+                //        return (0, null);
 
-                    _configRepo.DeleteMany(filter);
-                }
+                //    _configRepo.DeleteMany(filter);
+                //}
 
                 var lTraceGia = new List<TraceGiaModel>();
                 var strOutput = new StringBuilder();

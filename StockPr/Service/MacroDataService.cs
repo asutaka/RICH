@@ -102,13 +102,32 @@ namespace StockPr.Service
             {
                 var cookie = string.Empty;
                 var url = "https://en.macromicro.me/";
-                var web = new HtmlWeb { UseCookies = true };
-                web.PostResponse += (request, response) =>
+                var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
+
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    cookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
+                    FileName = "curl.exe",
+                    Arguments = $"-i -s -L -A \"{userAgent}\" {url}",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
                 };
-                var document = web.Load(url);
-                var html = document.ParsedText;
+
+                using var process = System.Diagnostics.Process.Start(psi);
+                if (process == null) return (null, null);
+
+                var output = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (string.IsNullOrEmpty(output)) return (null, null);
+
+                var parts = output.Split(new[] { "\r\n\r\n", "\n\n" }, 2, StringSplitOptions.None);
+                var headerPart = parts[0];
+                var html = parts.Length > 1 ? parts[1] : string.Empty;
+
+                var cookieLines = headerPart.Split('\n').Where(l => l.StartsWith("set-cookie:", StringComparison.OrdinalIgnoreCase));
+                cookie = string.Join("; ", cookieLines.Select(l => l.Substring(11).Split(';')[0].Trim()));
+
                 return _parser.ParseMacroMicroAuth(html, cookie);
             }
             catch (Exception ex)
@@ -126,17 +145,26 @@ namespace StockPr.Service
                 if (string.IsNullOrWhiteSpace(res.Item1) || string.IsNullOrWhiteSpace(res.Item2))
                     return null;
 
-                var client = _client.CreateClient("ResilientClient");
-                var request = new HttpRequestMessage(HttpMethod.Get, $"https://en.macromicro.me/charts/data/{key}");
-                request.Headers.Add("authorization", $"Bearer {res.Item1}");
-                request.Headers.Add("cookie", res.Item2);
-                request.Headers.Add("referer", "https://en.macromicro.me/collections/22190/sun-ming-te-investment-dashboard/44756/drewry-world-container-index");
-                request.Headers.Add("user-agent", "zzz");
-                request.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
+                var url = $"https://en.macromicro.me/charts/data/{key}";
+                var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
 
-                var response = await client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                var responseMessageStr = await response.Content.ReadAsStringAsync();
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "curl.exe",
+                    Arguments = $"-s -L -A \"{userAgent}\" -H \"authorization: Bearer {res.Item1}\" -H \"cookie: {res.Item2}\" -H \"referer: https://en.macromicro.me/\" {url}",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using var process = System.Diagnostics.Process.Start(psi);
+                if (process == null) return null;
+
+                var responseMessageStr = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (string.IsNullOrWhiteSpace(responseMessageStr)) return null;
+
                 return _parser.ParseMacroMicroData(responseMessageStr, key);
             }
             catch (Exception ex)
