@@ -92,7 +92,9 @@ namespace StockPr.Utils
             "VCI",
             "VDS",
             "VIX",
-            "VND"
+            "VND",
+            "TCX",
+            "VCK"
         };
 
         public static List<string> _lThepTP = new List<string>
