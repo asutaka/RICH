@@ -120,7 +120,7 @@ namespace StockPr.Parser
         public List<Metal_Detail> ParseMetalPhoto(string json)
         {
             var responseModel = JsonConvert.DeserializeObject<Metal_Main>(json);
-            return responseModel?.data?.priceListList;
+            return responseModel?.data?.prices?.Select(x => new Metal_Detail { metalsPrice = x }).ToList();
         }
 
         public List<string> ParseTongCucThongKeLinks(string html, int year)

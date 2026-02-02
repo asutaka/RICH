@@ -278,29 +278,9 @@ namespace StockPr.Service
                             }
                         }
                         //Monthly
-                        var dtMonthly = dt.AddMonths(-1);
-                        var itemMonthly = lPhotpho.Where(x => x.metalsPrice.Date <= dtMonthly).OrderByDescending(x => x.metalsPrice.Date).FirstOrDefault();
-                        if (itemMonthly != null)
-                        {
-                            var rateMonthly = Math.Round(100 * (-1 + cur.metalsPrice.average / itemMonthly.metalsPrice.average), 1);
-                            modelPhotpho.monthly = rateMonthly;
-                        }
-                        //yearly
-                        var dtYearly = dt.AddYears(-1);
-                        var itemYearly = lPhotpho.Where(x => x.metalsPrice.Date <= dtYearly).OrderByDescending(x => x.metalsPrice.Date).FirstOrDefault();
-                        if (itemYearly != null)
-                        {
-                            var rateYearly = Math.Round(100 * (-1 + cur.metalsPrice.average / itemYearly.metalsPrice.average), 1);
-                            modelPhotpho.yearly = rateYearly;
-                        }
-                        //YTD
-                        var dtYTD = new DateTime(dt.Year, 1, 2);
-                        var itemYTD = lPhotpho.Where(x => x.metalsPrice.Date <= dtYTD).OrderByDescending(x => x.metalsPrice.Date).FirstOrDefault();
-                        if (itemYTD != null)
-                        {
-                            var rateYTD = Math.Round(100 * (-1 + cur.metalsPrice.average / itemYTD.metalsPrice.average), 1);
-                            modelPhotpho.YTD = rateYTD;
-                        }
+                        modelPhotpho.monthly = 0;
+                        modelPhotpho.yearly = 0;
+                        modelPhotpho.YTD = 0;
                     }
                     catch (Exception ex)
                     {

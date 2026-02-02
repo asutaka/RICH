@@ -43,7 +43,7 @@ namespace StockPr.Model.BCPT
 
     public class Metal_Data
     {
-        public List<Metal_Detail> priceListList { get; set; }
+        public List<Metal_Price> prices { get; set; }
     }
 
     public class Metal_Detail
@@ -54,6 +54,7 @@ namespace StockPr.Model.BCPT
     public class Metal_Price
     {
         public decimal average { get; set; }
+        [JsonProperty("renew_date")]
         public string renewDate { get; set; }
         public DateTime Date { get; set; }
     }
