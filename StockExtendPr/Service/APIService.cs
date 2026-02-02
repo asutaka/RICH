@@ -1,7 +1,8 @@
-﻿using HtmlAgilityPack;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using StockExtendPr.Model;
+using System.Net;
 using System.Text;
+using HtmlAgilityPack;
 
 namespace StockExtendPr.Service
 {
@@ -24,21 +25,45 @@ namespace StockExtendPr.Service
             try
             {
                 var cookie = string.Empty;
-                var url = $"https://en.macromicro.me/";
-                var web = new HtmlWeb()
+                var url = "https://en.macromicro.me/";
+                var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
+
+                // Use curl.exe as a workaround for TLS fingerprinting blocks on HttpClient
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    UseCookies = true
+                    FileName = "curl.exe",
+                    Arguments = $"-i -s -L -A \"{userAgent}\" {url}",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
                 };
-                web.PostResponse += (request, response) =>
-                {
-                    cookie = response.Headers.GetValues("Set-Cookie")?.FirstOrDefault();
-                };
-                var document = web.Load(url);
+
+                using var process = System.Diagnostics.Process.Start(psi);
+                if (process == null) return (null, null);
+
+                var output = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (string.IsNullOrEmpty(output)) return (null, null);
+
+                // Split headers and body
+                var parts = output.Split(new[] { "\r\n\r\n", "\n\n" }, 2, StringSplitOptions.None);
+                var headerPart = parts[0];
+                var html = parts.Length > 1 ? parts[1] : string.Empty;
+
+                // Extract Cookie from headers
+                var cookieLines = headerPart.Split('\n').Where(l => l.StartsWith("set-cookie:", StringComparison.OrdinalIgnoreCase));
+                cookie = string.Join("; ", cookieLines.Select(l => l.Substring(11).Split(';')[0].Trim()));
+
+                var document = new HtmlDocument();
+                document.LoadHtml(html);
+
                 // Use HtmlAgilityPack to find the element with 'data-stk' attribute
                 var node = document.DocumentNode.SelectSingleNode("//*[@data-stk]");
                 if (node == null)
                 {
-                    _logger.LogWarning("APIService.MacroMicro_GetAuthorize|WARNING| Could not find element with 'data-stk' attribute.");
+                    var htmlSnippet = html.Length > 500 ? html.Substring(0, 500) : html;
+                    _logger.LogWarning($"APIService.MacroMicro_GetAuthorize|WARNING| Could not find element with 'data-stk' attribute via curl. HTML Snippet: {htmlSnippet}");
                     return (null, null);
                 }
 
@@ -67,7 +92,7 @@ namespace StockExtendPr.Service
                 if (string.IsNullOrWhiteSpace(res.Item1)
                     || string.IsNullOrWhiteSpace(res.Item2))
                 {
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                     res = await MacroMicro_GetAuthorize();
                     if (string.IsNullOrWhiteSpace(res.Item1)
                     || string.IsNullOrWhiteSpace(res.Item2))
@@ -76,19 +101,26 @@ namespace StockExtendPr.Service
                     }
                 }
 
-                var client = _client.CreateClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, $"https://en.macromicro.me/charts/data/{key}");
-                request.Headers.Add("authorization", $"Bearer {res.Item1}");
-                request.Headers.Add("cookie", res.Item2);
-                request.Headers.Add("referer", "https://en.macromicro.me/collections/22190/sun-ming-te-investment-dashboard/44756/drewry-world-container-index");
-                request.Headers.Add("user-agent", "zzz");
+                var url = $"https://en.macromicro.me/charts/data/{key}";
+                var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
 
-                request.Content = new StringContent(string.Empty,
-                                    Encoding.UTF8,
-                                    "application/json");//CONTENT-TYPE header
-                var response = await client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                var responseMessageStr = await response.Content.ReadAsStringAsync();
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "curl.exe",
+                    Arguments = $"-s -L -A \"{userAgent}\" -H \"authorization: Bearer {res.Item1}\" -H \"cookie: {res.Item2}\" -H \"referer: https://en.macromicro.me/\" {url}",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using var process = System.Diagnostics.Process.Start(psi);
+                if (process == null) return null;
+
+                var responseMessageStr = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (string.IsNullOrWhiteSpace(responseMessageStr)) return null;
+
                 var responseModel = JsonConvert.DeserializeObject<MacroMicro_Main>(responseMessageStr);
                 if (key.Equals("946"))
                 {

@@ -39,13 +39,13 @@ namespace StockExtendPr.Service
                 var builder = Builders<ConfigData>.Filter;
                 FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, (int)mode);
                 var lConfig = _configRepo.GetByFilter(filter);
-                if (lConfig.Any())
-                {
-                    if (lConfig.Any(x => x.t == t))
-                        return;
+                //if (lConfig.Any())
+                //{
+                //    if (lConfig.Any(x => x.t == t))
+                //        return;
 
-                    _configRepo.DeleteMany(filter);
-                }
+                //    _configRepo.DeleteMany(filter);
+                //}
                 //WCI
                 var wci_key = "44756";
                 var wci = await MacroMicro(isAll, wci_key);
@@ -122,6 +122,7 @@ namespace StockExtendPr.Service
 
                 if (lTraceGia.Any())
                 {
+                    _logger.LogInformation($"GiaNganhHangService.TraceGia|SUCCESS| Traced {lTraceGia.Count} items.");
                     _configRepo.InsertOne(new ConfigData
                     {
                         ty = (int)mode,
