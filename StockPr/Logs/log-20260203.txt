@@ -1,0 +1,32 @@
+{"@t":"2026-02-03T04:41:40.5985040Z","@mt":"StockPr Worker starting at: {time}","time":"2026-02-03T11:41:40.5826726+07:00","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-03T04:41:40.6297319Z","@mt":"Initializing Stock list from database...","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-03T04:41:47.2072027Z","@mt":"Vietstock session invalid/expired. Refreshing before API call...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:41:47.2433801Z","@mt":"Starting Robust Vietstock Login...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:41:52.7776361Z","@mt":"Navigating to https://finance.vietstock.vn/...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:04.0305292Z","@mt":"Opening login popup...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:04.5023094Z","@mt":"Waiting for login form (Attached)...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:04.7876859Z","@mt":"Performing login via direct Fetch to bypass UI/Timeout issues...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:05.4513021Z","@mt":"Login success. Reloading page to synchronize CSRF tokens...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:09.8705234Z","@mt":"Waiting for authentication success sign...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:09.8899489Z","@mt":"Login verified via Cookies.","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:09.9195178Z","@mt":"Session data retrieved successfully.","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T04:42:29.9667574Z","@mt":"Start processing HTTP request {HttpMethod} {Uri}","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","EventId":{"Id":100,"Name":"RequestPipelineStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","Scope":["HTTP POST http://127.0.0.1:7801/"]}
+{"@t":"2026-02-03T04:42:30.1199087Z","@mt":"Sending HTTP request {HttpMethod} {Uri}","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","EventId":{"Id":100,"Name":"RequestStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","Scope":["HTTP POST http://127.0.0.1:7801/"]}
+{"@t":"2026-02-03T04:42:30.7435202Z","@mt":"Received HTTP response headers after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":621.0625,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","Scope":["HTTP POST http://127.0.0.1:7801/"]}
+{"@t":"2026-02-03T04:42:30.7478602Z","@mt":"End processing HTTP request after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":785.4745,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestPipelineEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","Scope":["HTTP POST http://127.0.0.1:7801/"]}
+{"@t":"2026-02-03T08:06:04.1797545Z","@mt":"StockPr Worker starting at: {time}","time":"2026-02-03T15:06:04.1697570+07:00","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-03T08:06:04.2137217Z","@mt":"Initializing Stock list from database...","SourceContext":"StockPr.Worker"}
+{"@t":"2026-02-03T08:06:07.9146787Z","@mt":"Vietstock session invalid/expired. Refreshing before API call...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:07.9562981Z","@mt":"Starting Robust Vietstock Login...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:14.0779819Z","@mt":"Navigating to https://finance.vietstock.vn/...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:25.8007583Z","@mt":"Opening login popup...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:26.2064347Z","@mt":"Waiting for login form (Attached)...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:26.6897715Z","@mt":"Performing login via direct Fetch to bypass UI/Timeout issues...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:27.7564537Z","@mt":"Login success. Reloading page to synchronize CSRF tokens...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:32.6791550Z","@mt":"Waiting for authentication success sign...","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:32.7028590Z","@mt":"Login verified via Cookies.","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:06:32.7707000Z","@mt":"Session data retrieved successfully.","SourceContext":"StockPr.Service.VietstockAuthService"}
+{"@t":"2026-02-03T08:07:23.7482680Z","@mt":"Start processing HTTP request {HttpMethod} {Uri}","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","EventId":{"Id":100,"Name":"RequestPipelineStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","Scope":["HTTP POST http://127.0.0.1:7801/"]}
+{"@t":"2026-02-03T08:07:23.9013820Z","@mt":"Sending HTTP request {HttpMethod} {Uri}","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","EventId":{"Id":100,"Name":"RequestStart"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","Scope":["HTTP POST http://127.0.0.1:7801/"]}
+{"@t":"2026-02-03T08:07:24.6859825Z","@mt":"Received HTTP response headers after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":782.1318,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.ClientHandler","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","Scope":["HTTP POST http://127.0.0.1:7801/"]}
+{"@t":"2026-02-03T08:07:24.6898768Z","@mt":"End processing HTTP request after {ElapsedMilliseconds}ms - {StatusCode}","ElapsedMilliseconds":946.1965,"StatusCode":200,"EventId":{"Id":101,"Name":"RequestPipelineEnd"},"SourceContext":"System.Net.Http.HttpClient.ResilientClient.LogicalHandler","HttpMethod":"POST","Uri":"http://127.0.0.1:7801/","Scope":["HTTP POST http://127.0.0.1:7801/"]}

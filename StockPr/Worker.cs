@@ -83,6 +83,19 @@ namespace StockPr
             // Initialize data
             StockInstance();
 
+            //var heatmapStream = await _analyzeService.Chart_Heatmap();
+            //if (heatmapStream != null)
+            //{
+            //    await _teleService.SendPhoto(_idUser, heatmapStream);
+            //    var sectorMsgMap = string.Join("\n", StaticVal._dicSectorChartIndex
+            //        .Select(s => new { Sector = s.Key, Desc = StaticVal._dicSectorDescription.FirstOrDefault(d => d.Value == s.Value).Key })
+            //        .Where(x => !string.IsNullOrEmpty(x.Desc))
+            //        .Select(x => $"{x.Sector} : {x.Desc}"));
+            //    if (!string.IsNullOrEmpty(sectorMsgMap))
+            //    {
+            //        await _teleService.SendMessage(_idUser, sectorMsgMap, true);
+            //    }
+            //}
             // ==================== BACKTEST RUNNER ====================
             // ⚠️ UNCOMMENT PHẦN NÀY ĐỂ CHẠY BACKTEST
             // Nhớ COMMENT LẠI sau khi test xong!
