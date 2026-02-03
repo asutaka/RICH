@@ -442,16 +442,42 @@ namespace StockPr.Service
         {
             var lOutput = new List<F319Model>();
             var url = $"https://f319.com/members/{acc}/recent-content?_xfNoRedirect=1&_xfResponseType=json";
+            var referer = $"https://f319.com/members/{acc}/";
             try
             {
-                var client = _client.CreateClient("ResilientClient");
-                var responseMessage = await client.GetAsync(url);
+                var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36";
 
-                if (responseMessage.StatusCode != HttpStatusCode.OK)
-                    return lOutput;
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "curl.exe",
+                    Arguments = $"-s -L -A \"{userAgent}\" " +
+                                $"-H \"accept: application/json, text/javascript, */*; q=0.01\" " +
+                                $"-H \"accept-language: vi,en-US;q=0.9,en;q=0.8\" " +
+                                $"-H \"priority: u=1, i\" " +
+                                $"-H \"referer: {referer}\" " +
+                                $"-H \"sec-ch-ua: \\\"Not(A:Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"144\\\", \\\"Google Chrome\\\";v=\\\"144\\\"\" " +
+                                $"-H \"sec-ch-ua-mobile: ?0\" " +
+                                $"-H \"sec-ch-ua-platform: \\\"Windows\\\"\" " +
+                                $"-H \"sec-fetch-dest: empty\" " +
+                                $"-H \"sec-fetch-mode: cors\" " +
+                                $"-H \"sec-fetch-site: same-origin\" " +
+                                $"-H \"x-ajax-referer: {referer}\" " +
+                                $"-H \"x-requested-with: XMLHttpRequest\" " +
+                                $"\"{url}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
 
-                var responseMessageStr = await responseMessage.Content.ReadAsStringAsync();
-                var responseModel = JsonConvert.DeserializeObject<F319Raw>(responseMessageStr);
+                using var process = System.Diagnostics.Process.Start(psi);
+                if (process == null) return lOutput;
+
+                var data = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (string.IsNullOrWhiteSpace(data)) return lOutput;
+
+                var responseModel = JsonConvert.DeserializeObject<F319Raw>(data);
                 if (responseModel != null)
                 {
                     return _parser.ParseF319(responseModel.TemplateHtml);
