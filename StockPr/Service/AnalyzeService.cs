@@ -1279,30 +1279,30 @@ sym);
         {
             try
             {
-                var dt = DateTime.Now;
-                var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
-                var mode = (int)EConfigDataType.Heatmap; // Chọn mode 69 (64+5) cho GICS Heatmap
-                var builder = Builders<ConfigData>.Filter;
-                FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
-                var lConfig = _configRepo.GetByFilter(filter);
+                //var dt = DateTime.Now;
+                //var t = long.Parse($"{dt.Year}{dt.Month.To2Digit()}{dt.Day.To2Digit()}");
+                //var mode = (int)EConfigDataType.Heatmap; // Chọn mode 69 (64+5) cho GICS Heatmap
+                //var builder = Builders<ConfigData>.Filter;
+                //FilterDefinition<ConfigData> filter = builder.Eq(x => x.ty, mode);
+                //var lConfig = _configRepo.GetByFilter(filter);
 
-                if (lConfig.Any())
-                {
-                    if (lConfig.Any(x => x.t >= t))
-                        return null;
+                //if (lConfig.Any())
+                //{
+                //    if (lConfig.Any(x => x.t >= t))
+                //        return null;
 
-                    _configRepo.DeleteMany(filter);
-                }
+                //    _configRepo.DeleteMany(filter);
+                //}
 
                 var chartStream = await _chartService.Chart_VietStock_GICSProportion();
-                if (chartStream != null)
-                {
-                    _configRepo.InsertOne(new ConfigData
-                    {
-                        ty = mode,
-                        t = t
-                    });
-                }
+                //if (chartStream != null)
+                //{
+                //    _configRepo.InsertOne(new ConfigData
+                //    {
+                //        ty = mode,
+                //        t = t
+                //    });
+                //}
 
                 return chartStream;
             }

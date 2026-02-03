@@ -1,7 +1,8 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Quartz;
 using StockPr.Service;
 using StockPr.Settings;
+using StockPr.Utils;
 
 namespace StockPr.Jobs
 {
@@ -35,6 +36,21 @@ namespace StockPr.Jobs
                 {
                     await _teleService.SendMessage(_telegramSettings.ChannelId, gdnn.Item2, true);
                 }
+
+                // 3. Phân tích chỉ số ngành
+                var sectorMsg = await _analyzeService.AnalyzeSectorIndex();
+                if (sectorMsg.Item1 > 0)
+                {
+                    await _teleService.SendMessage(_telegramSettings.UserId, sectorMsg.Item2, true);
+                }
+
+                // 4. Heatmap biến động ngành (VietStock GICS)
+                var heatmapStream = await _analyzeService.Chart_Heatmap();
+                if (heatmapStream != null)
+                {
+                    await _teleService.SendPhoto(_telegramSettings.UserId, heatmapStream);
+                }
+                await _teleService.SendMessage(_telegramSettings.UserId, "/////////*MORNING-END*/////////");
                 _logger.LogInformation("Job ForexMorningJob completed.");
             }
             catch (Exception ex)
