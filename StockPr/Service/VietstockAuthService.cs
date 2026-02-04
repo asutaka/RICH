@@ -36,6 +36,10 @@ namespace StockPr.Service
             try
             {
                 _logger.LogInformation("Starting Robust Vietstock Login...");
+                
+                // Set fixed path for browsers so Windows Service can find them
+                Environment.SetEnvironmentVariable("PLAYWRIGHT_BROWSERS_PATH", @"C:\ProgramData\ms-playwright");
+
                 using var playwright = await Playwright.CreateAsync();
                 await using var browser = await playwright.Chromium.LaunchAsync(
                     new BrowserTypeLaunchOptions 
