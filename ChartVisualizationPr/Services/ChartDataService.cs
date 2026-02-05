@@ -47,7 +47,7 @@ namespace ChartVisualizationPr.Services
         {
             string cacheKey = $"stock_data_{symbol}";
             
-            if (!_cache.TryGetValue(cacheKey, out List<Quote> quotes))
+            if (!_cache.TryGetValue(cacheKey, out List<Quote>? quotes) || quotes == null)
             {
                 // Cache miss - fetch from API
                 _logger.LogInformation($"Cache MISS for {symbol} - fetching from API");
@@ -64,7 +64,7 @@ namespace ChartVisualizationPr.Services
                 _logger.LogInformation($"Cache HIT for {symbol} - using cached data");
             }
             
-            return quotes;
+            return quotes ?? new List<Quote>();
         }
 
         public async Task<List<string>> GetSymbolsAsync()

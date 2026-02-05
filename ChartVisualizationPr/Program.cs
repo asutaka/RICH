@@ -5,6 +5,7 @@ using StockPr.Service;
 using StockPr.Service.Settings;
 using StockPr.Settings;
 using StockPr.Utils;
+using StockPr.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,16 +27,16 @@ builder.Services.AddCors(options =>
 // Configure settings from appsettings.json
 builder.Services.Configure<VietStockSettings>(
     builder.Configuration.GetSection("VietStock"));
+builder.Services.Configure<VietstockOptions>(
+    builder.Configuration.GetSection("VietStock"));
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDB"));
 
-// Register only the services we need
+// Register services
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<IAPIService, APIService>();
-builder.Services.AddMongoDb(builder.Configuration);
-builder.Services.AddSingleton<ISymbolRepo, SymbolRepo>();
-builder.Services.AddSingleton<IPhanLoaiNDTRepo, PhanLoaiNDTRepo>();
-builder.Services.AddSingleton<IStockRepo, StockRepo>();
+builder.Services.AddSingleton<IVietstockSessionManager, VietstockSessionManager>();
+builder.Services.ServiceDependencies();
+builder.Services.DALDependencies(builder.Configuration);
 
 // Add MemoryCache for performance optimization
 builder.Services.AddMemoryCache();
@@ -43,13 +44,6 @@ builder.Services.AddMemoryCache();
 // Register ChartVisualization services
 builder.Services.AddScoped<IChartDataService, ChartDataService>();
 
-// Initialize StaticVal with VietStock credentials from configuration
-var vietStockSettings = builder.Configuration.GetSection("VietStock").Get<VietStockSettings>();
-if (vietStockSettings != null)
-{
-    StaticVal._VietStock_Cookie = vietStockSettings.Cookie;
-    StaticVal._VietStock_Token = vietStockSettings.Token;
-}
 
 var app = builder.Build();
 
