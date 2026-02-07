@@ -3,6 +3,7 @@ using Skender.Stock.Indicators;
 using StockPr.Model;
 using StockPr.Parser;
 using StockPr.Utils;
+using System.IO;
 using System.Net;
 using System.Text;
 
@@ -60,7 +61,8 @@ namespace StockPr.Service
                 if (string.IsNullOrEmpty(lastID)) return null;
 
                 var downloadUrl = $"{url}/Modules/CMS/Web/DownloadFile?id={lastID}";
-                return await client.GetStreamAsync(downloadUrl);
+                var bytes = await client.GetByteArrayAsync(downloadUrl);
+                return new MemoryStream(bytes);
             }
             catch (Exception ex)
             {

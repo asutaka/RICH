@@ -46,7 +46,7 @@ namespace StockPr.Service
                 }
 
                 var strOutput = new StringBuilder();
-                var stream = await _marketDataService.TuDoanhHSX(dt);
+                using var stream = await _marketDataService.TuDoanhHSX(dt);
                 if (stream is null
                     || stream.Length < 1000)
                     return (0, null);

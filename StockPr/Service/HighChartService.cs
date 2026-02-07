@@ -1,5 +1,6 @@
 using System.Text;
 using System.Net.Http;
+using System.IO;
 
 namespace StockPr.Service
 {
@@ -34,7 +35,8 @@ namespace StockPr.Service
                 var responseMessage = await client.SendAsync(requestMessage);
                 if (responseMessage.IsSuccessStatusCode)
                 {
-                    return await responseMessage.Content.ReadAsStreamAsync();
+                    var bytes = await responseMessage.Content.ReadAsByteArrayAsync();
+                    return new MemoryStream(bytes);
                 }
                 
                 var errorMsg = await responseMessage.Content.ReadAsStringAsync();

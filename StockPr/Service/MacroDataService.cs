@@ -2,6 +2,7 @@ using HtmlAgilityPack;
 using StockPr.Model.BCPT;
 using StockPr.Parser;
 using StockPr.Utils;
+using System.IO;
 using System.Text;
 
 namespace StockPr.Service
@@ -235,7 +236,8 @@ namespace StockPr.Service
             try
             {
                 var client = _client.CreateClient("ResilientClient");
-                return await client.GetStreamAsync(url);
+                var bytes = await client.GetByteArrayAsync(url);
+                return new MemoryStream(bytes);
             }
             catch (Exception ex)
             {

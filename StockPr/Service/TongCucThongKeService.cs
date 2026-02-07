@@ -125,7 +125,7 @@ namespace StockPr.Service
                     }
                 }
                 var dt = new DateTime(year, month, 28);
-                var stream = await _macroDataService.TongCucThongKeGetFile(url);
+                using var stream = await _macroDataService.TongCucThongKeGetFile(url);
                 if (stream is null
                    || stream.Length < 1000)
                 {
@@ -133,7 +133,7 @@ namespace StockPr.Service
                 }
 
                 ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-                var package = new ExcelPackage(stream);
+                using var package = new ExcelPackage(stream);
                 var lSheet = package.Workbook.Worksheets;
                 bool isIIP = false, isVonDauTu = false, isFDI = false, isBanLe = false, isCPI = false, isVantaiHK = false, isVanTaiHH = false, isXK = false;
                 foreach (var sheet in lSheet)
