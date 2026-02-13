@@ -31,6 +31,7 @@ namespace StockPr.Utils
              new DateTime(2026,2,17),
              new DateTime(2026,2,18),
              new DateTime(2026,2,19),
+             new DateTime(2026,2,20),
              new DateTime(2026,4,27),
              new DateTime(2026,4,30),
              new DateTime(2026,5,1),
